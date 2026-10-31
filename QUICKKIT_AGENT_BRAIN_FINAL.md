@@ -732,3 +732,10 @@ This FINAL Brain supersedes the earlier master. The original earlier Brain and u
 - Final expanded unit total **70/70 passed**, including real approved/unapproved robots/sitemap outputs. Additional populated workspace axe/overflow checks and reduced-motion behavior passed; final icons/robots/sitemap/header HTTP smoke checks passed. Generated root checklist plus owner-input and security review documents. A self-contained Git bundle is exported outside the repo for a history-preserving handoff; no remote publication is implied.
 
 - Final screenshot review refined the 320px hero heading clamp to keep “Quick solutions.” together. Rebuilt/restarted the production preview and reran the complete browser suite again: 123 passed, 2 documented capability skips. Updated screenshot and verified the emphasized phrase occupies one line.
+
+## GitHub publication — owner-authorized update, 2026-10-31
+
+- Owner supplied the exact target `https://github.com/sachi26698-LIMA/Quickkit.git`. Verified empty remote and clean `fix/launch-audit`; no existing remote work to overwrite.
+- GitHub connector remained unsupported, so used the official GitHub CLI device/browser authorization flow approved by the owner. Credentials were held in a restricted temporary configuration outside the persisted workspace, never printed or committed.
+- Published audited code commit `5b8725e` atomically to `main` and `fix/launch-audit` without force. Both remote hashes matched the local audited commit. Repository was already PUBLIC; visibility was not changed.
+- Publication records updated in README/checklist. Remote CI is checked separately; pushing does not claim CI completion, a successful website deployment, resolved legal/security gates, or indexing approval. No Vercel project/domain/deployment was created by this Git publication.

@@ -1,7 +1,7 @@
 # QUICKKIT — final pre-launch release checklist
 
 **Review date:** 31 October 2026
-**Status:** technical preview verified; public launch NOT approved; no deployment performed.
+**Status:** technical preview verified; code pushed to the owner-selected GitHub repository; public website launch NOT approved; no deployment performed.
 **Current branch:** `fix/launch-audit` (branched from `feat/premium-mvp`; original `main` and history preserved).
 
 ## 1. Dependency review — completed investigation, explicit residual decision
@@ -41,7 +41,11 @@ Evidence: `docs/FINAL_QUALITY_AUDIT.md`, `docs/verification/launch-audit-*`.
 
 Exact fields and source pages: [`docs/OWNER_INPUTS.md`](docs/OWNER_INPUTS.md). No legal/business information has been invented.
 
-## 4. GitHub — owner connection steps
+## 4. GitHub — publication status and reusable connection steps
+
+**Completed:** owner supplied `https://github.com/sachi26698-LIMA/Quickkit.git`, approved official GitHub CLI browser authorization, and code was pushed to `main` and `fix/launch-audit` with matching remote hashes. Repository visibility was already PUBLIC and was not modified. No force-push or existing-history replacement was used. Initial audited code commit: `5b8725e`; later documentation commits record this publication. CI status must be checked separately; a push is not a passing CI or deployed-site claim.
+
+The instructions below remain available for cloning/reconnecting on your own machine. Do not add a duplicate `origin` or repeat completed setup blindly.
 
 1. On your own device, install Git and Node 22 (`nvm install 22` / `nvm use` if using nvm).
 2. Obtain the **whole repository with `.git` history** from `/home/user/quickkit`, not only visible source snippets. Workspace ZIP/download tools may omit hidden `.git`; verify `git log` after extraction. If history is absent, request a history-preserving export before initializing over anything.
@@ -60,7 +64,7 @@ Exact fields and source pages: [`docs/OWNER_INPUTS.md`](docs/OWNER_INPUTS.md). N
    git push -u origin main
    git push -u origin fix/launch-audit
    ```
-8. Open a pull request from `fix/launch-audit` into `main`. Review the full diff/history, CI and security report, then merge only after approval. Enable branch protection/required CI checks and restrict write access. No push has been performed here.
+8. Open a pull request from `fix/launch-audit` into `main`. Review the full diff/history, CI and security report, then merge only after approval. Enable branch protection/required CI checks and restrict write access. The initial push is now complete; inspect existing remote branches before any subsequent push.
 
 ### History-preserving bundle alternative
 
