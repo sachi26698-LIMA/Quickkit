@@ -3,7 +3,7 @@ import QrGenerator from "@/components/tools/qr-generator";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "QR Code Generator — create and download PNG codes",
-  "Create QR codes for links or text, preview locally and download a high-resolution PNG. No third-party QR service or input upload.",
+  "Create QR codes for links or text with size, color and error-correction controls. Download PNG or SVG — no third-party QR service or input upload.",
   "/tools/qr-generator",
 );
 export default function Page() {
@@ -13,7 +13,7 @@ export default function Page() {
       content={{
         steps: [
           "Enter a link or plain text (within 2,000 UTF-8 bytes).",
-          "Choose Generate QR code to create a local preview.",
+          "Optionally adjust size, error correction and colors (keep contrast at least 3:1), then choose Generate QR code.",
           "Download the PNG, and scan it with your phone to check it before sharing.",
         ],
         faqs: [
@@ -27,7 +27,7 @@ export default function Page() {
           },
           {
             q: "Why won’t a dense code scan?",
-            a: "Long content produces denser codes. Keep content short, retain the white border and print it large enough. The PNG is 768 × 768 with medium error correction.",
+            a: "Long content produces denser codes. Keep content short, retain the white border and print it large enough. Pick a larger PNG size, a higher error-correction level, and strong dark-on-light contrast.",
           },
         ],
       }}

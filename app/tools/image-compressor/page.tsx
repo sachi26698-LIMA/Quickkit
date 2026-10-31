@@ -3,7 +3,7 @@ import ImageCompressor from "@/components/tools/image-compressor";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Image Compressor — local JPEG, PNG & WebP compression",
-  "Compress and convert images locally with quality control, original-size previews and downloadable JPEG, PNG or WebP output.",
+  "Compress, convert and optionally resize images locally — drag & drop, quality control, before/after previews and downloadable JPEG, PNG or WebP output.",
   "/tools/image-compressor",
 );
 export default function Page() {
@@ -12,8 +12,8 @@ export default function Page() {
       slug="image-compressor"
       content={{
         steps: [
-          "Choose a JPEG, PNG or WebP image below 15 MB and within 24 megapixels.",
-          "Select the output format and quality. Dimensions are preserved; JPEG uses a white background for transparency.",
+          "Drop, paste or choose a JPEG, PNG or WebP image below 15 MB and within 24 megapixels.",
+          "Select the output format, quality and an optional maximum size. Dimensions are preserved unless you choose a cap; JPEG uses a white background for transparency.",
           "Compress, compare the size and preview, then download the result.",
         ],
         faqs: [

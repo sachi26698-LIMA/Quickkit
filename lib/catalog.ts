@@ -60,7 +60,7 @@ export const tools = [
     keywords: "url scan png download",
     icon: "qr",
     color: "mint",
-    phase: 3,
+    phase: 2,
   },
   {
     slug: "image-compressor",
@@ -71,7 +71,7 @@ export const tools = [
     keywords: "photo picture jpeg webp optimize resize",
     icon: "image",
     color: "peach",
-    phase: 3,
+    phase: 2,
   },
 ] as const;
 export function filterTools(query: string, category: Category) {

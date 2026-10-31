@@ -2,8 +2,8 @@ import ToolShell from "@/components/tool-shell";
 import CaseConverter from "@/components/tools/case-converter";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
-  "Case Converter — uppercase, lowercase, title & sentence case",
-  "Convert text case without losing line breaks. Switch between uppercase, lowercase, title and sentence case locally.",
+  "Case Converter — uppercase, title, camelCase, snake_case & more",
+  "Convert between ten case styles — UPPERCASE, Title Case, camelCase, snake_case, kebab-case and playful aLtErNaTiNg — live as you type, without losing line breaks.",
   "/tools/case-converter",
 );
 export default function Page() {
@@ -13,8 +13,8 @@ export default function Page() {
       content={{
         steps: [
           "Paste text into the Original text field.",
-          "Choose UPPERCASE, lowercase, Title Case or Sentence case.",
-          "Copy the converted output, or reset both fields.",
+          "Choose from ten styles: reading cases, developer identifiers (camelCase, snake_case…) or playful aLtErNaTiNg. The result updates live as you type.",
+          "Copy or download the converted output, send it back to the input for another pass, or reset both fields.",
         ],
         faqs: [
           {
