@@ -1,4 +1,9 @@
 > Historical initial-MVP verification record. Current launch-audit results: `FINAL_QUALITY_AUDIT.md` (70 unit tests, 123 browser passes, 2 capability skips, 15 residual dev audit entries).
+>
+> **Design-system rebuild (Phase 1, 31 Oct 2026):** the homepage, header, footer,
+> cards, tool pages and styling layer were replaced with the Tailwind v4 design
+> system. Results in this file describe the previous design and are not
+> re-measured. Current results: `PHASE_1_FOUNDATION.md`.
 
 # Verification record — 31 October 2026
 
