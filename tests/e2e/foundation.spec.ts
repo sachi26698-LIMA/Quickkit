@@ -45,9 +45,10 @@ test("tool directory page lists and filters every tool", async ({ page }) => {
   await expect(page.locator(".tool-card")).toHaveCount(6);
   await page.getByRole("searchbox").fill("image");
   await expect(page.locator(".tool-card")).toHaveCount(1);
-  await expect(
-    page.getByRole("link", { name: /Image Compressor/ }),
-  ).toHaveAttribute("href", "/tools/image-compressor");
+  await expect(page.locator(".tool-card").first()).toHaveAttribute(
+    "href",
+    "/tools/image-compressor",
+  );
   await page.getByRole("button", { name: "Clear search" }).click();
   await expect(page.locator(".tool-card")).toHaveCount(6);
   await page.getByRole("button", { name: "Security", exact: true }).click();
@@ -84,9 +85,12 @@ test("home hero calls to action reach the catalog and directory", async ({
       name: "Small tasks. Quick solutions.",
     }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "View all tools", exact: true }).click();
+
+  const hero = page.locator("section:has(#hero-title)");
+  await hero.getByRole("link", { name: "View all tools", exact: true }).click();
   await expect(page).toHaveURL(/\/tools$/);
+
   await page.goBack();
-  await page.getByRole("link", { name: "Explore tools", exact: true }).click();
+  await hero.getByRole("link", { name: "Explore tools", exact: true }).click();
   await expect(page).toHaveURL(/#tools$/);
 });
