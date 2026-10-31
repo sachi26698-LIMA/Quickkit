@@ -4,22 +4,22 @@ v22.23.4
 > vitest run
 
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.12 [39m[90m/home/user/quickkit[39m
+ RUN  v4.1.12 /home/user/quickkit
 
- [32m✓[39m tests/dependency-compat.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 3144[2mms[22m[39m
-   [33m[2m✓[22m[39m runs the real parser project-service default-project matcher [33m 3130[2mms[22m[39m
- [32m✓[39m tests/components.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 268[2mms[22m[39m
- [32m✓[39m tests/core-tools.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 166[2mms[22m[39m
- [32m✓[39m tests/seo.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/launch.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m tests/image-header.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/browser-tools.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/catalog.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ ✓ tests/dependency-compat.test.ts (4 tests) 3144ms
+   ✓ runs the real parser project-service default-project matcher  3130ms
+ ✓ tests/components.test.tsx (4 tests) 268ms
+ ✓ tests/core-tools.test.ts (23 tests) 166ms
+ ✓ tests/seo.test.ts (5 tests) 11ms
+ ✓ tests/launch.test.ts (8 tests) 10ms
+ ✓ tests/image-header.test.ts (11 tests) 7ms
+ ✓ tests/browser-tools.test.ts (6 tests) 5ms
+ ✓ tests/catalog.test.ts (7 tests) 5ms
 
-[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
-[2m      Tests [22m [1m[32m68 passed[39m[22m[90m (68)[39m
-[2m   Start at [22m 07:04:31
-[2m   Duration [22m 5.62s[2m (transform 169ms, setup 0ms, import 502ms, tests 3.62s, environment 587ms)[22m
+ Test Files  8 passed (8)
+      Tests  68 passed (68)
+   Start at  07:04:31
+   Duration  5.62s (transform 169ms, setup 0ms, import 502ms, tests 3.62s, environment 587ms)
 
 
 > quickkit@1.0.0 build
@@ -34,9 +34,9 @@ v22.23.4
   Finished TypeScript in 2.7s ...
   Collecting page data using 1 worker ...
   Generating static pages using 1 worker (0/18) ...
-  Generating static pages using 1 worker (4/18) 
-  Generating static pages using 1 worker (8/18) 
-  Generating static pages using 1 worker (13/18) 
+  Generating static pages using 1 worker (4/18)
+  Generating static pages using 1 worker (8/18)
+  Generating static pages using 1 worker (13/18)
 ✓ Generating static pages using 1 worker (18/18) in 638ms
   Finalizing page optimization ...
 
@@ -60,4 +60,3 @@ Route (app)
 
 
 ○  (Static)  prerendered as static content
-

@@ -69,22 +69,22 @@ tsconfig.json 2ms (unchanged)
 > vitest run
 
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.12 [39m[90m/home/user/quickkit[39m
+ RUN  v4.1.12 /home/user/quickkit
 
- [32m✓[39m tests/dependency-compat.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 3608[2mms[22m[39m
-   [33m[2m✓[22m[39m runs the real parser project-service default-project matcher [33m 3594[2mms[22m[39m
- [32m✓[39m tests/components.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 349[2mms[22m[39m
- [32m✓[39m tests/core-tools.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 162[2mms[22m[39m
- [32m✓[39m tests/seo.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
- [32m✓[39m tests/launch.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 28[2mms[22m[39m
- [32m✓[39m tests/image-header.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/catalog.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/browser-tools.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ ✓ tests/dependency-compat.test.ts (4 tests) 3608ms
+   ✓ runs the real parser project-service default-project matcher  3594ms
+ ✓ tests/components.test.tsx (4 tests) 349ms
+ ✓ tests/core-tools.test.ts (23 tests) 162ms
+ ✓ tests/seo.test.ts (5 tests) 15ms
+ ✓ tests/launch.test.ts (10 tests) 28ms
+ ✓ tests/image-header.test.ts (11 tests) 7ms
+ ✓ tests/catalog.test.ts (7 tests) 5ms
+ ✓ tests/browser-tools.test.ts (6 tests) 5ms
 
-[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
-[2m      Tests [22m [1m[32m70 passed[39m[22m[90m (70)[39m
-[2m   Start at [22m 07:12:42
-[2m   Duration [22m 7.26s[2m (transform 181ms, setup 0ms, import 626ms, tests 4.18s, environment 1.43s)[22m
+ Test Files  8 passed (8)
+      Tests  70 passed (70)
+   Start at  07:12:42
+   Duration  7.26s (transform 181ms, setup 0ms, import 626ms, tests 4.18s, environment 1.43s)
 
 
 > quickkit@1.0.0 typecheck

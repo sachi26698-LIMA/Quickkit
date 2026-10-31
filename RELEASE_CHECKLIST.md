@@ -1,7 +1,7 @@
 # QUICKKIT — final pre-launch release checklist
 
-**Review date:** 31 October 2026  
-**Status:** technical preview verified; public launch NOT approved; no deployment performed.  
+**Review date:** 31 October 2026
+**Status:** technical preview verified; public launch NOT approved; no deployment performed.
 **Current branch:** `fix/launch-audit` (branched from `feat/premium-mvp`; original `main` and history preserved).
 
 ## 1. Dependency review — completed investigation, explicit residual decision
