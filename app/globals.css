@@ -535,48 +535,6 @@
   .empty p {
     @apply mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted;
   }
-
-  /* Long-form content */
-  .prose {
-    @apply mx-auto w-full max-w-3xl py-10 sm:py-14;
-  }
-
-  .prose h1 {
-    @apply mt-4 mb-5 text-[2rem] leading-tight font-extrabold tracking-tight sm:text-5xl;
-  }
-
-  .prose h1 span {
-    @apply text-brand-600;
-  }
-
-  .prose h2 {
-    @apply mt-10 mb-3 text-2xl font-bold tracking-tight;
-  }
-
-  .prose p,
-  .prose li {
-    @apply text-base leading-8 text-muted;
-  }
-
-  .prose p {
-    @apply my-4;
-  }
-
-  .prose a {
-    @apply font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:decoration-brand-500;
-  }
-
-  .prose .legal-notice {
-    @apply my-6 rounded-2xl border border-brand-100 bg-lavender-50 p-5;
-  }
-
-  .prose .legal-notice strong {
-    @apply block text-sm font-bold text-ink;
-  }
-
-  .prose .legal-notice p {
-    @apply mb-0 text-sm leading-7;
-  }
 }
 
 /* Decor helpers */

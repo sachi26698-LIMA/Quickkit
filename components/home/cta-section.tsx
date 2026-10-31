@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 
-const perks = ["No ads", "No sign-up", "Local processing", "Free to use"];
+const perks = ["No ads", "No sign-up", "Local processing", "Free to start"];
 
 /** Honest closing call to action — free toolkit, no fabricated pricing. */
 export function CtaSection() {
@@ -47,20 +47,20 @@ export function CtaSection() {
                 className="size-3.5 text-brand-500"
                 aria-hidden="true"
               />
-              Free, without the detours
+              Free to start
             </span>
             <h2 id="cta-title" className="t-h2 mt-4">
-              Everything here is free.{" "}
-              <span className="text-gradient-brand">Always.</span>
+              Useful tools.{" "}
+              <span className="text-gradient-brand">Free to start.</span>
             </h2>
             <p className="t-body mt-3 text-[0.9375rem] sm:text-base">
-              No account, no ads and no upsell — just six focused tools running
-              on your device.
+              Every current tool is free, with no account and no ads. If we add
+              paid features later, the tools you use today stay available.
             </p>
           </div>
 
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center lg:flex-col lg:items-end">
-            <ul className="grid grid-cols-2 gap-x-5 gap-y-2 text-[0.8125rem] font-semibold text-ink-soft sm:text-sm">
+            <ul className="grid grid-cols-1 gap-x-5 gap-y-2 text-[0.8125rem] font-semibold text-ink-soft min-[380px]:grid-cols-2 sm:text-sm">
               {perks.map((perk) => (
                 <li
                   key={perk}
