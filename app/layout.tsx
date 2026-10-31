@@ -1,18 +1,18 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowUpRight, ShieldCheck } from "lucide-react";
-import Header from "@/components/header";
+import type { Metadata, Viewport } from "next";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { indexingEnabled } from "@/lib/launch";
 import { siteOrigin } from "@/lib/seo";
-import "@fontsource-variable/geist";
+import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
+
 export const metadata: Metadata = {
   title: {
     default: "QUICKKIT — Handy tools. Zero hassle.",
     template: "%s | QUICKKIT",
   },
   description:
-    "Six useful browser tools for text, JSON, passwords, QR codes and images. No account, no uploads, zero hassle.",
+    "Six free browser tools for text, JSON, passwords, QR codes and images. No account, no uploads, zero hassle.",
   metadataBase: new URL(
     siteOrigin ||
       (process.env.VERCEL_URL
@@ -21,66 +21,35 @@ export const metadata: Metadata = {
   ),
   robots: { index: indexingEnabled, follow: indexingEnabled },
 };
-export default function Layout({
+
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#ffffff",
+};
+
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
-        <a className="skip-link" href="#main">
+      <body className="flex min-h-dvh flex-col bg-canvas text-ink">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-[100] focus:rounded-xl focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-brand-700 focus:shadow-lift"
+        >
           Skip to content
         </a>
-        <Header />
+        <SiteHeader />
         <noscript>
-          <p className="container status">
+          <p className="container my-4 rounded-xl border border-brand-100 bg-lavender-50 px-4 py-3 text-sm text-ink-soft">
             These tools need JavaScript to process your inputs locally. Enable
             JavaScript to use the workspaces; no server upload is required.
           </p>
         </noscript>
-        <main id="main" tabIndex={-1}>
+        <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
           {children}
         </main>
-        <footer className="site-footer">
-          <div className="container footer-top">
-            <div>
-              <Link href="/" className="brand">
-                <span className="brand-mark">Q</span>
-                <span>
-                  QUICK<span className="brand-purple">KIT</span>
-                </span>
-              </Link>
-              <p>
-                Handy tools. Zero hassle.
-                <br />A little help for the things you do every day.
-              </p>
-            </div>
-            <div>
-              <h2>Explore</h2>
-              <Link href="/#tools">
-                All tools <ArrowUpRight size={13} />
-              </Link>
-              <Link href="/about">About QUICKKIT</Link>
-            </div>
-            <div>
-              <h2>The fine print</h2>
-              <Link href="/privacy">Privacy Policy</Link>
-              <Link href="/terms">Terms of Use</Link>
-            </div>
-            <div className="footer-promise">
-              <ShieldCheck size={23} />
-              <strong>Your work stays yours.</strong>
-              <p>
-                Tool inputs are processed in your browser.
-                <br />
-                No sign-up. No tracking analytics.
-              </p>
-            </div>
-          </div>
-          <div className="container footer-bottom">
-            <span>© {new Date().getFullYear()} QUICKKIT</span>
-            <span>Small tasks. Thoughtfully solved.</span>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const routes = [
   "/",
+  "/tools",
   "/tools/word-counter",
   "/tools/case-converter",
   "/tools/json-formatter",

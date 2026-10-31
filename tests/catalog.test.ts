@@ -20,3 +20,36 @@ describe("catalog discovery", () => {
   it("uses unique stable slugs", () =>
     expect(new Set(tools.map((t) => t.slug)).size).toBe(tools.length));
 });
+
+describe("catalog metadata", () => {
+  it("exposes a long-form summary and a real category for every tool", () => {
+    for (const tool of tools) {
+      expect(tool.summary.length).toBeGreaterThan(40);
+      expect(tool.description.length).toBeGreaterThan(20);
+      expect(["Text", "Developer", "Security", "Image & QR"]).toContain(
+        tool.category,
+      );
+    }
+  });
+  it("resolves tools by slug and reports unknown slugs", async () => {
+    const { getTool } = await import("../lib/catalog");
+    expect(getTool("json-formatter")?.name).toBe("JSON Formatter");
+    expect(getTool("pdf-merge")).toBeUndefined();
+  });
+  it("counts tools per category for the directory", async () => {
+    const { categoryCount, toolCategories, toolsInCategory } =
+      await import("../lib/catalog");
+    expect(toolCategories).toHaveLength(4);
+    expect(categoryCount("All tools")).toBe(tools.length);
+    expect(
+      toolCategories.reduce(
+        (total, category) => total + categoryCount(category),
+        0,
+      ),
+    ).toBe(tools.length);
+    expect(toolsInCategory("Image & QR").map((tool) => tool.slug)).toEqual([
+      "qr-generator",
+      "image-compressor",
+    ]);
+  });
+});

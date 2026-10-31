@@ -1,70 +1,154 @@
 # QUICKKIT
 
-**Handy tools. Zero hassle.** A premium light-theme collection of six genuinely functional, local-first browser utilities.
+**Handy tools. Zero hassle.** A premium, light-only collection of browser
+utilities — Next.js App Router, TypeScript, Tailwind CSS v4, and tool logic that
+runs locally in the visitor's browser.
 
-## Product and architecture
+## Status
 
-- Next.js 16 App Router, React 19, strict TypeScript, npm (`package-lock.json` only).
-- Server-rendered route content and metadata; client islands for inputs and browser APIs.
-- CSS-variable design system, bundled Geist Variable font, Lucide icons and lightweight CSS hero illustration. No dark theme, external font requests or decorative fake controls.
-- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator and Image Compressor on distinct `/tools/...` routes.
-- Tool logic: `lib/tools/`. Workspaces: `components/tools/`. Shared content shell: `components/tool-shell.tsx`. Catalog: `lib/catalog.ts`.
-- Source of truth: **`QUICKKIT_AGENT_BRAIN_FINAL.md`**. Earlier Brain and original uploads are preserved; the FINAL specification supersedes the old one. Reference and screenshot evidence: `docs/`.
+| Phase | Scope                                                                                                                               | State                                                                                          |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1     | Repository & foundation: design system, layout, header/nav/footer, hero, search, categories, cards, responsive shell, tooling, docs | **Done — build and checks verified**                                                           |
+| 2     | Core tools: Word Counter, Case Converter, JSON Formatter, Password Generator                                                        | Implemented in the repo; re-verification tracked in the phase log                              |
+| 3     | Browser tools: QR Generator, Image Compressor                                                                                       | Implemented in the repo; re-verification tracked in the phase log                              |
+| 4     | Content, SEO, accessibility and responsive audit                                                                                    | Tool instructions/FAQs, legal pages, sitemap, robots, 404 in place; a full re-audit is pending |
+| 5     | Release readiness, security review, deployment                                                                                      | Prepared for Vercel; not deployed                                                              |
+
+Phase evidence and measured results: `docs/PHASE_1_FOUNDATION.md`,
+`docs/VERIFICATION.md`, `docs/FINAL_QUALITY_AUDIT.md`, `RELEASE_CHECKLIST.md`.
+
+## Stack
+
+- **Next.js 16 (App Router)** + **React 19** + **strict TypeScript**.
+- **Tailwind CSS v4** via `@tailwindcss/postcss`, configured in CSS with
+  `@theme` (`app/globals.css`). No `tailwind.config.ts` is needed in v4.
+- **Plus Jakarta Sans** variable font, self-hosted through `@fontsource-variable`
+  — no external font requests.
+- **Lucide** icons for every glyph; no emoji or icon fonts.
+- **npm** with the committed `package-lock.json` (Node 22, see `.nvmrc`).
+- **Vitest + React Testing Library** for unit/component tests, **Playwright** for
+  browser flows.
+
+## Architecture
+
+```text
+app/
+  layout.tsx            Root shell: skip link, header, main, footer, metadata
+  page.tsx              Homepage: hero, search + catalog, trust, principles
+  tools/page.tsx        Full tool directory (search/filter, all six tools)
+  tools/<slug>/page.tsx Six tool routes (server components + metadata)
+  about|privacy|terms   Long-form content pages
+  globals.css           Tailwind import, @theme design tokens, base + components
+components/
+  brand/                Logo mark, wordmark, logo lockup
+  layout/               Site header (desktop dropdown + mobile sheet), footer
+  home/                 Hero, hero visual, trust panel, principles, free band
+  tools/                Tool explorer (search/filter), tool card, tool icon,
+                        tool workspaces, copy button
+  ui/                   Button, badge, icon tile, section heading primitives
+  tool-shell.tsx        Shared tool page chrome (breadcrumb, guide, FAQ, related)
+lib/
+  catalog.ts            Single source of truth for tools, categories, search
+  seo.ts                Metadata helper + validated production origin
+  launch.ts             Indexing gate (SITE_URL + LAUNCH_APPROVED)
+  tools/                Pure tool logic, unit-testable without the DOM
+  utils.ts              cn() class merge helper
+tests/                  Vitest suites (unit/component) and Playwright suites
+```
+
+Conventions: Server Components by default; `"use client"` only for the explorer,
+header, workspace and error boundary. Reusable tool logic lives in `lib/tools/`
+and is free of DOM access. Each tool route renders its own metadata, guide, FAQ
+and related tools.
+
+## Design system
+
+Tokens live in `app/globals.css` under `@theme`, so each one is both a CSS
+variable and a Tailwind utility (`bg-brand-600`, `text-muted`, `rounded-card`,
+`shadow-card`, `animate-float`, …).
+
+- Surfaces: white and soft lavender (`#F8F6FF` → `#FFFFFF` gradients).
+- Brand purple `#6657E8` with lavender support (`#A397FF` → `#EBE6FF`).
+- Mint accent (`#D9FFF2`) reserved for privacy/trust signals.
+- Ink `#171B2E`, muted text `#565D73`, hairline borders `#E7E5F2`.
+- Radii `rounded-card`, `rounded-panel`, `rounded-pill`; three shadow levels.
+- Light only: `color-scheme: light`, no dark mode, no black backgrounds.
+- Motion respects `prefers-reduced-motion`; focus rings are always visible.
+
+## Scripts
+
+```sh
+npm run dev          # development server on 0.0.0.0:3000
+npm run build        # production build
+npm start            # serve the production build
+npm run lint         # ESLint (next core-web-vitals + TypeScript rules)
+npm run lint:fix     # ESLint with --fix
+npm run typecheck    # tsc --noEmit (strict)
+npm test             # Vitest unit/component suites
+npm run test:watch   # Vitest watch mode
+npm run test:e2e     # Playwright (needs installed browsers)
+npm run format       # Prettier write (Tailwind class sorting enabled)
+npm run format:check # Prettier check
+npm run check        # format, lint, typecheck, test and build in one go
+```
 
 ## Setup
-
-Launch audit verified Node.js 22.23.4. Use Node 22 (`.nvmrc`, package engines and CI are aligned). Earlier Node 20 results are historical, not the chosen deployment runtime.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-No API keys, database, account system, analytics or secret environment variables are needed. Copy `.env.example` only when configuring the real production origin. To disable Next.js build-tool telemetry locally, set `NEXT_TELEMETRY_DISABLED=1`.
-
-## Checks
-
-```sh
-npm run format:check
-npm run lint
-npm test
-npm run build
-npm run typecheck
-npx playwright install --with-deps chromium firefox webkit
-npm run test:e2e
-```
-
-Playwright starts the built production server on port 3001 automatically (or reuses a local server). `TEST_BASE_URL` can target another already-running preview. The quality suite intentionally expects an unconfigured, noindex preview. The CI workflow runs the same checks; it has not been executed on a remote repository in this environment.
-
-Verification: **70 unit/component/config/compatibility tests; 123 browser tests passed, with 2 explicit browser-permission capability skips**. Chromium covers accessibility, all routes, seven widths, links, headers and core workflows. Firefox and WebKit cover all six tool workflows. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
+Node 22 is required (`.nvmrc`, `package.json` engines and CI agree). No API keys,
+database, account system, analytics or secrets are needed. `.env.example`
+documents the only optional variables (`SITE_URL`, `LAUNCH_APPROVED` and
+`NEXT_TELEMETRY_DISABLED`).
 
 ## Processing and limits
 
-| Tool | Notes |
-|---|---|
-| Word Counter | 1,000,000 UTF-16 code units; Unicode code-point character counts; whitespace-delimited words; blank-line paragraphs; 200 wpm reading estimate |
-| Case Converter | 1,000,000 code units; four case modes; preserves line breaks; language rules are approximate |
-| JSON Formatter | 1,000,000 characters, 128 nesting levels; rejects non-finite numeric overflow; JSON.parse/stringify; JavaScript number precision; duplicate keys collapse to last value |
-| Password Generator | 8–64 characters; crypto.getRandomValues, rejection sampling, secure shuffle; at least one from each selected set |
-| QR Generator | 2,000 UTF-8 bytes; client-side qrcode loaded on demand; 768×768 PNG; downloaded QR independently decoded in tests |
-| Image Compressor | JPEG/PNG/WebP input; 15 MB, 24 MP, 8,192 px/side; same dimensions; WebP/JPEG/PNG output; JPEG uses white behind transparency; animation becomes a single frame |
+| Tool               | Notes                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Word Counter       | 1,000,000 UTF-16 code units; Unicode code-point character counts; whitespace-delimited words; blank-line paragraphs; 200 wpm reading estimate |
+| Case Converter     | 1,000,000 code units; four case modes; preserves line breaks; language rules are approximate                                                  |
+| JSON Formatter     | 1,000,000 characters, 128 nesting levels; rejects non-finite numeric overflow; never executes JSON; duplicate keys collapse to the last value |
+| Password Generator | 8–64 characters; `crypto.getRandomValues` with rejection sampling; at least one character from each selected set                              |
+| QR Generator       | 2,000 UTF-8 bytes; client-side `qrcode` loaded on demand; 768×768 PNG                                                                         |
+| Image Compressor   | JPEG/PNG/WebP input; 15 MB, 24 MP, 8,192 px/side; identical dimensions; WebP/JPEG/PNG output                                                  |
 
-Canvas re-encoding may remove metadata and alter color profiles. Output can be larger; compare sizes. PNG quality is lossless and the quality slider is disabled for PNG. Preview URLs are revoked on replacement, reset and unmount. File decode/encode support depends on the browser.
+Canvas re-encoding can strip metadata and shift colour profiles. PNG output is
+lossless, so the quality control is disabled for PNG. Preview object URLs are
+revoked on replacement, reset and unmount.
 
-## Security and privacy
+## Privacy and security
 
-Tool inputs remain in browser memory; no uploads, persistent tool storage, accounts, payment handling, ad SDK or analytics. Fonts are bundled. Copying and downloading use the device clipboard/filesystem; these have their own privacy implications. Hosting still receives ordinary page/asset requests. Legal pages accurately mark operator identity/contact, jurisdiction and provider retention details as owner-supplied launch requirements.
+Tool inputs stay in browser memory: no uploads, no persistent storage of tool
+content, no accounts, no analytics, no ad SDK. Fonts and libraries are bundled.
+Hosting still receives ordinary page and asset requests.
 
-Security headers include CSP, HSTS, nosniff, referrer policy and permissions policy. CSP permits inline framework scripts/styles because the current static Next.js shell requires them; it forbids eval, objects and remote script sources. A future nonce-based CSP would require reviewing dynamic rendering/cache implications. Framing restrictions are not added because the Arena preview needs embedding; review `frame-ancestors` for the actual standalone deployment.
+Security headers (CSP, HSTS, `X-Content-Type-Options`, referrer policy,
+permissions policy) are configured in `next.config.ts`. CSP currently allows
+inline framework scripts/styles because the static Next.js shell requires them;
+it forbids `eval`, objects and remote script sources. Framing is intentionally
+not blocked so the Arena preview can embed the app — review `frame-ancestors`
+before a standalone production launch.
 
-Production audit: **0 vulnerabilities**. Original full audit: **16 moderate entries**, all one inherited minimatch GHSA. Scoped override upgrades only the TypeScript parser’s minimatch 10.2.6 to 11.0.3; an 80-case pre-upgrade corpus and real project-service parser call verify the supported consumer API. Older ESLint/plugin callable v3 APIs are preserved. **15 raw moderate dev-only entries remain** on minimatch 3.1.5 ancestry. Source review finds the described v7+ optimizer absent in v3, but this is our assessment, not an upstream change to the advisory or a clean full audit. Owner/security acceptance or compatible upstream remediation remains a release gate. Full per-entry chains and evidence: `docs/security/DEPENDENCY_REVIEW.md`. No audit suppression, global breaking override, forced downgrade or lint-rule deletion was used.
-
-The package remains private and is now marked UNLICENSED pending an owner-approved source licence decision, rather than granting the npm initializer’s default ISC licence. Third-party licence obligations remain applicable.
+Indexing is gated: `robots.txt` disallows crawling, metadata is `noindex` and the
+sitemap is empty until `SITE_URL` is set **and** `LAUNCH_APPROVED=true` in a
+production environment.
 
 ## Deployment
 
-See **`RELEASE_CHECKLIST.md`**. The code is prepared for Vercel, not yet deployed. Root: `quickkit` if the parent workspace is pushed; `.` if this repository itself is pushed. Preset: Next.js. Install: `npm ci`. Build: `npm run build`. Output: framework default.
+Intended for Vercel with the Next.js preset, `npm ci` and `npm run build`. See
+`RELEASE_CHECKLIST.md` for the owner/legal gates that must be resolved before a
+public launch, including the operator identity, contact and domain details still
+marked as owner input on `/privacy` and `/terms`.
 
-Set `SITE_URL` to the **verified HTTPS production origin**, but keep `LAUNCH_APPROVED=false` until legal, security, domain and preview checks are approved. Only then set approval true in Production and redeploy. Both origin and explicit approval are required; Vercel Preview/Development remain blocked even if approval leaks into their environment. While blocked, robots disallows crawling, metadata and X-Robots-Tag say noindex and sitemap is empty. Vercel preview metadata can use `VERCEL_URL`; local previews use an explicit localhost metadata base, not a claimed public domain.
+## Known limitations
 
-GitHub publication completed to the owner-selected repository `https://github.com/sachi26698-LIMA/Quickkit.git`: audited code was pushed to `main` and `fix/launch-audit` without force, and both remote hashes were verified. The selected repository is public; its visibility was not changed by this work. No website deployment has been performed. Vercel connector is now enabled and credential validation succeeded, but no intended team/project/domain was selected or created. The GitHub connector is unsupported here; use the documented browser-authorized Git/CLI import flow. Do not publish the draft legal details or enable indexing until the release checklist is resolved. Payments, subscriptions and ads are deliberately absent; future monetization requires separate business, legal, consent and provider decisions.
+- Automated accessibility scans pass on the checked routes, but screen-reader
+  and physical-device testing is still an owner acceptance task.
+- Firefox/WebKit/Chromium coverage is defined in Playwright; browsers must be
+  installed in the environment running the suite.
+- `npm audit` still reports development-only moderate entries inherited from
+  ESLint's `minimatch@3` chain; production dependencies audit clean. Details:
+  `docs/security/DEPENDENCY_REVIEW.md`.

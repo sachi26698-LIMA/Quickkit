@@ -1,0 +1,11 @@
+.next
+coverage
+node_modules
+package-lock.json
+playwright-report
+test-results
+public
+docs
+QUICKKIT_AGENT_BRAIN.md
+QUICKKIT_AGENT_BRAIN_FINAL.md
+RELEASE_CHECKLIST.md

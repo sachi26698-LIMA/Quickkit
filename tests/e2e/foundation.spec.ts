@@ -38,3 +38,55 @@ test("keyboard skip link and navigation", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page.locator("#main")).toBeFocused();
 });
+
+test("tool directory page lists and filters every tool", async ({ page }) => {
+  await page.goto("/tools");
+  await expect(page.locator("h1")).toHaveCount(1);
+  await expect(page.locator(".tool-card")).toHaveCount(6);
+  await page.getByRole("searchbox").fill("image");
+  await expect(page.locator(".tool-card")).toHaveCount(1);
+  await expect(
+    page.getByRole("link", { name: /Image Compressor/ }),
+  ).toHaveAttribute("href", "/tools/image-compressor");
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await expect(page.locator(".tool-card")).toHaveCount(6);
+  await page.getByRole("button", { name: "Security", exact: true }).click();
+  await expect(page.locator(".tool-card")).toHaveCount(1);
+});
+
+test("desktop tools menu opens, closes on Escape and navigates", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: "Tools", exact: true });
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await trigger.click();
+  const menu = page.locator("#tools-menu");
+  await expect(menu).toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await menu.getByRole("link", { name: /JSON Formatter/ }).click();
+  await expect(page).toHaveURL(/\/tools\/json-formatter$/);
+  await expect(page.locator("h1")).toHaveText("JSON Formatter");
+});
+
+test("home hero calls to action reach the catalog and directory", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Small tasks. Quick solutions.",
+    }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "View all tools", exact: true }).click();
+  await expect(page).toHaveURL(/\/tools$/);
+  await page.goBack();
+  await page.getByRole("link", { name: "Explore tools", exact: true }).click();
+  await expect(page).toHaveURL(/#tools$/);
+});

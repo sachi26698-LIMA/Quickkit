@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return indexingEnabled && siteOrigin
     ? [
         "/",
+        "/tools",
         "/about",
         "/privacy",
         "/terms",

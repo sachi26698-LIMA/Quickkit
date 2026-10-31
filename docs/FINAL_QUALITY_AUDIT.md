@@ -1,5 +1,11 @@
 # Final quality audit — 31 October 2026
 
+> **Superseded in part:** the Phase 1 foundation rebuild (`PHASE_1_FOUNDATION.md`)
+> replaced the styling layer, header/footer, homepage, cards and tool-page shell.
+> Audit conclusions about logic, security headers, tool behaviour and the
+> indexing gate still apply; the visual/CSS and homepage-count specifics in this
+> file describe the previous design.
+
 ## Scope and limits
 
 Reviewed tracked application/routes, client components, tool logic, discovery/navigation, styles, metadata/launch logic, headers, legal/content pages, dependency graph, package/TypeScript/lint/test/CI configuration and repository hygiene. Original commits and user uploads were preserved. This is source review plus automated/manual local verification, not a penetration test, legal opinion, complete accessibility certification or actual hosted-launch acceptance.
