@@ -1,6 +1,86 @@
-import Link from 'next/link';
-import {ChevronRight,ShieldCheck,ArrowUpRight} from 'lucide-react';
-import {tools} from '@/lib/catalog';
-import ToolIcon from './tool-icon';
-export type ToolContent={steps:string[];faqs:{q:string;a:string}[]};
-export default function ToolShell({slug,children,content}:{slug:string;children:React.ReactNode;content:ToolContent}){const tool=tools.find(t=>t.slug===slug)!;return <div className="container tool-page"><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Home</Link><ChevronRight size={13}/><Link href="/#tools">Tools</Link><ChevronRight size={13}/><span>{tool.name}</span></nav><header className="tool-title"><ToolIcon icon={tool.icon} color={tool.color}/><span className="eyebrow">{tool.category} · FREE BROWSER TOOL</span><h1>{tool.name}</h1><p>{tool.description}</p></header>{children}<p className="privacy-inline"><ShieldCheck size={17}/> Processed on your device. Tool inputs are not uploaded or saved by QUICKKIT.</p><div className="tool-guidance"><section><span className="eyebrow">A QUICK WALKTHROUGH</span><h2>How to use it</h2><ol>{content.steps.map(step=><li key={step}>{step}</li>)}</ol></section><section><span className="eyebrow">GOOD TO KNOW</span><h2>A few useful answers</h2>{content.faqs.map(({q,a})=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section></div><section className="related"><div className="section-heading"><h2>Keep the good work going</h2><Link className="text-link" href="/#tools">All tools <ArrowUpRight size={16}/></Link></div><div className="related-grid">{tools.filter(t=>t.slug!==slug).slice(0,3).map(t=><Link className="related-card" key={t.slug} href={`/tools/${t.slug}`}><ToolIcon icon={t.icon} color={t.color}/><span><strong>{t.name}</strong><small>{t.category}</small></span><ArrowUpRight size={17}/></Link>)}</div></section></div>}
+import Link from "next/link";
+import { ChevronRight, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { tools } from "@/lib/catalog";
+import ToolIcon from "./tool-icon";
+export type ToolContent = { steps: string[]; faqs: { q: string; a: string }[] };
+export default function ToolShell({
+  slug,
+  children,
+  content,
+}: {
+  slug: string;
+  children: React.ReactNode;
+  content: ToolContent;
+}) {
+  const tool = tools.find((t) => t.slug === slug)!;
+  return (
+    <div className="container tool-page">
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <ChevronRight size={13} />
+        <Link href="/#tools">Tools</Link>
+        <ChevronRight size={13} />
+        <span>{tool.name}</span>
+      </nav>
+      <header className="tool-title">
+        <ToolIcon icon={tool.icon} color={tool.color} />
+        <span className="eyebrow">{tool.category} · FREE BROWSER TOOL</span>
+        <h1>{tool.name}</h1>
+        <p>{tool.description}</p>
+      </header>
+      {children}
+      <p className="privacy-inline">
+        <ShieldCheck size={17} /> Processed on your device. Tool inputs are not
+        uploaded or saved by QUICKKIT.
+      </p>
+      <div className="tool-guidance">
+        <section>
+          <span className="eyebrow">A QUICK WALKTHROUGH</span>
+          <h2>How to use it</h2>
+          <ol>
+            {content.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </section>
+        <section>
+          <span className="eyebrow">GOOD TO KNOW</span>
+          <h2>A few useful answers</h2>
+          {content.faqs.map(({ q, a }) => (
+            <details key={q}>
+              <summary>{q}</summary>
+              <p>{a}</p>
+            </details>
+          ))}
+        </section>
+      </div>
+      <section className="related">
+        <div className="section-heading">
+          <h2>Keep the good work going</h2>
+          <Link className="text-link" href="/#tools">
+            All tools <ArrowUpRight size={16} />
+          </Link>
+        </div>
+        <div className="related-grid">
+          {tools
+            .filter((t) => t.slug !== slug)
+            .slice(0, 3)
+            .map((t) => (
+              <Link
+                className="related-card"
+                key={t.slug}
+                href={`/tools/${t.slug}`}
+              >
+                <ToolIcon icon={t.icon} color={t.color} />
+                <span>
+                  <strong>{t.name}</strong>
+                  <small>{t.category}</small>
+                </span>
+                <ArrowUpRight size={17} />
+              </Link>
+            ))}
+        </div>
+      </section>
+    </div>
+  );
+}

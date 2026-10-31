@@ -1,4 +1,54 @@
-import type {Metadata} from 'next';
-function productionOrigin(){const raw=process.env.SITE_URL;if(!raw)return undefined;const url=new URL(raw);if(url.protocol!=='https:'||url.username||url.password||url.pathname!=='/'||url.search||url.hash)throw new Error('SITE_URL must be an HTTPS origin without a path or credentials.');return url.origin}
-export const siteOrigin=productionOrigin();
-export function pageMetadata(title:string,description:string,path:string):Metadata{return {title,description,alternates:siteOrigin?{canonical:siteOrigin+path}:undefined,openGraph:{title,description,type:'website',siteName:'QUICKKIT',...(siteOrigin?{url:siteOrigin+path,images:[{url:siteOrigin+'/opengraph-image',width:1200,height:630}]}:{})},twitter:{card:'summary_large_image',title,description,...(siteOrigin?{images:[siteOrigin+'/opengraph-image']}:{})}}}
+import type { Metadata } from "next";
+function productionOrigin() {
+  const raw = process.env.SITE_URL;
+  if (!raw) return undefined;
+  const url = new URL(raw);
+  if (
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  )
+    throw new Error(
+      "SITE_URL must be an HTTPS origin without a path or credentials.",
+    );
+  return url.origin;
+}
+export const siteOrigin = productionOrigin();
+export function pageMetadata(
+  title: string,
+  description: string,
+  path: string,
+): Metadata {
+  return {
+    title,
+    description,
+    alternates: siteOrigin ? { canonical: siteOrigin + path } : undefined,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: "QUICKKIT",
+      ...(siteOrigin
+        ? {
+            url: siteOrigin + path,
+            images: [
+              {
+                url: siteOrigin + "/opengraph-image",
+                width: 1200,
+                height: 630,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(siteOrigin ? { images: [siteOrigin + "/opengraph-image"] } : {}),
+    },
+  };
+}

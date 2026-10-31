@@ -1,4 +1,38 @@
-export const MAX_TEXT_LENGTH=1_000_000;
-export function countText(text:string){const trimmed=text.trim();const words=trimmed?trimmed.split(/\s+/u).filter(w=>/[\p{L}\p{N}]/u.test(w)).length:0;return {words,characters:Array.from(text).length,withoutSpaces:Array.from(text.replace(/\s/gu,'')).length,sentences:trimmed?(trimmed.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/gu)||[]).filter(s=>/[\p{L}\p{N}]/u.test(s)).length:0,paragraphs:trimmed?trimmed.split(/\n\s*\n/u).filter(p=>p.trim()).length:0,readingSeconds:Math.ceil(words/200*60)}}
-export type CaseMode='UPPERCASE'|'lowercase'|'Title Case'|'Sentence case';
-export function convertCase(text:string,mode:CaseMode){if(mode==='UPPERCASE')return text.toLocaleUpperCase();if(mode==='lowercase')return text.toLocaleLowerCase();const lower=text.toLocaleLowerCase();if(mode==='Title Case')return lower.replace(/(^|[^\p{L}\p{N}'’])(\p{L})/gu,(_,prefix:string,letter:string)=>prefix+letter.toLocaleUpperCase());return lower.replace(/(^\s*|[.!?]\s+|\n\s*)(\p{L})/gu,(_,prefix:string,letter:string)=>prefix+letter.toLocaleUpperCase())}
+export const MAX_TEXT_LENGTH = 1_000_000;
+export function countText(text: string) {
+  const trimmed = text.trim();
+  const words = trimmed
+    ? trimmed.split(/\s+/u).filter((w) => /[\p{L}\p{N}]/u.test(w)).length
+    : 0;
+  return {
+    words,
+    characters: Array.from(text).length,
+    withoutSpaces: Array.from(text.replace(/\s/gu, "")).length,
+    sentences: trimmed
+      ? (
+          trimmed.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/gu) || []
+        ).filter((s) => /[\p{L}\p{N}]/u.test(s)).length
+      : 0,
+    paragraphs: trimmed
+      ? trimmed.split(/\n\s*\n/u).filter((p) => p.trim()).length
+      : 0,
+    readingSeconds: Math.ceil((words / 200) * 60),
+  };
+}
+export type CaseMode =
+  "UPPERCASE" | "lowercase" | "Title Case" | "Sentence case";
+export function convertCase(text: string, mode: CaseMode) {
+  if (mode === "UPPERCASE") return text.toLocaleUpperCase();
+  if (mode === "lowercase") return text.toLocaleLowerCase();
+  const lower = text.toLocaleLowerCase();
+  if (mode === "Title Case")
+    return lower.replace(
+      /(^|[^\p{L}\p{N}'’])(\p{L})/gu,
+      (_, prefix: string, letter: string) =>
+        prefix + letter.toLocaleUpperCase(),
+    );
+  return lower.replace(
+    /(^\s*|[.!?]\s+|\n\s*)(\p{L})/gu,
+    (_, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase(),
+  );
+}

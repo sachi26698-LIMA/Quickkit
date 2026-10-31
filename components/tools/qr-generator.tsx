@@ -1,7 +1,143 @@
-'use client';
+"use client";
 /* User-generated PNG previews are local data URLs, not optimizable remote images. */
 /* eslint-disable @next/next/no-img-element */
-import {useRef,useState} from 'react';
-import {Download,QrCode} from 'lucide-react';
-import {validateQr} from '@/lib/tools/qr';
-export default function QrGenerator(){const [input,setInput]=useState('');const [image,setImage]=useState('');const [error,setError]=useState('');const [busy,setBusy]=useState(false);const version=useRef(0);function invalidate(){version.current++;setImage('');setError('');setBusy(false)}async function generate(){const id=++version.current;setImage('');setError('');try{const text=validateQr(input);setBusy(true);const QRCode=await import('qrcode');const data=await QRCode.toDataURL(text,{width:768,margin:4,errorCorrectionLevel:'M',color:{dark:'#171b2e',light:'#ffffff'}});if(id===version.current)setImage(data)}catch(e){if(id===version.current)setError(e instanceof Error?e.message:'Unable to generate this QR code. Try shorter content.')}finally{if(id===version.current)setBusy(false)}}return <div className="workspace"><div className="workspace-heading"><div><h2>A shortcut worth sharing</h2><p>Turn text or a link into a ready-to-download QR code.</p></div><span className="local-badge">Local processing</span></div><label htmlFor="qr-input">Text or URL</label><textarea id="qr-input" maxLength={2000} value={input} onChange={e=>{invalidate();setInput(e.target.value)}} rows={4} placeholder="https://example.com or a little text to share…" aria-describedby="qr-help"/><p id="qr-help" className="help">Limit: 2,000 UTF-8 bytes (non-Latin characters use more bytes). Content is encoded as text, never opened or fetched.</p><div className="action-row"><button className="primary" onClick={generate} disabled={busy}>{busy?'Generating…':'Generate QR code'}</button><button className="secondary" onClick={()=>{invalidate();setInput('')}}>Reset</button></div>{error&&<p className="status error" role="alert">Error: {error}</p>}<div className="result-panel" aria-busy={busy}>{image?<div className="qr-result"><img src={image} width={220} height={220} alt="Generated QR code preview"/><div><h3>Your code is ready.</h3><p className="help">768 × 768 PNG · medium error correction.<br/>Test it with your camera before printing or sharing.</p><div className="action-row"><a href={image} download="quickkit-qr-code.png" className="primary"><Download size={16}/> Download PNG</a></div></div></div>:<div className="empty"><QrCode size={36}/><p>{busy?'Creating your QR code…':'Your QR preview will appear here.'}</p></div>}</div><p className="sr-only" role="status">{image?'QR code generated. PNG download ready.':busy?'Generating QR code.':''}</p></div>}
+import { useHydrated } from "@/lib/use-hydrated";
+import { useRef, useState } from "react";
+import { Download, QrCode } from "lucide-react";
+import { validateQr } from "@/lib/tools/qr";
+export default function QrGenerator() {
+  const ready = useHydrated();
+  const [input, setInput] = useState("");
+  const [image, setImage] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const version = useRef(0);
+  function invalidate() {
+    version.current++;
+    setImage("");
+    setError("");
+    setBusy(false);
+  }
+  async function generate() {
+    const id = ++version.current;
+    setImage("");
+    setError("");
+    try {
+      const text = validateQr(input);
+      setBusy(true);
+      const QRCode = await import("qrcode");
+      const data = await QRCode.toDataURL(text, {
+        width: 768,
+        margin: 4,
+        errorCorrectionLevel: "M",
+        color: { dark: "#171b2e", light: "#ffffff" },
+      });
+      if (id === version.current) setImage(data);
+    } catch (e) {
+      if (id === version.current)
+        setError(
+          e instanceof Error
+            ? e.message
+            : "Unable to generate this QR code. Try shorter content.",
+        );
+    } finally {
+      if (id === version.current) setBusy(false);
+    }
+  }
+  return (
+    <fieldset
+      className="workspace"
+      disabled={!ready}
+      aria-label="Tool workspace"
+    >
+      <div className="workspace-heading">
+        <div>
+          <h2>A shortcut worth sharing</h2>
+          <p>Turn text or a link into a ready-to-download QR code.</p>
+        </div>
+        <span className="local-badge">Local processing</span>
+      </div>
+      <label htmlFor="qr-input">Text or URL</label>
+      <textarea
+        id="qr-input"
+        maxLength={2000}
+        value={input}
+        onChange={(e) => {
+          invalidate();
+          setInput(e.target.value);
+        }}
+        rows={4}
+        placeholder="https://example.com or a little text to share…"
+        aria-describedby="qr-help"
+      />
+      <p id="qr-help" className="help">
+        Limit: 2,000 UTF-8 bytes (non-Latin characters use more bytes). Content
+        is encoded as text, never opened or fetched.
+      </p>
+      <div className="action-row">
+        <button className="primary" onClick={generate} disabled={busy}>
+          {busy ? "Generating…" : "Generate QR code"}
+        </button>
+        <button
+          className="secondary"
+          onClick={() => {
+            invalidate();
+            setInput("");
+          }}
+        >
+          Reset
+        </button>
+      </div>
+      {error && (
+        <p className="status error" role="alert">
+          Error: {error}
+        </p>
+      )}
+      <div className="result-panel" aria-busy={busy}>
+        {image ? (
+          <div className="qr-result">
+            <img
+              src={image}
+              width={220}
+              height={220}
+              alt="Generated QR code preview"
+            />
+            <div>
+              <h3>Your code is ready.</h3>
+              <p className="help">
+                768 × 768 PNG · medium error correction.
+                <br />
+                Test it with your camera before printing or sharing.
+              </p>
+              <div className="action-row">
+                <a
+                  href={image}
+                  download="quickkit-qr-code.png"
+                  className="primary"
+                >
+                  <Download size={16} /> Download PNG
+                </a>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="empty">
+            <QrCode size={36} />
+            <p>
+              {busy
+                ? "Creating your QR code…"
+                : "Your QR preview will appear here."}
+            </p>
+          </div>
+        )}
+      </div>
+      <p className="sr-only" role="status">
+        {image
+          ? "QR code generated. PNG download ready."
+          : busy
+            ? "Generating QR code."
+            : ""}
+      </p>
+    </fieldset>
+  );
+}

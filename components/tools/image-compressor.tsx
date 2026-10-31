@@ -1,11 +1,242 @@
-'use client';
+"use client";
 /* Local blob previews must remain in-browser; they are not image-service URLs. */
 /* eslint-disable @next/next/no-img-element */
-import {useEffect,useRef,useState} from 'react';
-import {Download,ImageIcon} from 'lucide-react';
-import {compressImage,validateImage,formatBytes,type ImageFormat} from '@/lib/tools/image';
-function useObjectUrl(blob:Blob|null){const [url,setUrl]=useState('');useEffect(()=>{if(!blob)return;const next=URL.createObjectURL(blob);
-// This state represents an external browser resource; allocation must wait until mount and cleanup revokes it.
-// eslint-disable-next-line react-hooks/set-state-in-effect
-setUrl(next);return ()=>URL.revokeObjectURL(next)},[blob]);return blob?url:''}
-export default function ImageCompressor(){const [file,setFile]=useState<File|null>(null);const [quality,setQuality]=useState(80);const [format,setFormat]=useState<ImageFormat>('image/webp');const [result,setResult]=useState<{blob:Blob;width:number;height:number}|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const inputRef=useRef<HTMLInputElement>(null);const version=useRef(0);const originalUrl=useObjectUrl(file);const outputUrl=useObjectUrl(result?.blob||null);function invalidate(){version.current++;setResult(null);setError('');setBusy(false)}async function compress(){if(!file){setError('Choose an image before compressing.');return}const id=++version.current;setResult(null);setError('');setBusy(true);try{const next=await compressImage(file,format,quality/100);if(id===version.current)setResult(next)}catch(e){if(id===version.current)setError(e instanceof Error?e.message:'Image processing failed. Try another image.')}finally{if(id===version.current)setBusy(false)}}const extension=format==='image/jpeg'?'jpg':format==='image/png'?'png':'webp';const saving=file&&result?(1-result.blob.size/file.size)*100:0;return <div className="workspace"><div className="workspace-heading"><div><h2>Lighten the file. Keep the moment.</h2><p>Re-encode your image locally, at its original dimensions.</p></div><span className="local-badge">Local processing</span></div><label htmlFor="image-input">Choose an image</label><input ref={inputRef} id="image-input" className="file-input" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="image-help" onChange={e=>{invalidate();setFile(null);const next=e.target.files?.[0];if(!next)return;try{validateImage(next);setFile(next)}catch(err){setError(err instanceof Error?err.message:'Invalid file.');e.target.value=''}}}/><p id="image-help" className="help">JPEG, PNG or WebP · up to 15 MB · up to 24 megapixels / 8,192 px per side. Animated images become a single frame. No upload.</p><div className="settings-grid"><div><label htmlFor="image-format">Output format</label><select id="image-format" value={format} onChange={e=>{invalidate();setFormat(e.target.value as ImageFormat)}}><option value="image/webp">WebP · transparency supported</option><option value="image/jpeg">JPEG · white background</option><option value="image/png">PNG · lossless, transparency supported</option></select></div><div><label htmlFor="image-quality">Quality {format==='image/png'?'(not used for PNG)':''}</label><div className="range-row"><input id="image-quality" type="range" min={10} max={100} disabled={format==='image/png'} value={quality} onChange={e=>{invalidate();setQuality(Number(e.target.value))}}/><output htmlFor="image-quality">{quality}%</output></div></div></div><p className="help">Dimensions are not resized. JPEG replaces transparency with white; use WebP or PNG to retain it. PNG is lossless and may not get smaller. Encoding can remove metadata and change color profiles.</p><div className="action-row"><button className="primary" onClick={compress} disabled={busy}>{busy?'Compressing…':'Compress image'}</button><button className="secondary" onClick={()=>{invalidate();setFile(null);setQuality(80);setFormat('image/webp');if(inputRef.current)inputRef.current.value=''}}>Reset</button></div>{error&&<p className="status error" role="alert">Error: {error}</p>}<div aria-busy={busy}>{file?<div className="preview-grid"><div className="preview-box"><strong>Original</strong>{originalUrl&&<img src={originalUrl} alt="Original image preview"/>}<p>{formatBytes(file.size)} · {file.type.replace('image/','').toUpperCase()}</p></div><div className="preview-box"><strong>Compressed output</strong>{result&&outputUrl?<><img src={outputUrl} alt="Compressed image preview"/><p>{formatBytes(result.blob.size)} · {extension.toUpperCase()}<br/>{result.width} × {result.height} pixels · unchanged</p><p className="status">{saving>=0?`${saving.toFixed(1)}% smaller`:`${Math.abs(saving).toFixed(1)}% larger — try lower quality or a different format.`}</p><a href={outputUrl} download={`quickkit-compressed.${extension}`} className="primary"><Download size={16}/> Download image</a></>:<div className="empty"><ImageIcon size={32}/><p>{busy?'Processing on your device…':'Your compressed preview will appear here.'}</p></div>}</div></div>:<div className="result-panel empty"><ImageIcon size={35}/><p>Choose a photo to get started.</p></div>}</div><p className="sr-only" role="status">{busy?'Compressing image.':result?'Compression finished. Download is ready.':''}</p></div>}
+import { useHydrated } from "@/lib/use-hydrated";
+import { useEffect, useRef, useState } from "react";
+import { Download, ImageIcon } from "lucide-react";
+import {
+  compressImage,
+  validateImage,
+  formatBytes,
+  type ImageFormat,
+} from "@/lib/tools/image";
+function useObjectUrl(blob: Blob | null) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    if (!blob) return;
+    const next = URL.createObjectURL(blob);
+    // This state represents an external browser resource; allocation must wait until mount and cleanup revokes it.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [blob]);
+  return blob ? url : "";
+}
+export default function ImageCompressor() {
+  const ready = useHydrated();
+  const [file, setFile] = useState<File | null>(null);
+  const [quality, setQuality] = useState(80);
+  const [format, setFormat] = useState<ImageFormat>("image/webp");
+  const [result, setResult] = useState<{
+    blob: Blob;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const version = useRef(0);
+  const originalUrl = useObjectUrl(file);
+  const outputUrl = useObjectUrl(result?.blob || null);
+  function invalidate() {
+    version.current++;
+    setResult(null);
+    setError("");
+    setBusy(false);
+  }
+  async function compress() {
+    if (!file) {
+      setError("Choose an image before compressing.");
+      return;
+    }
+    const id = ++version.current;
+    setResult(null);
+    setError("");
+    setBusy(true);
+    try {
+      const next = await compressImage(file, format, quality / 100);
+      if (id === version.current) setResult(next);
+    } catch (e) {
+      if (id === version.current)
+        setError(
+          e instanceof Error
+            ? e.message
+            : "Image processing failed. Try another image.",
+        );
+    } finally {
+      if (id === version.current) setBusy(false);
+    }
+  }
+  const extension =
+    format === "image/jpeg" ? "jpg" : format === "image/png" ? "png" : "webp";
+  const saving = file && result ? (1 - result.blob.size / file.size) * 100 : 0;
+  return (
+    <fieldset
+      className="workspace"
+      disabled={!ready}
+      aria-label="Tool workspace"
+    >
+      <div className="workspace-heading">
+        <div>
+          <h2>Lighten the file. Keep the moment.</h2>
+          <p>Re-encode your image locally, at its original dimensions.</p>
+        </div>
+        <span className="local-badge">Local processing</span>
+      </div>
+      <label htmlFor="image-input">Choose an image</label>
+      <input
+        ref={inputRef}
+        id="image-input"
+        className="file-input"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        aria-describedby="image-help"
+        onChange={(e) => {
+          invalidate();
+          setFile(null);
+          const next = e.target.files?.[0];
+          if (!next) return;
+          try {
+            validateImage(next);
+            setFile(next);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Invalid file.");
+            e.target.value = "";
+          }
+        }}
+      />
+      <p id="image-help" className="help">
+        JPEG, PNG or WebP · up to 15 MB · up to 24 megapixels / 8,192 px per
+        side. Animated images become a single frame. No upload.
+      </p>
+      <div className="settings-grid">
+        <div>
+          <label htmlFor="image-format">Output format</label>
+          <select
+            id="image-format"
+            value={format}
+            onChange={(e) => {
+              invalidate();
+              setFormat(e.target.value as ImageFormat);
+            }}
+          >
+            <option value="image/webp">WebP · transparency supported</option>
+            <option value="image/jpeg">JPEG · white background</option>
+            <option value="image/png">
+              PNG · lossless, transparency supported
+            </option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="image-quality">
+            Quality {format === "image/png" ? "(not used for PNG)" : ""}
+          </label>
+          <div className="range-row">
+            <input
+              id="image-quality"
+              type="range"
+              min={10}
+              max={100}
+              disabled={format === "image/png"}
+              value={quality}
+              onChange={(e) => {
+                invalidate();
+                setQuality(Number(e.target.value));
+              }}
+            />
+            <output htmlFor="image-quality">{quality}%</output>
+          </div>
+        </div>
+      </div>
+      <p className="help">
+        Dimensions are not resized. JPEG replaces transparency with white; use
+        WebP or PNG to retain it. PNG is lossless and may not get smaller.
+        Encoding can remove metadata and change color profiles.
+      </p>
+      <div className="action-row">
+        <button className="primary" onClick={compress} disabled={busy}>
+          {busy ? "Compressing…" : "Compress image"}
+        </button>
+        <button
+          className="secondary"
+          onClick={() => {
+            invalidate();
+            setFile(null);
+            setQuality(80);
+            setFormat("image/webp");
+            if (inputRef.current) inputRef.current.value = "";
+          }}
+        >
+          Reset
+        </button>
+      </div>
+      {error && (
+        <p className="status error" role="alert">
+          Error: {error}
+        </p>
+      )}
+      <div aria-busy={busy}>
+        {file ? (
+          <div className="preview-grid">
+            <div className="preview-box">
+              <strong>Original</strong>
+              {originalUrl && (
+                <img src={originalUrl} alt="Original image preview" />
+              )}
+              <p>
+                {formatBytes(file.size)} ·{" "}
+                {file.type.replace("image/", "").toUpperCase()}
+              </p>
+            </div>
+            <div className="preview-box">
+              <strong>Compressed output</strong>
+              {result && outputUrl ? (
+                <>
+                  <img src={outputUrl} alt="Compressed image preview" />
+                  <p>
+                    {formatBytes(result.blob.size)} · {extension.toUpperCase()}
+                    <br />
+                    {result.width} × {result.height} pixels · unchanged
+                  </p>
+                  <p className="status">
+                    {saving >= 0
+                      ? `${saving.toFixed(1)}% smaller`
+                      : `${Math.abs(saving).toFixed(1)}% larger — try lower quality or a different format.`}
+                  </p>
+                  <a
+                    href={outputUrl}
+                    download={`quickkit-compressed.${extension}`}
+                    className="primary"
+                  >
+                    <Download size={16} /> Download image
+                  </a>
+                </>
+              ) : (
+                <div className="empty">
+                  <ImageIcon size={32} />
+                  <p>
+                    {busy
+                      ? "Processing on your device…"
+                      : "Your compressed preview will appear here."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="result-panel empty">
+            <ImageIcon size={35} />
+            <p>Choose a photo to get started.</p>
+          </div>
+        )}
+      </div>
+      <p className="sr-only" role="status">
+        {busy
+          ? "Compressing image."
+          : result
+            ? "Compression finished. Download is ready."
+            : ""}
+      </p>
+    </fieldset>
+  );
+}
