@@ -18,7 +18,7 @@ import { tools } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
 const navLink =
-  "inline-flex min-h-10 items-center rounded-xl px-3.5 text-sm font-semibold transition-colors";
+  "inline-flex min-h-11 items-center rounded-xl px-3.5 text-[0.9375rem] font-semibold transition-colors lg:px-4";
 const navLinkIdle = "text-ink-soft hover:bg-lavender-50 hover:text-brand-700";
 const navLinkActive = "bg-lavender-100 text-brand-700";
 
@@ -154,7 +154,7 @@ export function SiteHeader() {
           <div
             ref={panelRef}
             id="tools-menu"
-            className="mx-auto mt-3 max-w-[38rem] rounded-panel border border-line bg-white p-2 shadow-lift"
+            className="shadow-lift mx-auto mt-3 max-w-[38rem] rounded-panel border border-line bg-white p-2"
           >
             <p className="px-3 pt-2 pb-2 text-[10px] font-bold tracking-[0.16em] text-muted uppercase">
               The toolkit · {tools.length} tools
@@ -203,12 +203,12 @@ export function SiteHeader() {
         >
           <nav
             aria-label="Main navigation"
-            className="container flex flex-col gap-1 py-4"
+            className="container flex max-h-[calc(100dvh-4rem)] flex-col gap-1 overflow-y-auto py-4"
           >
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-ink hover:bg-lavender-50"
+              className="flex min-h-12 items-center rounded-xl px-3 text-[0.9375rem] font-semibold text-ink hover:bg-lavender-50"
             >
               Home
             </Link>
@@ -225,7 +225,7 @@ export function SiteHeader() {
                   key={tool.slug}
                   href={`/tools/${tool.slug}`}
                   onClick={() => setMobileOpen(false)}
-                  className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 hover:bg-lavender-50"
+                  className="flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 text-[0.9375rem] font-semibold text-ink hover:bg-lavender-50"
                 >
                   <ToolIcon icon={tool.icon} color={tool.color} size="sm" />
                   <span className="text-sm font-semibold text-ink">
@@ -237,14 +237,14 @@ export function SiteHeader() {
             <Link
               href="/tools"
               onClick={() => setMobileOpen(false)}
-              className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-brand-700 hover:bg-lavender-50"
+              className="flex min-h-12 items-center rounded-xl px-3 text-[0.9375rem] font-semibold text-brand-700 hover:bg-lavender-50"
             >
               Browse all tools
             </Link>
             <Link
               href="/about"
               onClick={() => setMobileOpen(false)}
-              className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-ink hover:bg-lavender-50"
+              className="flex min-h-12 items-center rounded-xl px-3 text-[0.9375rem] font-semibold text-ink hover:bg-lavender-50"
             >
               Our approach
             </Link>

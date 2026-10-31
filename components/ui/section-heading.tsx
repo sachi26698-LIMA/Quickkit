@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Consistent section header: optional eyebrow, an h2, supporting copy and an
+ * Consistent section header: optional eyebrow, heading, supporting copy and an
  * optional action aligned to the end of the row.
  */
 export function SectionHeading({
@@ -24,7 +24,7 @@ export function SectionHeading({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between",
         align === "center" && "sm:flex-col sm:items-center sm:text-center",
         className,
       )}
@@ -32,18 +32,15 @@ export function SectionHeading({
       <div className={cn("max-w-2xl", align === "center" && "mx-auto")}>
         {eyebrow ? (
           <span className="eyebrow">
-            <span aria-hidden="true" className="h-px w-6 bg-brand-300" />
+            <span aria-hidden="true" className="h-px w-7 bg-brand-300" />
             {eyebrow}
           </span>
         ) : null}
-        <h2
-          id={id}
-          className="mt-3 text-2xl font-extrabold tracking-[-0.03em] text-ink sm:text-3xl"
-        >
+        <h2 id={id} className="t-h2 mt-3">
           {title}
         </h2>
         {description ? (
-          <p className="mt-2.5 text-[15px] leading-relaxed text-muted">
+          <p className="t-lead mt-3 max-w-xl text-[0.9375rem] sm:text-base">
             {description}
           </p>
         ) : null}

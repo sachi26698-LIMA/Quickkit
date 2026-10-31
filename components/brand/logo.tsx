@@ -82,7 +82,7 @@ export function Logo({
       href={href}
       aria-label="QUICKKIT home"
       className={cn(
-        "inline-flex items-center gap-2.5 rounded-xl transition-opacity hover:opacity-90",
+        "inline-flex min-h-11 items-center gap-2.5 rounded-xl transition-opacity hover:opacity-90",
         className,
       )}
     >

@@ -28,7 +28,7 @@ export const toolToneMap: Record<
   peach: "peach",
 };
 
-/** Rounded accent tile with the tool's Lucide icon. */
+/** Rounded pastel tile with the tool's Lucide icon. */
 export default function ToolIcon({
   icon,
   color,
@@ -43,7 +43,7 @@ export default function ToolIcon({
   const Icon = toolIconMap[icon];
   return (
     <IconTile tone={toolToneMap[color]} size={size} className={className}>
-      <Icon strokeWidth={1.8} />
+      <Icon strokeWidth={1.9} />
     </IconTile>
   );
 }

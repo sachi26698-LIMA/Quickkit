@@ -1,10 +1,9 @@
 @import "tailwindcss";
 
 /* =========================================================================
-   QUICKKIT design tokens
-   Light-only premium system: white + soft lavender surfaces, purple
-   gradients, subtle mint accents. Every token is exposed as a CSS variable
-   and as a Tailwind utility (bg-*, text-*, border-*, shadow-*, rounded-*).
+   QUICKKIT — premium light design system
+   White + soft lavender surfaces, purple gradients, mint and pastel accents.
+   Every token below is a CSS variable AND a Tailwind utility.
    ========================================================================= */
 @theme {
   --font-sans:
@@ -15,40 +14,52 @@
     monospace;
 
   /* Ink and neutrals */
-  --color-ink: #171b2e;
-  --color-ink-soft: #2c3149;
-  --color-muted: #565d73;
-  --color-line: #e7e5f2;
-  --color-line-soft: #f1eff9;
+  --color-ink: #14172a;
+  --color-ink-soft: #2b3047;
+  --color-muted: #545b72;
+  --color-line: #e9e6f4;
+  --color-line-soft: #f2f0fa;
 
   /* Surfaces */
   --color-canvas: #ffffff;
   --color-canvas-soft: #fbfaff;
 
-  /* Lavender + brand purple */
+  /* Lavender ramp */
+  --color-lavender-25: #fcfbff;
   --color-lavender-50: #f8f6ff;
-  --color-lavender-100: #f1ecff;
-  --color-lavender-200: #e6dcff;
-  --color-lavender-300: #d3c6fb;
+  --color-lavender-100: #f2edff;
+  --color-lavender-200: #e7dcff;
+  --color-lavender-300: #d6c7fd;
+
+  /* Brand purple ramp */
   --color-brand-50: #f5f2ff;
-  --color-brand-100: #ebe6ff;
-  --color-brand-200: #dbd2ff;
-  --color-brand-300: #c2b3fd;
-  --color-brand-400: #a397ff;
+  --color-brand-100: #ece5ff;
+  --color-brand-200: #dcd0ff;
+  --color-brand-300: #c3b0fe;
+  --color-brand-400: #a394ff;
   --color-brand-500: #8b78f3;
-  --color-brand-600: #6657e8;
-  --color-brand-700: #5544d4;
-  --color-brand-800: #4635b0;
-  --color-brand-ink: #3f2f9e;
+  --color-brand-600: #6c5ce8;
+  --color-brand-700: #5a48d6;
+  --color-brand-800: #4736b2;
+  --color-brand-ink: #3b2c97;
 
   /* Mint accent */
   --color-mint: #d9fff2;
-  --color-mint-soft: #ecfff8;
-  --color-mint-200: #b6f5e2;
-  --color-mint-ink: #0c6553;
+  --color-mint-soft: #effff9;
+  --color-mint-100: #d6f9ec;
+  --color-mint-200: #b3f0dd;
+  --color-mint-ink: #0b6353;
   --color-mint-deep: #128a6e;
 
-  /* Feedback (text/background pairs meet WCAG AA) */
+  /* Pastel accents */
+  --color-sky-soft: #eaf1ff;
+  --color-sky-ink: #2f5399;
+  --color-peach-soft: #fff0e4;
+  --color-peach-ink: #8a5320;
+  --color-blush-soft: #ffeef4;
+  --color-blush-ink: #9c3a63;
+
+  /* Feedback */
   --color-danger: #b42318;
   --color-danger-soft: #fef3f2;
   --color-danger-line: #f6d4d0;
@@ -56,34 +67,36 @@
   --color-success-soft: #ecfdf5;
   --color-success-line: #cdeadd;
 
-  /* Tool accent tints */
-  --color-accent-purple-soft: #eee9ff;
-  --color-accent-purple-ink: #5b43c8;
-  --color-accent-blue-soft: #e9f0ff;
-  --color-accent-blue-ink: #33569e;
+  /* Tool tints */
+  --color-accent-purple-soft: #efeaff;
+  --color-accent-purple-ink: #5642c4;
+  --color-accent-blue-soft: #e8f0ff;
+  --color-accent-blue-ink: #2f5399;
   --color-accent-mint-soft: #e2fbf1;
-  --color-accent-mint-ink: #0f6f58;
-  --color-accent-peach-soft: #fff1e6;
-  --color-accent-peach-ink: #8d5a1e;
+  --color-accent-mint-ink: #0d6b55;
+  --color-accent-peach-soft: #ffefe1;
+  --color-accent-peach-ink: #8a5320;
 
   /* Radii */
-  --radius-card: 1.25rem;
-  --radius-panel: 1.75rem;
+  --radius-control: 0.875rem;
+  --radius-card: 1.5rem;
+  --radius-panel: 2rem;
   --radius-pill: 999px;
 
-  /* Elevation */
+  /* Elevation — low-contrast, layered, never heavy */
   --shadow-soft:
-    0 1px 2px rgb(23 27 46 / 0.04), 0 12px 30px -20px rgb(72 52 140 / 0.28);
+    0 1px 2px rgb(20 23 42 / 0.04), 0 16px 32px -24px rgb(73 52 145 / 0.35);
   --shadow-card:
-    0 1px 2px rgb(23 27 46 / 0.05), 0 18px 40px -26px rgb(72 52 140 / 0.35);
-  --shadow-lift:
-    0 2px 4px rgb(23 27 46 / 0.04), 0 28px 60px -28px rgb(72 52 140 / 0.4);
-  --shadow-button: 0 12px 24px -14px rgb(102 87 232 / 0.75);
-  --shadow-tile: 0 10px 24px -14px rgb(72 52 140 / 0.35);
+    0 1px 2px rgb(20 23 42 / 0.04), 0 24px 48px -32px rgb(73 52 145 / 0.42);
+  --shadow-float:
+    0 2px 6px rgb(20 23 42 / 0.04), 0 40px 80px -40px rgb(73 52 145 / 0.5);
+  --shadow-tile:
+    0 2px 4px rgb(20 23 42 / 0.04), 0 12px 28px -16px rgb(73 52 145 / 0.4);
+  --shadow-button: 0 14px 28px -16px rgb(108 92 232 / 0.85);
 
   /* Motion */
-  --animate-float: float 9s ease-in-out infinite;
-  --animate-float-slow: float 13s ease-in-out infinite;
+  --animate-float: float 10s ease-in-out infinite;
+  --animate-drift: drift 16s ease-in-out infinite;
   --animate-rise: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   @keyframes float {
@@ -92,13 +105,22 @@
       transform: translate3d(0, 0, 0);
     }
     50% {
-      transform: translate3d(0, -10px, 0);
+      transform: translate3d(0, -12px, 0);
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(12px, -18px, 0) scale(1.06);
     }
   }
   @keyframes rise {
     from {
       opacity: 0;
-      transform: translate3d(0, 14px, 0);
+      transform: translate3d(0, 16px, 0);
     }
     to {
       opacity: 1;
@@ -108,7 +130,7 @@
 }
 
 /* =========================================================================
-   Base layer — semantics, typography and native controls
+   Base
    ========================================================================= */
 @layer base {
   :root {
@@ -117,7 +139,7 @@
 
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 6rem;
+    scroll-padding-top: 6.5rem;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -131,7 +153,8 @@
   h2,
   h3,
   h4 {
-    @apply font-bold tracking-tight text-ink;
+    @apply font-extrabold text-ink;
+    letter-spacing: -0.03em;
     text-wrap: balance;
   }
 
@@ -172,7 +195,7 @@
   ):focus-visible {
     outline: 3px solid var(--color-brand-600);
     outline-offset: 3px;
-    border-radius: 6px;
+    border-radius: 8px;
   }
 
   ::selection {
@@ -190,7 +213,7 @@
   input[type="url"],
   input[type="number"],
   select {
-    @apply w-full rounded-xl border border-line bg-canvas-soft px-4 py-3 text-sm text-ink transition-colors;
+    @apply w-full rounded-control border border-line bg-canvas-soft px-4 py-3 text-base text-ink transition-colors sm:text-sm;
   }
 
   textarea {
@@ -199,7 +222,7 @@
 
   textarea::placeholder,
   input::placeholder {
-    color: color-mix(in oklab, var(--color-muted) 75%, white);
+    color: color-mix(in oklab, var(--color-muted) 78%, white);
   }
 
   textarea:focus-visible,
@@ -231,33 +254,113 @@
 }
 
 /* =========================================================================
-   Component layer — shared primitives still used by the tool workspaces.
-   New UI is composed with utilities inside components/ui/*.
+   Typography scale — mobile-first minimum sizes, fluid growth
    ========================================================================= */
 @layer components {
+  .t-display {
+    font-size: clamp(2.1rem, 7.6vw, 4.25rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    font-weight: 800;
+  }
+
+  .t-h2 {
+    font-size: clamp(1.6rem, 4.4vw, 2.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+  }
+
+  .t-h3 {
+    font-size: clamp(1.15rem, 2.6vw, 1.4rem);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  .t-lead {
+    font-size: clamp(1rem, 2.4vw, 1.125rem);
+    line-height: 1.7;
+    color: var(--color-muted);
+  }
+
+  .t-body {
+    font-size: clamp(0.9375rem, 2vw, 1rem);
+    line-height: 1.7;
+    color: var(--color-muted);
+  }
+
+  .t-small {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  .t-micro {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  /* Layout */
   .container {
     @apply mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8;
   }
 
-  .eyebrow {
-    @apply inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] text-brand-700 uppercase;
+  .section {
+    @apply py-11 sm:py-16 lg:py-20;
   }
 
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[0.6875rem] font-bold tracking-[0.16em] text-brand-700 uppercase sm:text-xs;
+  }
+
+  /* Buttons */
   .primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-transparent bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-button transition duration-200 hover:bg-brand-700 hover:shadow-lg active:translate-y-px disabled:pointer-events-none disabled:opacity-55;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-control border border-transparent px-5 py-3 text-[0.9375rem] font-bold text-white transition duration-200 disabled:pointer-events-none disabled:opacity-55;
+    background-image: linear-gradient(
+      135deg,
+      var(--color-brand-500) 0%,
+      var(--color-brand-600) 48%,
+      var(--color-brand-700) 100%
+    );
+    box-shadow: var(--shadow-button);
+  }
+
+  .primary:hover:not(:disabled) {
+    @apply -translate-y-0.5;
+    box-shadow: 0 20px 34px -16px rgb(108 92 232 / 0.95);
   }
 
   .secondary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 py-2.5 text-sm font-semibold text-ink shadow-[0_1px_2px_rgb(23_27_46_/_0.04)] transition duration-200 hover:border-brand-200 hover:bg-lavender-50 active:translate-y-px disabled:pointer-events-none disabled:opacity-55;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-control border border-line bg-white px-5 py-3 text-[0.9375rem] font-bold text-ink shadow-[0_1px_2px_rgb(20_23_42_/_0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:bg-lavender-50 disabled:pointer-events-none disabled:opacity-55;
   }
 
   .text-link {
-    @apply inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800;
+    @apply inline-flex min-h-11 items-center gap-2 text-sm font-bold text-brand-700 transition-colors hover:text-brand-800;
+  }
+
+  /* Surfaces */
+  .panel {
+    @apply rounded-panel border border-line bg-white shadow-soft;
+  }
+
+  .panel-tinted {
+    @apply relative overflow-hidden rounded-panel border border-lavender-200 shadow-soft;
+    background-image: linear-gradient(
+      135deg,
+      var(--color-lavender-100) 0%,
+      #ffffff 48%,
+      var(--color-mint-soft) 100%
+    );
   }
 
   /* Tool workspace shell */
   .workspace {
-    @apply m-0 min-w-0 rounded-panel border border-line bg-white p-5 shadow-soft sm:p-7;
+    @apply m-0 min-w-0 rounded-panel border border-line bg-white p-5 shadow-soft sm:p-8;
   }
 
   .workspace-heading {
@@ -273,7 +376,7 @@
   }
 
   .local-badge {
-    @apply inline-flex items-center gap-1.5 rounded-pill border border-mint-200 bg-mint-soft px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap text-mint-ink;
+    @apply inline-flex items-center gap-1.5 rounded-pill border border-mint-200 bg-mint-soft px-3 py-1.5 text-[0.75rem] font-semibold whitespace-nowrap text-mint-ink;
   }
 
   .local-badge::before {
@@ -282,15 +385,15 @@
   }
 
   .input-footer {
-    @apply mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-muted;
+    @apply mt-3 flex flex-wrap items-center justify-between gap-3 text-[0.8125rem] text-muted;
   }
 
   .workspace-foot {
-    @apply mt-5 flex flex-wrap items-start justify-between gap-4 text-xs leading-relaxed text-muted;
+    @apply mt-5 flex flex-wrap items-start justify-between gap-4 text-[0.8125rem] leading-relaxed text-muted;
   }
 
   .help {
-    @apply text-xs leading-relaxed text-muted;
+    @apply text-[0.8125rem] leading-relaxed text-muted;
   }
 
   .stat-grid {
@@ -306,7 +409,7 @@
   }
 
   .stat span {
-    @apply text-[11px] leading-tight text-muted;
+    @apply text-xs leading-tight text-muted;
   }
 
   .status {
@@ -330,7 +433,7 @@
   }
 
   .check-label {
-    @apply m-0 flex min-h-11 items-center gap-2.5 rounded-xl border border-line bg-canvas-soft px-3.5 py-2.5 text-sm font-medium text-ink-soft;
+    @apply m-0 flex min-h-11 items-center gap-2.5 rounded-control border border-line bg-canvas-soft px-3.5 py-2.5 text-sm font-medium text-ink-soft;
   }
 
   .check-label input {
@@ -433,13 +536,13 @@
     @apply mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted;
   }
 
-  /* Long-form content pages */
+  /* Long-form content */
   .prose {
     @apply mx-auto w-full max-w-3xl py-10 sm:py-14;
   }
 
   .prose h1 {
-    @apply mt-4 mb-5 text-4xl font-extrabold tracking-tight sm:text-5xl;
+    @apply mt-4 mb-5 text-[2rem] leading-tight font-extrabold tracking-tight sm:text-5xl;
   }
 
   .prose h1 span {
@@ -452,7 +555,7 @@
 
   .prose p,
   .prose li {
-    @apply text-[15px] leading-8 text-muted;
+    @apply text-base leading-8 text-muted;
   }
 
   .prose p {
@@ -476,15 +579,24 @@
   }
 }
 
-/* Keep small-screen form text at 16px to avoid iOS focus zoom. */
-@media (max-width: 600px) {
-  textarea,
-  select,
-  input[type="text"],
-  input[type="search"],
-  input[type="number"],
-  input[type="url"],
-  .code-input {
-    font-size: 16px;
-  }
+/* Decor helpers */
+@utility bg-grid-soft {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgb(108 92 232 / 0.16) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-brand-700) 0%,
+    var(--color-brand-600) 45%,
+    var(--color-brand-400) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

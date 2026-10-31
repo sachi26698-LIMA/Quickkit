@@ -1,7 +1,7 @@
 import { Hero } from "@/components/home/hero";
-import { TrustSection } from "@/components/home/trust-section";
-import { PrinciplesSection } from "@/components/home/principles-section";
-import { FreeBand } from "@/components/home/free-band";
+import { FeaturesSection } from "@/components/home/features-section";
+import { PrivacySection } from "@/components/home/privacy-section";
+import { CtaSection } from "@/components/home/cta-section";
 import { ToolExplorer } from "@/components/tools/tool-explorer";
 import { pageMetadata } from "@/lib/seo";
 
@@ -16,14 +16,9 @@ export default function Home() {
     <>
       <Hero />
 
-      <section
-        className="relative"
-        style={{
-          background:
-            "linear-gradient(180deg, #f8f6ff 0%, #ffffff 42%, #ffffff 100%)",
-        }}
-      >
-        <div className="container pb-16 sm:pb-20">
+      {/* The search panel overlaps the hero band to add depth. */}
+      <div className="relative z-10 -mt-8 sm:-mt-16 lg:-mt-20">
+        <div className="container pb-10 sm:pb-14 lg:pb-20">
           <ToolExplorer
             eyebrow="Find your tool"
             title="Everyday favorites"
@@ -31,11 +26,11 @@ export default function Home() {
             showDirectoryLink
           />
         </div>
-      </section>
+      </div>
 
-      <TrustSection />
-      <PrinciplesSection />
-      <FreeBand />
+      <FeaturesSection />
+      <PrivacySection />
+      <CtaSection />
     </>
   );
 }

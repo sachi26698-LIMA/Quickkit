@@ -23,6 +23,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
   colorScheme: "light",
   themeColor: "#ffffff",
 };
@@ -35,7 +38,7 @@ export default function RootLayout({
       <body className="flex min-h-dvh flex-col bg-canvas text-ink">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-[100] focus:rounded-xl focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-brand-700 focus:shadow-lift"
+          className="focus:shadow-lift sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-[100] focus:rounded-xl focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-brand-700"
         >
           Skip to content
         </a>
