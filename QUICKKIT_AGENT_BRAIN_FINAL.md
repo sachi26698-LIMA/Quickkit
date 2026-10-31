@@ -730,3 +730,5 @@ This FINAL Brain supersedes the earlier master. The original earlier Brain and u
 - Authoritative launch runbook is now root **RELEASE_CHECKLIST.md**. Earlier docs/checklist points to it. Full quality report `docs/FINAL_QUALITY_AUDIT.md`; no public release or absolute security/compliance claim.
 
 - Final expanded unit total **70/70 passed**, including real approved/unapproved robots/sitemap outputs. Additional populated workspace axe/overflow checks and reduced-motion behavior passed; final icons/robots/sitemap/header HTTP smoke checks passed. Generated root checklist plus owner-input and security review documents. A self-contained Git bundle is exported outside the repo for a history-preserving handoff; no remote publication is implied.
+
+- Final screenshot review refined the 320px hero heading clamp to keep “Quick solutions.” together. Rebuilt/restarted the production preview and reran the complete browser suite again: 123 passed, 2 documented capability skips. Updated screenshot and verified the emphasized phrase occupies one line.

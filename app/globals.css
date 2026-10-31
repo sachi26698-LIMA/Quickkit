@@ -1410,7 +1410,7 @@ details p {
     letter-spacing: 1px;
   }
   .hero h1 {
-    font-size: clamp(39px, 10vw, 52px);
+    font-size: clamp(34px, 10vw, 52px);
     letter-spacing: -1.9px;
     margin: 22px 0 17px;
   }
