@@ -89,3 +89,48 @@ test("password options, generation and real clipboard", async ({
     page.getByLabel("Generated password", { exact: true }),
   ).toHaveValue("");
 });
+
+test("word, case and JSON copy actions write the actual current output", async ({
+  page,
+  context,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Real clipboard readback is restricted to Chromium permissions in this test runner.",
+  );
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  for (const tool of ["word-counter", "case-converter", "json-formatter"]) {
+    await page.goto(`/tools/${tool}`);
+    let expected = "";
+    if (tool === "word-counter") {
+      expected = "Hello 世界";
+      await page.getByLabel("Your text", { exact: true }).fill(expected);
+    }
+    if (tool === "case-converter") {
+      await page.getByLabel("Original text").fill("Hello");
+      await page
+        .getByRole("button", { name: "UPPERCASE", exact: true })
+        .click();
+      expected = "HELLO";
+    }
+    if (tool === "json-formatter") {
+      await page.getByLabel("JSON input").fill('{"x":1}');
+      await page.getByRole("button", { name: "Minify", exact: true }).click();
+      expected = '{"x":1}';
+    }
+    await page.getByRole("button", { name: "Copy", exact: true }).click();
+    await expect(
+      page.getByText("Copied to clipboard.", { exact: true }),
+    ).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      expected,
+    );
+    if (tool === "word-counter") {
+      await page.getByLabel("Your text", { exact: true }).fill("Changed");
+      await expect(
+        page.getByText("Copied to clipboard.", { exact: true }),
+      ).toHaveCount(0);
+    }
+  }
+});

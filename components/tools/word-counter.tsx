@@ -61,7 +61,7 @@ export default function WordCounter() {
           Reading time assumes 200 words per minute. Counts are estimates, not
           linguistic analysis.
         </p>
-        <CopyButton text={text} />
+        <CopyButton key={text} text={text} />
       </div>
     </fieldset>
   );

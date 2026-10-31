@@ -114,3 +114,9 @@ it("handles a large valid JSON array", () =>
   expect(
     JSON.parse(processJson(JSON.stringify(Array(100000).fill("😀")), "minify")),
   ).toHaveLength(100000));
+it("rejects numerical overflow instead of silently converting it to null", () => {
+  expect(() => processJson('{"amount":1e400}', "format")).toThrow(
+    "finite range",
+  );
+  expect(() => processJson("-1e400", "minify")).toThrow("finite range");
+});

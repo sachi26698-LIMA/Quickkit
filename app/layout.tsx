@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import Header from "@/components/header";
+import { indexingEnabled } from "@/lib/launch";
 import { siteOrigin } from "@/lib/seo";
 import "@fontsource-variable/geist";
 import "./globals.css";
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3001"),
   ),
-  robots: { index: !!siteOrigin, follow: true },
+  robots: { index: indexingEnabled, follow: indexingEnabled },
 };
 export default function Layout({
   children,

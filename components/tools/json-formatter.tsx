@@ -103,8 +103,8 @@ export default function JsonFormatter() {
       <p className="help">
         Limit: 1,000,000 characters and 128 nesting levels. Uses JSON.parse,
         never executes code. JavaScript numbers can lose precision beyond 15–17
-        digits; encode large identifiers as strings. Duplicate object keys
-        retain only the last value.
+        digits; encode large identifiers as strings. Non-finite overflow is
+        rejected. Duplicate object keys retain only the last value.
       </p>
     </fieldset>
   );

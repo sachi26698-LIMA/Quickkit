@@ -3,10 +3,10 @@
 /* eslint-disable @next/next/no-img-element */
 import { useHydrated } from "@/lib/use-hydrated";
 import { useEffect, useRef, useState } from "react";
+import { preflightImage } from "@/lib/tools/image-header";
 import { Download, ImageIcon } from "lucide-react";
 import {
   compressImage,
-  validateImage,
   formatBytes,
   type ImageFormat,
 } from "@/lib/tools/image";
@@ -91,17 +91,24 @@ export default function ImageCompressor() {
         type="file"
         accept="image/jpeg,image/png,image/webp"
         aria-describedby="image-help"
-        onChange={(e) => {
+        onChange={async (e) => {
+          const picker = e.currentTarget;
           invalidate();
           setFile(null);
-          const next = e.target.files?.[0];
+          const next = picker.files?.[0];
           if (!next) return;
+          const id = version.current;
+          setBusy(true);
           try {
-            validateImage(next);
-            setFile(next);
+            await preflightImage(next);
+            if (id === version.current) setFile(next);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Invalid file.");
-            e.target.value = "";
+            if (id === version.current) {
+              setError(err instanceof Error ? err.message : "Invalid file.");
+              picker.value = "";
+            }
+          } finally {
+            if (id === version.current) setBusy(false);
           }
         }}
       />

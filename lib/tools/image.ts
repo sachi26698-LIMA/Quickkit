@@ -1,15 +1,12 @@
-export const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
-export const MAX_IMAGE_PIXELS = 24_000_000;
-export type ImageFormat = "image/webp" | "image/jpeg" | "image/png";
-export function validateImage(file: { type: string; size: number }) {
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
-    throw new Error(
-      "Choose a JPEG, PNG or WebP image. Other formats are not supported.",
-    );
-  if (!file.size) throw new Error("This file is empty. Choose another image.");
-  if (file.size > MAX_IMAGE_BYTES)
-    throw new Error("Choose an image smaller than 15 MB.");
-}
+import { validateImage, MAX_IMAGE_PIXELS } from "./image-input";
+import { preflightImage } from "./image-header";
+import type { ImageFormat } from "./image-input";
+export {
+  MAX_IMAGE_BYTES,
+  MAX_IMAGE_PIXELS,
+  validateImage,
+} from "./image-input";
+export type { ImageFormat } from "./image-input";
 export function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   return bytes < 1024 * 1024
@@ -22,6 +19,7 @@ export async function compressImage(
   quality: number,
 ) {
   validateImage(file);
+  await preflightImage(file);
   if (!Number.isFinite(quality) || quality < 0.1 || quality > 1)
     throw new Error("Quality must be between 10% and 100%.");
   if (!["image/webp", "image/jpeg", "image/png"].includes(format))

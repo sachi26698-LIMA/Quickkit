@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { siteOrigin } from "@/lib/seo";
+import { indexingEnabled } from "@/lib/launch";
 import { tools } from "@/lib/catalog";
 export default function sitemap(): MetadataRoute.Sitemap {
-  return siteOrigin
+  return indexingEnabled && siteOrigin
     ? [
         "/",
         "/about",

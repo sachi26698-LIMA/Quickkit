@@ -34,7 +34,13 @@ export function processJson(
   }
   const output = JSON.stringify(
     parsed,
-    null,
+    (_key, value: unknown) => {
+      if (typeof value === "number" && !Number.isFinite(value))
+        throw new Error(
+          "A JSON number exceeds JavaScript’s finite range. Encode very large values as strings.",
+        );
+      return value;
+    },
     mode === "minify" ? undefined : 2,
   );
   if (output.length > 6_000_000)

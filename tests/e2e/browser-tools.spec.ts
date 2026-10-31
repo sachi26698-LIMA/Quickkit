@@ -78,10 +78,8 @@ test("image validates empty, unsupported, oversized and corrupt inputs", async (
     mimeType: "image/png",
     buffer: Buffer.from("broken"),
   });
-  await page
-    .getByRole("button", { name: "Compress image", exact: true })
-    .click();
   await expect(page.locator(".status.error")).toContainText("decoded");
+  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
 });
 test("image compression downloads real WebP, JPEG and PNG without resizing", async ({
   page,
@@ -136,4 +134,102 @@ test("image compression downloads real WebP, JPEG and PNG without resizing", asy
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(page.getByAltText("Original image preview")).toHaveCount(0);
   await expect(page.getByAltText("Compressed image preview")).toHaveCount(0);
+});
+
+test("JPEG and WebP inputs pass preflight and preserve pixel dimensions", async ({
+  page,
+}) => {
+  await page.goto("/tools/image-compressor");
+  for (const mimeType of ["image/jpeg", "image/webp"]) {
+    const bytes = await page.evaluate((type) => {
+      const c = document.createElement("canvas");
+      c.width = 320;
+      c.height = 240;
+      const ctx = c.getContext("2d")!;
+      ctx.fillStyle = "#6657e8";
+      ctx.fillRect(0, 0, 320, 240);
+      return c.toDataURL(type).split(",")[1];
+    }, mimeType);
+    await page.getByLabel("Choose an image", { exact: true }).setInputFiles({
+      name: mimeType === "image/jpeg" ? "sample.jpg" : "sample.webp",
+      mimeType,
+      buffer: Buffer.from(bytes, "base64"),
+    });
+    await expect(page.getByAltText("Original image preview")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Compress image", exact: true })
+      .click();
+    await expect(page.getByAltText("Compressed image preview")).toBeVisible();
+    await expect(
+      page.getByText("320 × 240 pixels · unchanged", { exact: false }),
+    ).toBeVisible();
+  }
+});
+
+test("oversized decoded dimensions are rejected before original preview allocation", async ({
+  page,
+}) => {
+  await page.goto("/tools/image-compressor");
+  const bytes = Buffer.alloc(33);
+  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(bytes);
+  bytes.write("IHDR", 12);
+  bytes.writeUInt32BE(100000, 16);
+  bytes.writeUInt32BE(100000, 20);
+  await page.getByLabel("Choose an image", { exact: true }).setInputFiles({
+    name: "too-many-pixels.png",
+    mimeType: "image/png",
+    buffer: bytes,
+  });
+  await expect(page.locator(".status.error")).toContainText("24 megapixels");
+  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
+});
+
+test("image reset releases all object URLs and discards a pending encode", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const urls = new Set<string>();
+    Object.defineProperty(window, "quickkitTestUrls", { value: urls });
+    const create = URL.createObjectURL;
+    const revoke = URL.revokeObjectURL;
+    URL.createObjectURL = (object) => {
+      const url = create(object);
+      urls.add(url);
+      return url;
+    };
+    URL.revokeObjectURL = (url) => {
+      urls.delete(url);
+      revoke(url);
+    };
+    const encode = HTMLCanvasElement.prototype.toBlob;
+    HTMLCanvasElement.prototype.toBlob = function (callback, type, quality) {
+      encode.call(
+        this,
+        (blob) => setTimeout(() => callback(blob), 120),
+        type,
+        quality,
+      );
+    };
+  });
+  await page.goto("/tools/image-compressor");
+  await page
+    .getByLabel("Choose an image", { exact: true })
+    .setInputFiles(await pngFixture(page));
+  await expect(page.getByAltText("Original image preview")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Compress image", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await page.waitForTimeout(250);
+  await expect(
+    page.getByRole("link", { name: "Download image", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { quickkitTestUrls: Set<string> })
+          .quickkitTestUrls.size,
+    ),
+  ).toBe(0);
 });

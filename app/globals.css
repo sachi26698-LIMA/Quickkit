@@ -1710,3 +1710,17 @@ textarea:disabled {
 noscript .status {
   margin-block: 15px;
 }
+
+/* Prevent iOS focus zoom while keeping compact labels and touch-friendly controls. */
+@media (max-width: 600px) {
+  textarea,
+  select,
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  .search-wrap input,
+  .code-input {
+    font-size: 16px;
+  }
+}

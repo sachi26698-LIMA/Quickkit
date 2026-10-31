@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { indexingEnabled } from "./lib/launch";
 const config: NextConfig = {
   poweredByHeader: false,
   async headers() {
@@ -6,6 +7,9 @@ const config: NextConfig = {
       {
         source: "/:path*",
         headers: [
+          ...(!indexingEnabled
+            ? [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]
+            : []),
           {
             key: "Content-Security-Policy",
             value:

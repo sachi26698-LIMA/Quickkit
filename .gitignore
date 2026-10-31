@@ -6,3 +6,7 @@ test-results/
 .env*
 !.env.example
 *.tsbuildinfo
+.vercel/
+.DS_Store
+*.pem
+*.key

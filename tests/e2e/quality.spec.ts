@@ -93,6 +93,10 @@ test("all page links resolve; metadata and headers are present", async ({
     "object-src 'none'",
   );
   expect(response.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(response.headers()["x-robots-tag"]).toContain("noindex");
+  expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
+    "<loc>",
+  );
   expect((await request.get("/missing-tool")).status()).toBe(404);
   expect(
     (await request.get("/opengraph-image")).headers()["content-type"],
