@@ -70,6 +70,33 @@ an honest "what these tools don't claim" block, and a closing CTA.
 | Touch targets < 40 px | only the sr-only skip link and two inline in-sentence legal links |
 | Tool functionality | all six workspaces exercised (counts, casing, JSON, password, QR preview + download, image compression) |
 
+### Search & filter matrix (re-checked after the polish pass)
+
+| Interaction | Result |
+|---|---|
+| Initial state | 6 cards · "6 tools, all free to use" |
+| Query `json` (name) | 1 card · "1 of 6 tools" |
+| Query `crypto` (keyword) | 1 card → Password Generator |
+| Query `webp` (description) | 1 card → Image Compressor |
+| Query `pdf merge` | 0 cards + "No tools found" empty state |
+| Empty-state clear button | 6 cards restored |
+| Chips: Text / Developer / Security / Image & QR / All | 2 / 1 / 1 / 2 / 6 cards, `aria-pressed=true` on the active chip |
+| Text + `json` combined | 0 cards (correct: no JSON tool in Text) |
+| "Reset filters" | 6 cards |
+| Escape in the field | clears the query |
+| Card click | navigates to `/tools/<slug>`, correct `<h1>` |
+
+### Cross-breakpoint audit
+
+| Width | Overflow X | Clipped content |
+|---|---|---|
+| 320 / 360 / 375 / 390 / 430 | 0 px | none |
+| 768 | 0 px | none |
+| 1024 | 0 px | none |
+| 1440 | 0 px | none |
+
+Page heights: home 3536 px (1440) → 6312 px (320); About 4650 px (1440) → 8027 px (390); `/tools` 2227 px (1440).
+
 Accessibility fixes made during this pass:
 1. Category count badges set to `aria-hidden` so button names stay "Text",
    "Developer", … (also removes count noise for screen readers).
@@ -88,6 +115,17 @@ Accessibility fixes made during this pass:
 | `home-hero-desktop.png`, `home-hero-mobile-390.png` | Hero at viewport scale |
 | `about-desktop-1440.png`, `about-mobile-390.png` | About page |
 | `tools-desktop-1440.png`, `tools-mobile-390.png` | Tool directory |
+
+## Polish pass (final, awaiting visual approval)
+
+| Item | Change |
+|---|---|
+| Brand mark | **Root cause of the black logo:** the inner highlight `<rect>` in the SVG mark had no `fill`, so SVG defaulted it to black and covered the gradient. The mark is now CSS-gradient based (`span` + inset ring + inner sheen) with no `<defs>`/id dependency, so it can never fall back to black or collide across instances. `app/icon.svg` updated to the same gradient. |
+| Hero illustration | Ground shadow added, glass sheen across the window body, traffic-light dots, balanced 2-left/3-right floating tiles, stronger orbit ring contrast and a wider desktop canvas. |
+| Tool cards | Single shared anatomy everywhere (56 px pastel tile, category chip, title, two-line description, "Open tool" + arrow). Hover now: lift, border warm-up, top hairline sweep, icon tilt/scale, arrow fills with the brand gradient. `motion-reduce` opt-outs included. |
+| Category chips | Fixed real clipping found at 390–430 px: 3-up labels no longer truncate ("Developer", "Image & QR" were cut). Mobile is 2-up, tablet 3-up, desktop 5-up. |
+| Search & filters | Re-verified end-to-end (see matrix below). |
+| Readability | Automated clip scan across all breakpoints: no truncated content except the visually-hidden skip link (by design). |
 
 ## Still open
 - Visual approval of the captures above.

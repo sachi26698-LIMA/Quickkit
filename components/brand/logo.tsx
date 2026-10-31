@@ -2,55 +2,51 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Brand mark: a rounded-square gradient tile with the QUICKKIT "Q" glyph.
- * Purely decorative — the accessible name comes from the surrounding link.
+ * Brand mark: a rounded-square tile with the QUICKKIT gradient and a "Q" glyph.
+ *
+ * The gradient is painted with CSS (not an SVG <defs> reference) so the mark
+ * can never fall back to a black fill and so any number of instances can render
+ * on a page without id collisions. Purely decorative — the accessible name comes
+ * from the surrounding link.
  */
-export function LogoMark({
-  className,
-  gradientId = "quickkit-mark",
-}: {
-  className?: string;
-  gradientId?: string;
-}) {
+export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 48 48"
+    <span
       aria-hidden="true"
-      focusable="false"
-      className={cn("size-10 shrink-0", className)}
+      className={cn(
+        "relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-[0.95rem] shadow-[0_6px_14px_-6px_rgb(90_72_214_/_0.7)]",
+        className,
+      )}
+      style={{
+        backgroundImage:
+          "linear-gradient(140deg, #B9A6FF 0%, #8B78F3 26%, #6C5CE8 58%, #5240CE 100%)",
+      }}
     >
-      <defs>
-        <linearGradient
-          id={gradientId}
-          x1="6"
-          y1="2"
-          x2="42"
-          y2="46"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#A78BFA" />
-          <stop offset="0.55" stopColor="#6C57E8" />
-          <stop offset="1" stopColor="#5540C8" />
-        </linearGradient>
-      </defs>
-      <rect width="48" height="48" rx="14" fill={`url(#${gradientId})`} />
-      <rect
-        x="1"
-        y="1"
-        width="46"
-        height="46"
-        rx="13"
-        stroke="white"
-        strokeOpacity="0.22"
+      {/* Top light catch + bottom shade for a subtle 3D read */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-1 top-0.5 h-1/3 rounded-full bg-white/25 blur-[3px]"
       />
-      <circle cx="22.5" cy="22.5" r="9" stroke="white" strokeWidth="4.4" />
-      <path
-        d="M29 30.5 33.5 35"
-        stroke="white"
-        strokeWidth="4.4"
-        strokeLinecap="round"
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-white/25 ring-inset"
       />
-    </svg>
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        focusable="false"
+        className="relative size-[62%]"
+        fill="none"
+      >
+        <circle cx="11" cy="11" r="5.4" stroke="white" strokeWidth="2.7" />
+        <path
+          d="M14.9 14.9 18 18"
+          stroke="white"
+          strokeWidth="2.7"
+          strokeLinecap="round"
+        />
+      </svg>
+    </span>
   );
 }
 
@@ -70,11 +66,9 @@ export function Wordmark({ className }: { className?: string }) {
 
 export function Logo({
   className,
-  gradientId,
   href = "/",
 }: {
   className?: string;
-  gradientId?: string;
   href?: string;
 }) {
   return (
@@ -86,7 +80,7 @@ export function Logo({
         className,
       )}
     >
-      <LogoMark gradientId={gradientId} className="size-9 sm:size-10" />
+      <LogoMark className="size-9 sm:size-10" />
       <Wordmark />
     </Link>
   );

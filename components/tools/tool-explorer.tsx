@@ -147,7 +147,7 @@ export function ToolExplorer({
         <div
           role="group"
           aria-label="Filter tools by category"
-          className="mt-2 grid grid-cols-2 gap-1.5 min-[380px]:grid-cols-3 sm:mt-2.5 lg:grid-cols-5"
+          className="mt-2 grid grid-cols-2 gap-1.5 sm:mt-2.5 sm:grid-cols-3 lg:grid-cols-5"
         >
           {categories.map((item) => {
             const Icon = categoryIcons[item];
@@ -159,7 +159,7 @@ export function ToolExplorer({
                 aria-pressed={active}
                 onClick={() => setCategory(item)}
                 className={cn(
-                  "flex min-h-11 items-center gap-1.5 rounded-xl border px-2.5 text-left text-[0.75rem] font-bold transition duration-200 min-[380px]:text-[0.8125rem] sm:justify-center sm:gap-2 sm:px-3 sm:text-sm",
+                  "flex min-h-11 items-center gap-1.5 rounded-xl border px-2.5 text-left text-[0.8125rem] font-bold transition duration-200 sm:justify-center sm:gap-2 sm:px-3 sm:text-sm",
                   active
                     ? "border-brand-200 bg-gradient-to-br from-lavender-100 to-lavender-200/70 text-brand-700 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9)]"
                     : "border-transparent text-ink-soft hover:border-line hover:bg-lavender-50",
@@ -173,7 +173,7 @@ export function ToolExplorer({
                   )}
                   strokeWidth={2}
                 />
-                <span className="min-w-0 truncate">{item}</span>
+                <span className="min-w-0">{item}</span>
                 <span
                   aria-hidden="true"
                   className={cn(

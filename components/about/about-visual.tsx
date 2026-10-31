@@ -24,7 +24,7 @@ export function AboutVisual() {
 
       <div className="relative rotate-[-2deg] rounded-[1.75rem] border border-white bg-white/85 p-5 shadow-float ring-1 ring-lavender-200/80 backdrop-blur">
         <div className="flex items-center gap-3">
-          <LogoMark gradientId="quickkit-mark-about" className="size-10" />
+          <LogoMark className="size-10" />
           <div>
             <p className="text-lg leading-none font-extrabold tracking-[-0.04em] text-ink">
               QUICK<span className="text-brand-600">KIT</span>

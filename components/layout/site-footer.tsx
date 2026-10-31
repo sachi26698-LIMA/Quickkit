@@ -20,7 +20,7 @@ export function SiteFooter() {
 
       <div className="container grid gap-8 py-10 sm:grid-cols-2 sm:gap-10 sm:py-12 lg:grid-cols-[1.35fr_1.25fr_0.85fr]">
         <div className="max-w-sm sm:col-span-2 lg:col-span-1">
-          <Logo gradientId="quickkit-mark-footer" />
+          <Logo />
           <p className="t-body mt-4 max-w-xs text-[0.9375rem]">
             Handy tools. Zero hassle. A little help for the things you do every
             day — right in your browser.
