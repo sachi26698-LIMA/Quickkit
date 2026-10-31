@@ -1,8 +1,8 @@
 # QUICKKIT — MASTER AGENT BRAIN
-Version: 1.0  
-Project type: Production-minded online tools website  
-Brand: QUICKKIT  
-Tagline: **Handy tools. Zero hassle.**  
+Version: 1.0
+Project type: Production-minded online tools website
+Brand: QUICKKIT
+Tagline: **Handy tools. Zero hassle.**
 Primary workflow: Build with an AI coding agent → Git/GitHub → Vercel deployment.
 
 ---
