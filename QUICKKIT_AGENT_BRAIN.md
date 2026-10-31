@@ -618,3 +618,7 @@ If this is a new empty repository, initialize the project using the preferred st
 - Production audit: 0 vulnerabilities. Full audit: 16 moderate development-tool advisories rooted in minimatch; unsafe legacy downgrade rejected. Must revisit before release.
 - No GitHub remote or deployment configured. No owner identity, company details, domain or contact invented. No cross-browser/full accessibility audit claimed.
 - Phase 1 complete; Phase 2 next. MVP is NOT complete or production-release approved.
+
+## Specification superseded — 2026-10-31
+
+The user supplied `QUICKKIT_AGENT_BRAIN_FINAL.md`, which is now the authoritative master. This earlier file is preserved for history. Current decisions, verification and release gates are in the FINAL Brain, README and `docs/RELEASE_CHECKLIST.md`.

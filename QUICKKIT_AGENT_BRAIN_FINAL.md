@@ -685,3 +685,34 @@ This section is the final approved visual direction. Follow it throughout the wh
 
 ## Agent instruction
 Before coding the final UI, create or refine a small design system (tokens, typography, spacing, buttons, cards, inputs, focus styles). Implement the homepage and one representative tool page first. Check screenshots at mobile and desktop sizes, refine the visual consistency, then apply the system to all tool pages. Keep the initial product light-theme-only.
+
+---
+
+## Implementation decisions and progress — 2026-10-31
+
+This FINAL Brain supersedes the earlier master. The original earlier Brain and upload are preserved for history.
+
+- Inspected clean `main` at dcdd265, no remote. Work continues on `feat/premium-mvp` using the existing Next.js / strict TypeScript / npm / CSS-variable architecture.
+- Visual reference archived in `docs/reference/design.png`. Applied final section 14 over the old visual direction: light only, bundled Geist Variable, white workspaces, soft lavender hero, custom lightweight CSS brand illustration, pastel consistent Lucide icons, subtle focus/hover motion with reduced-motion support. No fake account, Pro, payment, PDF tools or inflated tool counts.
+- Homepage and representative Word Counter reviewed via desktop and mobile screenshots in `docs/verification` before applying the tool system elsewhere. Responsive accessible mobile navigation added.
+- Core tools implemented on separate static routes. Reusable count/case/JSON/password logic is isolated in `lib/tools`. Limits and precision/language assumptions are visible. Secure password generation uses browser crypto rejection sampling and secure shuffle.
+- Core verification: 26 unit tests and 4 production-browser workflows passed (large input, empty/invalid JSON, casing, reset, actual clipboard and denied-clipboard fallback). Test selector ambiguity corrected and re-run.
+- QR and image tools use local lazy-loaded qrcode and canvas encoding; no remote processing. Image limits: 15 MB, 24 MP, 8,192 px per side. Explicit JPEG transparency/format/metadata/animation disclosures. Object URLs revoked on replacement/unmount; stale async results invalidated.
+- Browser utilities verification: 32 unit tests total and 3 additional production-browser workflows passed. Downloaded QR PNG independently decoded using jsQR; image downloads verified as real WebP/JPEG/PNG, 640×480 preserved, JPEG white fill, PNG/WebP alpha retained. Invalid/oversize/corrupt file paths tested.
+- Content/SEO phase: per-tool instructions and FAQs, related links, About/Privacy/Terms, icon, generated OG image, robots, conditional canonical/sitemap, custom 404, tool-level error boundary, security headers and no input logging. Legal pages transparently mark operator identity/contact/jurisdiction/provider retention as owner-supplied launch prerequisites.
+- `SITE_URL` must be a verified HTTPS origin. Without it, indexing is blocked and no invented production canonicals or sitemap entries are emitted. Preview metadata can use Vercel’s preview host or the explicit local development origin; neither is represented as a production deployment.
+- Full accessibility, cross-browser and release checks are in progress; no public production approval or deployment is claimed.
+
+### Quality and release verification update
+
+- Added complete legal/content routes, all SEO/icon assets, static-route error boundary and CSP/HSTS headers. No actual domain, operator entity or privacy email invented.
+- Full quality run initially found two defects: mobile Escape handler scope and WebKit pre-hydration input. Fixed header boundary handling/focus and shared hydration readiness (all workspaces disabled until handlers attach). Re-ran original failures, then full suite: **113/113 passed**.
+- Automated axe scans passed on all ten public pages and 70 route/viewport overflow checks passed. Browser core/utilities flows passed in Chromium, Firefox and WebKit. No claim of separate Edge, physical iOS or screen-reader certification.
+- Added React Testing Library component checks and configuration tests; final unit/component/config total **44/44 passed**. Added deep-JSON guard (128 levels) to prevent stack/pretty-print expansion hazards. Lint, strict type-check and production build passed.
+- Isolated local Lighthouse: 99 Performance / 100 Accessibility / 100 Best Practices; preview SEO 63 because indexing is deliberately blocked without `SITE_URL`. A concurrent CPU-contended run scored 75 Performance; both reports are preserved and context documented, not hidden.
+- Added formatted readable source and formatting scripts, npm engine declaration, CI workflow, detailed README, verification report and release runbook. Workflow is prepared, not claimed to have run remotely.
+- Production dependency audit remains clean; full dev audit has 16 moderate inherited minimatch findings. Investigated upgrades: installed React and JSX accessibility plugins do not support ESLint 10; installed typescript-eslint excludes TypeScript 7. Retained mutually compatible current versions and documented security review gate instead of forcing incompatible upgrades.
+- Connector checks: GitHub lookup unsupported in this environment; Vercel disconnected. No remote, push or deployment performed. Standard authorized Git/CLI workflow documented; never request credentials in chat.
+- Technical MVP is implemented and locally verified. **Public production release is NOT approved** until real origin/domain, operator/legal/contact/provider details, security-risk review, authorized remote/deployment and actual production verification are complete. Payments/ads/accounts remain deliberately out of scope.
+
+- Final reproducibility check: clean `npm ci`, formatting, lint, 44 tests, production build and type-check all passed again. Screenshot evidence refreshed with populated Word Counter and QR output on desktop/mobile. Only `.env.example` exists; no actual credentials file created.
