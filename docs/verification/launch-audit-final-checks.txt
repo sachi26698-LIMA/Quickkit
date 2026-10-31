@@ -1,0 +1,99 @@
+
+> quickkit@1.0.0 format
+> prettier --write "app/**/*.{ts,tsx,css}" "components/**/*.tsx" "lib/**/*.ts" "tests/**/*.{ts,tsx}" "*config.{ts,mjs}" package.json tsconfig.json
+
+app/about/page.tsx 56ms (unchanged)
+app/globals.css 217ms (unchanged)
+app/layout.tsx 37ms (unchanged)
+app/not-found.tsx 5ms (unchanged)
+app/opengraph-image.tsx 12ms (unchanged)
+app/page.tsx 24ms (unchanged)
+app/privacy/page.tsx 8ms (unchanged)
+app/robots.ts 4ms (unchanged)
+app/sitemap.ts 7ms (unchanged)
+app/terms/page.tsx 11ms (unchanged)
+app/tools/case-converter/page.tsx 4ms (unchanged)
+app/tools/error.tsx 9ms (unchanged)
+app/tools/image-compressor/page.tsx 4ms (unchanged)
+app/tools/json-formatter/page.tsx 4ms (unchanged)
+app/tools/password-generator/page.tsx 5ms (unchanged)
+app/tools/qr-generator/page.tsx 4ms (unchanged)
+app/tools/word-counter/page.tsx 11ms (unchanged)
+components/catalog.tsx 25ms (unchanged)
+components/header.tsx 9ms (unchanged)
+components/hero-art.tsx 9ms (unchanged)
+components/tool-icon.tsx 12ms (unchanged)
+components/tool-shell.tsx 34ms (unchanged)
+components/tools/case-converter.tsx 21ms (unchanged)
+components/tools/copy-button.tsx 6ms (unchanged)
+components/tools/image-compressor.tsx 47ms (unchanged)
+components/tools/json-formatter.tsx 36ms (unchanged)
+components/tools/password-generator.tsx 27ms (unchanged)
+components/tools/qr-generator.tsx 22ms (unchanged)
+components/tools/word-counter.tsx 12ms (unchanged)
+lib/catalog.ts 10ms (unchanged)
+lib/launch.ts 5ms (unchanged)
+lib/seo.ts 13ms (unchanged)
+lib/tools/image-header.ts 18ms (unchanged)
+lib/tools/image-input.ts 8ms (unchanged)
+lib/tools/image.ts 14ms (unchanged)
+lib/tools/json.ts 6ms (unchanged)
+lib/tools/password.ts 8ms (unchanged)
+lib/tools/qr.ts 4ms (unchanged)
+lib/tools/text.ts 11ms (unchanged)
+lib/use-hydrated.ts 2ms (unchanged)
+tests/browser-tools.test.ts 8ms (unchanged)
+tests/catalog.test.ts 9ms (unchanged)
+tests/components.test.tsx 11ms (unchanged)
+tests/core-tools.test.ts 27ms (unchanged)
+tests/dependency-compat.test.ts 14ms (unchanged)
+tests/e2e/browser-tools.spec.ts 43ms (unchanged)
+tests/e2e/core.spec.ts 24ms (unchanged)
+tests/e2e/foundation.spec.ts 20ms (unchanged)
+tests/e2e/quality.spec.ts 19ms (unchanged)
+tests/image-header.test.ts 7ms (unchanged)
+tests/launch.test.ts 6ms
+tests/seo.test.ts 3ms (unchanged)
+eslint.config.mjs 21ms (unchanged)
+next.config.ts 13ms (unchanged)
+playwright.config.ts 3ms (unchanged)
+vitest.config.ts 2ms (unchanged)
+package.json 3ms (unchanged)
+tsconfig.json 2ms (unchanged)
+
+> quickkit@1.0.0 lint
+> eslint .
+
+
+> quickkit@1.0.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.12 [39m[90m/home/user/quickkit[39m
+
+ [32m✓[39m tests/dependency-compat.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 3608[2mms[22m[39m
+   [33m[2m✓[22m[39m runs the real parser project-service default-project matcher [33m 3594[2mms[22m[39m
+ [32m✓[39m tests/components.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 349[2mms[22m[39m
+ [32m✓[39m tests/core-tools.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 162[2mms[22m[39m
+ [32m✓[39m tests/seo.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/launch.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/image-header.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/catalog.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/browser-tools.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m70 passed[39m[22m[90m (70)[39m
+[2m   Start at [22m 07:12:42
+[2m   Duration [22m 7.26s[2m (transform 181ms, setup 0ms, import 626ms, tests 4.18s, environment 1.43s)[22m
+
+
+> quickkit@1.0.0 typecheck
+> tsc --noEmit
+
+
+> quickkit@1.0.0 format:check
+> prettier --check "app/**/*.{ts,tsx,css}" "components/**/*.tsx" "lib/**/*.ts" "tests/**/*.{ts,tsx}" "*config.{ts,mjs}" package.json tsconfig.json
+
+Checking formatting...
+All matched files use Prettier code style!
+found 0 vulnerabilities

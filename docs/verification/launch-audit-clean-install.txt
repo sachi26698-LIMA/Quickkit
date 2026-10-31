@@ -1,0 +1,148 @@
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 485 packages, and audited 486 packages in 12s
+
+171 packages are looking for funding
+  run `npm fund` for details
+
+15 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> quickkit@1.0.0 format
+> prettier --write "app/**/*.{ts,tsx,css}" "components/**/*.tsx" "lib/**/*.ts" "tests/**/*.{ts,tsx}" "*config.{ts,mjs}" package.json tsconfig.json
+
+app/about/page.tsx 81ms (unchanged)
+app/globals.css 237ms (unchanged)
+app/layout.tsx 26ms (unchanged)
+app/not-found.tsx 3ms (unchanged)
+app/opengraph-image.tsx 8ms (unchanged)
+app/page.tsx 25ms (unchanged)
+app/privacy/page.tsx 9ms (unchanged)
+app/robots.ts 11ms (unchanged)
+app/sitemap.ts 7ms (unchanged)
+app/terms/page.tsx 8ms (unchanged)
+app/tools/case-converter/page.tsx 4ms (unchanged)
+app/tools/error.tsx 9ms (unchanged)
+app/tools/image-compressor/page.tsx 5ms (unchanged)
+app/tools/json-formatter/page.tsx 3ms (unchanged)
+app/tools/password-generator/page.tsx 3ms (unchanged)
+app/tools/qr-generator/page.tsx 4ms (unchanged)
+app/tools/word-counter/page.tsx 6ms (unchanged)
+components/catalog.tsx 30ms (unchanged)
+components/header.tsx 13ms (unchanged)
+components/hero-art.tsx 9ms (unchanged)
+components/tool-icon.tsx 5ms (unchanged)
+components/tool-shell.tsx 31ms (unchanged)
+components/tools/case-converter.tsx 27ms (unchanged)
+components/tools/copy-button.tsx 9ms (unchanged)
+components/tools/image-compressor.tsx 50ms (unchanged)
+components/tools/json-formatter.tsx 24ms (unchanged)
+components/tools/password-generator.tsx 19ms (unchanged)
+components/tools/qr-generator.tsx 13ms (unchanged)
+components/tools/word-counter.tsx 15ms (unchanged)
+lib/catalog.ts 5ms (unchanged)
+lib/launch.ts 3ms (unchanged)
+lib/seo.ts 10ms (unchanged)
+lib/tools/image-header.ts 18ms (unchanged)
+lib/tools/image-input.ts 4ms (unchanged)
+lib/tools/image.ts 20ms (unchanged)
+lib/tools/json.ts 8ms (unchanged)
+lib/tools/password.ts 9ms (unchanged)
+lib/tools/qr.ts 4ms (unchanged)
+lib/tools/text.ts 6ms (unchanged)
+lib/use-hydrated.ts 2ms (unchanged)
+tests/browser-tools.test.ts 5ms (unchanged)
+tests/catalog.test.ts 4ms (unchanged)
+tests/components.test.tsx 7ms (unchanged)
+tests/core-tools.test.ts 12ms (unchanged)
+tests/dependency-compat.test.ts 15ms (unchanged)
+tests/e2e/browser-tools.spec.ts 66ms
+tests/e2e/core.spec.ts 38ms (unchanged)
+tests/e2e/foundation.spec.ts 14ms (unchanged)
+tests/e2e/quality.spec.ts 27ms
+tests/image-header.test.ts 9ms (unchanged)
+tests/launch.test.ts 3ms (unchanged)
+tests/seo.test.ts 3ms (unchanged)
+eslint.config.mjs 20ms (unchanged)
+next.config.ts 3ms (unchanged)
+playwright.config.ts 2ms (unchanged)
+vitest.config.ts 2ms (unchanged)
+package.json 3ms (unchanged)
+tsconfig.json 2ms (unchanged)
+
+> quickkit@1.0.0 lint
+> eslint .
+
+
+> quickkit@1.0.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.12 [39m[90m/home/user/quickkit[39m
+
+ [32m✓[39m tests/core-tools.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 166[2mms[22m[39m
+ [32m✓[39m tests/components.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 241[2mms[22m[39m
+ [32m✓[39m tests/dependency-compat.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 3308[2mms[22m[39m
+   [33m[2m✓[22m[39m runs the real parser project-service default-project matcher [33m 3294[2mms[22m[39m
+ [32m✓[39m tests/image-header.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/browser-tools.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/seo.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/catalog.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/launch.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m68 passed[39m[22m[90m (68)[39m
+[2m   Start at [22m 07:05:59
+[2m   Duration [22m 6.16s[2m (transform 176ms, setup 0ms, import 556ms, tests 3.76s, environment 894ms)[22m
+
+
+> quickkit@1.0.0 build
+> next build
+
+▲ Next.js 16.4.3 (Turbopack)
+✓ Running next.config.ts took 60ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 432ms
+  Running TypeScript ...
+  Finished TypeScript in 2.8s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/18) ...
+  Generating static pages using 1 worker (4/18) 
+  Generating static pages using 1 worker (8/18) 
+  Generating static pages using 1 worker (13/18) 
+✓ Generating static pages using 1 worker (18/18) in 636ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /apple-icon.png
+├ ○ /icon.svg
+├ ○ /opengraph-image
+├ ○ /privacy
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /terms
+├ ○ /tools/case-converter
+├ ○ /tools/image-compressor
+├ ○ /tools/json-formatter
+├ ○ /tools/password-generator
+├ ○ /tools/qr-generator
+└ ○ /tools/word-counter
+
+
+○  (Static)  prerendered as static content
+
+
+> quickkit@1.0.0 typecheck
+> tsc --noEmit
+

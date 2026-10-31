@@ -1,0 +1,65 @@
+{
+  "reducedMotionRespected": true,
+  "results": [
+    {
+      "route": "word-counter",
+      "width": 320,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "case-converter",
+      "width": 320,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "json-formatter",
+      "width": 320,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "password-generator",
+      "width": 320,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "qr-generator",
+      "width": 320,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "word-counter",
+      "width": 1440,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "case-converter",
+      "width": 1440,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "json-formatter",
+      "width": 1440,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "password-generator",
+      "width": 1440,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "qr-generator",
+      "width": 1440,
+      "overflow": false,
+      "axeViolations": 0
+    }
+  ]
+}

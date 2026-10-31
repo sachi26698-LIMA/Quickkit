@@ -1,3 +1,5 @@
+> Historical initial-MVP verification record. Current launch-audit results: `FINAL_QUALITY_AUDIT.md` (70 unit tests, 123 browser passes, 2 capability skips, 15 residual dev audit entries).
+
 # Verification record — 31 October 2026
 
 ## Environment
