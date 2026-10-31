@@ -1,0 +1,402 @@
+[
+  {
+    "pattern": "*.ts",
+    "path": "a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "*.ts",
+    "path": "a.js",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": "src/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": "src/nested/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": ".config.ts",
+    "expected": true
+  },
+  {
+    "pattern": "*.ts",
+    "path": "src/test.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": "src/.hidden.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": "src/../a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "*.ts",
+    "path": "src/",
+    "expected": false
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "a.js",
+    "expected": false
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "src/a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "src/nested/a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": ".config.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "src/test.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "src/.hidden.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "src/../a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "**/*.ts",
+    "path": "src/",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "a.js",
+    "expected": true
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "src/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "src/nested/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": ".config.ts",
+    "expected": true
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "src/test.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "src/.hidden.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "src/../a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "*.{js,ts}",
+    "path": "src/",
+    "expected": false
+  },
+  {
+    "pattern": "src/**",
+    "path": "a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**",
+    "path": "a.js",
+    "expected": false
+  },
+  {
+    "pattern": "src/**",
+    "path": "src/a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "src/**",
+    "path": "src/nested/a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "src/**",
+    "path": ".config.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**",
+    "path": "src/test.ts",
+    "expected": true
+  },
+  {
+    "pattern": "src/**",
+    "path": "src/.hidden.ts",
+    "expected": true
+  },
+  {
+    "pattern": "src/**",
+    "path": "src/../a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "src/**",
+    "path": "src/",
+    "expected": true
+  },
+  {
+    "pattern": "**/.*",
+    "path": "a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": "a.js",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": "src/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": "src/nested/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": ".config.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/.*",
+    "path": "src/test.ts",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": "src/.hidden.ts",
+    "expected": true
+  },
+  {
+    "pattern": "**/.*",
+    "path": "src/../a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "**/.*",
+    "path": "src/",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "a.js",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "src/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "src/nested/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": ".config.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "src/test.ts",
+    "expected": true
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "src/.hidden.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "src/../a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "src/?(test).ts",
+    "path": "src/",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "a.js",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "src/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "src/nested/a.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": ".config.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "src/test.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "src/.hidden.ts",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "src/../a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "README.md",
+    "expected": false
+  },
+  {
+    "pattern": "src/**/../*.ts",
+    "path": "src/",
+    "expected": false
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "a.js",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "src/a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "src/nested/a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": ".config.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "src/test.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "src/.hidden.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "src/../a.ts",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "README.md",
+    "expected": true
+  },
+  {
+    "pattern": "!**/*.test.ts",
+    "path": "src/",
+    "expected": true
+  }
+]
