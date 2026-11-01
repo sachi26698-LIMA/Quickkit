@@ -4222,6 +4222,20 @@ noscript .status {
   }
   .compressor-item-main {
     flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  /* Keep the file name readable: the body holds 160 px, so the status pill and
+     the action icons wrap onto their own line instead of squeezing it. */
+  .compressor-item-body {
+    flex: 1 0 160px;
+  }
+  .compressor-item-body strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.35;
   }
   .compressor-compare {
     grid-template-columns: 1fr;

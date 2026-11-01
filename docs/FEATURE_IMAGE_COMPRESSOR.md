@@ -110,7 +110,8 @@ playwright chromium  ✅ 160 passed (2.7 m) across all specs, including
                         before/after views, stats accuracy, progress/Stop/Retry,
                         axe + accessible names, JSON-LD, large 3,600×2,400 image,
                         mobile touch flow, mobile target flow)
-screenshots          docs/verification/image-compressor-*.png
+screenshots          docs/verification/image-compressor-{empty,settings,compare,target,full}-1440.png
+                     docs/verification/image-compressor-mobile-{390,full-390,320}.png
 ```
 
 Vitest coverage for this tool:
