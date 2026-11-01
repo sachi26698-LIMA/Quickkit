@@ -3,8 +3,11 @@ export const MAX_BATCH_ITEMS = 50;
 
 export type QrErrorLevel = "L" | "M" | "Q" | "H";
 export type QrFillStyle = "solid" | "gradient";
-export type QrDotStyle = "square" | "rounded" | "dots";
+export type QrDotStyle = "square" | "rounded" | "dots" | "diamond";
 export type QrCornerStyle = "square" | "rounded" | "circle";
+export type QrFrameStyle = "none" | "outline" | "caption" | "poster";
+export type QrSocialPlatform =
+  "youtube" | "instagram" | "facebook" | "linkedin" | "x" | "other";
 export type QrContentType =
   | "text"
   | "url"
@@ -16,19 +19,37 @@ export type QrContentType =
   | "whatsapp"
   | "location"
   | "event"
-  | "upi";
+  | "upi"
+  | "social"
+  | "app"
+  | "business"
+  | "product";
 export type QrMode = "single" | "batch";
 export type QrOptions = {
+  /** Legacy square preset size; width and height support custom canvases. */
   size: number;
+  width: number;
+  height: number;
   margin: number;
   errorLevel: QrErrorLevel;
   fillStyle: QrFillStyle;
   foreground: string;
   gradientEnd: string;
   background: string;
+  transparentBackground: boolean;
+  eyeColor: string;
   dotStyle: QrDotStyle;
   cornerStyle: QrCornerStyle;
   logoScale: number;
+  logoX: number;
+  logoY: number;
+  logoPadding: number;
+  logoBackground: string;
+  logoPlate: boolean;
+  frameStyle: QrFrameStyle;
+  frameCaption: string;
+  frameColor: string;
+  frameTextColor: string;
 };
 
 export type QrFormValues = {
@@ -66,10 +87,32 @@ export type QrFormValues = {
   eventEnd: string;
   eventLocation: string;
   eventDescription: string;
+  eventTimezone: string;
+  locationMapUrl: string;
   upiId: string;
   upiName: string;
   upiAmount: string;
   upiNote: string;
+  socialPlatform: QrSocialPlatform;
+  socialUrl: string;
+  appName: string;
+  appPlatform: "universal" | "ios" | "android";
+  appUrl: string;
+  businessName: string;
+  businessDescription: string;
+  businessPhone: string;
+  businessEmail: string;
+  businessWebsite: string;
+  businessStreet: string;
+  businessCity: string;
+  businessRegion: string;
+  businessPostalCode: string;
+  businessCountry: string;
+  productName: string;
+  productSku: string;
+  productPrice: string;
+  productUrl: string;
+  productDescription: string;
 };
 
 export const defaultQrFormValues: QrFormValues = {
@@ -107,35 +150,175 @@ export const defaultQrFormValues: QrFormValues = {
   eventEnd: "",
   eventLocation: "",
   eventDescription: "",
+  eventTimezone: "",
+  locationMapUrl: "",
   upiId: "",
   upiName: "",
   upiAmount: "",
   upiNote: "",
+  socialPlatform: "instagram",
+  socialUrl: "",
+  appName: "",
+  appPlatform: "universal",
+  appUrl: "",
+  businessName: "",
+  businessDescription: "",
+  businessPhone: "",
+  businessEmail: "",
+  businessWebsite: "",
+  businessStreet: "",
+  businessCity: "",
+  businessRegion: "",
+  businessPostalCode: "",
+  businessCountry: "",
+  productName: "",
+  productSku: "",
+  productPrice: "",
+  productUrl: "",
+  productDescription: "",
 };
 
 export const QR_FILL_STYLES: QrFillStyle[] = ["solid", "gradient"];
-export const QR_DOT_STYLES: QrDotStyle[] = ["square", "rounded", "dots"];
+export const QR_DOT_STYLES: QrDotStyle[] = [
+  "square",
+  "rounded",
+  "dots",
+  "diamond",
+];
 export const QR_CORNER_STYLES: QrCornerStyle[] = [
   "square",
   "rounded",
   "circle",
 ];
+export const QR_FRAME_STYLES: QrFrameStyle[] = [
+  "none",
+  "outline",
+  "caption",
+  "poster",
+];
 
 export const defaultQrOptions: QrOptions = {
   size: 768,
+  width: 768,
+  height: 768,
   margin: 4,
   errorLevel: "M",
   fillStyle: "solid",
   foreground: "#171b2e",
   gradientEnd: "#6657e8",
   background: "#ffffff",
+  transparentBackground: false,
+  eyeColor: "#171b2e",
   dotStyle: "square",
   cornerStyle: "square",
   logoScale: 0.18,
+  logoX: 0.5,
+  logoY: 0.5,
+  logoPadding: 0.16,
+  logoBackground: "#ffffff",
+  logoPlate: true,
+  frameStyle: "none",
+  frameCaption: "SCAN ME",
+  frameColor: "#ffffff",
+  frameTextColor: "#171b2e",
 };
 export const QR_SIZES = [256, 512, 768, 1024] as const;
 export const QR_MARGINS = [2, 4, 6, 8] as const;
 export const QR_ERROR_LEVELS: QrErrorLevel[] = ["L", "M", "Q", "H"];
+
+export type QrDesignPreset = {
+  id: string;
+  label: string;
+  description: string;
+  options: Partial<QrOptions>;
+};
+
+export const QR_DESIGN_PRESETS: QrDesignPreset[] = [
+  {
+    id: "classic",
+    label: "Classic ink",
+    description: "Crisp, timeless contrast",
+    options: {
+      fillStyle: "solid",
+      foreground: "#171b2e",
+      eyeColor: "#171b2e",
+      background: "#ffffff",
+      dotStyle: "square",
+      cornerStyle: "square",
+      frameStyle: "none",
+    },
+  },
+  {
+    id: "lavender",
+    label: "Lavender studio",
+    description: "Soft purple gradient, rounded dots",
+    options: {
+      fillStyle: "gradient",
+      foreground: "#433187",
+      gradientEnd: "#6657e8",
+      eyeColor: "#433187",
+      background: "#ffffff",
+      dotStyle: "rounded",
+      cornerStyle: "rounded",
+      frameStyle: "caption",
+      frameCaption: "SCAN ME",
+      frameColor: "#f4f0ff",
+      frameTextColor: "#433187",
+    },
+  },
+  {
+    id: "botanical",
+    label: "Botanical",
+    description: "Forest green with a fresh light canvas",
+    options: {
+      fillStyle: "solid",
+      foreground: "#174b3a",
+      eyeColor: "#174b3a",
+      background: "#f0faf4",
+      dotStyle: "dots",
+      cornerStyle: "circle",
+      frameStyle: "outline",
+      frameColor: "#d7f0e2",
+      frameTextColor: "#174b3a",
+    },
+  },
+  {
+    id: "ocean",
+    label: "Ocean",
+    description: "Deep blue and sea-glass",
+    options: {
+      fillStyle: "gradient",
+      foreground: "#12365a",
+      gradientEnd: "#267b91",
+      eyeColor: "#12365a",
+      background: "#eff9fb",
+      dotStyle: "diamond",
+      cornerStyle: "rounded",
+      frameStyle: "poster",
+      frameCaption: "EXPLORE",
+      frameColor: "#e3f4f7",
+      frameTextColor: "#12365a",
+    },
+  },
+  {
+    id: "sunset",
+    label: "Warm terracotta",
+    description: "Warm, editorial and print-friendly",
+    options: {
+      fillStyle: "gradient",
+      foreground: "#73331e",
+      gradientEnd: "#9d4431",
+      eyeColor: "#73331e",
+      background: "#fff7ed",
+      dotStyle: "rounded",
+      cornerStyle: "circle",
+      frameStyle: "caption",
+      frameCaption: "DISCOVER",
+      frameColor: "#fff0df",
+      frameTextColor: "#73331e",
+    },
+  },
+];
 
 export const QR_CONTENT_TYPES: {
   value: QrContentType;
@@ -156,6 +339,114 @@ export const QR_CONTENT_TYPES: {
     value: "upi",
     label: "UPI payment",
     hint: "Create a compatible UPI intent",
+  },
+  {
+    value: "social",
+    label: "Social profile",
+    hint: "Share YouTube, Instagram & more",
+  },
+  { value: "app", label: "App download", hint: "Link an app or smart URL" },
+  {
+    value: "business",
+    label: "Business info",
+    hint: "Share a complete business card",
+  },
+  {
+    value: "product",
+    label: "Product info",
+    hint: "Share product details and link",
+  },
+];
+
+export type QrTemplate = {
+  id: string;
+  label: string;
+  description: string;
+  contentType: QrContentType;
+  presetId: string;
+  frameCaption: string;
+};
+
+export const QR_TEMPLATES: QrTemplate[] = [
+  {
+    id: "business-card",
+    label: "Business card",
+    description: "Share a polished contact",
+    contentType: "business",
+    presetId: "classic",
+    frameCaption: "GET IN TOUCH",
+  },
+  {
+    id: "restaurant-menu",
+    label: "Restaurant menu",
+    description: "Link to your current menu",
+    contentType: "url",
+    presetId: "botanical",
+    frameCaption: "VIEW OUR MENU",
+  },
+  {
+    id: "wifi-card",
+    label: "Wi-Fi card",
+    description: "Let guests join in one scan",
+    contentType: "wifi",
+    presetId: "ocean",
+    frameCaption: "CONNECT TO WI-FI",
+  },
+  {
+    id: "payment-stand",
+    label: "Payment stand",
+    description: "Create a UPI payment intent",
+    contentType: "upi",
+    presetId: "botanical",
+    frameCaption: "PAY HERE",
+  },
+  {
+    id: "product-packaging",
+    label: "Product packaging",
+    description: "Share product details and link",
+    contentType: "product",
+    presetId: "sunset",
+    frameCaption: "MEET YOUR PRODUCT",
+  },
+  {
+    id: "social-profile",
+    label: "Social profile",
+    description: "Grow your profile audience",
+    contentType: "social",
+    presetId: "lavender",
+    frameCaption: "FOLLOW ALONG",
+  },
+  {
+    id: "event-invitation",
+    label: "Event invitation",
+    description: "Share event details and time",
+    contentType: "event",
+    presetId: "lavender",
+    frameCaption: "YOU ARE INVITED",
+  },
+  {
+    id: "customer-review",
+    label: "Customer reviews",
+    description: "Link to your review page",
+    contentType: "url",
+    presetId: "sunset",
+    frameCaption: "LEAVE A REVIEW",
+  },
+  {
+    id: "contact-card",
+    label: "Contact card",
+    description: "Share a vCard contact",
+    contentType: "vcard",
+    presetId: "classic",
+    frameCaption: "SAVE MY CONTACT",
+  },
+  {
+    id: "marketing-poster",
+    label: "Marketing poster",
+    description: "Make a clear call to action",
+    contentType: "url",
+    presetId: "ocean",
+    frameCaption: "SCAN TO DISCOVER",
   },
 ];
 
@@ -247,15 +538,134 @@ function icsEscape(value: string) {
     .replace(/;/g, "\\;");
 }
 
-function toIcsTimestamp(value: string, label: string) {
+function parseLocalDateTime(value: string, label: string) {
   const input = required(value, label);
-  const date = new Date(input);
-  if (!Number.isFinite(date.getTime()))
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(
+    input,
+  );
+  if (!match) throw new Error(`Enter a valid ${label}.`);
+  const [, y, mo, d, h, mi, s = "0"] = match;
+  const fields = {
+    year: Number(y),
+    month: Number(mo),
+    day: Number(d),
+    hour: Number(h),
+    minute: Number(mi),
+    second: Number(s),
+  };
+  const check = new Date(
+    Date.UTC(
+      fields.year,
+      fields.month - 1,
+      fields.day,
+      fields.hour,
+      fields.minute,
+      fields.second,
+    ),
+  );
+  if (
+    check.getUTCFullYear() !== fields.year ||
+    check.getUTCMonth() + 1 !== fields.month ||
+    check.getUTCDate() !== fields.day ||
+    fields.hour > 23 ||
+    fields.minute > 59 ||
+    fields.second > 59
+  )
     throw new Error(`Enter a valid ${label}.`);
+  return fields;
+}
+
+function zonedLocalDateTimeToUtc(
+  value: string,
+  timeZone: string,
+  label: string,
+) {
+  const fields = parseLocalDateTime(value, label);
+  const zone =
+    timeZone.trim() || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let formatter: Intl.DateTimeFormat;
+  try {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    });
+    formatter.format(new Date());
+  } catch {
+    throw new Error("Enter a valid IANA time zone, such as Asia/Kolkata.");
+  }
+  const target = Date.UTC(
+    fields.year,
+    fields.month - 1,
+    fields.day,
+    fields.hour,
+    fields.minute,
+    fields.second,
+  );
+  let candidate = target;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const parts = Object.fromEntries(
+      formatter
+        .formatToParts(new Date(candidate))
+        .filter((part) => part.type !== "literal")
+        .map((part) => [part.type, Number(part.value)]),
+    );
+    const represented = Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hour,
+      parts.minute,
+      parts.second,
+    );
+    const difference = target - represented;
+    candidate += difference;
+    if (difference === 0) break;
+  }
+  const finalParts = Object.fromEntries(
+    formatter
+      .formatToParts(new Date(candidate))
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, Number(part.value)]),
+  );
+  if (
+    finalParts.year !== fields.year ||
+    finalParts.month !== fields.month ||
+    finalParts.day !== fields.day ||
+    finalParts.hour !== fields.hour ||
+    finalParts.minute !== fields.minute
+  )
+    throw new Error(
+      `That ${label} does not exist in ${zone} because of a daylight-saving time change. Choose another time.`,
+    );
+  return { date: new Date(candidate), timeZone: zone };
+}
+
+function toIcsUtcTimestamp(date: Date) {
   return date
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}Z$/, "Z");
+}
+
+function normalizedHttpUrl(value: string, label: string) {
+  const input = required(value, label);
+  let url: URL;
+  try {
+    url = new URL(input.includes("://") ? input : `https://${input}`);
+  } catch {
+    throw new Error(`Enter a valid ${label}, such as https://example.com.`);
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:")
+    throw new Error(`Use an http or https ${label}.`);
+  if (!url.hostname.includes(".") && url.hostname !== "localhost")
+    throw new Error(`Enter a complete ${label}, such as example.com.`);
+  return url;
 }
 
 function eventUid(title: string, start: string, end: string) {
@@ -293,8 +703,32 @@ export function buildQrPayload(type: QrContentType, values: QrFormValues) {
     }
     case "wifi": {
       const ssid = required(values.wifiSsid, "the Wi-Fi network name (SSID)");
+      if (qrByteLength(ssid) > 32)
+        throw new Error("Wi-Fi network names can be up to 32 UTF-8 bytes.");
+      if (!["WPA", "WEP", "nopass"].includes(values.wifiSecurity))
+        throw new Error("Choose WPA/WPA2/WPA3, WEP or an open network.");
       if (values.wifiSecurity !== "nopass" && !values.wifiPassword)
         throw new Error("Enter the Wi-Fi password or choose an open network.");
+      if (values.wifiSecurity === "WPA") {
+        const validPassphrase =
+          values.wifiPassword.length >= 8 && values.wifiPassword.length <= 63;
+        const validHexPsk = /^[0-9a-f]{64}$/i.test(values.wifiPassword);
+        if (!validPassphrase && !validHexPsk)
+          throw new Error(
+            "WPA, WPA2 and WPA3 passphrases must be 8–63 characters or a 64-digit hexadecimal key.",
+          );
+      }
+      if (
+        (values.wifiSecurity === "WEP" &&
+          ![5, 13].includes(values.wifiPassword.length) &&
+          ![10, 26].includes(values.wifiPassword.length)) ||
+        (values.wifiSecurity === "WEP" &&
+          [10, 26].includes(values.wifiPassword.length) &&
+          !/^[0-9a-f]+$/i.test(values.wifiPassword))
+      )
+        throw new Error(
+          "WEP keys must be 5 or 13 characters, or 10 or 26 hexadecimal digits.",
+        );
       payload = `WIFI:T:${values.wifiSecurity};S:${escapeWifi(ssid)};P:${escapeWifi(values.wifiSecurity === "nopass" ? "" : values.wifiPassword)};${values.wifiHidden ? "H:true;" : ""};`;
       break;
     }
@@ -387,24 +821,33 @@ export function buildQrPayload(type: QrContentType, values: QrFormValues) {
         throw new Error("Latitude must be between −90 and 90.");
       if (!Number.isFinite(lng) || lng < -180 || lng > 180)
         throw new Error("Longitude must be between −180 and 180.");
-      const coordinates = `${lat},${lng}`;
-      const label = values.locationLabel.trim();
-      payload = `geo:${coordinates}${label ? `?q=${coordinates}(${encodeURIComponent(label)})` : ""}`;
+      if (values.locationMapUrl.trim()) {
+        payload = normalizedHttpUrl(
+          values.locationMapUrl,
+          "map URL",
+        ).toString();
+      } else {
+        const coordinates = `${lat},${lng}`;
+        const label = values.locationLabel.trim();
+        payload = `geo:${coordinates}${label ? `?q=${coordinates}(${encodeURIComponent(label)})` : ""}`;
+      }
       break;
     }
     case "event": {
       const title = required(values.eventTitle, "an event title");
-      const start = toIcsTimestamp(values.eventStart, "a start date and time");
-      const end = toIcsTimestamp(values.eventEnd, "an end date and time");
-      if (
-        new Date(values.eventEnd).getTime() <=
-        new Date(values.eventStart).getTime()
-      )
-        throw new Error("The event end must be after the start.");
-      const timestamp = toIcsTimestamp(
-        new Date().toISOString(),
-        "event creation timestamp",
+      const start = zonedLocalDateTimeToUtc(
+        values.eventStart,
+        values.eventTimezone,
+        "a start date and time",
       );
+      const end = zonedLocalDateTimeToUtc(
+        values.eventEnd,
+        values.eventTimezone,
+        "an end date and time",
+      );
+      if (end.date.getTime() <= start.date.getTime())
+        throw new Error("The event end must be after the start.");
+      const timestamp = toIcsUtcTimestamp(new Date());
       const lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -412,10 +855,15 @@ export function buildQrPayload(type: QrContentType, values: QrFormValues) {
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         "BEGIN:VEVENT",
-        `UID:${eventUid(title, start, end)}`,
+        `UID:${eventUid(
+          title,
+          toIcsUtcTimestamp(start.date),
+          toIcsUtcTimestamp(end.date),
+        )}`,
         `DTSTAMP:${timestamp}`,
-        `DTSTART:${start}`,
-        `DTEND:${end}`,
+        `X-WR-TIMEZONE:${start.timeZone}`,
+        `DTSTART:${toIcsUtcTimestamp(start.date)}`,
+        `DTEND:${toIcsUtcTimestamp(end.date)}`,
         `SUMMARY:${icsEscape(title)}`,
       ];
       if (values.eventLocation.trim())
@@ -442,6 +890,119 @@ export function buildQrPayload(type: QrContentType, values: QrFormValues) {
       }
       if (values.upiNote.trim()) params.set("tn", values.upiNote.trim());
       payload = `upi://pay?${params.toString()}`;
+      break;
+    }
+    case "social": {
+      const url = normalizedHttpUrl(values.socialUrl, "social profile URL");
+      const host = url.hostname.toLowerCase().replace(/^www\./, "");
+      const platformHosts: Record<QrSocialPlatform, string[]> = {
+        youtube: ["youtube.com", "youtu.be"],
+        instagram: ["instagram.com"],
+        facebook: ["facebook.com", "fb.com"],
+        linkedin: ["linkedin.com"],
+        x: ["x.com", "twitter.com"],
+        other: [],
+      };
+      const allowed = platformHosts[values.socialPlatform];
+      if (!allowed)
+        throw new Error(
+          "Choose YouTube, Instagram, Facebook, LinkedIn, X or another profile.",
+        );
+      if (
+        allowed.length &&
+        !allowed.some(
+          (domain) => host === domain || host.endsWith(`.${domain}`),
+        )
+      )
+        throw new Error(
+          `Choose a ${values.socialPlatform === "x" ? "X" : values.socialPlatform} profile URL from its official domain.`,
+        );
+      payload = url.toString();
+      break;
+    }
+    case "app": {
+      const url = normalizedHttpUrl(values.appUrl, "app download URL");
+      const host = url.hostname.toLowerCase().replace(/^www\./, "");
+      if (!["universal", "ios", "android"].includes(values.appPlatform))
+        throw new Error(
+          "Choose a universal link, Apple App Store or Google Play.",
+        );
+      if (
+        values.appPlatform === "ios" &&
+        !["apps.apple.com", "itunes.apple.com"].some(
+          (domain) => host === domain || host.endsWith(`.${domain}`),
+        )
+      )
+        throw new Error(
+          "Use an Apple App Store URL or choose a universal app link.",
+        );
+      if (
+        values.appPlatform === "android" &&
+        host !== "play.google.com" &&
+        !host.endsWith(".play.google.com")
+      )
+        throw new Error(
+          "Use a Google Play URL or choose a universal app link.",
+        );
+      payload = url.toString();
+      break;
+    }
+    case "business": {
+      const name = required(values.businessName, "a business name");
+      const lines = [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        `N:${escapeVCard(name)};;;;`,
+        `FN:${escapeVCard(name)}`,
+        `ORG:${escapeVCard(name)}`,
+      ];
+      if (values.businessPhone.trim())
+        lines.push(
+          `TEL;TYPE=WORK,VOICE:${escapeVCard(normalizePhone(values.businessPhone, "a business phone number"))}`,
+        );
+      if (values.businessEmail.trim())
+        lines.push(
+          `EMAIL;TYPE=WORK:${escapeVCard(validateEmail(values.businessEmail, "a valid business email address"))}`,
+        );
+      if (values.businessWebsite.trim())
+        lines.push(
+          `URL:${escapeVCard(normalizedHttpUrl(values.businessWebsite, "business website").toString())}`,
+        );
+      const address = [
+        "",
+        "",
+        values.businessStreet.trim(),
+        values.businessCity.trim(),
+        values.businessRegion.trim(),
+        values.businessPostalCode.trim(),
+        values.businessCountry.trim(),
+      ];
+      if (address.some(Boolean))
+        lines.push(`ADR;TYPE=WORK:${address.map(escapeVCard).join(";")}`);
+      if (values.businessDescription.trim())
+        lines.push(`NOTE:${escapeVCard(values.businessDescription.trim())}`);
+      lines.push("END:VCARD");
+      payload = lines.join("\r\n");
+      break;
+    }
+    case "product": {
+      const name = required(values.productName, "a product name");
+      const lines = [`PRODUCT: ${name.replace(/[\r\n]+/g, " ").trim()}`];
+      if (values.productSku.trim())
+        lines.push(`SKU: ${values.productSku.trim().replace(/[\r\n]+/g, " ")}`);
+      if (values.productPrice.trim())
+        lines.push(
+          `Price: ${values.productPrice.trim().replace(/[\r\n]+/g, " ")}`,
+        );
+      if (values.productDescription.trim())
+        lines.push(
+          `Description: ${values.productDescription.trim().replace(/[\r\n]+/g, " ")}`,
+        );
+      if (values.productUrl.trim())
+        lines.push(
+          `More information: ${normalizedHttpUrl(values.productUrl, "product URL").toString()}`,
+        );
+      payload = lines.join("\n");
       break;
     }
     default: {
@@ -487,6 +1048,7 @@ export function contrastRatio(a: string, b: string) {
 export function qrContrast(options: QrOptions) {
   return Math.min(
     contrastRatio(options.foreground, options.background),
+    contrastRatio(options.eyeColor, options.background),
     options.fillStyle === "gradient"
       ? contrastRatio(options.gradientEnd, options.background)
       : 21,
@@ -495,7 +1057,18 @@ export function qrContrast(options: QrOptions) {
 
 export function validateQrOptions(options: QrOptions) {
   if (!QR_SIZES.includes(options.size as (typeof QR_SIZES)[number]))
-    throw new Error("Choose a supported QR size.");
+    throw new Error("Choose a supported preset size.");
+  if (
+    !Number.isInteger(options.width) ||
+    options.width < 128 ||
+    options.width > 4096 ||
+    !Number.isInteger(options.height) ||
+    options.height < 128 ||
+    options.height > 4096
+  )
+    throw new Error(
+      "QR width and height must be whole pixels from 128 to 4,096.",
+    );
   if (!QR_MARGINS.includes(options.margin as (typeof QR_MARGINS)[number]))
     throw new Error("Choose a supported quiet-zone margin.");
   if (!QR_ERROR_LEVELS.includes(options.errorLevel))
@@ -506,18 +1079,48 @@ export function validateQrOptions(options: QrOptions) {
     throw new Error("Choose a supported QR dot style.");
   if (!QR_CORNER_STYLES.includes(options.cornerStyle))
     throw new Error("Choose a supported finder corner style.");
+  if (!QR_FRAME_STYLES.includes(options.frameStyle))
+    throw new Error("Choose a supported QR frame style.");
   if (
-    !hexToRgb(options.foreground) ||
-    !hexToRgb(options.gradientEnd) ||
-    !hexToRgb(options.background)
+    ![
+      options.foreground,
+      options.gradientEnd,
+      options.background,
+      options.eyeColor,
+      options.logoBackground,
+      options.frameColor,
+      options.frameTextColor,
+    ].every((color) => typeof color === "string" && hexToRgb(color))
   )
     throw new Error("Choose valid QR colors.");
+  if (
+    typeof options.transparentBackground !== "boolean" ||
+    typeof options.logoPlate !== "boolean"
+  )
+    throw new Error("Choose valid transparency and logo-plate settings.");
   if (
     !Number.isFinite(options.logoScale) ||
     options.logoScale < 0.12 ||
     options.logoScale > 0.22
   )
     throw new Error("Keep a logo between 12% and 22% of the QR image.");
+  if (
+    !Number.isFinite(options.logoX) ||
+    !Number.isFinite(options.logoY) ||
+    options.logoX < 0.4 ||
+    options.logoX > 0.6 ||
+    options.logoY < 0.4 ||
+    options.logoY > 0.6
+  )
+    throw new Error("Keep logo positioning within the safe center area.");
+  if (
+    !Number.isFinite(options.logoPadding) ||
+    options.logoPadding < 0 ||
+    options.logoPadding > 0.35
+  )
+    throw new Error("Logo padding must be between 0% and 35%.");
+  if (options.frameCaption.length > 40)
+    throw new Error("Keep a frame caption under 40 characters.");
   if (qrContrast(options) < 3)
     throw new Error(
       "Those colors are too close together for scanners. Keep both ends of a gradient darker than a light background, with at least 3:1 contrast.",
@@ -578,6 +1181,8 @@ export function qrReadabilityGuidance({
   errorLevel,
   hasLogo,
   decodeVerified,
+  logoScale,
+  frameContrast,
 }: {
   contrast: number;
   modulePixels: number;
@@ -585,6 +1190,8 @@ export function qrReadabilityGuidance({
   errorLevel: QrErrorLevel;
   hasLogo: boolean;
   decodeVerified: boolean | null;
+  logoScale?: number;
+  frameContrast?: number;
 }) {
   const guidance: string[] = [];
   if (contrast < 4.5)
@@ -598,6 +1205,14 @@ export function qrReadabilityGuidance({
   if (hasLogo && errorLevel !== "H")
     guidance.push(
       "High error correction (H) is recommended when using a logo.",
+    );
+  if (hasLogo && logoScale !== undefined && logoScale > 0.18)
+    guidance.push(
+      "The logo covers more of the QR than recommended; reduce its size before printing.",
+    );
+  if (frameContrast !== undefined && frameContrast < 4.5)
+    guidance.push(
+      "Increase caption contrast so the frame text is easy to read.",
     );
   if (hasLogo && !decodeVerified)
     guidance.push(

@@ -4,9 +4,12 @@ import jsQR from "jsqr";
 import { PNG } from "pngjs";
 import {
   buildQrPayload,
+  contrastRatio,
   defaultQrFormValues,
   defaultQrOptions,
   parseBatchQrInput,
+  QR_DESIGN_PRESETS,
+  QR_TEMPLATES,
   qrByteLength,
   qrContrast,
   qrReadabilityGuidance,
@@ -32,10 +35,10 @@ describe("QR content payloads", () => {
       buildQrPayload("wifi", {
         ...defaultQrFormValues,
         wifiSsid: "Studio;Guest",
-        wifiPassword: "a,b:c",
+        wifiPassword: "a,b:c123",
         wifiHidden: true,
       }),
-    ).toBe("WIFI:T:WPA;S:Studio\\;Guest;P:a\\,b\\:c;H:true;;");
+    ).toBe("WIFI:T:WPA;S:Studio\\;Guest;P:a\\,b\\:c123;H:true;;");
     expect(
       buildQrPayload("wifi", {
         ...defaultQrFormValues,
@@ -179,6 +182,210 @@ describe("QR content payloads", () => {
     expect(() =>
       buildQrPayload("upi", { ...defaultQrFormValues, upiId: "not-a-vpa" }),
     ).toThrow("UPI ID");
+  });
+});
+
+describe("QR Generator V2 payloads and design studio", () => {
+  it("validates YouTube, Instagram, Facebook, LinkedIn, X and custom social links", () => {
+    const examples = [
+      ["youtube", "https://youtube.com/@quickkit"],
+      ["instagram", "https://www.instagram.com/quickkit"],
+      ["facebook", "https://facebook.com/quickkit"],
+      ["linkedin", "https://linkedin.com/company/quickkit"],
+      ["x", "https://x.com/quickkit"],
+      ["other", "https://example.org/profile/quickkit"],
+    ] as const;
+    for (const [socialPlatform, socialUrl] of examples) {
+      expect(
+        buildQrPayload("social", {
+          ...defaultQrFormValues,
+          socialPlatform,
+          socialUrl,
+        }),
+      ).toBe(socialUrl);
+    }
+    expect(() =>
+      buildQrPayload("social", {
+        ...defaultQrFormValues,
+        socialPlatform: "instagram",
+        socialUrl: "https://instagram.com.attacker.test/quickkit",
+      }),
+    ).toThrow("official domain");
+  });
+
+  it("supports app links while validating selected app-store domains", () => {
+    expect(
+      buildQrPayload("app", {
+        ...defaultQrFormValues,
+        appName: "QUICKKIT",
+        appPlatform: "ios",
+        appUrl: "https://apps.apple.com/in/app/quickkit/id123",
+      }),
+    ).toBe("https://apps.apple.com/in/app/quickkit/id123");
+    expect(
+      buildQrPayload("app", {
+        ...defaultQrFormValues,
+        appPlatform: "android",
+        appUrl: "https://play.google.com/store/apps/details?id=app.quickkit",
+      }),
+    ).toContain("https://play.google.com/");
+    expect(() =>
+      buildQrPayload("app", {
+        ...defaultQrFormValues,
+        appPlatform: "ios",
+        appUrl: "https://example.com/download",
+      }),
+    ).toThrow("Apple App Store");
+  });
+
+  it("covers WPA/WPA2/WPA3 QR text, WEP keys and open networks", () => {
+    expect(
+      buildQrPayload("wifi", {
+        ...defaultQrFormValues,
+        wifiSsid: "WPA3 guest",
+        wifiPassword: "password123",
+      }),
+    ).toContain("WIFI:T:WPA;S:WPA3 guest;P:password123;;");
+    expect(
+      buildQrPayload("wifi", {
+        ...defaultQrFormValues,
+        wifiSsid: "WEP guest",
+        wifiPassword: "0123456789",
+        wifiSecurity: "WEP",
+      }),
+    ).toBe("WIFI:T:WEP;S:WEP guest;P:0123456789;;");
+    expect(() =>
+      buildQrPayload("wifi", {
+        ...defaultQrFormValues,
+        wifiSsid: "WEP guest",
+        wifiPassword: "not-hex-10",
+        wifiSecurity: "WEP",
+      }),
+    ).toThrow("WEP keys");
+    expect(
+      buildQrPayload("wifi", {
+        ...defaultQrFormValues,
+        wifiSsid: "Open guest",
+        wifiSecurity: "nopass",
+      }),
+    ).toBe("WIFI:T:nopass;S:Open guest;P:;;");
+  });
+
+  it("builds full business cards and escaped product facts", () => {
+    const business = buildQrPayload("business", {
+      ...defaultQrFormValues,
+      businessName: "Quickkit, Studio",
+      businessPhone: "+91 98765 43210",
+      businessEmail: "hello@quickkit.dev",
+      businessWebsite: "quickkit.dev",
+      businessStreet: "1 Main; Street",
+      businessCity: "Ahmedabad",
+      businessRegion: "Gujarat",
+      businessPostalCode: "380001",
+      businessCountry: "India",
+      businessDescription: "Local tools,\nmade simple",
+    });
+    expect(business).toContain("BEGIN:VCARD\r\nVERSION:3.0");
+    expect(business).toContain("ORG:Quickkit\\, Studio");
+    expect(business).toContain("TEL;TYPE=WORK,VOICE:+919876543210");
+    expect(business).toContain("EMAIL;TYPE=WORK:hello@quickkit.dev");
+    expect(business).toContain("URL:https://quickkit.dev/");
+    expect(business).toContain(
+      "ADR;TYPE=WORK:;;1 Main\\; Street;Ahmedabad;Gujarat;380001;India",
+    );
+    expect(business).toContain("NOTE:Local tools\\,\\nmade simple");
+
+    expect(
+      buildQrPayload("product", {
+        ...defaultQrFormValues,
+        productName: "Tea\nSet",
+        productSku: "sku-1",
+        productPrice: "INR 450",
+        productDescription: "Handmade\nceramic",
+        productUrl: "https://example.com/p/tea",
+      }),
+    ).toBe(
+      "PRODUCT: Tea Set\nSKU: sku-1\nPrice: INR 450\nDescription: Handmade ceramic\nMore information: https://example.com/p/tea",
+    );
+  });
+
+  it("respects selected event time zones and rejects daylight-saving gaps", () => {
+    const event = buildQrPayload("event", {
+      ...defaultQrFormValues,
+      eventTitle: "Studio open house",
+      eventStart: "2026-06-01T12:00",
+      eventEnd: "2026-06-01T13:30",
+      eventTimezone: "Asia/Kolkata",
+    });
+    expect(event).toContain("X-WR-TIMEZONE:Asia/Kolkata");
+    expect(event).toContain("DTSTART:20260601T063000Z");
+    expect(event).toContain("DTEND:20260601T080000Z");
+    expect(() =>
+      buildQrPayload("event", {
+        ...defaultQrFormValues,
+        eventTitle: "DST gap",
+        eventStart: "2026-03-08T02:30",
+        eventEnd: "2026-03-08T03:30",
+        eventTimezone: "America/New_York",
+      }),
+    ).toThrow("daylight-saving");
+  });
+
+  it("exposes the requested editable templates and design presets", () => {
+    expect(QR_TEMPLATES.map((template) => template.id)).toEqual([
+      "business-card",
+      "restaurant-menu",
+      "wifi-card",
+      "payment-stand",
+      "product-packaging",
+      "social-profile",
+      "event-invitation",
+      "customer-review",
+      "contact-card",
+      "marketing-poster",
+    ]);
+    expect(QR_DESIGN_PRESETS.map((preset) => preset.id)).toEqual([
+      "classic",
+      "lavender",
+      "botanical",
+      "ocean",
+      "sunset",
+    ]);
+    for (const preset of QR_DESIGN_PRESETS)
+      expect(() =>
+        validateQrOptions({ ...defaultQrOptions, ...preset.options }),
+      ).not.toThrow();
+  });
+
+  it("validates custom dimensions and warns about logo coverage and caption contrast", () => {
+    expect(
+      validateQrOptions({
+        ...defaultQrOptions,
+        width: 1024,
+        height: 640,
+        transparentBackground: true,
+        frameStyle: "caption",
+      }),
+    ).toMatchObject({ width: 1024, height: 640 });
+    expect(() =>
+      validateQrOptions({ ...defaultQrOptions, width: 4097 }),
+    ).toThrow("whole pixels");
+    expect(() =>
+      validateQrOptions({ ...defaultQrOptions, logoX: 0.9 }),
+    ).toThrow("safe center area");
+    expect(contrastRatio("#ffffff", "#171b2e")).toBeGreaterThan(15);
+    expect(
+      qrReadabilityGuidance({
+        contrast: 12,
+        modulePixels: 5,
+        quietZone: 4,
+        errorLevel: "H",
+        hasLogo: true,
+        decodeVerified: true,
+        logoScale: 0.22,
+        frameContrast: 2,
+      }),
+    ).toMatch(/logo covers.*Increase caption contrast/i);
   });
 });
 

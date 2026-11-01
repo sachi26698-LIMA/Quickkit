@@ -76,20 +76,20 @@ The proposed IDs below use the existing slug values. During registry migration t
 
 ### Current branch QA evidence — QR Code Generator
 
-Production-quality verification for the expanded generator on `arena/9ad31977-quickkit` was rerun on 1 November 2026:
+Full verification for the V2 studio on `arena/9ad31977-quickkit` was completed on 1 November 2026. Exact commands, browser-environment notes, coverage, and screenshot dimensions are recorded in [`docs/qr-generator/QA_REPORT.md`](docs/qr-generator/QA_REPORT.md); feature behavior and privacy controls are in [`docs/qr-generator/README.md`](docs/qr-generator/README.md).
 
-- Vitest: **126/126 passed** across 12 files.
-- Chromium Playwright: **151/151 passed** against the production build using Chromium 153; includes the full suite for existing tools.
-- QR-specific browser tests: **5/5 passed**. All 11 content types decode locally; PNG and SVG exports were decoded, and the PDF export was rendered with PDF.js then decoded. Batch ZIP entries independently decode. Gradient fill, all 9 dot/finder-style combinations, foreground/background colors, sizes, quiet zones, all error-correction levels, a centered logo and image-copy clipboard output were exercised.
-- Accessibility and responsive QA: axe checks passed; QR overflow checks passed at 320, 360, 375, 390, 430, 768, 1024, 1366 and 1440 px.
-- ESLint, Prettier format check and TypeScript typecheck: passed.
+- Vitest: **139/139 passed** across 13 files.
+- Full Chromium Playwright suite: **155/155 passed** against the production build. The 9 QR-specific E2E cases passed as part of the full suite.
+- QR coverage: all 15 content types decode locally; PNG, JPG, SVG, PDF, clipboard PNG, ZIP entries, and print-sheet PDF entries are decoded or checked. All four error-correction settings and all 12 dot/finder-style combinations are scan-checked. CSV validation, exact duplicates, selective generation, local history, undo/redo, transparent outer margins, adjustable logo controls, caption escaping, and responsive workflows are covered.
+- Accessibility and responsive QA: axe checks passed; overflow checks passed at 320, 360, 375, 390, 430, 768, 1024, 1366, and 1440 px.
+- ESLint, Prettier format check, and TypeScript typecheck: passed.
 - Production dependency audit (`npm audit --omit=dev`): **0 vulnerabilities**.
 - Production build: passed with seven tool routes and 19 static pages.
 - Privacy check: browser interaction tests confirmed QR input is not transmitted.
-- Screenshots: `docs/qr-generator/screenshots/qr-generator-desktop.png`, `qr-generator-mobile.png`, `qr-generator-batch.png` and `qr-generator-styles.png` (gradient, dot modules, circular finder corners, logo and local scan pass).
+- V2 screenshots: `docs/qr-generator/screenshots/qr-generator-v2-desktop.png`, `qr-generator-v2-tablet.png`, and `qr-generator-v2-mobile.png` (captured at 1440, 768, and 390 px viewport widths).
 - Live local preview: `http://localhost:3001/tools/qr-generator`. It is not a public deployment.
 
-The sandbox's checked-in Playwright browser was unavailable, so the Chromium suite used a temporary local Chromium 153 binary with Playwright 1.64.1; the custom test config and browser binary are not part of the repository. Firefox/WebKit execution is not claimed. This QA evidence applies to the current branch implementation, but the tool remains **pending owner approval** and must not be marked live, released or deployed from this work alone.
+The bundled Playwright Chromium shell initially failed because `libnspr4.so` was missing. The successful Chromium run used Playwright 1.64.1, local Chromium 153.0.8010.0, `/tmp/lib` runtime libraries, and a temporary config that was removed after testing; no browser binary/config was added to Git. Firefox/WebKit results are not claimed. This QA evidence applies to the current branch implementation, but the tool remains **pending owner approval** and must not be marked live, released, or deployed from this work alone.
 
 ## 5. Proposed Phase 5 — PDF Tools
 
@@ -340,3 +340,4 @@ PDF Merger proceeded under the owner's explicit narrow-catalog integration decis
 | 1 November 2026 | Final PDF Merger QA and owner-review handoff completed in `docs/pdf-merger/QA_REPORT.md`. Status set to **implemented — awaiting owner approval**; all other tools remain blocked. |
 | 1 November 2026 | At the owner's separate direction, expanded the existing QR Code Generator as tool #1 of the 20-tool QR/barcode sequence on `arena/9ad31977-quickkit`. Full local QA and screenshots completed; pending owner approval. QR Scanner and later sequence tools remain blocked; PDF Merger's separate approval status is unchanged. |
 | 1 November 2026 | Added contrast-checked gradient fill, circle-dot modules and customizable finder corners; validated all nine dot/finder combinations, logo add/remove, image clipboard content, and PNG/SVG/PDF decoding. Final result: 126/126 unit tests, 151/151 Chromium E2E tests, lint, typecheck, format check and production build passed. Updated four screenshots; QR work remains pending owner approval. |
+| 1 November 2026 | Completed V2 content types, template/design editing, adjustable logo, transparent output, local history, CSV/batch ZIP and print-sheet flows; expanded browser QA and desktop/tablet/mobile screenshots. Final checks: 139/139 unit tests, 155/155 Chromium E2E tests, lint, typecheck, format check, production build, and 0 production dependency vulnerabilities. QA report: `docs/qr-generator/QA_REPORT.md`; feature guide: `docs/qr-generator/README.md`. |
