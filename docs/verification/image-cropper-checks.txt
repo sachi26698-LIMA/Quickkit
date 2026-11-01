@@ -82,3 +82,4 @@ Screenshots
   docs/verification/image-cropper-empty-390.png
   docs/verification/image-cropper-workspace-390.png
   docs/verification/image-cropper-mobile-crop-390.png
+  docs/verification/image-cropper-catalog-1440.png

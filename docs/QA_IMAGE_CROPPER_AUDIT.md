@@ -128,4 +128,5 @@ Screenshots: `docs/verification/image-cropper-empty-1440.png`,
 `image-cropper-zoom-1440.png`, `image-cropper-compare-1440.png`,
 `image-cropper-side-by-side-1440.png`, `image-cropper-circle-1440.png`,
 `image-cropper-batch-full-1440.png`, `image-cropper-empty-390.png`,
-`image-cropper-workspace-390.png`, `image-cropper-mobile-crop-390.png`.
+`image-cropper-workspace-390.png`, `image-cropper-mobile-crop-390.png` and the catalog
+entry in `image-cropper-catalog-1440.png`.
