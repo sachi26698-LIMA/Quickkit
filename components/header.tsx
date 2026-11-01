@@ -1,27 +1,66 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ArrowRight, Menu, Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, ChevronDown, Heart, Menu, Search, X } from "lucide-react";
 import Brand from "@/components/brand";
-
-const links = [
-  { href: "/", label: "Home", page: "/" },
-  { href: "/#tools", label: "All tools", page: null },
-  { href: "/#categories", label: "Categories", page: null },
-  { href: "/about", label: "About", page: "/about" },
-];
+import CategoryIcon from "@/components/category-icon";
+import { categoryMeta } from "@/lib/catalog";
+import { useFavorites } from "@/lib/use-favorites";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const pathname = usePathname();
-  const close = () => setOpen(false);
+  const { saved } = useFavorites();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const closeAll = () => {
+    setOpen(false);
+    setCatOpen(false);
+  };
+
+  // Close menus whenever the route changes (derived-state pattern).
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (pathname !== prevPath) {
+    setPrevPath(pathname);
+    setOpen(false);
+    setCatOpen(false);
+  }
+
+  useEffect(() => {
+    if (!catOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!dropdownRef.current?.contains(e.target as Node)) {
+        setCatOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [catOpen]);
+
+  const onSearchClick = (e: React.MouseEvent) => {
+    const el = document.getElementById("tool-search");
+    if (el) {
+      e.preventDefault();
+      closeAll();
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      window.setTimeout(() => el.focus({ preventScroll: true }), 350);
+    }
+  };
+
+  const current = (page: string | null) =>
+    page &&
+    (pathname === page || (page === "/tools" && pathname.startsWith("/tools/")))
+      ? ("page" as const)
+      : undefined;
+
   return (
     <header
       className="site-header"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
-          setOpen(false);
+          closeAll();
           document.querySelector<HTMLButtonElement>(".menu-button")?.focus();
         }
       }}
@@ -33,30 +72,99 @@ export default function Header() {
           className={open ? "navigation open" : "navigation"}
           aria-label="Main navigation"
         >
-          {links.map(({ href, label, page }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={close}
-              aria-current={page && pathname === page ? "page" : undefined}
+          <Link href="/" onClick={closeAll} aria-current={current("/")}>
+            Home
+          </Link>
+          <Link
+            href="/tools"
+            onClick={closeAll}
+            aria-current={current("/tools")}
+          >
+            All Tools
+          </Link>
+          <div className="nav-dropdown" ref={dropdownRef}>
+            <button
+              type="button"
+              className="nav-dropdown-toggle"
+              aria-expanded={catOpen}
+              aria-haspopup="true"
+              onClick={() => setCatOpen(!catOpen)}
             >
-              {label}
-            </Link>
-          ))}
-          <Link onClick={close} href="/#tools" className="header-cta">
+              Categories{" "}
+              <ChevronDown
+                size={15}
+                aria-hidden="true"
+                className={catOpen ? "chev open" : "chev"}
+              />
+            </button>
+            {catOpen ? (
+              <div className="dropdown-panel">
+                <ul>
+                  {categoryMeta.map((meta) => (
+                    <li key={meta.slug}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/category/${meta.slug}`}
+                        onClick={closeAll}
+                      >
+                        <span className={`dropdown-icon ${meta.tint}`}>
+                          <CategoryIcon meta={meta} size={17} />
+                        </span>
+                        {meta.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  className="dropdown-footer"
+                  href="/#categories"
+                  onClick={closeAll}
+                >
+                  Browse categories <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
+            ) : null}
+          </div>
+          <Link
+            href="/about"
+            onClick={closeAll}
+            aria-current={current("/about")}
+          >
+            About
+          </Link>
+          <Link href="/help" onClick={closeAll} aria-current={current("/help")}>
+            Help
+          </Link>
+          <Link onClick={closeAll} href="/tools" className="header-cta">
             Explore Tools <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </nav>
         <div className="header-actions">
           <Link
-            href="/#tool-search"
+            href="/tools#tool-search"
             className="header-search"
             aria-label="Search tools"
-            onClick={close}
+            onClick={onSearchClick}
           >
             <Search size={19} aria-hidden="true" />
           </Link>
-          <Link href="/#tools" className="header-cta">
+          <Link
+            href="/saved"
+            className="header-search header-saved"
+            aria-label={`Saved tools${saved.length ? ` (${saved.length})` : ""}`}
+          >
+            <Heart
+              size={19}
+              aria-hidden="true"
+              fill={saved.length ? "currentColor" : "none"}
+            />
+            {saved.length ? (
+              <span className="saved-badge" aria-hidden="true">
+                {saved.length}
+              </span>
+            ) : null}
+          </Link>
+          <Link href="/tools" className="header-cta">
             Explore Tools <ArrowRight size={16} aria-hidden="true" />
           </Link>
           <button

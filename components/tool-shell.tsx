@@ -18,7 +18,7 @@ export default function ToolShell({
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <ChevronRight size={13} />
-        <Link href="/#tools">Tools</Link>
+        <Link href="/tools">Tools</Link>
         <ChevronRight size={13} />
         <span>{tool.name}</span>
       </nav>
@@ -57,7 +57,7 @@ export default function ToolShell({
       <section className="related">
         <div className="section-heading">
           <h2>Keep the good work going</h2>
-          <Link className="text-link" href="/#tools">
+          <Link className="text-link" href="/tools">
             All tools <ArrowUpRight size={16} />
           </Link>
         </div>

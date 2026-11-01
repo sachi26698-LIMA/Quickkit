@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
-import Brand from "@/components/brand";
+import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { indexingEnabled } from "@/lib/launch";
 import { siteOrigin } from "@/lib/seo";
@@ -53,52 +51,7 @@ export default function Layout({
         <main id="main" tabIndex={-1}>
           {children}
         </main>
-        <footer className="site-footer">
-          <div className="container footer-top">
-            <div>
-              <Brand />
-              <p>
-                Handy tools. Zero hassle.
-                <br />A little help for the things you do every day.
-              </p>
-              <p className="footer-promise-line">
-                <ShieldCheck size={19} aria-hidden="true" />
-                <span>
-                  <strong>Your work stays yours.</strong>
-                  <br />
-                  Processed on your device. No sign-up, no tracking analytics.
-                </span>
-              </p>
-            </div>
-            <div>
-              <h2>Tools</h2>
-              <Link href="/#tools">All tools</Link>
-              <Link href="/tools/merge-pdf">PDF Merger</Link>
-              <Link href="/tools/word-counter">Word Counter</Link>
-              <Link href="/tools/case-converter">Case Converter</Link>
-              <Link href="/tools/json-formatter">JSON Formatter</Link>
-            </div>
-            <div>
-              <h2>More tools</h2>
-              <Link href="/tools/password-generator">Password Generator</Link>
-              <Link href="/tools/qr-generator">QR Code Generator</Link>
-              <Link href="/tools/image-compressor">Image Compressor</Link>
-              <Link href="/#categories">Browse categories</Link>
-            </div>
-            <div>
-              <h2>QUICKKIT</h2>
-              <Link href="/about">About QUICKKIT</Link>
-              <Link href="/privacy">Privacy Policy</Link>
-              <Link href="/terms">Terms of Use</Link>
-            </div>
-          </div>
-          <div className="container footer-bottom">
-            <span>
-              © {new Date().getFullYear()} QUICKKIT. All rights reserved.
-            </span>
-            <span>Small tasks. Thoughtfully solved.</span>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

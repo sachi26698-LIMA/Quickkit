@@ -27,13 +27,18 @@ export default function Image() {
       >
         <span
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             background: "#6C35E8",
-            color: "white",
             borderRadius: 14,
-            padding: "5px 16px",
+            width: 52,
+            height: 52,
           }}
         >
-          Q
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
         </span>
         QUICK<span style={{ color: "#6C35E8", marginLeft: -14 }}>KIT</span>
       </div>

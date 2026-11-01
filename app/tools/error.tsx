@@ -12,7 +12,7 @@ export default function ToolError({ reset }: { reset: () => void }) {
         <button className="primary" onClick={reset}>
           Try again
         </button>
-        <Link className="secondary" href="/#tools">
+        <Link className="secondary" href="/tools">
           Back to tools
         </Link>
       </div>
