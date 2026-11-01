@@ -24,6 +24,7 @@ Statuses for the PDF tools belong to their own workstream and are recorded here 
 | 5 | Image & QR | QR Code Generator | `/tools/qr-generator` | ✅ Done | `main` | Phase 3 baseline |
 | 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2) — owner approved** | `feature/image-compressor` | Upgraded in place and passed the final real-image QA: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. **Approved by the owner on 1 Nov 2026** (frozen). Reports: `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
 | 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete, **approved by the owner on 1 Nov 2026** (frozen) |
+| 8 | **Image Tools** | **Image Cropper** | `/tools/image-cropper` | ✅ **Done — verified, awaiting owner sign-off** | `feature/image-cropper` | New tool. Freeform/ratio/social crops, circle + square, rotate/flip, zoom/pan, custom sizes, per-image batch, ZIP, EXIF auto-correction, undo/redo. Reports: `docs/FEATURE_IMAGE_CROPPER.md`, `docs/QA_IMAGE_CROPPER_AUDIT.md` |
 | — | Image Tools | Next image tool | — | ⬜ Planned | — | Not started; waits for the owner to choose it |
 | — | PDF Tools | PDF Merger | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
 | — | PDF Tools | PDF Splitter | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
@@ -31,7 +32,7 @@ Statuses for the PDF tools belong to their own workstream and are recorded here 
 Only these shared files gained additive entries for the image work: `lib/catalog.ts`
 (tool records + `"Image Tools"` category), `components/catalog.tsx` and
 `components/tool-icon.tsx` (icon map entries), `app/globals.css` (new `.resizer-*`,
-`.sky` and `.compressor-*` blocks appended — no existing rule edited),
+`.sky`, `.compressor-*` and `.cropper-*` blocks appended — no existing rule edited),
 `tests/catalog.test.ts`, `tests/launch.test.ts`, `tests/e2e/foundation.spec.ts`,
 `tests/e2e/quality.spec.ts` (tool-count and route-list expectations). The Image
 Compressor moved from *Image & QR* to *Image Tools*; its route and features were kept
@@ -183,10 +184,53 @@ playwright chromium  ✅ 181 passed — all specs
 screenshots          docs/verification/image-compressor-*.png
 ```
 
+## Image Cropper — ✅ complete (verified, awaiting owner sign-off)
+
+**Branch:** `feature/image-cropper` (work also committed on `arena/82ce86c2-quickkit`) ·
+**Route:** `/tools/image-cropper` · **Category:** `Image Tools`.
+A **new tool** built on the shared design system and the proven image primitives. The Image
+Resizer, the owner-approved Image Compressor and the PDF tools were not modified. Every
+visible control is wired; there are no placeholders. Full record:
+`docs/FEATURE_IMAGE_CROPPER.md` · QA: `docs/QA_IMAGE_CROPPER_AUDIT.md`.
+
+| Area | Delivered |
+| --- | --- |
+| Crop | Freeform drag, four corner resize handles, arrow-key nudge, ratio chips 1:1 · 4:3 · 3:2 · 16:9 · 9:16 · 4:5, crop-follows-content on rotate/flip |
+| Presets | 18 social sizes across Instagram, YouTube, Facebook, X, LinkedIn, Pinterest and WhatsApp, grouped in a select; each sets the ratio **and** the export size |
+| Custom size | Width/height fields set both the ratio and the exact output pixels, validated against 8–8,192 px and 24 MP |
+| Shapes | Rectangle, Square (1:1) and Circle (1:1 + alpha mask); PNG/WebP keep transparent corners, JPEG flattens onto a chosen colour |
+| Stage | 25–400 % zoom, Fit, pan by drag/scroll, rule-of-thirds grid, **Crop to visible area**, live crop-size badge, checkerboard transparency |
+| Edit | 90° left/right, 180°, Flip H/V, per-image 50-step undo/redo and reset |
+| Export | JPEG/PNG/WebP (probe-disabled when unsupported), quality 10–100, size modes Crop pixels (1:1, no resampling) / Scale % / Custom px / Preset, estimated bytes and resolution note |
+| Compare | Crop · Original · Cropped · Compare views; Compare has a Split slider and Side by side with ORIGINAL/CROPPED captions |
+| Batch | Up to 20 images, every item keeps its own frame and settings, per-image status and downloads, apply ratio/shape or export settings to all, progress bar, Stop, Retry failed |
+| Downloads | Individual files plus `quickkit-cropped-images.zip` with unique entry names; custom base name + suffix with a live name preview |
+| EXIF | Orientation applied on decode, source panel reports header dimensions and the orientation tag (“auto-corrected”) |
+| Privacy | 100 % local: decode, rotate, mask, encode and ZIP in the tab; no uploads, storage or analytics; object URLs revoked |
+| SEO/UX | 5-step HowTo, 7 FAQs, `WebApplication`/`HowTo`/`FAQPage` JSON-LD, preview-first mobile layout, axe AA clean |
+
+QA found and fixed five real defects (flip order after rotation, ratios applied to the
+unrotated frame, shape re-centring, 12 contrast failures, mobile stage below the settings
+column). The browser suite also corrected four wrong test expectations rather than bending
+the product. Details: `docs/QA_IMAGE_CROPPER_AUDIT.md`.
+
+```text
+npx tsc --noEmit     ✅ 0 errors
+npx eslint .         ✅ 0 problems
+npx vitest run       ✅ 14 files, 249 tests passed (28 cropper)
+npm run build        ✅ 20 static routes, /tools/image-cropper prerendered
+playwright chromium  ✅ 210 passed — all specs (image-cropper-audit: 21)
+screenshots          docs/verification/image-cropper-*.png
+```
+
+Known limits (documented in-product): quarter-turn rotation only, JPEG/PNG/WebP inputs,
+upscaling adds pixels not detail, canvas exports strip metadata, `Stop` halts after the
+in-flight image, and batches are bounded to 20 files / 200 MP.
+
 ## Next up
 
-1. **Image Cropper** — approved to start after the Image Compressor sign-off; work begins on
-   `feature/image-cropper` from the approved shared state (`bb88542`).
+1. **Image Cropper owner review** — the tool is complete and verified; awaiting the owner's
+   sign-off on `feature/image-cropper` (not merged into `main`).
 2. Image Tools category polish: shared image queue component now that a third image tool has landed.
 
 ## PDF tools

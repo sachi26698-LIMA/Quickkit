@@ -87,6 +87,18 @@ export const tools = [
     color: "peach",
     phase: 3,
   },
+  {
+    slug: "image-cropper",
+    name: "Image Cropper",
+    category: "Image Tools",
+    description:
+      "Frame it your way. Crop to any ratio, social preset, circle or square, and export exactly the pixels you need.",
+    keywords:
+      "crop cut trim frame aspect ratio instagram instagram story youtube thumbnail facebook post square circle round avatar rotate flip zoom pan batch zip exif transparent",
+    icon: "crop",
+    color: "mint",
+    phase: 3,
+  },
 ] as const;
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();

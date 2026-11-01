@@ -13,6 +13,7 @@ import {
   QrCode,
   ImageIcon,
   Scaling,
+  Crop,
   SlidersHorizontal,
 } from "lucide-react";
 import { categories, filterTools, tools, type Category } from "@/lib/catalog";
@@ -24,6 +25,7 @@ const icons = {
   qr: QrCode,
   image: ImageIcon,
   resize: Scaling,
+  crop: Crop,
 };
 export default function Catalog() {
   const ready = useHydrated();

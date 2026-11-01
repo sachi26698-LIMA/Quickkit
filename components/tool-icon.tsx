@@ -6,6 +6,7 @@ import {
   QrCode,
   ImageIcon,
   Scaling,
+  Crop,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -15,6 +16,7 @@ const icons = {
   qr: QrCode,
   image: ImageIcon,
   resize: Scaling,
+  crop: Crop,
 };
 export default function ToolIcon({
   icon,

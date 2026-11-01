@@ -1,0 +1,84 @@
+QUICKKIT Image Cropper — verification log
+========================================
+Date        : 1 November 2026
+Branch      : feature/image-cropper (arena/82ce86c2-quickkit)
+Build       : production `npm run build` served by `next start -p 3001`
+Environment : Chromium via Playwright (/tmp/chromium), Node 22
+
+$ npx tsc --noEmit
+  (no output — 0 errors)
+
+$ npx eslint .
+  (no output — 0 problems)
+
+$ npx vitest run
+  Test Files  14 passed (14)
+  Tests       249 passed (249)
+  · tests/image-crop.test.ts — 28 passed (geometry, ratios, presets, shapes,
+    rotation/flip maths, output plans, validation, naming, history, zoom)
+
+$ npm run build
+  ✓ Compiled successfully
+  ✓ Generating static pages (20/20)
+  Route table includes: ○ /tools/image-cropper
+
+$ TEST_BASE_URL=http://127.0.0.1:3001 npx playwright test --project=chromium --workers=1
+  210 passed (4.2m) — foundation, core, quality, browser-tools, all image specs
+  · tests/e2e/image-cropper-audit.spec.ts — 21 passed (24.2s)
+      1  empty state explains the tool and stays local
+      2  adds an image, shows its dimensions and crops the whole frame
+      3  freeform drag moves the crop and corner drags resize it
+      4  fixed ratio and Instagram/YouTube presets set the crop and export size
+      5  custom width and height sets both the ratio and the output
+      6  zoom, pan and crop-to-visible-area refine large frames
+      7  rotate and flip export the pixels you see
+      8  circle crop keeps PNG corners transparent
+      9  square crop is 1:1 and JPEG circle fills the background
+     10  JPEG, PNG and WebP export with real signatures
+     11  quality and output-size controls change the exported bytes and pixels
+     12  compare view shows original versus cropped with a working split
+     13  batch crops each image with its own settings
+     14  apply-to-all copies ratio, shape and export settings
+     15  custom file names, ZIP archive and unique entries
+     16  EXIF orientation is applied before cropping and reported
+     17  undo, redo and reset restore earlier crops
+     18  transparent PNG pixels survive a rectangle crop
+     19  a large photo exports 1:1 crop pixels without quality loss
+     20  invalid custom sizes are explained instead of exporting
+     21  no image data leaves the browser
+
+axe-core (wcag2a, wcag2aa, wcag21aa, wcag22aa) — populated editor
+  Crop view      : 0 violations
+  Original view  : 0 violations
+  Cropped view   : 0 violations
+  Compare view   : 0 violations
+  Unnamed controls: 0
+
+Responsive overflow (document.documentElement.scrollWidth - innerWidth)
+  320 px : 0
+  375 px : 0
+  390 px : 0
+  430 px : 0
+  768 px : 0
+ 1366 px : 0
+ 1440 px : 0
+
+Manual probes (real photograph, production build)
+  three files (two 6000×4000 + one 1264×848) decoded in        1.1 s
+  16:9 crop on 6000×4000 → 6000 × 3375 px, 361.7 KB WebP      (1:1, no resampling)
+  free crop on 6000×4000 → 6000 × 4000 px, 424.9 KB WebP
+  batch of three 24 MP crops                                 3.9 s, 3/3 Done
+  ZIP download succeeded and contained the cropped outputs
+
+Screenshots
+  docs/verification/image-cropper-empty-1440.png
+  docs/verification/image-cropper-workspace-1440.png
+  docs/verification/image-cropper-preset-1440.png
+  docs/verification/image-cropper-zoom-1440.png
+  docs/verification/image-cropper-compare-1440.png
+  docs/verification/image-cropper-side-by-side-1440.png
+  docs/verification/image-cropper-circle-1440.png
+  docs/verification/image-cropper-batch-full-1440.png
+  docs/verification/image-cropper-empty-390.png
+  docs/verification/image-cropper-workspace-390.png
+  docs/verification/image-cropper-mobile-crop-390.png

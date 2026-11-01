@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { filterTools, tools } from "../lib/catalog";
 describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
-    expect(filterTools("", "All tools")).toHaveLength(7));
+    expect(filterTools("", "All tools")).toHaveLength(8));
   it("ignores case and surrounding spaces", () =>
     expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter"));
   it("searches keywords", () =>
@@ -14,7 +14,7 @@ describe("catalog discovery", () => {
   it("filters text tools", () =>
     expect(filterTools("", "Text")).toHaveLength(2));
   it("lists the Image Resizer in the new Image Tools category", () => {
-    const resizer = filterTools("instagram", "Image Tools");
+    const resizer = filterTools("percentage", "Image Tools");
     expect(resizer).toHaveLength(1);
     expect(resizer[0].slug).toBe("image-resizer");
     expect(resizer[0].name).toBe("Image Resizer");
@@ -23,10 +23,19 @@ describe("catalog discovery", () => {
     const imageTools = filterTools("", "Image Tools");
     expect(imageTools.map((tool) => tool.slug).sort()).toEqual([
       "image-compressor",
+      "image-cropper",
       "image-resizer",
     ]);
     expect(filterTools("kb target", "All tools")[0].slug).toBe(
       "image-compressor",
+    );
+  });
+  it("lists the Image Cropper with crop-specific keywords", () => {
+    const cropper = filterTools("circle", "Image Tools");
+    expect(cropper).toHaveLength(1);
+    expect(cropper[0].slug).toBe("image-cropper");
+    expect(filterTools("round avatar", "Image Tools")[0].slug).toBe(
+      "image-cropper",
     );
   });
   it("finds social preset keywords", () =>
