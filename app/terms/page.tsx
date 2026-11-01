@@ -45,9 +45,10 @@ export default function Page() {
         estimates are approximate; case conversion does not replace language
         review; JSON parsing may round large numbers; QR destinations must be
         checked before sharing; image encoding can alter quality, metadata and
-        transparency. PDF merging can flatten forms and does not preserve
-        original bookmarks, attachments, layers, tagged structure, scripts or
-        digital-signature validity. Review merged PDFs and keep originals.
+        transparency. PDF merging and splitting can flatten forms and do not
+        preserve original bookmarks, attachments, layers, tagged structure,
+        scripts or digital-signature validity. Review merged and split PDFs and
+        keep originals.
       </p>
       <h2>Your content</h2>
       <p>

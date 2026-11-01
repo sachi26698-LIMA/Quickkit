@@ -13,7 +13,7 @@ import HeroArt from "@/components/hero-art";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Free browser tools for everyday tasks",
-  "Merge PDFs, count words, convert text, format JSON, create passwords, generate QR codes and compress images locally in your browser.",
+  "Merge and split PDFs, count words, convert text, format JSON, create passwords, generate QR codes and compress images locally in your browser.",
   "/",
 );
 export default function Home() {

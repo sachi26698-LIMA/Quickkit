@@ -9,6 +9,7 @@ const routes = [
   "/tools/qr-generator",
   "/tools/image-compressor",
   "/tools/merge-pdf",
+  "/tools/split-pdf",
   "/about",
   "/privacy",
   "/terms",

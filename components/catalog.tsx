@@ -13,6 +13,7 @@ import {
   QrCode,
   ImageIcon,
   Files,
+  ScissorsLineDashed,
   SlidersHorizontal,
 } from "lucide-react";
 import { categories, filterTools, tools, type Category } from "@/lib/catalog";
@@ -24,6 +25,7 @@ const icons = {
   qr: QrCode,
   image: ImageIcon,
   pdf: Files,
+  pdfSplit: ScissorsLineDashed,
 };
 export default function Catalog() {
   const ready = useHydrated();

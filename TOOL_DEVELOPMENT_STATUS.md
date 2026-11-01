@@ -3,15 +3,15 @@
 **Last updated:** 1 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
-**Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF Merger — **implemented — awaiting owner approval**. The owner approved the plan on 1 November 2026 with explicit browser-only privacy, actionable error-handling and complete mobile-workflow requirements. Implementation and QA are complete for owner review; **do not mark it live/complete and do not start another tool until the owner personally approves it**. It has not been deployed or indexed.
+**Development policy:** The former strict one-tool-at-a-time gate was explicitly superseded for this PDF workstream on 1 November 2026. PDF Merger verification and PDF Splitter development were authorized in parallel; **no third PDF tool may start**. Each tool still requires implementation, tests, screenshots/demo and explicit owner approval before it can be marked live/complete.
+**Current active tools:** PDF Merger and PDF Splitter — both **implemented — awaiting owner approval**. PDF Merger retains that exact status even though PR #2 was merged by the owner under a separate instruction. PDF Splitter was developed in parallel under the later directive. Neither tool has been deployed or indexed by this work. Splitter work remains on the fixed Arena session branch `arena/fe1f419c-quickkit`; the requested `feature/pdf-splitter` branch could not be created in this session, and Splitter has not been merged into `main`.
 
 ## 1. Status definitions
 
 These statuses match the proposed registry model in `TOOL_REGISTRY_ARCHITECTURE.md`.
 
 | Status | Meaning | Public card/route? |
-|---|---|---:|
+| ---------------- | ----------------------------------------------------------------------------------------------------- | -----------------------------------------------------: |
 | `live` | Fully implemented, content-complete and verified against the tool exit gate. | Yes, subject to the separate site launch/indexing gate |
 | `in-development` | Approved and actively being built; not yet releasable. | No |
 | `planned` | Candidate recorded for a future phase. It is not implemented and must not be advertised as available. | No |
@@ -23,11 +23,11 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 ## 2. Portfolio summary
 
 | Group | Count | Notes |
-|---|---:|---|
+| ---------------------------------------------------------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------- |
 | Implemented in repository (`live`) | 6 | Existing tools listed in Section 4. |
-| Implemented — awaiting owner approval | 1 | PDF Merger only; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
-| In research/planning | 0 | No next tool may enter research/planning as active work until the owner approves PDF Merger. |
-| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger, which has moved to owner review. |
+| Implemented — awaiting owner approval                                  |     2 | PDF Merger and PDF Splitter; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
+| In research/planning                                                   |     0 | No third PDF tool or other next tool is authorized while both PDF tools await owner review.                             |
+| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) |    82 | The original 84-candidate list minus PDF Merger and PDF Splitter, which have moved to owner review.                     |
 | Projected total after Phase 12 | 90 | Only if every candidate passes its individual quality gate. |
 | Additional tools needed to exceed 100 | 11+ | Reserved for evidence-led Phase 13; candidates not selected yet. |
 
@@ -36,13 +36,13 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 ## 3. Platform foundation status
 
 | Work item | Status | Evidence / next step |
-|---|---|---|
-| Current inline catalog | Implemented for seven repository tools | `lib/catalog.ts`; six previously implemented tools plus PDF Merger under the approved narrow integration. Suitable for the current homepage but not the 90-tool target. |
+| ---------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current inline catalog       | Implemented for eight repository tools | `lib/catalog.ts`; six previously implemented tools plus PDF Merger and PDF Splitter under the approved narrow integrations. Suitable for the current homepage but not the 90-tool target. |
 | Scalable tool registry | **Designed, not implemented** | Proposal in `TOOL_REGISTRY_ARCHITECTURE.md`; this remains a separate future migration and was not bundled into PDF Merger. |
-| Generated tool routes | **Not started** | Current seven routes are maintained individually under `app/tools/*/page.tsx`. |
+| Generated tool routes        | **Not started**                        | Current eight routes are maintained individually under `app/tools/*/page.tsx`.                                                                                                            |
 | `/tools` directory | **Not started** | Proposed as part of the registry foundation. |
 | Generated category pages | **Not started** | Proposed route: `/tools/category/{categorySlug}`. |
-| Global registry search | **Partial precursor only** | Current homepage search/filter works for seven repository tools; ranking, aliases and dedicated directory search are not implemented. |
+| Global registry search       | **Partial precursor only**             | Current homepage search/filter works for eight repository tools; ranking, aliases and dedicated directory search are not implemented.                                                     |
 | Functional category filters | **Partial precursor only** | Current category buttons work for the existing display categories; canonical category IDs/slugs are not implemented. |
 | Featured tools | **Not started** | Must be labeled “Featured” until real popularity data exists. |
 | Popular tools from real data | **Blocked by design decision** | No approved aggregate usage-data source currently exists; do not fabricate rankings. |
@@ -56,7 +56,7 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 The proposed IDs below use the existing slug values. During registry migration they must be frozen as immutable IDs; URLs must remain unchanged.
 
 | ID | Tool | Current URL | Current category | Proposed category | Registry status | Verification state |
-|---|---|---|---|---|---|---|
+| -------------------- | ------------------ | --------------------------- | ---------------- | ------------------------ | --------------- | --------------------------------------------------------------------------------- |
 | `word-counter` | Word Counter | `/tools/word-counter` | Text | Text & Writing Tools | `live` | Implemented; included in existing unit/browser suites. |
 | `case-converter` | Case Converter | `/tools/case-converter` | Text | Text & Writing Tools | `live` | Implemented; included in existing unit/browser suites. |
 | `json-formatter` | JSON Formatter | `/tools/json-formatter` | Developer | Developer Tools | `live` | Implemented; included in existing unit/browser suites. |
@@ -67,16 +67,17 @@ The proposed IDs below use the existing slug values. During registry migration t
 ### Implemented — awaiting owner approval
 
 | ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
-|---|---|---|---|---|---|---|
-| `merge-pdf` | PDF Merger | `/tools/merge-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only implementation committed on `arena/eb17e485-quickkit`; final QA evidence is in `docs/pdf-merger/QA_REPORT.md`. Not owner-approved, live, deployed or indexed. |
+| ----------- | ------------ | ------------------ | ---------------- | ----------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `merge-pdf` | PDF Merger   | `/tools/merge-pdf` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | Browser-only implementation reached `main` through the owner-requested PR #2 merge at `58a81ed`, then was re-verified post-merge. Evidence: `docs/pdf-merger/QA_REPORT.md`, including Section 11. Not owner-approved, live, deployed or indexed.                                                |
+| `split-pdf` | PDF Splitter | `/tools/split-pdf` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | Browser-only implementation on fixed session branch `arena/fe1f419c-quickkit` with custom ranges, visual extraction, every-N/per-page modes, named validated PDFs and local ZIP. Evidence: `docs/pdf-splitter/QA_REPORT.md`. Not merged into `main`, owner-approved, live, deployed or indexed. |
 
 ### Current regression evidence
 
-The most recent full run recorded after PDF Merger Git resynchronization is:
+The most recent full run recorded after the parallel PDF Merger re-verification and PDF Splitter integration is:
 
-- Vitest: **114/114 passed**.
-- Chromium Playwright suite: **146/146 passed** in the sandbox browser environment.
-- Production build: passed with seven repository tool routes and 19 static pages.
+- Vitest: **131/131 passed**.
+- Chromium Playwright suite: **161/161 passed** in the sandbox browser environment (including Merger 5/5 and Splitter 5/5).
+- Production build: passed with eight repository tool routes and 20 static pages.
 - Format check, ESLint and TypeScript: passed.
 - Production dependency audit: **0 vulnerabilities**.
 
@@ -84,14 +85,14 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 
 ## 5. Proposed Phase 5 — PDF Tools
 
-**Phase status:** One tool is at owner review — **PDF Merger is implemented — awaiting owner approval. Every other Phase 5 tool is blocked until the owner personally approves PDF Merger.**
+**Phase status:** Two tools are at owner review under the owner’s parallel-workstream directive — **PDF Merger and PDF Splitter are implemented — awaiting owner approval. Every other Phase 5 tool is blocked; no third PDF tool may start.**
 **Candidate count:** 10  
 **Projected cumulative total:** 16
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | ------------------------ | ---------------------- | ---------------------- | ----------------------------------------- |
 | 1 | PDF Merger | `merge-pdf` | `merge-pdf` | **implemented — awaiting owner approval** |
-| 2 | Split PDF | `split-pdf` | `split-pdf` | `planned` |
+|   2 | PDF Splitter (Split PDF) | `split-pdf`            | `split-pdf`            | **implemented — awaiting owner approval** |
 | 3 | Organize PDF | `organize-pdf` | `organize-pdf` | `planned` |
 | 4 | Rotate PDF | `rotate-pdf` | `rotate-pdf` | `planned` |
 | 5 | Images to PDF | `images-to-pdf` | `images-to-pdf` | `planned` |
@@ -101,7 +102,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 | 9 | Add PDF Watermark | `add-pdf-watermark` | `add-pdf-watermark` | `planned` |
 | 10 | PDF Metadata Editor | `pdf-metadata-editor` | `pdf-metadata-editor` | `planned` |
 
-**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool until the owner personally approves PDF Merger.
+**Next gate:** Owner review of both previews, screenshots, `docs/pdf-merger/QA_REPORT.md` and `docs/pdf-splitter/QA_REPORT.md`. Keep both tools at **implemented — awaiting owner approval**. Do not merge Splitter into `main`, deploy/index either tool, or begin a third PDF tool.
 
 ## 6. Proposed Phase 6 — Image Tools
 
@@ -110,7 +111,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 26
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | --------------------------- | ------------------------- | ------------------------- | --------- |
 | 1 | Crop Image | `crop-image` | `crop-image` | `planned` |
 | 2 | Resize Image | `resize-image` | `resize-image` | `planned` |
 | 3 | Rotate & Flip Image | `rotate-flip-image` | `rotate-flip-image` | `planned` |
@@ -129,7 +130,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 38
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | ----------------------------- | ------------------------------- | ------------------------------- | --------- |
 | 1 | Remove Duplicate Lines | `remove-duplicate-lines` | `remove-duplicate-lines` | `planned` |
 | 2 | Sort Lines | `sort-lines` | `sort-lines` | `planned` |
 | 3 | Find and Replace Text | `find-and-replace-text` | `find-and-replace-text` | `planned` |
@@ -150,7 +151,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 52
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | ------------------------ | ------------------------ | ------------------------ | --------- |
 | 1 | Base64 Encoder / Decoder | `base64-encoder-decoder` | `base64-encoder-decoder` | `planned` |
 | 2 | URL Encoder / Decoder | `url-encoder-decoder` | `url-encoder-decoder` | `planned` |
 | 3 | JWT Decoder | `jwt-decoder` | `jwt-decoder` | `planned` |
@@ -173,7 +174,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 64
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | ---------------------------- | ------------------------------ | ------------------------------ | --------- |
 | 1 | Unit Converter | `unit-converter` | `unit-converter` | `planned` |
 | 2 | Percentage Calculator | `percentage-calculator` | `percentage-calculator` | `planned` |
 | 3 | Loan Calculator | `loan-calculator` | `loan-calculator` | `planned` |
@@ -194,7 +195,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 74
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | --------------------- | ----------------------- | ----------------------- | --------- |
 | 1 | Wi-Fi QR Generator | `wifi-qr-generator` | `wifi-qr-generator` | `planned` |
 | 2 | vCard QR Generator | `vcard-qr-generator` | `vcard-qr-generator` | `planned` |
 | 3 | Email QR Generator | `email-qr-generator` | `email-qr-generator` | `planned` |
@@ -213,7 +214,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 82
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | ------------------------------ | -------------------------------- | -------------------------------- | --------- |
 | 1 | Password Strength Checker | `password-strength-checker` | `password-strength-checker` | `planned` |
 | 2 | Passphrase Generator | `passphrase-generator` | `passphrase-generator` | `planned` |
 | 3 | File Hash Verifier | `file-hash-verifier` | `file-hash-verifier` | `planned` |
@@ -230,7 +231,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 **Projected cumulative total:** 90
 
 | # | Tool | Proposed ID | Proposed slug | Status |
-|---:|---|---|---|---|
+| --: | ----------------------- | ------------------------- | ------------------------- | --------- |
 | 1 | Background Remover | `background-remover` | `background-remover` | `planned` |
 | 2 | OCR Text Extractor | `ocr-text-extractor` | `ocr-text-extractor` | `planned` |
 | 3 | Image Caption Generator | `image-caption-generator` | `image-caption-generator` | `planned` |
@@ -245,7 +246,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 These are **not** part of the 84-candidate count and must not receive public cards.
 
 | Idea | Planning state | Reason |
-|---|---|---|
+| ------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Compress PDF | Deferred pending engine spike | A trustworthy browser implementation must demonstrate meaningful size reduction and acceptable quality loss. |
 | Protect PDF | Deferred pending engine/security review | Standard browser PDF manipulation alone does not provide production encryption. |
 | Unlock/password-bypass PDF | Not proposed | QUICKKIT should not present password bypassing as a feature. Handling a user-supplied password would need a separate security design. |
@@ -283,23 +284,26 @@ A candidate may move from `planned` to `live` only when all items below are evid
 
 ## 16. Decisions for future expansion
 
-PDF Merger proceeded under the owner's explicit narrow-catalog integration decision; the full registry migration remains separate and does not block owner review of PDF Merger.
+PDF Merger and PDF Splitter proceeded under explicit narrow-catalog integration decisions; the full registry migration remains separate and does not block owner review of either PDF tool.
 
-- [ ] Personally approve or request changes to PDF Merger before any next tool starts.
+- [ ] Personally approve or request changes to PDF Merger and PDF Splitter before any next tool starts.
 - [ ] Approve the registry architecture and URL model.
 - [ ] Approve the remaining candidate scope and the resulting 90-tool total, with Phase 13 reserved for 100+.
 - [ ] Approve the eight-category taxonomy and remapping of the existing tools.
 - [ ] Approve the remaining Phase 5 PDF list and deferral of Compress/Protect pending technical evidence.
 - [ ] Decide whether account-free favorites may store tool IDs in local storage.
 - [ ] Decide whether to show editorial “Featured” tools while keeping “Popular” hidden until real aggregate data exists.
-- [ ] Decide whether to build the registry foundation before the next tool after PDF Merger approval.
+- [ ] Decide whether to build the registry foundation before the next tool after PDF Merger/PDF Splitter approval.
 
 ## 17. Change log
 
 | Date | Change |
-|---|---|
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1 November 2026 | Initial expansion tracker created. Six implemented tools recorded; 84 candidates marked `planned` pending approval; Phase 5 not started. |
 | 1 November 2026 | Strict one-tool-at-a-time policy adopted. PDF Merger selected as the sole active tool; `PDF_MERGER_PLAN.md` completed. Status remains `planned` with workflow note “research/planning, awaiting approval”; no implementation started. |
 | 1 November 2026 | Owner approved the PDF Merger plan with mandatory browser-only processing, explicit actionable errors/no silent skipping and a polished complete mobile workflow. PDF Merger became the sole active implementation. |
 | 1 November 2026 | Local PDF Merger work was backed up, integrated directly onto pushed baseline `db4e906`, committed at `070bc77` and pushed to `arena/eb17e485-quickkit`/PR #2. No merge into `main` was performed. |
 | 1 November 2026 | Final PDF Merger QA and owner-review handoff completed in `docs/pdf-merger/QA_REPORT.md`. Status set to **implemented — awaiting owner approval**; all other tools remain blocked. |
+| 1 November 2026 | At the owner’s separate explicit request, PR #2 was merged into `main` at `58a81ed`. That merge is not recorded as product approval, deployment or indexing; PDF Merger remains **implemented — awaiting owner approval**.                                                                                                                 |
+| 1 November 2026 | Owner explicitly superseded the one-tool gate for this workstream: PDF Merger verification and PDF Splitter development were authorized in parallel, with no third PDF tool. A clean-worktree backup was created before Splitter coding.                                                                                                   |
+| 1 November 2026 | PDF Merger post-merge re-verification passed with no Merger defect found. PDF Splitter was implemented on `arena/fe1f419c-quickkit` (requested feature branches are unavailable in this fixed session), with QA in `docs/pdf-splitter/QA_REPORT.md`; both PDF tools now await owner approval and Splitter has not been merged into `main`. |

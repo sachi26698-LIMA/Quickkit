@@ -18,7 +18,7 @@
   "keywords": [],
   "author": "",
   "license": "UNLICENSED",
-  "description": "Seven privacy-conscious browser utilities. Handy tools. Zero hassle.",
+  "description": "Eight privacy-conscious browser utilities. Handy tools. Zero hassle.",
   "dependencies": {
     "@cantoo/pdf-lib": "2.11.1",
     "html-entities": "2.6.0",

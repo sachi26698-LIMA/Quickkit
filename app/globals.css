@@ -2877,3 +2877,258 @@ select:focus {
     gap: 7px;
   }
 }
+
+/* PDF Splitter */
+.pdf-split-source-card,
+.pdf-split-plan-panel,
+.pdf-split-pages-panel {
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid #e3def3;
+  border-radius: 17px;
+  background: white;
+}
+.pdf-split-source-card {
+  display: grid;
+  grid-template-columns: minmax(150px, 205px) minmax(0, 1fr);
+  gap: 20px;
+  background: linear-gradient(145deg, #ffffff, #fbfaff 58%, #f3fbf7);
+}
+.pdf-split-source-content {
+  min-width: 0;
+}
+.pdf-split-source-content .pdf-entry-title-row h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.pdf-split-source-content .pdf-entry-title-row h3:focus {
+  outline: 3px solid var(--purple);
+  outline-offset: 4px;
+}
+.pdf-split-mode-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.pdf-split-mode-fieldset legend {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.pdf-split-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.pdf-split-mode-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  cursor: pointer;
+}
+.pdf-split-mode-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 12px;
+  opacity: 0;
+}
+.pdf-split-mode-card input + span {
+  display: grid;
+  min-height: 132px;
+  align-content: start;
+  gap: 7px;
+  padding: 15px;
+  border: 1px solid #ded9ec;
+  border-radius: 14px;
+  background: #fdfcff;
+  color: #5c517d;
+}
+.pdf-split-mode-card input + span svg {
+  color: #6d56c9;
+}
+.pdf-split-mode-card input + span strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.pdf-split-mode-card input + span small {
+  color: var(--secondary);
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.55;
+}
+.pdf-split-mode-card:hover input:not(:disabled) + span {
+  border-color: #c9bcf0;
+  background: #f8f5ff;
+}
+.pdf-split-mode-card input:checked + span {
+  border-color: var(--purple);
+  background: linear-gradient(150deg, #f2efff, #effaf3);
+  box-shadow: inset 0 0 0 1px var(--purple);
+}
+.pdf-split-mode-card input:focus-visible + span {
+  outline: 3px solid var(--purple);
+  outline-offset: 3px;
+}
+.pdf-split-mode-card input:disabled + span {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+.pdf-split-control-card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e4def2;
+  border-radius: 14px;
+  background: #fdfcff;
+}
+.pdf-split-ranges-input {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  line-height: 1.6;
+  resize: vertical;
+}
+.pdf-split-ranges-input[aria-invalid="true"],
+#pdf-split-every-n[aria-invalid="true"] {
+  border-color: #d9536b;
+  background: #fff7f8;
+}
+.pdf-split-every-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+  align-items: end;
+  gap: 18px;
+}
+.pdf-split-plan-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pdf-split-plan-item,
+.pdf-split-result-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid #e4def2;
+  border-radius: 12px;
+  background: white;
+}
+.pdf-split-plan-item > div,
+.pdf-split-result-list li > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.pdf-split-plan-item strong,
+.pdf-split-result-list strong {
+  overflow-wrap: anywhere;
+}
+.pdf-split-plan-item span:last-child,
+.pdf-split-result-list span {
+  color: var(--secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.pdf-split-output-number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: #eee9ff;
+  color: #5542a8;
+  font-size: 12px;
+  font-weight: 750;
+}
+.pdf-split-pages-panel h3 {
+  margin: 0;
+}
+.pdf-split-pages-panel .pdf-picker-toolbar p {
+  margin: 4px 0 0;
+  color: var(--secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.pdf-split-page-tile {
+  text-align: center;
+}
+.pdf-splitter-workspace .pdf-output-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.pdf-split-result-list {
+  display: grid;
+  gap: 9px;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+}
+.pdf-split-result-list li {
+  justify-content: space-between;
+}
+.pdf-split-result-list .toolbar-actions {
+  flex-shrink: 0;
+}
+.pdf-split-result-list a {
+  text-decoration: none;
+}
+@media (max-width: 900px) {
+  .pdf-split-mode-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pdf-splitter-workspace .pdf-output-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .pdf-splitter-workspace {
+    padding-bottom: 86px;
+  }
+  .pdf-splitter-workspace input[type="password"],
+  .pdf-split-ranges-input {
+    font-size: 16px;
+  }
+  .pdf-split-source-card {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 15px;
+  }
+  .pdf-split-source-card .pdf-thumbnail {
+    width: min(190px, 64vw);
+  }
+  .pdf-split-plan-panel,
+  .pdf-split-pages-panel {
+    padding: 15px;
+  }
+  .pdf-split-mode-card input + span {
+    min-height: 118px;
+    padding: 13px;
+  }
+  .pdf-split-every-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .pdf-split-result-list li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .pdf-split-result-list .toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pdf-split-result-list .toolbar-actions a {
+    justify-content: center;
+  }
+}
+@media (max-width: 430px) {
+  .pdf-split-mode-grid {
+    grid-template-columns: 1fr;
+  }
+  .pdf-split-mode-card input + span {
+    min-height: 0;
+  }
+}

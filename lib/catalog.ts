@@ -85,6 +85,17 @@ export const tools = [
     color: "purple",
     phase: 5,
   },
+  {
+    slug: "split-pdf",
+    name: "PDF Splitter",
+    category: "PDF Tools",
+    description:
+      "One PDF, the right pieces. Split ranges, extract pages, and download named PDFs or a ZIP locally.",
+    keywords: "pdf split extract separate ranges pages zip documents password",
+    icon: "pdfSplit",
+    color: "mint",
+    phase: 5,
+  },
 ] as const;
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();
