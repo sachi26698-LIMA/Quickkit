@@ -739,3 +739,58 @@ This FINAL Brain supersedes the earlier master. The original earlier Brain and u
 - GitHub connector remained unsupported, so used the official GitHub CLI device/browser authorization flow approved by the owner. Credentials were held in a restricted temporary configuration outside the persisted workspace, never printed or committed.
 - Published audited code commit `5b8725e` atomically to `main` and `fix/launch-audit` without force. Both remote hashes matched the local audited commit. Repository was already PUBLIC; visibility was not changed.
 - Publication records updated in README/checklist. Remote CI is checked separately; pushing does not claim CI completion, a successful website deployment, resolved legal/security gates, or indexing approval. No Vercel project/domain/deployment was created by this Git publication.
+
+## Complete QC audit, hero illustration & implementation status — 2026-11-02
+
+This section records the ACTUAL current codebase, verified by direct inspection and test runs on 2026-11-02. Where it conflicts with earlier planning/status sections, this section wins. Everything below was executed/measured, not assumed.
+
+### Current architecture (as built)
+- Next.js ^16.4.3 (App Router), React ^19.3.1, strict TypeScript, Node 22.x (engines + `.nvmrc` + CI aligned), npm with `package-lock.json` only.
+- Plain CSS design system in `app/globals.css` (CSS variables, no Tailwind), self-hosted Geist Variable font, `lucide-react` ^1.66 icons. No CSS framework, no framer-motion/three.
+- Fully local-first: NO backend, NO database, NO API routes, NO analytics, NO cookies for tracking. All tool processing happens in the browser. The only client persistence is `localStorage` key `quickkit:saved-tools` (Saved/favourite tools).
+- Production deps: next, react, react-dom, lucide-react, qrcode, @cantoo/pdf-lib, pdfjs-dist (assets copied by `prepare:pdfjs` in predev/prebuild), html-entities. `npm audit --omit=dev` = 0 vulnerabilities (2026-11-02); 15 moderate findings exist in dev-only tooling.
+- Indexing is gated by `lib/launch.ts`: sitemap.xml/robots stay blocking until `SITE_URL` + `LAUNCH_APPROVED=true` in a production environment. Site currently ships `noindex` by design.
+
+### Route map (25 sitemap routes, all verified 200)
+- `/` homepage; `/tools` explorer (search + category chips, `?q=`/`?category=` deep links); 7 tool pages under `/tools/<slug>`; 8 category pages `/category/<slug>`; `/saved`; `/about`; `/contact`; `/help` (+`#faq`); `/privacy`; `/terms`; `/cookies`; `/sitemap` (HTML sitemap page coexists with `app/sitemap.ts` → `/sitemap.xml`).
+
+### Tools & categories (`lib/catalog.ts` is the source of truth)
+- 7 live tools: Word Counter, Case Converter (Text & Writing); JSON Formatter (Developer Tools); Password Generator (Security & Privacy); QR Code Generator (QR & Barcode); Image Compressor (Image Tools); PDF Merger (PDF Tools, Web-Worker based via `lib/tools/pdf/`).
+- 8 categories with slugs/tints in `categoryMeta`. Calculators and AI Tools are intentionally EMPTY with honest "Coming soon" pages — never fake tools. Category display titles are the TypeScript `Category` values; "All tools" is the unfiltered state.
+- Adding a tool: catalog entry (name, slug, description, category, keywords, icon key) → `components/tools/<name>.tsx` workspace + `lib/tools/` logic → `app/tools/<slug>/page.tsx` → unit tests in `tests/` + e2e coverage (`tests/e2e/quality.spec.ts` route list auto-audits axe/overflow/links once the route is added there).
+
+### Design system (actual tokens, `app/globals.css` :root)
+- `--purple #6C35E8`, `--purple-deep #4B19B8`, `--purple-vivid #8A5CF6`, `--lavender #EDE3FF`, `--lavender-soft #F6F1FF`, `--background #FAF8FF`, `--ink #17152B`, `--ink-soft #4B4763`, `--secondary #706B83`, `--border #E7E0F5`, purple-tinted shadows, strictly light theme (`color-scheme: light`).
+- Contrast rule learned the hard way: `--secondary` (#706B83) is AA only on white/#FAF8FF; on lavender/pastel tints use `--ink-soft`. Category tint chips/text pairs in globals.css were hand-checked ≥4.5:1 (text) / ≥3:1 (white icons).
+- Brand mark: white lightning bolt (Lucide `Zap`, filled) on purple gradient rounded square (`components/brand.tsx`); favicon/apple-icon/OG image use the same bolt.
+
+### CSS & responsive rules (actual)
+- Breakpoints: 1080 / 860 (nav collapses, hero stacks) / 600 / 479 / 359. Sticky glass header; `scroll-padding-top: 96px`; `.home { overflow-x: clip }` is a safety net ONLY — real overflow is treated as a bug and tested to zero (see audits). Never hide a bug with overflow restrictions.
+- Motion: CSS keyframes + tiny client islands (pointer parallax, IntersectionObserver reveals/count-up). All motion respects `prefers-reduced-motion`; reveals are no-JS safe (content visible until JS proves below-fold). Shared keyframes `spin-slow`/`floaty` live beside the hero block and are also used by the CTA — do not delete them when editing hero CSS.
+
+### Hero illustration — hard rules (owner-directed, verified 2026-11-02)
+- Asset: AI-generated glossy 3D render recreated from the owner's reference mockup (tilted laptop + QUICKKIT dashboard + flowing ribbons + 6 floating tiles: red PDF top, green calculator mid-left, violet code bottom-left, blue image top-right, white QR mid-right, white "Tt" bottom-right). Master PNG (1200×896) is preserved OUTSIDE the repo; the repo ships `public/hero-illustration.webp` (1200w) + `public/hero-illustration-sm.webp` (800w), converted with sharp (never upscale).
+- NEVER mask, fade, blur, crop, blend (`mix-blend-mode`), or reduce the opacity of this image, and never place overlays/shapes over it. These were tried and explicitly rejected by the owner ("the photo was unnecessarily hidden").
+- Boundary lesson: the photo's own background is ~#F1EFFC. A saturated decorative gradient blob behind it (`.home` first radial, formerly `#e3d5ff99` at 88% 2%) outlined the photo as a visible rectangle/"band". Root-cause fix = soften the BACKDROP blob (`#e9dfff59`), never touch the photo. If the asset is ever replaced, retune that blob to the new asset's edge color.
+- Keep the photo INSIDE the container grid at every width (an earlier ±12px mobile bleed was removed — content must not extend outside its container).
+
+### Config & integrations
+- `lib/site.ts` holds ALL demo configuration: `contactEmail` (demo `hello@quickkit.in` — NOT a verified inbox; owner must replace), `contactFormEndpoint` (empty = honest mailto-compose fallback; set to a real endpoint to enable POST), and 6 demo social URLs (owner to replace with real profiles). Lucide 1.66 has NO brand icons — social glyphs are hand-drawn in `components/social-icons.tsx`.
+- Honesty rules (non-negotiable): claim local processing only for tools that genuinely run locally (all 7 do); never invent cookies/analytics; the contact form never fakes delivery. The "100+ Tools" benefit copy is OWNER-DIRECTED marketing copy while 7 tools are live — flagged to the owner; revisit before public launch.
+
+### Testing & verification (how to run, current results)
+- Gates: `npm run format` (or format:check), `npm run lint`, `npm run typecheck`, `npm test` (vitest), `npm run build`, `npm run test:e2e` (Playwright; config auto-starts the prod server on :3001 unless `TEST_BASE_URL` is set; CI runs chromium+firefox+webkit projects).
+- 2026-11-02 results: format/lint/typecheck clean; unit 117/117; production build green (33 routes); e2e 238/238 (Chromium, local sandbox config); axe WCAG 2.2 AA = 0 violations on all 20 audited routes; custom responsive sweep 21 routes × widths 320/360/390/430/768/1024/1280/1440/1920 = 189 checks, 0 overflow/console/page/network issues.
+- Sandbox note: Playwright browser downloads are blocked here; use @sparticuz/chromium's binary with the real NSS libs extracted from its bundled `al2023.tar.br` (`LD_LIBRARY_PATH` to the extracted lib dir; binary lands at /tmp/chromium). NEVER run e2e/screenshots in parallel with `npm run build` — sequence is build → restart `next start` → curl-verify CSS 200 → test.
+- Lint forbids setState-in-effect: use `useSyncExternalStore` (see `lib/use-favorites.ts`, `lib/use-hydrated.ts`) or the derived-state-during-render pattern (see header route-change reset).
+- axe + scroll-reveal: audits must scroll/settle reveals first (implemented in quality.spec) or mid-fade frames false-positive on contrast.
+
+### Decisions log (newest first)
+- 2026-11-02: Hero uses the photographic 3D asset (recreated from the owner's reference file) replacing the CSS-3D laptop; backdrop blob softened; mobile art bleed removed; full QC audit passed (see results above). Phase 2 site (8 categories, /tools explorer, Saved tools, Company/Legal pages, 5-column footer) was merged to `main` via PR #4 earlier.
+- Homepage contains NO Featured/All-Tools sections by design (owner-directed): discovery flows through `/tools`, category pages, search, and Saved.
+- Sitemap route count is 25 (10 static + 8 categories + 7 tools); `tests/launch.test.ts` asserts this — update it when routes change.
+
+### Future development instructions
+- Activate Calculators/AI Tools only with real, working tools; flip the coming-soon state via catalog entries (pages already exist).
+- Before public launch: real social URLs + verified contact inbox/endpoint in `lib/site.ts`; reconsider "100+ Tools" copy; set `SITE_URL` + `LAUNCH_APPROVED=true`; run the full gate battery + full e2e on all three engines in CI.
+- Preserve: light theme, honesty rules, local-first processing, no-new-dependency bias, and the format/lint/typecheck/unit/e2e gates on every change.
