@@ -9,7 +9,9 @@
 **Implementation checkpoint commit:** `070bc77dbda4d9ab4874c7bb39aef4cbe4cb666a`  
 **Baseline:** `db4e906` (pushed Phase 3 commit)
 
-> This is an owner-review handoff, not an approval or launch record. PDF Merger must not be marked live/complete, merged into `main`, deployed or indexed until the owner personally approves it. PDF Splitter and every other tool remain blocked.
+> This is an owner-review handoff, not an approval or launch record. PDF Merger must not be marked live/complete, deployed or indexed until the owner personally approves it.
+>
+> **Currency note:** Sections 1–10 preserve the pre-merge handoff exactly as delivered. The owner later gave two separate instructions that supersede only the old branch/gate statements: PR #2 was merged at the owner’s explicit request, and PDF Merger verification plus PDF Splitter development were then authorized in parallel. See Section 11 for the post-merge verification addendum. No third PDF tool is authorized.
 
 ## 1. Git synchronization performed
 
@@ -51,7 +53,7 @@ PDF Merger includes:
 Configured limits:
 
 | Limit | Value |
-|---|---:|
+| --------------------- | ------: |
 | Files per merge | 25 |
 | Per-file size | 50 MiB |
 | Total queue size | 100 MiB |
@@ -98,7 +100,7 @@ Fixture caveat: the signature and XFA fixtures are synthetic structural markers 
 The sandbox browser run used Sparticuz Chromium 153 at `/tmp/chromium`, `LD_LIBRARY_PATH=/tmp/al2023/lib`, and a temporary sandbox-only `playwright.local.config.ts` pointing at the restored production preview on port 3000. That temporary config was deleted after the run and is not part of the repository change.
 
 | Command | Result |
-|---|---|
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | `LD_LIBRARY_PATH=/tmp/al2023/lib TEST_BASE_URL=http://127.0.0.1:3000 npx playwright test --config=playwright.local.config.ts tests/e2e/pdf-merger.spec.ts --workers=1` | **5 passed** |
 | `LD_LIBRARY_PATH=/tmp/al2023/lib TEST_BASE_URL=http://127.0.0.1:3000 npx playwright test --config=playwright.local.config.ts --workers=1` | **146 passed** |
 | `npm run format:check` | Passed |
@@ -129,7 +131,7 @@ These are sandbox measurements, not performance claims for real devices. A physi
 Measured from the current production build output:
 
 | Asset | Raw | Gzip |
-|---|---:|---:|
+| ---------------------- | --------------: | ------------: |
 | PDF merge worker chunk | 600,538 bytes | 253,690 bytes |
 | Lazy PDF.js main chunk | 455,544 bytes | 134,896 bytes |
 | PDF.js worker | 1,264,342 bytes | 374,032 bytes |
@@ -177,3 +179,43 @@ Please review the live preview, screenshots and this report. Until explicit owne
 - Do not merge PR #2 into `main` for PDF Merger approval purposes.
 - Do not deploy/index.
 - Do not start PDF Splitter or any other tool.
+
+## 11. Post-merge verification addendum — 1 November 2026
+
+### Current owner directive and Git state
+
+- After this report was first delivered, the owner explicitly requested that PR #2 be merged. That separate instruction produced `main` merge commit `58a81edd28d16f1ed7e2e0f6f0554196a588d47c`. This addendum does not reinterpret that merge as product approval: **PDF Merger remains implemented — awaiting owner approval** under the latest directive.
+- The owner then explicitly superseded the former one-tool gate for this workstream: PDF Merger verification and PDF Splitter development may proceed in parallel, but no third PDF tool may start.
+- The owner requested `feature/pdf-merger` and `feature/pdf-splitter`. This Arena session is fixed to `arena/fe1f419c-quickkit` and cannot create, switch to or push another branch. That platform deviation is disclosed here; current Splitter work is isolated in tool-specific files/commits on the fixed session branch and has not been merged into `main` by this workstream.
+- Before Splitter coding, the clean worktree at `58a81ed` was backed up to `/home/user/quickkit-backups/parallel-pdf-20261101-114630/`.
+  - `worktree-source.tar.gz` SHA-256: `8e92955e3e0f8dfcf2457d80077ef2f0fff9b4e38a5afd2d584afdf85e1a689d`
+  - `head.bundle` SHA-256: `2988f6ce43305307a70b36aec99c968a1e98d2e516278cfe2d603ebfdb29fe1e`
+  - Tracked patch and untracked-file list were both zero bytes because the inspected worktree was clean.
+
+### What changed around the Merger during the parallel workstream
+
+- No PDF Merger UI, route, limits, queue behavior or merge workflow was redesigned or removed.
+- The shared `lib/tools/pdf/merge-engine.ts` gained an isolated `splitPdfBytes` implementation so the Splitter can reuse the already-reviewed load, guarded form-flattening, selected-reference copying, sanitization/pruning and reopen-validation internals rather than introducing a second page-copy path.
+- Catalog/public copy changed only to add the separate Splitter and update the repository tool count from seven to eight.
+- Because a shared engine file changed, the Merger browser suite was rerun after Splitter integration as well as before it.
+
+### Re-verification actually executed on the merged code
+
+The restored sandbox used Sparticuz Chromium 153 at `/tmp/chromium`, `LD_LIBRARY_PATH=/tmp/al2023/lib`, and a temporary sandbox-only Playwright config against the production preview on port 3000. The temporary config is removed before handoff and is not committed.
+
+| Stage                       | Command / check                                                                                                                                                        |                                            Result |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------: |
+| Before Splitter coding      | `npx vitest run tests/pdf-merge-engine.test.ts tests/pdf-merge-logic.test.ts --reporter=dot`                                                                           |                                     **18 passed** |
+| Before Splitter coding      | `LD_LIBRARY_PATH=/tmp/al2023/lib TEST_BASE_URL=http://127.0.0.1:3000 npx playwright test --config=playwright.local.config.ts tests/e2e/pdf-merger.spec.ts --workers=1` |                                      **5 passed** |
+| After Splitter integration  | Same Playwright invocation for `tests/e2e/pdf-splitter.spec.ts tests/e2e/pdf-merger.spec.ts`                                                                           |             **10 passed** (Merger 5 + Splitter 5) |
+| Full repository unit suite  | `npm test -- --reporter=dot`                                                                                                                                           |                                    **131 passed** |
+| Full sandbox Chromium suite | `LD_LIBRARY_PATH=/tmp/al2023/lib TEST_BASE_URL=http://127.0.0.1:3000 npx playwright test --config=playwright.local.config.ts --workers=1`                              |                                    **161 passed** |
+| Production build            | `npm run build`                                                                                                                                                        | Passed; 20 static pages including both PDF routes |
+| Production audit            | `npm audit --omit=dev`                                                                                                                                                 |                             **0 vulnerabilities** |
+| Preview smoke checks        | `curl` for `/`, `/tools/merge-pdf`, `/tools/split-pdf`                                                                                                                 |                            HTTP 200 for all three |
+
+The rerun covers real browser upload, reorder, page selection, merge, validated download, unsupported/corrupt/duplicate/oversized errors, encrypted unlock and password clearing, the 390px mobile workflow, and cancellation. No Merger defect was found in the post-merge rerun, so no Merger behavior fix was required. Firefox/WebKit remain configured but were not available in this sandbox and are not claimed as executed.
+
+### Addendum decision
+
+PDF Merger remains **implemented — awaiting owner approval**. It has not been deployed or indexed by this workstream. PDF Splitter is the only other authorized PDF workstream; no third PDF tool has been started.
