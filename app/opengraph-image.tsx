@@ -51,7 +51,7 @@ export default function Image() {
         <span style={{ color: "#6657e8" }}>Quick solutions.</span>
       </div>
       <div style={{ fontSize: 27, color: "#62697e", marginTop: 34 }}>
-        Six browser tools. No sign-up. Zero hassle.
+        Seven browser tools. No sign-up. Zero hassle.
       </div>
     </div>,
     size,

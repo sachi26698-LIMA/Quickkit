@@ -3,7 +3,7 @@ import JsonFormatter from "@/components/tools/json-formatter";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "JSON Formatter & Validator — format or minify JSON",
-  "Format JSON with two-space indentation, validate syntax or minify data. A local browser editor with no code execution.",
+  "Format JSON with 2/4-space or tab indentation, sort keys, validate syntax with exact error locations, or minify. A local editor with no code execution.",
   "/tools/json-formatter",
 );
 export default function Page() {
@@ -13,7 +13,7 @@ export default function Page() {
       content={{
         steps: [
           "Paste valid JSON into the input editor (up to 1,000,000 characters).",
-          "Choose Format JSON, Minify or Validate.",
+          "Pick an indent style (and optionally sort keys), then choose Format JSON, Minify or Validate. You can also open a .json file.",
           "Read any syntax feedback and copy the result.",
         ],
         faqs: [

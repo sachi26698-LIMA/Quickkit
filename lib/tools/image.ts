@@ -13,10 +13,27 @@ export function formatBytes(bytes: number) {
     ? `${(bytes / 1024).toFixed(1)} KB`
     : `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
+/** Proportional output size, capped so neither side exceeds maxDimension (0/undefined = original). */
+export function fitWithin(
+  width: number,
+  height: number,
+  maxDimension?: number,
+) {
+  if (!maxDimension || (width <= maxDimension && height <= maxDimension))
+    return { width, height, resized: false };
+  const scale = maxDimension / Math.max(width, height);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+    resized: true,
+  };
+}
+
 export async function compressImage(
   file: File,
   format: ImageFormat,
   quality: number,
+  maxDimension?: number,
 ) {
   validateImage(file);
   await preflightImage(file);
@@ -47,17 +64,20 @@ export async function compressImage(
       throw new Error(
         "Use an image up to 24 megapixels, with neither side above 8,192 pixels.",
       );
+    const out = fitWithin(width, height, maxDimension);
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = out.width;
+    canvas.height = out.height;
     const ctx = canvas.getContext("2d");
     if (!ctx)
       throw new Error("Canvas processing is unavailable in this browser.");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     if (format === "image/jpeg") {
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, out.width, out.height);
     }
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(image, 0, 0, out.width, out.height);
     try {
       const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob(
@@ -73,7 +93,12 @@ export async function compressImage(
         throw new Error(
           "Your browser does not support this output format. Choose PNG or JPEG.",
         );
-      return { blob, width, height };
+      return {
+        blob,
+        width: out.width,
+        height: out.height,
+        resized: out.resized,
+      };
     } finally {
       canvas.width = 0;
       canvas.height = 0;

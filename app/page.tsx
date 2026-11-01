@@ -13,7 +13,7 @@ import HeroArt from "@/components/hero-art";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Free browser tools for everyday tasks",
-  "Count words, convert text, format JSON, create passwords, generate QR codes and compress images locally in your browser.",
+  "Merge PDFs, count words, convert text, format JSON, create passwords, generate QR codes and compress images locally in your browser.",
   "/",
 );
 export default function Home() {
@@ -70,7 +70,8 @@ export default function Home() {
             </span>
             <h2 id="trust-title">A little more private. A lot less hassle.</h2>
             <p>
-              Your text, passwords, QR content and images stay in your browser.
+              Your PDFs, text, passwords, QR content and images stay in your
+              browser.
               <br className="desktop-break" /> No tool-input uploads, accounts
               or tracking analytics.
             </p>

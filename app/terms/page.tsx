@@ -11,7 +11,7 @@ export default function Page() {
       <span className="eyebrow">THE FINE PRINT, IN PLAIN LANGUAGE</span>
       <h1>Terms of Use</h1>
       <p>
-        Last updated: 31 October 2026. These initial terms describe the current
+        Last updated: 1 November 2026. These initial terms describe the current
         free tools and require review before a public launch.
       </p>
       <div className="legal-notice">
@@ -25,16 +25,17 @@ export default function Page() {
       </div>
       <h2>What the service provides</h2>
       <p>
-        QUICKKIT provides six browser-based utilities without an account or
-        payment. No subscriptions, ad-network approvals or future paid services
-        are offered by this release. Features and availability may change.
+        QUICKKIT provides browser-based utilities without an account or payment.
+        No subscriptions, ad-network approvals or future paid services are
+        offered by this release. Features and availability may change.
       </p>
       <h2>Use responsibly</h2>
       <p>
         Use the tools only for lawful purposes and content you are entitled to
         process. Do not use the service to distribute harmful material,
         interfere with others’ systems, impersonate people or compromise
-        accounts. Do not rely on generated passwords as a complete security
+        accounts. Only enter a PDF password when you are authorized to open that
+        document. Do not rely on generated passwords as a complete security
         solution.
       </p>
       <h2>Check your results</h2>
@@ -44,7 +45,9 @@ export default function Page() {
         estimates are approximate; case conversion does not replace language
         review; JSON parsing may round large numbers; QR destinations must be
         checked before sharing; image encoding can alter quality, metadata and
-        transparency.
+        transparency. PDF merging can flatten forms and does not preserve
+        original bookmarks, attachments, layers, tagged structure, scripts or
+        digital-signature validity. Review merged PDFs and keep originals.
       </p>
       <h2>Your content</h2>
       <p>

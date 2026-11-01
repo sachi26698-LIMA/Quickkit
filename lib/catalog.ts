@@ -1,5 +1,6 @@
 export const categories = [
   "All tools",
+  "PDF Tools",
   "Text",
   "Developer",
   "Security",
@@ -60,7 +61,7 @@ export const tools = [
     keywords: "url scan png download",
     icon: "qr",
     color: "mint",
-    phase: 3,
+    phase: 2,
   },
   {
     slug: "image-compressor",
@@ -71,7 +72,18 @@ export const tools = [
     keywords: "photo picture jpeg webp optimize resize",
     icon: "image",
     color: "peach",
-    phase: 3,
+    phase: 2,
+  },
+  {
+    slug: "merge-pdf",
+    name: "PDF Merger",
+    category: "PDF Tools",
+    description:
+      "Many PDFs, one tidy document. Arrange files, choose pages, and merge locally with no upload.",
+    keywords: "pdf merge combine join pages bookmarks password documents",
+    icon: "pdf",
+    color: "purple",
+    phase: 5,
   },
 ] as const;
 export function filterTools(query: string, category: Category) {

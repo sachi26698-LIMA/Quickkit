@@ -11,7 +11,7 @@ export default function Page() {
       <span className="eyebrow">YOUR WORK STAYS YOURS</span>
       <h1>Privacy Policy</h1>
       <p>
-        Last updated: 31 October 2026. This policy describes the current
+        Last updated: 1 November 2026. This policy describes the current
         QUICKKIT implementation, not a promise of absolute privacy or security.
       </p>
       <div className="legal-notice">
@@ -25,21 +25,24 @@ export default function Page() {
       </div>
       <h2>Tool inputs stay in your browser</h2>
       <p>
-        The six tools process text, JSON, passwords, QR content and images
-        locally. QUICKKIT does not intentionally send these inputs to a server,
-        store them in a database or write them to application logs. Inputs are
-        held in the page’s memory. Refreshing or leaving the tool clears the
-        application state; your browser may separately retain form state or
-        history.
+        The current tools process PDFs, text, JSON, passwords, QR content and
+        images locally. The PDF Merger uses a dedicated browser worker and local
+        canvas previews. QUICKKIT does not intentionally send these inputs to a
+        server, store them in a database or write them to application logs.
+        Inputs are held in the page’s memory. Refreshing or leaving the tool
+        clears the application state; your browser may separately retain form
+        state or history.
       </p>
       <h2>Clipboard, files and downloads</h2>
       <p>
         Copying uses your device’s clipboard when you choose Copy. Other
         applications, browser extensions or synchronized clipboard services may
-        access it. Image selection gives the page access only to files you
-        choose. Generated downloads are saved by your browser according to its
-        settings. Local image-preview URLs are revoked when replaced or when the
-        workspace unmounts.
+        access it. Image and PDF selection gives the page access only to files
+        you choose. A PDF open password is held only in current-page/worker
+        memory and references are cleared when that file is removed, the queue
+        resets or the merge completes. Generated downloads are saved by your
+        browser according to its settings. Local image- and PDF-preview URLs are
+        revoked when replaced or when the workspace unmounts.
       </p>
       <h2>Ordinary website requests</h2>
       <p>
@@ -61,8 +64,9 @@ export default function Page() {
       </p>
       <h2>No remote tool service</h2>
       <p>
-        The QR library and image canvas encoder run on your device. Fonts are
-        bundled with the application. We do not call a remote QR API,
+        The PDF merge engine, PDF preview renderer, QR library and image canvas
+        encoder run on your device. Fonts and same-origin PDF preview assets are
+        bundled with the application. We do not call a remote PDF API, QR API,
         image-compression API or AI service with your inputs.
       </p>
       <h2>Your choices</h2>
