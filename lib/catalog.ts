@@ -1,17 +1,112 @@
-export const categories = [
-  "All tools",
+export const toolCategories = [
   "PDF Tools",
-  "Text",
-  "Developer",
-  "Security",
-  "Image & QR",
+  "Image Tools",
+  "QR & Barcode",
+  "Text & Writing",
+  "Developer Tools",
+  "Calculators",
+  "Security & Privacy",
+  "AI Tools",
 ] as const;
+export type ToolCategory = (typeof toolCategories)[number];
+export const categories = ["All tools", ...toolCategories] as const;
 export type Category = (typeof categories)[number];
+
+export type CategoryMeta = {
+  name: ToolCategory;
+  slug: string;
+  blurb: string;
+  description: string;
+  tint: string;
+  icon:
+    "pdf" | "image" | "qr" | "text" | "code" | "calc" | "shield" | "sparkles";
+};
+
+export const categoryMeta: CategoryMeta[] = [
+  {
+    name: "PDF Tools",
+    slug: "pdf-tools",
+    blurb: "Merge, split, compress and manage PDF files.",
+    description:
+      "Everything you need to work with PDFs — combine documents and organize pages right in your browser, with nothing uploaded.",
+    tint: "tint-pdf",
+    icon: "pdf",
+  },
+  {
+    name: "Image Tools",
+    slug: "image-tools",
+    blurb: "Edit, convert, compress and optimize images.",
+    description:
+      "Shrink and optimize your images for the web, email and sharing — processed locally on your device.",
+    tint: "tint-image",
+    icon: "image",
+  },
+  {
+    name: "QR & Barcode",
+    slug: "qr-barcode",
+    blurb: "Create and scan QR codes and barcodes.",
+    description:
+      "Turn links and text into scannable QR codes in seconds, ready to download and share anywhere.",
+    tint: "tint-qr",
+    icon: "qr",
+  },
+  {
+    name: "Text & Writing",
+    slug: "text-writing",
+    blurb: "Format, analyze and transform text easily.",
+    description:
+      "Count words, fix casing and polish your writing with simple tools that work as you type.",
+    tint: "tint-text",
+    icon: "text",
+  },
+  {
+    name: "Developer Tools",
+    slug: "developer-tools",
+    blurb: "Encode, decode, format and work with dev utilities.",
+    description:
+      "Everyday developer utilities — format and validate data cleanly without sending it to a server.",
+    tint: "tint-dev",
+    icon: "code",
+  },
+  {
+    name: "Calculators",
+    slug: "calculators",
+    blurb: "Simple and advanced calculations for everyday use.",
+    description:
+      "Handy calculators for everyday numbers are on the way. This category is coming soon.",
+    tint: "tint-calc",
+    icon: "calc",
+  },
+  {
+    name: "Security & Privacy",
+    slug: "security-privacy",
+    blurb: "Generate, check and manage your data securely.",
+    description:
+      "Create strong passwords and handle sensitive data with tools that never leave your device.",
+    tint: "tint-security",
+    icon: "shield",
+  },
+  {
+    name: "AI Tools",
+    slug: "ai-tools",
+    blurb: "Smart tools powered by artificial intelligence.",
+    description:
+      "AI-powered helpers are on our roadmap. This category is coming soon — explore the rest of the toolkit today.",
+    tint: "tint-ai",
+    icon: "sparkles",
+  },
+];
+
+export const metaByCategory = (name: ToolCategory): CategoryMeta =>
+  categoryMeta.find((c) => c.name === name)!;
+export const metaBySlug = (slug: string): CategoryMeta | undefined =>
+  categoryMeta.find((c) => c.slug === slug);
+
 export const tools = [
   {
     slug: "word-counter",
     name: "Word Counter",
-    category: "Text",
+    category: "Text & Writing",
     description:
       "Make every word count. Check words, characters, and reading time as you type.",
     keywords: "writing sentences paragraphs length",
@@ -22,7 +117,7 @@ export const tools = [
   {
     slug: "case-converter",
     name: "Case Converter",
-    category: "Text",
+    category: "Text & Writing",
     description:
       "From ALL CAPS to just right. Change your text case in a couple of clicks.",
     keywords: "uppercase lowercase title sentence writing",
@@ -33,7 +128,7 @@ export const tools = [
   {
     slug: "json-formatter",
     name: "JSON Formatter",
-    category: "Developer",
+    category: "Developer Tools",
     description:
       "Bring order to your data. Format, validate, and minify JSON without the fuss.",
     keywords: "code pretty print validator developer",
@@ -44,7 +139,7 @@ export const tools = [
   {
     slug: "password-generator",
     name: "Password Generator",
-    category: "Security",
+    category: "Security & Privacy",
     description:
       "Create strong, random passwords with the length and characters you choose.",
     keywords: "secure random crypto credentials",
@@ -55,7 +150,7 @@ export const tools = [
   {
     slug: "qr-generator",
     name: "QR Code Generator",
-    category: "Image & QR",
+    category: "QR & Barcode",
     description:
       "Turn a link or a little text into a scannable QR code. Ready to share.",
     keywords: "url scan png download",
@@ -66,7 +161,7 @@ export const tools = [
   {
     slug: "image-compressor",
     name: "Image Compressor",
-    category: "Image & QR",
+    category: "Image Tools",
     description:
       "Less file size, more possibilities. Compress images right in your browser.",
     keywords: "photo picture jpeg webp optimize resize",
@@ -86,6 +181,13 @@ export const tools = [
     phase: 5,
   },
 ] as const;
+
+export type Tool = (typeof tools)[number];
+export const toolBySlug = (slug: string): Tool | undefined =>
+  tools.find((t) => t.slug === slug);
+export const toolsByCategory = (category: ToolCategory) =>
+  tools.filter((t) => t.category === category);
+
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();
   return tools.filter(

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { filterTools, tools } from "../lib/catalog";
+import {
+  categoryMeta,
+  filterTools,
+  metaBySlug,
+  toolCategories,
+  tools,
+  toolsByCategory,
+} from "../lib/catalog";
 describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
     expect(filterTools("", "All tools")).toHaveLength(7));
@@ -10,14 +17,14 @@ describe("catalog discovery", () => {
       "password-generator",
     ));
   it("combines category and query", () =>
-    expect(filterTools("json", "Text")).toHaveLength(0));
+    expect(filterTools("json", "Text & Writing")).toHaveLength(0));
   it("filters text tools", () =>
-    expect(filterTools("", "Text")).toHaveLength(2));
+    expect(filterTools("", "Text & Writing")).toHaveLength(2));
   it("finds the PDF merger by intent and category", () => {
     expect(filterTools("join pages", "PDF Tools")).toEqual([
       expect.objectContaining({ slug: "merge-pdf" }),
     ]);
-    expect(filterTools("pdf", "Text")).toHaveLength(0);
+    expect(filterTools("pdf", "Text & Writing")).toHaveLength(0);
   });
   it("handles unknown and long queries", () => {
     expect(filterTools("not here", "All tools")).toHaveLength(0);
@@ -25,4 +32,24 @@ describe("catalog discovery", () => {
   });
   it("uses unique stable slugs", () =>
     expect(new Set(tools.map((t) => t.slug)).size).toBe(tools.length));
+  it("defines eight categories with unique slugs", () => {
+    expect(toolCategories).toHaveLength(8);
+    expect(categoryMeta).toHaveLength(8);
+    expect(new Set(categoryMeta.map((c) => c.slug)).size).toBe(8);
+    for (const name of toolCategories) {
+      expect(categoryMeta.find((c) => c.name === name)).toBeDefined();
+    }
+  });
+  it("resolves category metadata by slug", () => {
+    expect(metaBySlug("pdf-tools")?.name).toBe("PDF Tools");
+    expect(metaBySlug("qr-barcode")?.name).toBe("QR & Barcode");
+    expect(metaBySlug("nope")).toBeUndefined();
+  });
+  it("groups tools by category, with future categories empty", () => {
+    expect(toolsByCategory("Text & Writing")).toHaveLength(2);
+    expect(toolsByCategory("Image Tools")).toHaveLength(1);
+    expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
+    expect(toolsByCategory("Calculators")).toHaveLength(0);
+    expect(toolsByCategory("AI Tools")).toHaveLength(0);
+  });
 });

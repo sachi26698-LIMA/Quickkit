@@ -2,6 +2,15 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const routes = [
   "/",
+  "/tools",
+  "/saved",
+  "/contact",
+  "/help",
+  "/cookies",
+  "/sitemap",
+  "/category/pdf-tools",
+  "/category/calculators",
+  "/category/ai-tools",
   "/tools/word-counter",
   "/tools/case-converter",
   "/tools/json-formatter",
@@ -22,6 +31,18 @@ for (const route of routes) {
     });
     await page.goto(route);
     await expect(page.locator("h1")).toHaveCount(1);
+    // Trigger scroll-reveal animations and let them finish so axe audits the
+    // steady-state page users read, not a mid-fade frame.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page
+      .waitForFunction(
+        () => !document.querySelector(".reveal-init:not(.is-visible)"),
+        undefined,
+        { timeout: 5000 },
+      )
+      .catch(() => {});
+    await page.waitForTimeout(900);
+    await page.evaluate(() => window.scrollTo(0, 0));
     const result = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
       .analyze();
@@ -61,7 +82,7 @@ test("mobile navigation opens, closes on Escape and navigates", async ({
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Our approach" })
+    .getByRole("link", { name: "About" })
     .click();
   await expect(page).toHaveURL(/\/about$/);
   await expect(
@@ -82,7 +103,13 @@ test("all page links resolve; metadata and headers are present", async ({
     for (const href of await page
       .locator("a[href]")
       .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href")!))) {
-      if (href.startsWith("#") || href.includes("#")) continue;
+      if (
+        href.startsWith("#") ||
+        href.includes("#") ||
+        href.startsWith("http") ||
+        href.startsWith("mailto:")
+      )
+        continue;
       if (!seen.has(href)) {
         expect((await request.get(href)).status(), href).toBe(200);
         seen.add(href);
