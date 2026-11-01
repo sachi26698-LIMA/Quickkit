@@ -1,11 +1,23 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import Link from "next/link";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import Header from "@/components/header";
 import { indexingEnabled } from "@/lib/launch";
 import { siteOrigin } from "@/lib/seo";
-import "@fontsource-variable/geist";
 import "./globals.css";
+
+// Self-hosted Geist (OFL, see app/fonts/LICENSE-geist.txt). next/font/local
+// preloads the file and generates a metric-matched fallback so the swap
+// does not shift layout (CLS) on slow connections.
+const geist = localFont({
+  src: "./fonts/geist-latin-variable.woff2",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
+  variable: "--font-geist",
+  fallback: ["Arial", "Helvetica", "sans-serif"],
+});
 export const metadata: Metadata = {
   title: {
     default: "QUICKKIT — Handy tools. Zero hassle.",

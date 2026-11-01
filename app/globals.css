@@ -22,7 +22,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--ink);
-  font-family: "Geist Variable", Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 a {
@@ -1746,8 +1746,8 @@ noscript .status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
-  padding: 7px 11px;
+  min-height: 40px;
+  padding: 8px 12px;
   border-radius: 9px;
   border: 1px solid #e2dcf2;
   background: #faf8ff;

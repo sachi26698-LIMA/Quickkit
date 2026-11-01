@@ -33,7 +33,7 @@ for (const route of routes) {
     ).toEqual([]);
     expect(errors).toEqual([]);
   });
-  for (const width of [320, 375, 390, 430, 768, 1366, 1440])
+  for (const width of [320, 360, 375, 390, 430, 768, 1024, 1366, 1440])
     test(`no overflow ${route} at ${width}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(route);

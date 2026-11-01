@@ -16,7 +16,9 @@ export default function Header() {
     >
       <div className="container header-inner">
         <Link href="/" className="brand" aria-label="QUICKKIT home">
-          <span className="brand-mark">Q</span>
+          <span className="brand-mark" aria-hidden="true">
+            Q
+          </span>
           <span>
             QUICK<span className="brand-purple">KIT</span>
           </span>

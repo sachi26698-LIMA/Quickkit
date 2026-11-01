@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import { PNG } from "pngjs";
 import jsQR from "jsqr";
 import { readFile } from "node:fs/promises";
@@ -206,4 +207,87 @@ test("image premium: drop-to-load and capped resize produce a real download", as
   });
   await expect(page.getByAltText("Original image preview")).toBeVisible();
   await expect(page.locator(".meta-chips")).toContainText("dropped.png");
+});
+
+// Phase 3: accessibility must hold in interactive states, not only on first paint.
+test("interactive states stay WCAG 2.2 AA clean (axe)", async ({ page }) => {
+  const tags = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
+  async function expectClean(label: string) {
+    const result = await new AxeBuilder({ page }).withTags(tags).analyze();
+    expect(
+      result.violations.map((v) => `${label}: ${v.id}`),
+      label,
+    ).toEqual([]);
+  }
+
+  await page.goto("/tools/word-counter");
+  await page.getByRole("button", { name: "Try sample text" }).click();
+  await page.getByLabel("Word goal (optional)").fill("40");
+  await expectClean("word filled + density");
+
+  await page.goto("/tools/json-formatter");
+  await page.getByLabel("JSON input").fill('{\n  "a": 1,\n}');
+  await page.getByRole("button", { name: "Validate", exact: true }).click();
+  await expect(page.locator(".error-excerpt")).toBeVisible();
+  await expectClean("json error state");
+
+  await page.goto("/tools/password-generator");
+  await page
+    .getByRole("button", { name: "Generate password", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Generate password", exact: true })
+    .click();
+  await expectClean("password generated + history");
+
+  await page.goto("/tools/qr-generator");
+  await page.getByLabel("Text or URL").fill("https://example.com/a11y");
+  await page
+    .getByRole("button", { name: "Generate QR code", exact: true })
+    .click();
+  await expect(page.getByAltText("Generated QR code preview")).toBeVisible();
+  await expectClean("qr result state");
+
+  await page.goto("/tools/image-compressor");
+  await page
+    .getByLabel("Choose an image", { exact: true })
+    .setInputFiles(await pngFixture(page, 320, 240));
+  await page
+    .getByRole("button", { name: "Compress image", exact: true })
+    .click();
+  await expect(page.getByAltText("Compressed image preview")).toBeVisible();
+  await expectClean("image compressed state");
+});
+
+// Phase 3: the core task of each family must be completable by keyboard alone,
+// with a visible focus indicator at every stop.
+test("keyboard-only journey: generate a password without a mouse", async ({
+  page,
+}) => {
+  await page.goto("/tools/password-generator");
+  await page.getByLabel("Password length", { exact: true }).focus();
+  // Tab from the slider through the options to the Generate button,
+  // checking every stop has a visible focus treatment.
+  let reachedGenerate = false;
+  for (let i = 0; i < 12 && !reachedGenerate; i++) {
+    await page.keyboard.press("Tab");
+    const state = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement;
+      const cs = getComputedStyle(el);
+      return {
+        text: (el.textContent || "").trim(),
+        visible:
+          (cs.outlineStyle !== "none" && cs.outlineWidth !== "0px") ||
+          cs.boxShadow !== "none" ||
+          el.tagName === "INPUT",
+      };
+    });
+    expect(state.visible, `focus indicator at stop: ${state.text}`).toBe(true);
+    if (state.text.includes("Generate password")) reachedGenerate = true;
+  }
+  expect(reachedGenerate).toBe(true);
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByLabel("Generated password", { exact: true }),
+  ).not.toHaveValue("");
 });
