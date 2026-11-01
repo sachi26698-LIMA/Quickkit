@@ -25,12 +25,11 @@ export default function Page() {
       </div>
       <h2>Tool inputs stay in your browser</h2>
       <p>
-        The six tools process text, JSON, passwords, QR content and images
-        locally. QUICKKIT does not intentionally send these inputs to a server,
-        store them in a database or write them to application logs. Inputs are
-        held in the page’s memory. Refreshing or leaving the tool clears the
-        application state; your browser may separately retain form state or
-        history.
+        The tools process text, JSON, passwords, QR content and images locally.
+        QUICKKIT does not intentionally send these inputs to a server, store
+        them in a database or write them to application logs. Inputs are held in
+        the page’s memory. Refreshing or leaving the tool clears the application
+        state; your browser may separately retain form state or history.
       </p>
       <h2>Clipboard, files and downloads</h2>
       <p>

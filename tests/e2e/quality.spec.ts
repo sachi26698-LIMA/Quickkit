@@ -8,6 +8,7 @@ const routes = [
   "/tools/password-generator",
   "/tools/qr-generator",
   "/tools/image-compressor",
+  "/tools/image-resizer",
   "/about",
   "/privacy",
   "/terms",

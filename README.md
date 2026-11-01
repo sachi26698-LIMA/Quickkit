@@ -1,13 +1,13 @@
 # QUICKKIT
 
-**Handy tools. Zero hassle.** A premium light-theme collection of six genuinely functional, local-first browser utilities.
+**Handy tools. Zero hassle.** A premium light-theme collection of seven genuinely functional, local-first browser utilities.
 
 ## Product and architecture
 
 - Next.js 16 App Router, React 19, strict TypeScript, npm (`package-lock.json` only).
 - Server-rendered route content and metadata; client islands for inputs and browser APIs.
 - CSS-variable design system, bundled Geist Variable font, Lucide icons and lightweight CSS hero illustration. No dark theme, external font requests or decorative fake controls.
-- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator and Image Compressor on distinct `/tools/...` routes.
+- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator, Image Compressor and Image Resizer on distinct `/tools/...` routes. The new **Image Tools** category starts with the Image Resizer (`/tools/image-resizer`).
 - Tool logic: `lib/tools/`. Workspaces: `components/tools/`. Shared content shell: `components/tool-shell.tsx`. Catalog: `lib/catalog.ts`.
 - Source of truth: **`QUICKKIT_AGENT_BRAIN_FINAL.md`**. Earlier Brain and original uploads are preserved; the FINAL specification supersedes the old one. Reference and screenshot evidence: `docs/`.
 
@@ -36,7 +36,7 @@ npm run test:e2e
 
 Playwright starts the built production server on port 3001 automatically (or reuses a local server). `TEST_BASE_URL` can target another already-running preview. The quality suite intentionally expects an unconfigured, noindex preview. The CI workflow runs the same checks; it has not been executed on a remote repository in this environment.
 
-Verification: **70 unit/component/config/compatibility tests; 123 browser tests passed, with 2 explicit browser-permission capability skips**. Chromium covers accessibility, all routes, seven widths, links, headers and core workflows. Firefox and WebKit cover all six tool workflows. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
+Verification: **134 unit/component/config/compatibility tests; 117 browser tests passed on the Image Tools branch, with 2 explicit browser-permission capability skips**. Chromium covers accessibility, all routes, seven widths, links, headers and core workflows. Firefox and WebKit cover every tool workflow. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
 
 ## Processing and limits
 
@@ -48,8 +48,9 @@ Verification: **70 unit/component/config/compatibility tests; 123 browser tests 
 | Password Generator | 8–64 characters; crypto.getRandomValues, rejection sampling, secure shuffle; at least one from each selected set |
 | QR Generator | 2,000 UTF-8 bytes; client-side qrcode loaded on demand; 768×768 PNG; downloaded QR independently decoded in tests |
 | Image Compressor | JPEG/PNG/WebP input; 15 MB, 24 MP, 8,192 px/side; same dimensions; WebP/JPEG/PNG output; JPEG uses white behind transparency; animation becomes a single frame |
+| Image Resizer | JPEG/PNG/WebP input; 15 MB, 24 MP, 8,192 px/side; exact width/height, aspect-ratio lock, 5–400% scaling, 16 presets (everyday + social), centre-crop/fit/stretch, batches of 20, JPEG/PNG/WebP output with quality control, and a browser-built ZIP download; no upload |
 
-Canvas re-encoding may remove metadata and alter color profiles. Output can be larger; compare sizes. PNG quality is lossless and the quality slider is disabled for PNG. Preview URLs are revoked on replacement, reset and unmount. File decode/encode support depends on the browser.
+Canvas re-encoding may remove metadata and alter color profiles. Output can be larger; compare sizes. PNG quality is lossless and the quality slider is disabled for PNG. In the resizer, unlocks stretch (aspect ratio ignored), preset "Fill & crop" centre-crops, "Fit inside" keeps the whole frame, and the ZIP stores already-compressed images without re-compressing them. Preview URLs are revoked on replacement, reset and unmount. File decode/encode support depends on the browser.
 
 ## Security and privacy
 

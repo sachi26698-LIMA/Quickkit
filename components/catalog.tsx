@@ -12,9 +12,10 @@ import {
   KeyRound,
   QrCode,
   ImageIcon,
+  Scaling,
   SlidersHorizontal,
 } from "lucide-react";
-import { categories, filterTools, type Category } from "@/lib/catalog";
+import { categories, filterTools, tools, type Category } from "@/lib/catalog";
 const icons = {
   text: Type,
   case: CaseSensitive,
@@ -22,6 +23,7 @@ const icons = {
   key: KeyRound,
   qr: QrCode,
   image: ImageIcon,
+  resize: Scaling,
 };
 export default function Catalog() {
   const ready = useHydrated();
@@ -79,7 +81,9 @@ export default function Catalog() {
             <h2 id="catalog-title">Explore the toolkit</h2>
             <p>Find the right tool. Get on with your day.</p>
           </div>
-          <span className="catalog-count">6 tools. One handy place.</span>
+          <span className="catalog-count">
+            {tools.length} tools. One handy place.
+          </span>
         </div>
         <div className="filter-row">
           <div className="filters" aria-label="Filter tools by category">

@@ -25,9 +25,9 @@ export default function Page() {
       </div>
       <h2>What the service provides</h2>
       <p>
-        QUICKKIT provides six browser-based utilities without an account or
-        payment. No subscriptions, ad-network approvals or future paid services
-        are offered by this release. Features and availability may change.
+        QUICKKIT provides browser-based utilities without an account or payment.
+        No subscriptions, ad-network approvals or future paid services are
+        offered by this release. Features and availability may change.
       </p>
       <h2>Use responsibly</h2>
       <p>

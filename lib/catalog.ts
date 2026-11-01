@@ -4,6 +4,7 @@ export const categories = [
   "Developer",
   "Security",
   "Image & QR",
+  "Image Tools",
 ] as const;
 export type Category = (typeof categories)[number];
 export const tools = [
@@ -60,6 +61,18 @@ export const tools = [
     keywords: "url scan png download",
     icon: "qr",
     color: "mint",
+    phase: 3,
+  },
+  {
+    slug: "image-resizer",
+    name: "Image Resizer",
+    category: "Image Tools",
+    description:
+      "Make every image fit. Resize by pixels or percentage, crop to social presets and export in batches.",
+    keywords:
+      "resize dimensions scale aspect ratio percentage instagram story facebook post linkedin banner youtube thumbnail webp jpeg png batch zip banner",
+    icon: "resize",
+    color: "sky",
     phase: 3,
   },
   {
