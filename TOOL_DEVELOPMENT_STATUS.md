@@ -55,41 +55,59 @@ privacy model are unchanged, and no v1 capability was removed.
 | Print | DPI (36–1,200) and print size in cm/inches, both directions, "use print size as pixels" |
 | Format | AVIF output where supported (disabled + explained otherwise); quality 10–100 %; live estimate and real output size |
 | Batch | Per-image overrides (size, lock, format incl. `Same as batch`, quality, base name, suffix), replace file in place, per-image progress and errors |
+| Control | **Audit pass:** determinate progress bar, `Stop` for a running batch (finished images kept), `Retry failed (n)`, `Match original`, fitted-then-zoomed scrollable preview with true pan |
 | Naming | Rename outputs and filename suffixes, batch-wide or per image, reflected in the ZIP |
 | History | Per-image undo/redo (40 steps), Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, reset edits |
 | Privacy | Metadata panel (EXIF/GPS/camera/date/ICC/XMP), explicit strip disclosure, EXIF auto-orient toggle |
 | SEO/UX | 5-step HowTo, 7 FAQs, FAQPage/HowTo/WebApplication JSON-LD, clearer empty/loading/success/error states |
 
-### Feature checklist (v2 acceptance criteria)
+### Feature checklist — final audit status
+
+Legend: **VERIFIED** = implemented and proven by an automated test (pixel/byte level where visual);
+**NOT SUPPORTED** = impossible in-browser or in this sandbox and labelled as such in-product;
+**NOT IMPLEMENTED** = deliberately absent (no dead control exists for it).
+Full report with per-feature evidence: `docs/QA_IMAGE_RESIZER_AUDIT.md`.
 
 | Area | Requirement | Status | Evidence |
 | --- | --- | --- | --- |
-| Resize | Exact width/height, whole pixels, 1–8,192 px | ✅ | `planResize` + unit tests |
-| Resize | Percentage 5–400 % (slider, field, chips) | ✅ | unit + E2E |
-| Resize | Aspect-ratio lock/unlock, swap, match original/edited | ✅ | component + E2E |
-| Resize | Fit / Fill / Stretch / Contain modes | ✅ | `planResize` crop maths, pixel-verified E2E |
-| Resize | Longest **and** shortest side modes | ✅ | `sideLength`, E2E longest/shortest outputs |
-| Resize | Everyday + social presets, custom presets | ✅ | `PRESET_SIZES`, `SOCIAL_PRESETS`, E2E save/use/delete |
-| Resize | DPI and print-size controls | ✅ | `validateDpi`, `printPixelSize`, E2E 10×15 cm @ 300 DPI |
-| Edit | Crop freeform + fixed ratios, overlay handles, keyboard nudge | ✅ | `image-edits` tests, E2E crop flows |
-| Edit | Rotate 90/180/270 + custom angle, flip H/V | ✅ | rotated/flipped pixel-quadrant E2E |
-| Edit | Brightness/contrast/saturation, grayscale + filters | ✅ | E2E grayscale/brightness pixel checks |
-| Edit | Before/after comparison | ✅ | single/split/side-by-side E2E |
-| Format | JPEG, PNG, WebP, AVIF where supported | ✅ | `canEncode`/`formatSupport`, forced-format E2E |
-| Format | Quality slider + estimated output size | ✅ | live estimate + real size stats |
-| Format | Transparency preserved; JPEG flatten with background colour | ✅ | WebP-alpha vs JPEG E2E |
-| Format | Compatibility warnings + metadata/privacy controls | ✅ | in-product notes, metadata panel, EXIF strip E2E |
-| Batch | Multi-upload, per-image settings, remove/replace | ✅ | E2E replace + override flows |
-| Batch | Bulk resize + bulk conversion, per-image progress/error | ✅ | sequential runner, status chips, batch summary |
-| Batch | Individual or ZIP download, rename + suffixes | ✅ | ZIP entry-name E2E |
-| UX | DnD upload, thumbnails + large preview, zoom/fit | ✅ | screenshots + E2E zoom/fit |
-| UX | Undo/redo, clear empty/loading/success/error states | ✅ | E2E undo/redo/reset |
-| UX | Polished desktop/tablet/mobile, QUICKKIT light theme | ✅ | 1440/768/430/390/375/320 screenshots + overflow suite |
-| Reliability | Corrupt/unsupported/oversized/invalid files | ✅ | `preflightImage`, validation E2E |
-| Reliability | Memory-safe batches, 100 % local processing | ✅ | 20-file cap, 24 MP cap, sequential queue, no-network test |
-| A11y | Keyboard accessibility, tooltips, labels | ✅ | axe 0 violations empty **and** populated editor |
-| SEO | Metadata + structured data | ✅ | `toolStructuredData`, `tests/seo.test.ts`, metadata suite |
-| Docs | README, this file, `docs/FEATURE_IMAGE_RESIZER.md` | ✅ | — |
+| Crop | Freeform drag, keyboard nudge, numeric X/Y/W/H | **VERIFIED** | audit crop test (drag → X>0, `ArrowLeft` −2 px, reset) |
+| Crop | Fixed ratios 1:1, 4:3, 3:2, 16:9, 9:16, 4:5 | **VERIFIED** | edits suite 1:1 → 600×600; screenshot 16:9 → 1,600×900 |
+| Crop | Crop frame inside a rotated image | **NOT SUPPORTED** | rotation applies after the crop |
+| Edit | Rotate 90/180/270 | **VERIFIED** | pixel-quadrant decode (600×800 from 800×600) |
+| Edit | Custom angle with correct bounding box | **VERIFIED** | 400×300 @ 37° → 499×458 decoded |
+| Edit | Flip H / V | **VERIFIED** | corner-colour swap test |
+| Edit | Brightness / contrast / saturation | **VERIFIED** | live CSS filter + exported pixel tests |
+| Edit | Grayscale, sepia, warm, cool, invert (baked in) | **VERIFIED** | 5 distinct downloaded-PNG samples |
+| Edit | EXIF auto-orient toggle | **VERIFIED** | checkbox drives `imageOrientation` |
+| Edit | Curves / masks / sharpening | **NOT IMPLEMENTED** | out of scope, no UI surface |
+| History | Undo / Redo (40 steps, per image) + shortcuts | **VERIFIED** | edits suite undo/redo test |
+| History | Reset edits / reset per-image settings | **VERIFIED** | edits + audit suites |
+| Compare | Split slider with BEFORE/AFTER | **VERIFIED** | split line at 25 % asserted |
+| Compare | Side-by-side with captions | **VERIFIED** | two captioned figures asserted |
+| Compare | Original ⇄ Result toggle | **VERIFIED** | tag flips back to source size |
+| Batch | Per-image size/lock/format/quality/name/suffix | **VERIFIED** | ZIP entry names decoded from the archive |
+| Batch | Replace and remove a queued file | **VERIFIED** | replace keeps position, resets crop |
+| Batch | Queue reordering | **NOT IMPLEMENTED** | upload order only, no drag handle shown |
+| ZIP | Only finished images, final names, valid PNG/JPEG/WebP payloads | **VERIFIED** | mixed-batch ZIP: 2 entries, damaged file absent, PNG decoded |
+| ZIP | Duplicate names de-duplicated | **VERIFIED** | `uniqueName` + zip unit tests |
+| ZIP | Deflate compression | **NOT SUPPORTED** | stored method by design |
+| Output | Dimensions equal the plan (PNG/JPEG/WebP) | **VERIFIED** | 6 decoded sizes across suites |
+| Output | Transparency kept (PNG/WebP), flattened (JPEG) + background colour | **VERIFIED** | alpha matrix + red background decode |
+| Output | Quality slider changes encoded size | **VERIFIED** | q20 < q95 bytes, both decodable |
+| Output | AVIF | **NOT SUPPORTED** in this Chromium | option disabled and labelled; capability auto-detected |
+| Progress | Determinate bar (n/total, %) | **VERIFIED** | added in audit pass, asserted visible then cleared |
+| Progress | Stop a running batch, keep finished output | **VERIFIED** | added in audit pass, asserted end-to-end |
+| Progress | Cancelling mid-encode | **NOT SUPPORTED** | encoders are not abortable; Stop applies after the in-flight image (tooltip says so) |
+| Errors | Per-image error text, batch summary, retry failed | **VERIFIED** | corrupt-file test, `Retry failed (1)` |
+| Errors | Wrong type/empty/oversized/limit rejections | **VERIFIED** | validation suites + unit tests |
+| Mobile | Touch thumbnail, tabs, crop drag, no overflow | **VERIFIED** | touch pointer events + overflow checks at 390 px |
+| Mobile | ≥ 40 px icon targets | **VERIFIED** | mobile CSS block + measured heights |
+| A11y | Every visible control has an accessible name | **VERIFIED** | 0 unnamed across 4 states |
+| A11y | axe WCAG 2.0/2.1/2.2 A+AA | **VERIFIED** | 0 violations, empty route and populated editor |
+| A11y | Screen-reader narration of crop edges while dragging | **NOT IMPLEMENTED** | numeric crop fields are the accessible path |
+| Preview | Zoom 25–400 % with pan + Fit to screen | **VERIFIED** | fitted preview stays inside the stage; zoom 150 % overflows and pans |
+| Resize | Dimensions, percentage, longest/shortest side, presets (+custom), DPI/print | **VERIFIED** | edits + audit suites, print 10×15 cm @ 300 DPI → 1,181 × 1,772 px |
+| SEO | Metadata + WebApplication/HowTo/FAQPage JSON-LD, 5 steps, 7 FAQs | **VERIFIED** | audit structured-data test |
 
 ### Verification (this branch)
 
@@ -98,10 +116,12 @@ npx tsc --noEmit     ✅ 0 errors
 npx eslint .         ✅ 0 problems
 npx vitest run       ✅ 12 files, 193 tests passed
 npm run build        ✅ 19 static routes, /tools/image-resizer prerendered
-playwright chromium  ✅ 130 passed — foundation/core/quality/browser-tools
+playwright chromium  ✅ 146 passed (1.9 m) — foundation/core/quality/browser-tools
                         + image-resizer (6) + image-resizer-edits (13)
+                        + image-resizer-audit (16, added in the final audit)
 log                  docs/verification/image-resizer-v2-checks.txt
-screenshots          docs/verification/image-resizer-v2-*.png
+report               docs/QA_IMAGE_RESIZER_AUDIT.md  (VERIFIED / NOT SUPPORTED / NOT IMPLEMENTED)
+screenshots          docs/verification/image-resizer-v2-*.png and -v3-*.png
 ```
 
 Cross-browser note: Playwright ran in Chromium in this sandbox (only one browser build could
@@ -110,6 +130,7 @@ be provisioned). Firefox/WebKit projects remain configured and are expected to r
 ### Known limits (documented in-product)
 
 - AVIF encoding depends on the browser; unsupported options are disabled and explained.
+- `Stop` halts the queue after the in-flight image settles — browser encoders are not abortable.
 - Custom presets last for the browser session only (no storage, by design), max 8.
 - A canvas encoder cannot write a DPI tag: the panel converts values, printers read pixels.
 - Canvas re-encoding strips EXIF/GPS/XMP/ICC (privacy default); the original file is untouched.

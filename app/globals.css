@@ -2106,11 +2106,13 @@ noscript .status {
   position: relative;
   border-radius: 12px;
   border: 1px solid #e7e2f2;
-  min-height: 230px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  padding: 12px;
+  height: clamp(250px, 40vh, 348px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 13px;
   background-color: #fcfbfe;
   background-image:
     linear-gradient(45deg, #f1eef8 25%, transparent 25%),
@@ -2445,6 +2447,7 @@ noscript .status {
   }
 }
 @media (max-width: 600px) {
+
   .resizer-drop {
     flex-wrap: wrap;
     padding: 14px;
@@ -2667,6 +2670,20 @@ noscript .status {
 .resizer-save-preset {
   margin-top: 8px;
   border-style: dashed;
+}
+.resizer-cancel {
+  border-color: #edc9d3 !important;
+  color: #a33349 !important;
+}
+.resizer-cancel:hover {
+  background: #fdf2f5 !important;
+}
+.resizer-retry {
+  border-color: #d8cbf8 !important;
+  color: #4b3fa8 !important;
+}
+.resizer-retry:hover {
+  background: #f7f3ff !important;
 }
 .resizer-details {
   margin-top: 14px;
@@ -2898,6 +2915,8 @@ noscript .status {
   max-width: none !important;
   max-height: none !important;
   height: auto;
+  margin: auto;
+  flex: none;
   border-radius: 3px;
   user-select: none;
 }
@@ -2912,12 +2931,22 @@ noscript .status {
   pointer-events: none;
   z-index: 3;
 }
+.resizer-crop-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.resizer-crop-shade {
+  position: absolute;
+  box-shadow: 0 0 0 9999px #101426b8;
+}
 .resizer-crop-box {
   position: absolute;
   border: 2px solid #fff;
   box-shadow:
-    0 0 0 9999px #10142680,
-    0 0 0 1px #6657e8 inset;
+    0 0 0 1px #6657e8 inset,
+    0 6px 18px #10142655;
   cursor: move;
   pointer-events: auto;
   touch-action: none;
@@ -2970,7 +2999,7 @@ noscript .status {
 .resizer-crop-size {
   position: absolute;
   left: 50%;
-  bottom: -26px;
+  bottom: 6px;
   transform: translateX(-50%);
   background: #171b2ecc;
   color: #fff;
@@ -3208,4 +3237,49 @@ noscript .status {
   .resizer-split-stage {
     height: 240px;
   }
+}
+
+@media (max-width: 600px) {
+  .resizer-icon-button,
+  .resizer-zoom .resizer-icon-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.resizer-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid #e6e1f5;
+  border-radius: 12px;
+  background: #fbf9ff;
+}
+.resizer-progress progress {
+  flex: 1;
+  height: 8px;
+  accent-color: var(--purple);
+  border: 0;
+  border-radius: 999px;
+}
+.resizer-progress progress::-webkit-progress-bar {
+  background: #ece7f8;
+  border-radius: 999px;
+}
+.resizer-progress progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #8d7bf0, var(--purple));
+  border-radius: 999px;
+}
+.resizer-progress progress::-moz-progress-bar {
+  background: var(--purple);
+  border-radius: 999px;
+}
+.resizer-progress span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5a4f80;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

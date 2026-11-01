@@ -44,3 +44,9 @@ Route (app)
 Playwright 1.x · 6 spec files · 130 tests
   130 passed — foundation/core/quality/browser-tools + image-resizer (6) + image-resizer-edits (13)
   (the 13th is the axe WCAG 2.2 AA check on the populated editor with the crop overlay open)
+
+== Final functionality audit (2026-11-01) ==
+Controls inventoried: 40 buttons, 3 selects, 31 inputs, 1 anchor — 0 unnamed, 0 without a handler
+Added: progress bar, Stop, Retry failed (n), Match original, fitted+zoomable scrollable preview
+Playwright (chromium): 146 passed — 7 spec files (incl. image-resizer-audit 16)
+Report: docs/QA_IMAGE_RESIZER_AUDIT.md

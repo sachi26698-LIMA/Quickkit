@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   Check,
   CheckCircle2,
+  CircleStop,
   Columns2,
   Crop,
   Download,
@@ -306,6 +307,9 @@ function CropOverlay({
         height: rect.height,
       }}
     >
+      <div className="resizer-crop-clip" aria-hidden="true">
+        <div className="resizer-crop-shade" style={box} />
+      </div>
       <div
         className="resizer-crop-box"
         style={box}
@@ -417,6 +421,11 @@ export default function ImageResizer() {
     width: 0,
     height: 0,
   });
+  const [stageSize, setStageSize] = useState({ width: 360, height: 320 });
+  const [naturalSize, setNaturalSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const replaceRef = useRef<HTMLInputElement>(null);
   const replaceTarget = useRef<string | null>(null);
@@ -468,6 +477,7 @@ export default function ImageResizer() {
   const activeItem =
     items.find((item) => item.id === selectedId) ?? items[0] ?? null;
   const doneItems = items.filter((item) => item.result);
+  const failedItems = items.filter((item) => item.status === "error");
 
   /* ------------------------------- geometry ------------------------------- */
 
@@ -810,10 +820,17 @@ export default function ImageResizer() {
 
   /* -------------------------------- resizing ------------------------------- */
 
-  async function resizeAll() {
-    const queue = itemsRef.current;
+  async function resizeAll(onlyFailed = false) {
+    const all = itemsRef.current;
+    const queue = onlyFailed
+      ? all.filter((item) => item.status === "error")
+      : all;
     if (!queue.length) {
-      setIssues(["Add at least one image before resizing."]);
+      setIssues([
+        onlyFailed
+          ? "There are no failed images to retry."
+          : "Add at least one image before resizing.",
+      ]);
       setNotice("");
       return;
     }
@@ -890,6 +907,7 @@ export default function ImageResizer() {
       setProgress({ done: index + 1, total: queue.length });
     }
 
+    if (run !== runRef.current) return;
     setBusy(false);
     if (completed && !failures)
       setNotice(
@@ -903,6 +921,24 @@ export default function ImageResizer() {
       setIssues([
         "None of the images could be processed. Check the messages in the queue.",
       ]);
+  }
+
+  function cancelRun() {
+    if (!busy) return;
+    runRef.current += 1;
+    setBusy(false);
+    setProgress({ done: 0, total: 0 });
+    commitItems(
+      itemsRef.current.map((item) =>
+        item.status === "working" ? { ...item, status: "ready" } : item,
+      ),
+    );
+    const finished = itemsRef.current.filter((item) => item.result).length;
+    setNotice(
+      finished
+        ? `Processing stopped. ${finished} finished image${finished === 1 ? "" : "s"} kept — download ${finished === 1 ? "it" : "them"} or start the queue again.`
+        : "Processing stopped before any image finished. Your queue and settings are unchanged.",
+    );
   }
 
   function removeItem(id: string) {
@@ -1042,6 +1078,19 @@ export default function ImageResizer() {
       width: imageBox.width,
       height: imageBox.height,
     });
+    setStageSize((previous) =>
+      Math.abs(previous.width - stage.clientWidth) < 1 &&
+      Math.abs(previous.height - stage.clientHeight) < 1
+        ? previous
+        : { width: stage.clientWidth, height: stage.clientHeight },
+    );
+    const natural = { width: image.naturalWidth, height: image.naturalHeight };
+    if (natural.width && natural.height)
+      setNaturalSize((previous) =>
+        previous?.width === natural.width && previous?.height === natural.height
+          ? previous
+          : natural,
+      );
   }, []);
 
   useEffect(() => {
@@ -1074,6 +1123,24 @@ export default function ImageResizer() {
   const liveTransform =
     !showResult && activeItem && !cropsEnabled
       ? previewTransform(activeItem.edits)
+      : undefined;
+
+  /* Fit the preview inside the stage, then apply zoom on top of that fit. */
+  const fitNatural =
+    naturalSize ?? (activeItem ? { width: activeItem.width, height: activeItem.height } : null);
+  const fitBox = {
+    width: Math.max(80, stageSize.width - 28),
+    height: Math.max(80, stageSize.height - 28),
+  };
+  const fitScale = fitNatural
+    ? Math.min(fitBox.width / fitNatural.width, fitBox.height / fitNatural.height, 1)
+    : 1;
+  const previewWidth =
+    fitNatural && fitNatural.width
+      ? Math.max(
+          20,
+          Math.round(fitNatural.width * fitScale * (zoom / 100)),
+        )
       : undefined;
 
   const zoomBy = (delta: number) =>
@@ -1384,6 +1451,22 @@ export default function ImageResizer() {
                       disabled={!activeItem}
                     >
                       Match edited size
+                    </button>
+                    <button
+                      type="button"
+                      className="resizer-text-button"
+                      onClick={() => {
+                        if (!activeItem) return;
+                        invalidate(() => {
+                          setMode("dimensions");
+                          setWidth(String(activeItem.width));
+                          setHeight(String(activeItem.height));
+                          setLock(true);
+                        });
+                      }}
+                      disabled={!activeItem}
+                    >
+                      Match original
                     </button>
                   </div>
                 </>
@@ -2205,7 +2288,7 @@ export default function ImageResizer() {
                     src={stageSrc}
                     alt={stageAlt}
                     style={{
-                      width: `${zoom}%`,
+                      width: compare === "single" ? previewWidth : undefined,
                       filter: liveFilter || undefined,
                       transform: liveTransform,
                     }}
@@ -2223,11 +2306,13 @@ export default function ImageResizer() {
                       onStart={pushHistory}
                     />
                   ) : null}
-                  <span className="resizer-preview-tag">
-                    {showResult && activeItem.result
-                      ? `${formatPixels(activeItem.result.width)} × ${formatPixels(activeItem.result.height)} px`
-                      : `${formatPixels(activeItem.width)} × ${formatPixels(activeItem.height)} px · edits preview`}
-                  </span>
+                  {cropsEnabled ? null : (
+                    <span className="resizer-preview-tag">
+                      {showResult && activeItem.result
+                        ? `${formatPixels(activeItem.result.width)} × ${formatPixels(activeItem.result.height)} px`
+                        : `${formatPixels(activeItem.width)} × ${formatPixels(activeItem.height)} px · edits preview`}
+                    </span>
+                  )}
                     </>
                   )}
                 </div>
@@ -2515,6 +2600,29 @@ export default function ImageResizer() {
             ? `Processing ${Math.min(progress.done + 1, progress.total)} of ${progress.total}…`
             : `Resize ${items.length ? `${items.length} ` : ""}image${items.length === 1 ? "" : "s"}`}
         </button>
+        {busy ? (
+          <button
+            className="secondary resizer-cancel"
+            type="button"
+            onClick={cancelRun}
+            title="Stop the queue after the current image"
+          >
+            <CircleStop size={16} aria-hidden="true" />
+            Stop
+          </button>
+        ) : null}
+        {!busy && failedItems.length ? (
+          <button
+            className="secondary resizer-retry"
+            type="button"
+            onClick={() => void resizeAll(true)}
+            disabled={zipBusy}
+            title="Run the queue again for failed images only"
+          >
+            <RotateCcw size={16} aria-hidden="true" />
+            Retry failed ({failedItems.length})
+          </button>
+        ) : null}
         <button
           className="secondary"
           type="button"
@@ -2540,6 +2648,20 @@ export default function ImageResizer() {
           {format === "image/png" ? "lossless" : `${quality}% quality`}
         </span>
       </div>
+
+      {busy ? (
+        <div className="resizer-progress" role="group" aria-label="Batch progress">
+          <progress
+            value={progress.done}
+            max={progress.total || 1}
+            aria-label={`${progress.done} of ${progress.total} images finished`}
+          />
+          <span>
+            {progress.done} / {progress.total} finished ·{" "}
+            {Math.round((progress.done / Math.max(progress.total, 1)) * 100)}%
+          </span>
+        </div>
+      ) : null}
 
       {issues.length ? (
         <div className="status error resizer-alert" role="alert">

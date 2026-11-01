@@ -24,6 +24,7 @@ removed. Every control described here is wired to real logic; there are no place
 | Batch | global settings + remove | **per-image overrides** (size, lock, format, quality, base name, suffix), replace file, keep queue |
 | Naming | `name-WxH.ext` | **rename outputs** + **filename suffixes** (batch and per image), `Same as batch` format inheritance |
 | History | none | **Undo / Redo** per image (40 steps) with Ctrl/⌘+Z, Ctrl/⌘+Shift+Z and a Reset edits action |
+| Progress | button text only | **Determinate progress bar**, **Stop** that keeps finished output, **Retry failed (n)** |
 | Metadata | implied by re-encode | **Metadata & privacy** panel scans EXIF/GPS/camera/date/ICC/XMP and states exactly what is stripped |
 | Guidance | 4 FAQs | 5-step HowTo, **7 FAQs**, `WebApplication` + `HowTo` + `FAQPage` JSON-LD |
 
@@ -67,6 +68,12 @@ removed. Every control described here is wired to real logic; there are no place
 - [x] Bulk processing with a single action; per-file status (Ready / Working… / Done / Failed), per-file error text and a batch summary.
 - [x] Download an individual result (correct extension and dimensions) or every finished image as a **ZIP built in the browser** (stored method, CRC-32, UTF-8 names, duplicate-safe).
 - [x] Rename outputs and append filename suffixes (batch-wide or per image); the ZIP uses the final names.
+
+### 2.4b Progress, cancellation and recovery (added in the final audit)
+- [x] Determinate progress bar with "x / y finished · %" and an `aria-label` for assistive tech.
+- [x] **Stop** halts the queue after the in-flight image and keeps every finished result; the ZIP then contains exactly what completed.
+- [x] **Retry failed (n)** re-runs only the errored rows, without touching the rest of the queue.
+- [x] Failures never block the batch: good images finish, the summary names both counts, and each failed row keeps its own message.
 
 ### 2.5 Premium UI/UX
 - [x] Professional drag-and-drop zone with keyboard-accessible “Choose files” fallback and explicit limits.
@@ -131,8 +138,10 @@ npx tsc --noEmit      ✅ 0 errors
 npx eslint .          ✅ 0 problems
 npx vitest run        ✅ 12 files, 193 tests passed
 npm run build         ✅ 19 static routes, /tools/image-resizer prerendered
-playwright (chromium) ✅ 130 passed — foundation/core/quality/browser-tools
+playwright (chromium) ✅ 146 passed — foundation/core/quality/browser-tools
                           + image-resizer (6) + image-resizer-edits (13)
+                          + image-resizer-audit (16, final audit)
+audit report          docs/QA_IMAGE_RESIZER_AUDIT.md — every control statused
 log: docs/verification/image-resizer-v2-checks.txt
 ```
 
@@ -152,6 +161,11 @@ file replacement, and axe WCAG 2.2 AA on the populated editor.
 | `image-resizer-v2-edit-1440.png` | Edit tab: crop ratios + numeric crop, rotate/flip, light & colour controls |
 | `image-resizer-v2-compare-1440.png` | Split before/after comparison with the real output size |
 | `image-resizer-v2-per-image-1440.png` | Per-image overrides: size, `Same as batch` format, quality, output name, suffix and the resulting file name |
+| `image-resizer-v3-crop-1440.png` | 16:9 fixed-ratio crop with corner handles, numeric fields and the shaded area outside the frame |
+| `image-resizer-v3-progress-1440.png` | Live progress bar with `Stop`, mixed Done/Working/Ready queue |
+| `image-resizer-v3-cancelled-1440.png` | State after `Stop`: finished images kept, remaining rows back to Ready |
+| `image-resizer-v3-error-recovery-1440.png` | Damaged file row, `Retry failed (1)`, good file completed, batch summary |
+| `image-resizer-v3-mobile-crop-390.png` / `-mobile-queue-390.png` | Touch-sized crop overlay and queue at 390 px |
 | `image-resizer-v2-full-1440.png` | Whole desktop page incl. metadata, tips, steps and FAQs |
 | `image-resizer-v2-mobile-390.png` | Mobile workspace with percentage mode |
 | `image-resizer-v2-mobile-edit-390.png` | Mobile Edit tab |
@@ -163,6 +177,7 @@ file replacement, and axe WCAG 2.2 AA on the populated editor.
 ## 6. Known limits (documented in-product)
 
 - **AVIF** encoding depends on the browser; unsupported options are disabled and explained. Chromium in this sandbox cannot encode AVIF, which is exactly the state the UI demonstrates.
+- **Stop** takes effect once the in-flight image settles, because browser encoders are not abortable; the button tooltip states this.
 - **Custom presets** live for the browser session only (no storage by design) and are capped at 8.
 - A canvas encoder cannot write a **DPI tag**, so the DPI panel converts values but printers read pixel dimensions.
 - Every export is re-encoded from pixels: EXIF/GPS/XMP/ICC are **removed** (the privacy default). The original file is never modified.
