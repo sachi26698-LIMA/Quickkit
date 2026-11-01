@@ -4,7 +4,7 @@
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** The former strict one-tool-at-a-time gate was explicitly superseded for this PDF workstream on 1 November 2026. PDF Merger verification and PDF Splitter development were authorized in parallel; **no third PDF tool may start**. Each tool still requires implementation, tests, screenshots/demo and explicit owner approval before it can be marked live/complete.
-**Current active tools:** PDF Merger and PDF Splitter — both **implemented — awaiting owner approval**. PDF Merger retains that exact status even though PR #2 was merged by the owner under a separate instruction. PDF Splitter was developed in parallel under the later directive. Neither tool has been deployed or indexed by this work. Splitter work remains on the fixed Arena session branch `arena/fe1f419c-quickkit`; the requested `feature/pdf-splitter` branch could not be created in this session, and Splitter has not been merged into `main`.
+**Current active tools:** PDF Merger and PDF Splitter — both **implemented — awaiting owner approval**. PDF Merger retains that exact status even though PR #2 was merged by the owner under a separate instruction. PDF Splitter was developed in parallel under the later directive. Final real-file QA then exercised both tools against genuine Mozilla PDF.js corpus files; details are recorded in each QA report. Neither tool has been deployed or indexed by this work. Both PDF workstreams are isolated by commits on the fixed Arena session branch `arena/fe1f419c-quickkit`; the requested `feature/pdf-merger` and `feature/pdf-splitter` branches could not be created in this session, and this final-QA Splitter fix has not been merged into `main`.
 
 ## 1. Status definitions
 
@@ -68,17 +68,18 @@ The proposed IDs below use the existing slug values. During registry migration t
 
 | ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
 | ----------- | ------------ | ------------------ | ---------------- | ----------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `merge-pdf` | PDF Merger   | `/tools/merge-pdf` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | Browser-only implementation reached `main` through the owner-requested PR #2 merge at `58a81ed`, then was re-verified post-merge. Evidence: `docs/pdf-merger/QA_REPORT.md`, including Section 11. Not owner-approved, live, deployed or indexed.                                                |
-| `split-pdf` | PDF Splitter | `/tools/split-pdf` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | Browser-only implementation on fixed session branch `arena/fe1f419c-quickkit` with custom ranges, visual extraction, every-N/per-page modes, named validated PDFs and local ZIP. Evidence: `docs/pdf-splitter/QA_REPORT.md`. Not merged into `main`, owner-approved, live, deployed or indexed. |
+| `merge-pdf` | PDF Merger   | `/tools/merge-pdf` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | Browser-only implementation reached `main` through the owner-requested PR #2 merge at `58a81ed`, then was re-verified post-merge and exercised with multiple genuine Mozilla PDF.js corpus PDFs, reorder/page selection, download and output reopening. Evidence: `docs/pdf-merger/QA_REPORT.md`, including Section 12. Not owner-approved, live, deployed or indexed.                                                |
+| `split-pdf` | PDF Splitter | `/tools/split-pdf` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | Browser-only implementation on fixed session branch `arena/fe1f419c-quickkit` with custom ranges, visual extraction, every-N/per-page modes, named validated PDFs and local ZIP. Final real-file QA found and fixed a source-thumbnail alternative-text and reset-focus defect; permanent regression assertions now cover both. Evidence: `docs/pdf-splitter/QA_REPORT.md`, including Section 12. Not merged into `main`, owner-approved, live, deployed or indexed. |
 
 ### Current regression evidence
 
-The most recent full run recorded after the parallel PDF Merger re-verification and PDF Splitter integration is:
+The most recent full run was recorded after final real-file QA and the Splitter accessibility/focus fix:
 
+- Temporary genuine-PDF browser QA harness: **7/7 passed**; it was removed after execution because its corpus lives outside the repository, and the durable regression assertions were folded into the permanent PDF browser specs.
 - Vitest: **131/131 passed**.
 - Chromium Playwright suite: **161/161 passed** in the sandbox browser environment (including Merger 5/5 and Splitter 5/5).
 - Production build: passed with eight repository tool routes and 20 static pages.
-- Format check, ESLint and TypeScript: passed.
+- Targeted format check, ESLint and TypeScript: passed.
 - Production dependency audit: **0 vulnerabilities**.
 
 Firefox/WebKit execution is not claimed for that sandbox run. Any registry migration or later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
@@ -307,3 +308,4 @@ PDF Merger and PDF Splitter proceeded under explicit narrow-catalog integration 
 | 1 November 2026 | At the owner’s separate explicit request, PR #2 was merged into `main` at `58a81ed`. That merge is not recorded as product approval, deployment or indexing; PDF Merger remains **implemented — awaiting owner approval**.                                                                                                                 |
 | 1 November 2026 | Owner explicitly superseded the one-tool gate for this workstream: PDF Merger verification and PDF Splitter development were authorized in parallel, with no third PDF tool. A clean-worktree backup was created before Splitter coding.                                                                                                   |
 | 1 November 2026 | PDF Merger post-merge re-verification passed with no Merger defect found. PDF Splitter was implemented on `arena/fe1f419c-quickkit` (requested feature branches are unavailable in this fixed session), with QA in `docs/pdf-splitter/QA_REPORT.md`; both PDF tools now await owner approval and Splitter has not been merged into `main`. |
+| 1 November 2026 | Final real-file QA used genuine Mozilla PDF.js corpus files for both PDF tools. The temporary seven-scenario browser harness passed 7/7 after a genuine Splitter source-thumbnail alternative-text/reset-focus defect was fixed and permanent regression assertions were added. Both PDF tools remain **implemented — awaiting owner approval**; no third PDF tool was started and no merge/deploy/index action was taken. |

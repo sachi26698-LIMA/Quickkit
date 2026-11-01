@@ -219,3 +219,44 @@ The rerun covers real browser upload, reorder, page selection, merge, validated 
 ### Addendum decision
 
 PDF Merger remains **implemented — awaiting owner approval**. It has not been deployed or indexed by this workstream. PDF Splitter is the only other authorized PDF workstream; no third PDF tool has been started.
+
+## 12. Final real-file QA addendum — 1 November 2026
+
+### Corpus and backup
+
+- A fresh pre-QA backup was created at `/home/user/quickkit-backups/final-real-pdf-qa-20261101-122132/`.
+  - `worktree-source.tar.gz` SHA-256: `77b79951892772a11c15bb3abf64796a3f67ffe4bac59217a7a0ed5f7b8c0b87`
+  - `head.bundle` SHA-256: `1c22413d3f92d55ae2dd46f7d08746add7ef377e8912a52a7fa0c627f93ae4d5`
+- The genuine PDF inputs were taken from Mozilla's PDF.js repository, sparse checkout commit `0a4153349dc473ba950fc17941c5ca7eda43c1de`. The corpus was kept outside this repository under `/tmp/quickkit-real-pdf-qa/`; no third-party PDF was committed.
+- Core Merger inputs:
+  - `tracemonkey.pdf` — 1,016,315 bytes; SHA-256 `3662ff519e485810520552bf301d8c3b2b917fd2f83303f4965d7abed367e113`.
+  - `basicapi.pdf` — 105,779 bytes; SHA-256 `925853d98d67d5dae7473c635f932958e1695ce1029d23b2ecd2531cb65f1f14`.
+  - `form_two_pages.pdf` — 23,136 bytes; SHA-256 `6d7c608d0102fa1e1b3cbc2c3b0a989783e90f84ff1a7fe7cbdb6dc2a1b60fbd`.
+  - `annotation-text-widget.pdf` — 93,171 bytes; SHA-256 `9f091ceb368ad0406094efaa6c50d5033735ee52f383e0973dc53a7467089d7c`.
+  - `encrypted-attachment.pdf` — 2,719 bytes; SHA-256 `0f44da5152adf8cafcd7b0057d840310d78e17d033ee5414da0881b6dcd130ab`.
+- Derived QA files were created only under `/tmp`: an encrypted copy of `basicapi.pdf` (SHA-256 `6b5a40da3ce49abdfc7872f0ff4b09997251248a96dddc18c34e57f6fd37c649`), an 80,000-byte truncation of `tracemonkey.pdf`, a renamed non-PDF and a sparse 51 MiB oversized file.
+
+### Real-file browser scenarios executed
+
+The temporary seven-scenario real-file Playwright harness covered both PDF tools. The Merger scenarios exercised:
+
+1. Three genuine PDFs uploaded together, file reordering, a selected non-contiguous page set, a five-page merge, browser download and independent reopening of the downloaded file. Page order was proved from extracted page text, and page geometry was compared with the source pages.
+2. The complete 390px mobile flow with real files, including reorder, selection, merge and download/reopen validation.
+3. Encrypted real-input handling with a wrong password followed by the correct password; the downloaded merge reopened without encryption.
+4. Invalid handling for truncated/corrupt, renamed non-PDF and oversized inputs, with actionable errors and no silent skipping.
+5. Request auditing during interaction: no uploaded-file payload left the browser; post-load requests remained local application/asset requests.
+
+Before the browser harness, temporary engine probes also confirmed page-count/content integrity for a TraceMonkey + Basic API + two-page-form merge and a form-widget + Basic API merge with destination/link cleanup notices rather than broken output.
+
+### Outcome
+
+No Merger product defect was found during final real-file QA, so no Merger behavior was changed. The real-file harness initially passed 4/7 overall solely because of two Splitter product defects described in the Splitter QA report and one harness locator ambiguity. After those fixes the harness passed **7/7 in 44.3s**. The permanent Merger browser suite then passed **5/5** again within the combined **10/10** Merger/Splitter rerun.
+
+Final repository evidence after the Splitter fix:
+
+- `npm test -- --reporter=dot`: **131/131 passed**.
+- Full sandbox Chromium Playwright suite: **161/161 passed**, including PDF Merger 5/5.
+- `npm run build`: passed with 20 static pages.
+- Firefox/WebKit are configured for the repository suite but were unavailable in this sandbox and are **not** claimed for this addendum.
+
+PDF Merger remains **implemented — awaiting owner approval**; it has not been deployed or indexed.

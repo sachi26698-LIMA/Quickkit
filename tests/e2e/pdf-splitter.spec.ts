@@ -109,7 +109,7 @@ test("splits custom ranges locally and downloads validated PDFs and a ZIP", asyn
     page.getByRole("heading", { name: "Board pack.pdf" }),
   ).toBeVisible();
   await expect(
-    page.locator(".pdf-split-source-card .pdf-thumbnail img"),
+    page.getByAltText("First page preview of Board pack.pdf"),
   ).toBeVisible();
   await expect(
     page.locator(".pdf-split-pages-panel .pdf-page-tile"),
@@ -195,6 +195,11 @@ test("splits custom ranges locally and downloads validated PDFs and a ZIP", asyn
   expect(
     interactionRequests.map((request) => request.url).join(" "),
   ).not.toContain("Board pack.pdf");
+
+  await page.getByRole("button", { name: "Start a new split" }).click();
+  await expect(
+    page.getByRole("button", { name: "Choose PDF", exact: true }),
+  ).toBeFocused();
 });
 
 test("surfaces unsupported, corrupt, oversized and invalid split plans clearly", async ({
@@ -306,7 +311,7 @@ test("unlocks an encrypted PDF, clears its password after splitting, and downloa
   await password.fill("correct horse");
   await page.getByRole("button", { name: "Unlock PDF" }).click();
   await expect(
-    page.locator(".pdf-split-source-card .pdf-thumbnail img"),
+    page.getByAltText("First page preview of Secret.pdf"),
   ).toBeVisible();
   await expect(page.getByLabel("Output ranges")).toHaveValue("1; 2");
 
@@ -344,7 +349,7 @@ test("complete mobile workflow splits every N pages with the sticky action", asy
     .getByLabel("Choose a PDF", { exact: true })
     .setInputFiles(fivePagePdf);
   await expect(
-    page.locator(".pdf-split-source-card .pdf-thumbnail img"),
+    page.getByAltText("First page preview of Board pack.pdf"),
   ).toBeVisible();
   await page
     .locator(".pdf-split-mode-card")

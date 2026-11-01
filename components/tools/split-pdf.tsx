@@ -954,7 +954,11 @@ export default function PdfSplitter() {
     setOutputBase("split-pdf");
     setZipName("split-pdfs");
     setMode("ranges");
-    requestAnimationFrame(() => fileInputRef.current?.focus());
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLElement>("[data-pdf-split-add-button]")
+        ?.focus(),
+    );
   }
 
   const aspectRatio = source?.inspection
@@ -1096,7 +1100,10 @@ export default function PdfSplitter() {
           >
             <div className="pdf-thumbnail" style={{ aspectRatio }}>
               {source.thumbnailState === "ready" && source.thumbnailUrl ? (
-                <img src={source.thumbnailUrl} alt="" />
+                <img
+                  src={source.thumbnailUrl}
+                  alt={`First page preview of ${source.name}`}
+                />
               ) : source.thumbnailState === "loading" ? (
                 <div className="pdf-thumbnail-placeholder">
                   <LoaderCircle className="spin" size={24} aria-hidden="true" />

@@ -178,3 +178,54 @@ Please review the preview, screenshots and this report. Until explicit owner app
 - Do not merge this Splitter workstream into `main`.
 - Do not deploy/index.
 - Do not start any third PDF tool.
+
+## 12. Final real-file QA addendum — 1 November 2026
+
+### Corpus and backup
+
+- A fresh pre-QA backup was created at `/home/user/quickkit-backups/final-real-pdf-qa-20261101-122132/`.
+  - `worktree-source.tar.gz` SHA-256: `77b79951892772a11c15bb3abf64796a3f67ffe4bac59217a7a0ed5f7b8c0b87`
+  - `head.bundle` SHA-256: `1c22413d3f92d55ae2dd46f7d08746add7ef377e8912a52a7fa0c627f93ae4d5`
+- Genuine inputs came from Mozilla's PDF.js repository, sparse checkout commit `0a4153349dc473ba950fc17941c5ca7eda43c1de`, and were kept outside this repository under `/tmp/quickkit-real-pdf-qa/`; no third-party PDF was committed.
+- Principal Splitter inputs:
+  - `tracemonkey.pdf` — 1,016,315 bytes; SHA-256 `3662ff519e485810520552bf301d8c3b2b917fd2f83303f4965d7abed367e113`.
+  - `basicapi.pdf` — 105,779 bytes; SHA-256 `925853d98d67d5dae7473c635f932958e1695ce1029d23b2ecd2531cb65f1f14`.
+  - `form_two_pages.pdf` — 23,136 bytes; SHA-256 `6d7c608d0102fa1e1b3cbc2c3b0a989783e90f84ff1a7fe7cbdb6dc2a1b60fbd`.
+  - `encrypted-attachment.pdf` — 2,719 bytes; SHA-256 `0f44da5152adf8cafcd7b0057d840310d78e17d033ee5414da0881b6dcd130ab`.
+- Derived QA files were created only under `/tmp`: an encrypted copy of `basicapi.pdf` (SHA-256 `6b5a40da3ce49abdfc7872f0ff4b09997251248a96dddc18c34e57f6fd37c649`), an 80,000-byte truncation of `tracemonkey.pdf`, a renamed non-PDF and a sparse 51 MiB oversized file.
+
+### Real-file browser scenarios executed
+
+The temporary seven-scenario real-file Playwright harness exercised the production preview and independently reopened every downloaded PDF. Splitter coverage included:
+
+1. Custom ranges from the 14-page TraceMonkey paper, ZIP download, ZIP entry parsing, reopening every generated PDF and text/page-geometry checks for output order and content integrity.
+2. Visual selected-page extraction, every-N-pages splitting and one-PDF-per-page splitting, with all outputs reopened and page counts verified.
+3. The 390px mobile workflow, including the sticky Split action and no-horizontal-overflow checks.
+4. Wrong-password then correct-password handling for the encrypted real-input derivative; every resulting output reopened unencrypted.
+5. XFA/unsupported, truncated/corrupt, renamed-non-PDF and oversized-source handling with explicit errors.
+6. Local-only request auditing and absence of console errors during the workflows.
+
+Temporary engine probes before the browser run also confirmed three outputs for TraceMonkey custom ranges, two outputs for the real two-page form and one output for a single selected form page.
+
+### Genuine defect found and fixed
+
+The first complete real-file harness run passed **4/7** and exposed two genuine Splitter defects in `components/tools/split-pdf.tsx`:
+
+1. The rendered source thumbnail used blank alternative text even though the thumbnail conveys which source file is selected. It now uses `First page preview of ${source.name}`.
+2. “Start a new split” attempted to focus the hidden file input instead of returning keyboard focus to the visible “Choose PDF” button. It now focuses the visible `[data-pdf-split-add-button]` control.
+
+A third failure was harness-only: a dynamic-XFA text locator matched both the file warning and the fidelity-notes copy, so the harness assertion was scoped with `.first()`. No product behavior change was needed for that locator.
+
+Permanent regression protection was added to `tests/e2e/pdf-splitter.spec.ts`: source-thumbnail assertions use the file-specific accessible name, and the completed workflow asserts that reset focuses the visible “Choose PDF” button.
+
+### Final reruns actually executed
+
+- Previously failed real-file subset after the fix: **3/3 passed**.
+- Complete temporary real-file harness: **7/7 passed in 44.3s**.
+- Permanent PDF browser suites (`pdf-splitter.spec.ts` + `pdf-merger.spec.ts`): **10/10 passed**.
+- `npm test -- --reporter=dot`: **131/131 passed**.
+- Full sandbox Chromium Playwright suite: **161/161 passed**, including PDF Splitter 5/5.
+- `npm run build`: passed with 20 static pages.
+- Firefox/WebKit are configured for the repository suite but were unavailable in this sandbox and are **not** claimed for this addendum.
+
+The temporary `/tmp`-corpus harness was removed after execution so the committed test suite remains reproducible without external files. PDF Splitter remains **implemented — awaiting owner approval**, unmerged into `main`, undeployed and unindexed.
