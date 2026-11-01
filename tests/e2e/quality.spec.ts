@@ -61,7 +61,7 @@ test("mobile navigation opens, closes on Escape and navigates", async ({
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Our approach" })
+    .getByRole("link", { name: "About" })
     .click();
   await expect(page).toHaveURL(/\/about$/);
   await expect(

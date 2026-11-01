@@ -8,12 +8,12 @@ export default function Image() {
       style={{
         width: "100%",
         height: "100%",
-        background: "#f6f7fb",
+        background: "#FAF8FF",
         display: "flex",
         flexDirection: "column",
         padding: 80,
         fontFamily: "sans-serif",
-        color: "#171b2e",
+        color: "#17152B",
       }}
     >
       <div
@@ -27,7 +27,7 @@ export default function Image() {
       >
         <span
           style={{
-            background: "#6657e8",
+            background: "#6C35E8",
             color: "white",
             borderRadius: 14,
             padding: "5px 16px",
@@ -35,7 +35,7 @@ export default function Image() {
         >
           Q
         </span>
-        QUICK<span style={{ color: "#6657e8", marginLeft: -14 }}>KIT</span>
+        QUICK<span style={{ color: "#6C35E8", marginLeft: -14 }}>KIT</span>
       </div>
       <div
         style={{
@@ -48,7 +48,7 @@ export default function Image() {
         }}
       >
         <span>Small tasks.</span>
-        <span style={{ color: "#6657e8" }}>Quick solutions.</span>
+        <span style={{ color: "#6C35E8" }}>Quick solutions.</span>
       </div>
       <div style={{ fontSize: 27, color: "#62697e", marginTop: 34 }}>
         Seven browser tools. No sign-up. Zero hassle.
