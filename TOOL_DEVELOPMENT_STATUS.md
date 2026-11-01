@@ -64,25 +64,33 @@ The proposed IDs below use the existing slug values. During registry migration t
 | `qr-generator` | QR Code Generator | `/tools/qr-generator` | Image & QR | QR & Barcode Tools | `live` | Implemented locally in the browser; included in existing tests. |
 | `image-compressor` | Image Compressor | `/tools/image-compressor` | Image & QR | Image Tools | `live` | Implemented with bounded canvas processing; included in existing tests. |
 
+### Implemented — awaiting owner approval
+
+| ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
+|---|---|---|---|---|---|---|
+| `merge-pdf` | PDF Merger | `/tools/merge-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only implementation committed on `arena/eb17e485-quickkit`; final QA evidence is in `docs/pdf-merger/QA_REPORT.md`. Not owner-approved, live, deployed or indexed. |
+
 ### Current regression evidence
 
-The most recent full baseline recorded for the present six-tool codebase is:
+The most recent full run recorded after PDF Merger Git resynchronization is:
 
-- Vitest: **95/95 passed**.
-- Chromium Playwright suite: **131/131 passed**.
-- Production build: passed with the current six tool routes.
+- Vitest: **114/114 passed**.
+- Chromium Playwright suite: **146/146 passed** in the sandbox browser environment.
+- Production build: passed with seven repository tool routes and 19 static pages.
+- Format check, ESLint and TypeScript: passed.
+- Production dependency audit: **0 vulnerabilities**.
 
-Any registry migration or later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
+Firefox/WebKit execution is not claimed for that sandbox run. Any registry migration or later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
 
 ## 5. Proposed Phase 5 — PDF Tools
 
-**Phase status:** In progress for one tool only — **PDF Merger implementation is under way. Every other Phase 5 tool is blocked until PDF Merger is completed, delivered and personally approved by the owner.**  
+**Phase status:** One tool is at owner review — **PDF Merger is implemented — awaiting owner approval. Every other Phase 5 tool is blocked until the owner personally approves PDF Merger.**
 **Candidate count:** 10  
 **Projected cumulative total:** 16
 
 | # | Tool | Proposed ID | Proposed slug | Status |
 |---:|---|---|---|---|
-| 1 | PDF Merger | `merge-pdf` | `merge-pdf` | `in-development` |
+| 1 | PDF Merger | `merge-pdf` | `merge-pdf` | **implemented — awaiting owner approval** |
 | 2 | Split PDF | `split-pdf` | `split-pdf` | `planned` |
 | 3 | Organize PDF | `organize-pdf` | `organize-pdf` | `planned` |
 | 4 | Rotate PDF | `rotate-pdf` | `rotate-pdf` | `planned` |
@@ -93,7 +101,7 @@ Any registry migration or later code change requires a fresh full run; these num
 | 9 | Add PDF Watermark | `add-pdf-watermark` | `add-pdf-watermark` | `planned` |
 | 10 | PDF Metadata Editor | `pdf-metadata-editor` | `pdf-metadata-editor` | `planned` |
 
-**Next gate:** Complete the engine safety spike, implementation, automated/manual QA, screenshots and demo. Then set PDF Merger to **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool.
+**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool until the owner personally approves PDF Merger.
 
 ## 6. Proposed Phase 6 — Image Tools
 
@@ -273,15 +281,18 @@ A candidate may move from `planned` to `live` only when all items below are evid
 5. Link phase evidence from the phase report rather than copying stale pass counts.
 6. Keep planned tools out of public navigation, search, sitemap and category counts.
 
-## 16. Decisions blocking Phase 5
+## 16. Decisions for future expansion
 
+PDF Merger proceeded under the owner's explicit narrow-catalog integration decision; the full registry migration remains separate and does not block owner review of PDF Merger.
+
+- [ ] Personally approve or request changes to PDF Merger before any next tool starts.
 - [ ] Approve the registry architecture and URL model.
-- [ ] Approve the 84-candidate scope and the resulting 90-tool total, with Phase 13 reserved for 100+.
-- [ ] Approve the eight-category taxonomy and remapping of the existing six tools.
-- [ ] Approve the Phase 5 PDF list and deferral of Compress/Protect pending technical evidence.
+- [ ] Approve the remaining candidate scope and the resulting 90-tool total, with Phase 13 reserved for 100+.
+- [ ] Approve the eight-category taxonomy and remapping of the existing tools.
+- [ ] Approve the remaining Phase 5 PDF list and deferral of Compress/Protect pending technical evidence.
 - [ ] Decide whether account-free favorites may store tool IDs in local storage.
 - [ ] Decide whether to show editorial “Featured” tools while keeping “Popular” hidden until real aggregate data exists.
-- [ ] Approve building the registry foundation before the first PDF workspace.
+- [ ] Decide whether to build the registry foundation before the next tool after PDF Merger approval.
 
 ## 17. Change log
 
@@ -289,3 +300,6 @@ A candidate may move from `planned` to `live` only when all items below are evid
 |---|---|
 | 1 November 2026 | Initial expansion tracker created. Six implemented tools recorded; 84 candidates marked `planned` pending approval; Phase 5 not started. |
 | 1 November 2026 | Strict one-tool-at-a-time policy adopted. PDF Merger selected as the sole active tool; `PDF_MERGER_PLAN.md` completed. Status remains `planned` with workflow note “research/planning, awaiting approval”; no implementation started. |
+| 1 November 2026 | Owner approved the PDF Merger plan with mandatory browser-only processing, explicit actionable errors/no silent skipping and a polished complete mobile workflow. PDF Merger became the sole active implementation. |
+| 1 November 2026 | Local PDF Merger work was backed up, integrated directly onto pushed baseline `db4e906`, committed at `070bc77` and pushed to `arena/eb17e485-quickkit`/PR #2. No merge into `main` was performed. |
+| 1 November 2026 | Final PDF Merger QA and owner-review handoff completed in `docs/pdf-merger/QA_REPORT.md`. Status set to **implemented — awaiting owner approval**; all other tools remain blocked. |
