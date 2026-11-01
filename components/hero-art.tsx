@@ -1,40 +1,13 @@
 "use client";
+/* Pre-optimized WebP asset with manual srcSet (76 KB / 34 KB), not a remote image. */
+/* eslint-disable @next/next/no-img-element */
 import { useRef } from "react";
-import {
-  Braces,
-  Calculator,
-  Check,
-  Code,
-  Files,
-  ImageIcon,
-  KeyRound,
-  QrCode,
-  Search,
-  Type,
-  Zap,
-} from "lucide-react";
-
-const tiles = [
-  { Icon: Files, color: "purple", label: "PDF" },
-  { Icon: ImageIcon, color: "peach", label: "Image" },
-  { Icon: QrCode, color: "mint", label: "QR" },
-  { Icon: Type, color: "blue", label: "Text" },
-  { Icon: Braces, color: "purple", label: "JSON" },
-  { Icon: KeyRound, color: "mint", label: "Keys" },
-];
-
-const floats = [
-  { Icon: Files, cls: "float-pdf", depth: 14 },
-  { Icon: Code, cls: "float-code", depth: 22 },
-  { Icon: QrCode, cls: "float-qr", depth: 18 },
-  { Icon: ImageIcon, cls: "float-image", depth: 24 },
-  { Icon: Calculator, cls: "float-calc", depth: 12 },
-  { Icon: Type, cls: "float-text", depth: 20 },
-];
 
 /**
- * CSS-3D laptop with the QUICKKIT dashboard, glowing rings and floating
- * tool tiles. Pointer parallax is pointer-fine + motion-safe only.
+ * Premium 3D-render hero illustration: tilted laptop with the QUICKKIT
+ * dashboard, flowing purple ribbons and floating tool tiles. Decorative
+ * (the hero copy carries the meaning). Pointer parallax is pointer-fine
+ * + motion-safe only.
  */
 export default function HeroArt() {
   const ref = useRef<HTMLDivElement>(null);
@@ -69,60 +42,18 @@ export default function HeroArt() {
       onPointerMove={onMove}
       onPointerLeave={onLeave}
     >
-      <div className="art-halo" />
-      <div className="art-blob" />
-      <div className="art-ring ring-one" />
-      <div className="art-ring ring-two" />
-      <div className="laptop">
-        <div className="laptop-screen">
-          <div className="window-bar">
-            <i />
-            <i />
-            <i />
-            <span>your everyday toolkit</span>
-          </div>
-          <div className="window-body">
-            <div className="art-brand">
-              <span className="art-brand-mark">
-                <Zap size={16} fill="currentColor" />
-              </span>
-              <strong>
-                QUICK<span>KIT</span>
-              </strong>
-              <span className="art-brand-badge">100+ tools</span>
-            </div>
-            <div className="art-search">
-              <Search size={12} />
-              <span>Search tools…</span>
-            </div>
-            <div className="art-tiles">
-              {tiles.map(({ Icon, color, label }) => (
-                <span key={label} className="art-tile-wrap">
-                  <span className={`art-tile ${color}`}>
-                    <Icon />
-                  </span>
-                  <small>{label}</small>
-                </span>
-              ))}
-            </div>
-            <div className="art-command">
-              <Check size={15} /> One less thing on your list.
-            </div>
-          </div>
-        </div>
-        <div className="laptop-base" />
-      </div>
-      {floats.map(({ Icon, cls, depth }) => (
-        <span
-          key={cls}
-          className={`floating-icon ${cls}`}
-          style={{ "--depth": depth } as React.CSSProperties}
-        >
-          <Icon />
-        </span>
-      ))}
-      <div className="art-caption">
-        <span /> All the handy. None of the hassle.
+      <div className="hero-art-inner">
+        <img
+          src="/hero-illustration.webp"
+          srcSet="/hero-illustration-sm.webp 800w, /hero-illustration.webp 1200w"
+          sizes="(max-width: 860px) 94vw, (max-width: 1200px) 46vw, 600px"
+          width={1200}
+          height={896}
+          alt=""
+          draggable={false}
+          fetchPriority="high"
+          decoding="async"
+        />
       </div>
     </div>
   );
