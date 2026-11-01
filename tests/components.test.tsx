@@ -11,6 +11,7 @@ import "@testing-library/jest-dom/vitest";
 import CopyButton from "../components/tools/copy-button";
 import WordCounter from "../components/tools/word-counter";
 import ImageResizer from "../components/tools/image-resizer";
+import ImageCompressor from "../components/tools/image-compressor";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -154,5 +155,96 @@ describe("image resizer workspace", () => {
     });
     expect(quality).toBeDisabled();
     expect(screen.getByLabelText("Output format")).toHaveValue("image/png");
+  });
+});
+
+describe("image compressor workspace", () => {
+  it("starts empty with safe disabled actions and the full format list", async () => {
+    render(<ImageCompressor />);
+    expect(
+      await screen.findByRole("heading", {
+        name: "Shrink the file. Keep the detail.",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /Compress images/ }),
+    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Download ZIP/ })).toBeDisabled();
+    expect(screen.getByLabelText("Add images")).toHaveAttribute(
+      "accept",
+      "image/jpeg,image/png,image/webp,image/avif",
+    );
+    const formats = Array.from(
+      screen.getByLabelText("Output format").querySelectorAll("option"),
+    ).map((option) => option.value);
+    expect(formats).toEqual([
+      "image/jpeg",
+      "image/webp",
+      "image/png",
+      "image/avif",
+    ]);
+  });
+
+  it("switches between quality and target size strategies", async () => {
+    render(<ImageCompressor />);
+    expect(screen.getByRole("slider")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("slider"), {
+      target: { value: "45" },
+    });
+    expect(screen.getByText("45%")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("radio", { name: /Target size/ }));
+    const target = screen.getByLabelText("Target file size");
+    expect(target).toHaveValue(150);
+    fireEvent.change(target, { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("Unit"), {
+      target: { value: "MB" },
+    });
+    expect(screen.getByLabelText("Unit")).toHaveValue("MB");
+    expect(
+      screen.getByRole("checkbox", { name: /Allow downscaling/ }),
+    ).toBeChecked();
+  });
+
+  it("validates the target size inline and blocks the action", async () => {
+    render(<ImageCompressor />);
+    fireEvent.click(screen.getByRole("radio", { name: /Target size/ }));
+    fireEvent.change(screen.getByLabelText("Target file size"), {
+      target: { value: "1" },
+    });
+    expect(screen.getByLabelText("Target file size")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(screen.getByText(/at least 5 KB/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Compress images/ }),
+    ).toBeDisabled();
+  });
+
+  it("disables quality for lossless PNG and shows the JPEG background", async () => {
+    render(<ImageCompressor />);
+    fireEvent.change(screen.getByLabelText("Output format"), {
+      target: { value: "image/png" },
+    });
+    expect(screen.getByRole("slider")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "80%" })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Output format"), {
+      target: { value: "image/jpeg" },
+    });
+    expect(screen.getByRole("slider")).toBeEnabled();
+    expect(screen.getByLabelText("Background")).toHaveValue("#ffffff");
+  });
+
+  it("previews the output name from rename and suffix fields", async () => {
+    render(<ImageCompressor />);
+    fireEvent.change(screen.getByLabelText("Rename outputs (optional)"), {
+      target: { value: "Hero Shot" },
+    });
+    fireEvent.change(screen.getByLabelText("Filename suffix (optional)"), {
+      target: { value: "small" },
+    });
+    expect(screen.getByText("Hero-Shot-small.webp")).toBeInTheDocument();
   });
 });

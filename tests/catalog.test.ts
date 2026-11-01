@@ -19,6 +19,16 @@ describe("catalog discovery", () => {
     expect(resizer[0].slug).toBe("image-resizer");
     expect(resizer[0].name).toBe("Image Resizer");
   });
+  it("moves the Image Compressor into the Image Tools category", () => {
+    const imageTools = filterTools("", "Image Tools");
+    expect(imageTools.map((tool) => tool.slug).sort()).toEqual([
+      "image-compressor",
+      "image-resizer",
+    ]);
+    expect(filterTools("kb target", "All tools")[0].slug).toBe(
+      "image-compressor",
+    );
+  });
   it("finds social preset keywords", () =>
     expect(filterTools("thumbnail", "All tools")[0].slug).toBe(
       "image-resizer",

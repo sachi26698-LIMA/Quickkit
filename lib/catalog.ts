@@ -78,10 +78,11 @@ export const tools = [
   {
     slug: "image-compressor",
     name: "Image Compressor",
-    category: "Image & QR",
+    category: "Image Tools",
     description:
-      "Less file size, more possibilities. Compress images right in your browser.",
-    keywords: "photo picture jpeg webp optimize resize",
+      "Less file size, more possibilities. Compress to a quality level or an exact KB target, in batches.",
+    keywords:
+      "photo picture jpeg jpg webp png avif compress optimise optimize quality size kb mb batch zip transparency",
     icon: "image",
     color: "peach",
     phase: 3,

@@ -22,19 +22,21 @@ Statuses for the PDF tools belong to their own workstream and are recorded here 
 | 3 | Developer | JSON Formatter | `/tools/json-formatter` | ✅ Done | `main` | Phase 2 baseline |
 | 4 | Security | Password Generator | `/tools/password-generator` | ✅ Done | `main` | Phase 2 baseline |
 | 5 | Image & QR | QR Code Generator | `/tools/qr-generator` | ✅ Done | `main` | Phase 3 baseline |
-| 6 | Image & QR | Image Compressor | `/tools/image-compressor` | ✅ Done (existing) | `main` | **Not modified on this branch.** Next Image Tools candidate after Image Resizer sign-off |
-| 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done (v2 premium editor) — awaiting owner approval** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete; checklist below |
-| — | Image Tools | Image Compressor v2 (category migration) | — | 🟡 Next | — | Starts only after Image Resizer approval |
+| 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2 premium compressor)** | `feature/image-compressor` | Upgraded in place on this branch: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. See `docs/FEATURE_IMAGE_COMPRESSOR.md` |
+| 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete, **approved by the owner on 1 Nov 2026** (frozen) |
+| — | Image Tools | Next image tool | — | ⬜ Planned | — | Not started; waits for the owner to choose it |
 | — | PDF Tools | PDF Merger | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
 | — | PDF Tools | PDF Splitter | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
 
-Only these shared files gained additive entries for the new category: `lib/catalog.ts`
-(new tool record + `"Image Tools"` category), `components/catalog.tsx` and
-`components/tool-icon.tsx` (icon map entry), `app/globals.css` (new `.resizer-*` /
-`.sky` blocks appended — no existing rule edited), `tests/catalog.test.ts`,
-`tests/launch.test.ts`, `tests/e2e/foundation.spec.ts`, `tests/e2e/quality.spec.ts`
-(tool-count and route-list expectations). PDF routes and components are absent from
-this repository state and were not created, edited or deleted.
+Only these shared files gained additive entries for the image work: `lib/catalog.ts`
+(tool records + `"Image Tools"` category), `components/catalog.tsx` and
+`components/tool-icon.tsx` (icon map entries), `app/globals.css` (new `.resizer-*`,
+`.sky` and `.compressor-*` blocks appended — no existing rule edited),
+`tests/catalog.test.ts`, `tests/launch.test.ts`, `tests/e2e/foundation.spec.ts`,
+`tests/e2e/quality.spec.ts` (tool-count and route-list expectations). The Image
+Compressor moved from *Image & QR* to *Image Tools*; its route and features were kept
+and extended. PDF routes and components are absent from this repository state and were
+not created, edited or deleted.
 
 ## Image Resizer — ✅ complete (v2 premium editor)
 
@@ -42,7 +44,7 @@ this repository state and were not created, edited or deleted.
 commit `e5ac3d5`) · **Route:** `/tools/image-resizer` · **Category:** `Image Tools`.
 The v1 tool was **upgraded in place**: the route, design system, queue, ZIP writer and
 privacy model are unchanged, and no v1 capability was removed.
-**Hard rule respected:** Image Compressor work has **not** started.
+**Hard rule respected:** the Image Resizer is frozen — the later Image Compressor work did not touch it.
 
 ### v2 upgrade (what changed)
 
@@ -109,7 +111,7 @@ Full report with per-feature evidence: `docs/QA_IMAGE_RESIZER_AUDIT.md`.
 | Resize | Dimensions, percentage, longest/shortest side, presets (+custom), DPI/print | **VERIFIED** | edits + audit suites, print 10×15 cm @ 300 DPI → 1,181 × 1,772 px |
 | SEO | Metadata + WebApplication/HowTo/FAQPage JSON-LD, 5 steps, 7 FAQs | **VERIFIED** | audit structured-data test |
 
-### Verification (this branch)
+### Verification (at the resizer sign-off)
 
 ```text
 npx tsc --noEmit     ✅ 0 errors
@@ -137,9 +139,43 @@ be provisioned). Firefox/WebKit projects remain configured and are expected to r
 - Animation collapses to one frame; HEIC, GIF and SVG inputs are rejected by design.
 - Upscaling adds pixels, not detail. The ZIP uses the stored method (photos are compressed).
 
+## Image Compressor — ✅ complete (v2 premium compressor)
+
+**Branch:** `feature/image-compressor` (work also committed on `arena/82ce86c2-quickkit`) ·
+**Route:** `/tools/image-compressor` · **Category:** `Image Tools`.
+The original single-image tool was **upgraded in place**; no existing capability was
+removed and the Image Resizer was not modified. Full record:
+`docs/FEATURE_IMAGE_COMPRESSOR.md`.
+
+| Area | Delivered |
+| --- | --- |
+| Formats | JPEG, PNG, WebP, plus AVIF where the browser can encode it (disabled + labelled otherwise) |
+| Size control | Quality mode 10–100 % **and** target mode in KB/MB with binary quality search and controlled downscaling |
+| Batch | Up to 20 images, per-image overrides, per-image progress, errors and retry |
+| Compare | Original ⇄ Result, Split slider, Side by side, BEFORE/AFTER captions |
+| Numbers | Original vs compressed size, **% savings**, dimensions, quality used, target status |
+| Transparency | Kept for PNG/WebP/AVIF; JPEG flattens onto a chosen background (default white) |
+| Downloads | Individual files **and** a ZIP with final names |
+| Naming | Rename outputs and filename suffixes, batch-wide or per image |
+| Control | Determinate progress, Stop (finished images kept), Retry failed (n), Reset |
+| Privacy | 100 % local; metadata panel explains EXIF/GPS/ICC stripping; URLs revoked on reset/unmount |
+| SEO/UX | 5-step HowTo, 7 FAQs, `WebApplication`/`HowTo`/`FAQPage` JSON-LD, axe clean |
+| Bug fixed | Large-image target search returned a full-quality blob when the budget ran out; now the smallest encode is returned with “not reachable” and a 3,600 × 2,400 PNG hits a 40 KB target |
+
+### Verification (this branch)
+
+```text
+npx tsc --noEmit     ✅ 0 errors
+npx eslint .         ✅ 0 problems
+npx vitest run       ✅ 13 files, 220 tests passed
+npm run build        ✅ 19 static routes, /tools/image-compressor prerendered
+playwright chromium  ✅ 160 passed (2.7 m) — all specs, including image-compressor (14)
+screenshots          docs/verification/image-compressor-*.png
+```
+
 ## Next up (not started)
 
-1. **Image Compressor v2** — starts only after the Image Resizer is approved.
+1. The owner picks the next tool; nothing new is started until the compressor is signed off.
 2. Image Tools category polish: shared image queue component, if a third image tool lands.
 
 ## PDF tools
