@@ -3,8 +3,11 @@
 **Last updated:** 1 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
-**Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF Merger — **implemented — awaiting owner approval**. The owner approved the plan on 1 November 2026 with explicit browser-only privacy, actionable error-handling and complete mobile-workflow requirements. Implementation and QA are complete for owner review; **do not mark it live/complete and do not start another tool until the owner personally approves it**. It has not been deployed or indexed.
+**Development policy:** Strictly one tool at a time. The owner explicitly directed this branch to complete the QR Code Generator (tool #1 in the approved 20-tool QR/barcode sequence); do not begin QR Scanner or any later roadmap tool until the QR Generator is presented and personally approved. PDF Merger remains separately **implemented — awaiting owner approval**; this QR task does not approve or supersede its review gate.
+
+**Current active tool:** QR Code Generator — expanded implementation and QA are complete on `arena/9ad31977-quickkit`, pending owner review. The existing `qr-generator` route is already live in the mainline baseline; this branch adds the requested formats, customization, local scan checks and exports but is not released or owner-approved. No later roadmap routes or placeholders were added.
+
+**Branch note:** Arena requires this session to remain on `arena/9ad31977-quickkit`; `main` was not modified. The originally requested `feature/qr-generator` branch was not created.
 
 ## 1. Status definitions
 
@@ -24,10 +27,11 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 
 | Group | Count | Notes |
 |---|---:|---|
-| Implemented in repository (`live`) | 6 | Existing tools listed in Section 4. |
-| Implemented — awaiting owner approval | 1 | PDF Merger only; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
-| In research/planning | 0 | No next tool may enter research/planning as active work until the owner approves PDF Merger. |
-| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger, which has moved to owner review. |
+| Implemented in repository (`live` mainline baseline) | 6 | Existing tools listed in Section 4; the QR entry reflects the previously shipped baseline, not this branch's expanded implementation. |
+| Implemented — awaiting owner approval | 1 | PDF Merger only; its independent review state is unchanged. |
+| Current branch enhancement — awaiting owner review | 1 | Expanded QR Code Generator under the existing `qr-generator` ID/route; this is not an additional tool in portfolio totals. |
+| In research/planning | 0 | No later roadmap tool may enter active work until the QR Code Generator is presented and approved. The PDF Merger gate remains separate. |
+| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger, which has moved to owner review. The QR enhancement reuses an existing tool ID and does not change this count. |
 | Projected total after Phase 12 | 90 | Only if every candidate passes its individual quality gate. |
 | Additional tools needed to exceed 100 | 11+ | Reserved for evidence-led Phase 13; candidates not selected yet. |
 
@@ -61,7 +65,7 @@ The proposed IDs below use the existing slug values. During registry migration t
 | `case-converter` | Case Converter | `/tools/case-converter` | Text | Text & Writing Tools | `live` | Implemented; included in existing unit/browser suites. |
 | `json-formatter` | JSON Formatter | `/tools/json-formatter` | Developer | Developer Tools | `live` | Implemented; included in existing unit/browser suites. |
 | `password-generator` | Password Generator | `/tools/password-generator` | Security | Security & Privacy Tools | `live` | Implemented with cryptographically secure generation; included in existing tests. |
-| `qr-generator` | QR Code Generator | `/tools/qr-generator` | Image & QR | QR & Barcode Tools | `live` | Implemented locally in the browser; included in existing tests. |
+| `qr-generator` | QR Code Generator | `/tools/qr-generator` | Image & QR | QR & Barcode Tools | `live` (mainline baseline) | The existing text/URL QR route remains live. The expanded implementation on `arena/9ad31977-quickkit` is pending owner review; see the current branch QA evidence below. |
 | `image-compressor` | Image Compressor | `/tools/image-compressor` | Image & QR | Image Tools | `live` | Implemented with bounded canvas processing; included in existing tests. |
 
 ### Implemented — awaiting owner approval
@@ -70,17 +74,22 @@ The proposed IDs below use the existing slug values. During registry migration t
 |---|---|---|---|---|---|---|
 | `merge-pdf` | PDF Merger | `/tools/merge-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only implementation committed on `arena/eb17e485-quickkit`; final QA evidence is in `docs/pdf-merger/QA_REPORT.md`. Not owner-approved, live, deployed or indexed. |
 
-### Current regression evidence
+### Current branch QA evidence — QR Code Generator
 
-The most recent full run recorded after PDF Merger Git resynchronization is:
+Full verification for the V2 studio on `arena/9ad31977-quickkit` was completed on 1 November 2026. Exact commands, browser-environment notes, coverage, and screenshot dimensions are recorded in [`docs/qr-generator/QA_REPORT.md`](docs/qr-generator/QA_REPORT.md); feature behavior and privacy controls are in [`docs/qr-generator/README.md`](docs/qr-generator/README.md).
 
-- Vitest: **114/114 passed**.
-- Chromium Playwright suite: **146/146 passed** in the sandbox browser environment.
-- Production build: passed with seven repository tool routes and 19 static pages.
-- Format check, ESLint and TypeScript: passed.
-- Production dependency audit: **0 vulnerabilities**.
+- Vitest: **139/139 passed** across 13 files.
+- Full Chromium Playwright suite: **155/155 passed** against the production build. The 9 QR-specific E2E cases passed as part of the full suite.
+- QR coverage: all 15 content types decode locally; PNG, JPG, SVG, PDF, clipboard PNG, ZIP entries, and print-sheet PDF entries are decoded or checked. All four error-correction settings and all 12 dot/finder-style combinations are scan-checked. CSV validation, exact duplicates, selective generation, local history, undo/redo, transparent outer margins, adjustable logo controls, caption escaping, and responsive workflows are covered.
+- Accessibility and responsive QA: axe checks passed; overflow checks passed at 320, 360, 375, 390, 430, 768, 1024, 1366, and 1440 px.
+- ESLint, Prettier format check, and TypeScript typecheck: passed.
+- Production dependency audit (`npm audit --omit=dev`): **0 vulnerabilities**.
+- Production build: passed with seven tool routes and 19 static pages.
+- Privacy check: browser interaction tests confirmed QR input is not transmitted.
+- V2 screenshots: `docs/qr-generator/screenshots/qr-generator-v2-desktop.png`, `qr-generator-v2-tablet.png`, and `qr-generator-v2-mobile.png` (captured at 1440, 768, and 390 px viewport widths).
+- Live local preview: `http://localhost:3001/tools/qr-generator`. It is not a public deployment.
 
-Firefox/WebKit execution is not claimed for that sandbox run. Any registry migration or later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
+The bundled Playwright Chromium shell initially failed because `libnspr4.so` was missing. The successful Chromium run used Playwright 1.64.1, local Chromium 153.0.8010.0, `/tmp/lib` runtime libraries, and a temporary config that was removed after testing; no browser binary/config was added to Git. Firefox/WebKit results are not claimed. This QA evidence applies to the current branch implementation, but the tool remains **pending owner approval** and must not be marked live, released, or deployed from this work alone.
 
 ## 5. Proposed Phase 5 — PDF Tools
 
@@ -101,7 +110,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 | 9 | Add PDF Watermark | `add-pdf-watermark` | `add-pdf-watermark` | `planned` |
 | 10 | PDF Metadata Editor | `pdf-metadata-editor` | `pdf-metadata-editor` | `planned` |
 
-**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool until the owner personally approves PDF Merger.
+**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval**; do not begin Split PDF or another Phase 5 candidate until the owner personally approves PDF Merger. The owner's separately directed QR Generator work does not change this PDF gate.
 
 ## 6. Proposed Phase 6 — Image Tools
 
@@ -189,9 +198,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 
 ## 10. Proposed Phase 10 — QR & Barcode Tools
 
-**Phase status:** Planned — pending approval and completion of earlier phases  
-**Candidate count:** 10  
-**Projected cumulative total:** 74
+**Phase status:** The candidate inventory below remains planned. The owner has separately directed the existing QR Code Generator to be expanded as roadmap tool #1 on the active branch; its release is pending owner review, and no later QR/barcode tool may begin until it is approved. **Candidate count:** 10 unique Phase 10 candidates (unchanged). **Projected cumulative total:** 74.
 
 | # | Tool | Proposed ID | Proposed slug | Status |
 |---:|---|---|---|---|
@@ -205,6 +212,33 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 | 8 | Batch QR Generator | `batch-qr-generator` | `batch-qr-generator` | `planned` |
 | 9 | QR Code Scanner | `qr-code-scanner` | `qr-code-scanner` | `planned` |
 | 10 | Barcode Generator | `barcode-generator` | `barcode-generator` | `planned` |
+
+### Owner-approved QR & Barcode 20-tool execution sequence
+
+This ordered sequence is the owner's active prioritization for QR/barcode work and takes precedence over the older Phase 10 execution order above. It is **not additive** to Phase 5–12 candidate totals: several items overlap with the existing QR route or Phase 10 inventory. Features available inside tool #1 do not create separate routes or mark later standalone tools complete. Only #1 is active; #2–20 remain blocked until #1 is personally approved.
+
+| # | Tool | Sequence state | Notes |
+|---:|---|---|---|
+| 1 | QR Code Generator | **Implemented on current branch — awaiting owner approval** | Existing `/tools/qr-generator` route, expanded for this task. |
+| 2 | QR Code Scanner | `planned — blocked` | Do not start before #1 approval. |
+| 3 | QR Code Decoder | `planned — blocked` | Generated-code verification in #1 is not a standalone decoder. |
+| 4 | QR Code Customizer | `planned — blocked` | Customization is included within #1; no separate route was added. |
+| 5 | Bulk QR Generator | `planned — blocked` | Batch ZIP is included within #1; no separate route was added. |
+| 6 | Wi-Fi QR Generator | `planned — blocked` | Wi-Fi payloads are included within #1; no separate route was added. |
+| 7 | vCard QR Generator | `planned — blocked` | vCard payloads are included within #1; no separate route was added. |
+| 8 | WhatsApp QR Generator | `planned — blocked` | WhatsApp payloads are included within #1; no separate route was added. |
+| 9 | Location QR Generator | `planned — blocked` | Location payloads are included within #1; no separate route was added. |
+| 10 | Event QR Generator | `planned — blocked` | Calendar-event payloads are included within #1; no separate route was added. |
+| 11 | Barcode Generator | `planned — blocked` | Not implemented. |
+| 12 | Barcode Scanner | `planned — blocked` | Not implemented. |
+| 13 | Barcode Decoder | `planned — blocked` | Not implemented. |
+| 14 | Bulk Barcode Generator | `planned — blocked` | Not implemented. |
+| 15 | Barcode Label Maker | `planned — blocked` | Not implemented. |
+| 16 | QR Code with Logo | `planned — blocked` | Logo support is included within #1; no separate route was added. |
+| 17 | Payment QR Generator | `planned — blocked` | Compatible UPI intent generation is included within #1; payment processing is not provided. |
+| 18 | Restaurant Menu QR | `planned — blocked` | Not implemented. |
+| 19 | Review & Feedback QR | `planned — blocked` | Not implemented. |
+| 20 | QR Business Card Maker | `planned — blocked` | Not implemented. |
 
 ## 11. Proposed Phase 11 — Security & Privacy Tools
 
@@ -283,16 +317,17 @@ A candidate may move from `planned` to `live` only when all items below are evid
 
 ## 16. Decisions for future expansion
 
-PDF Merger proceeded under the owner's explicit narrow-catalog integration decision; the full registry migration remains separate and does not block owner review of PDF Merger.
+PDF Merger proceeded under the owner's explicit narrow-catalog integration decision; the full registry migration remains separate and does not block its owner review. The QR Generator expansion was separately directed on the current Arena branch. Its 20-step execution sequence is tracked above; only #1 has been built, and the next QR/barcode tool remains gated on the owner's approval of #1.
 
-- [ ] Personally approve or request changes to PDF Merger before any next tool starts.
+- [ ] Personally approve or request changes to the expanded QR Code Generator before QR/barcode tool #2 starts.
+- [ ] Separately approve or request changes to PDF Merger before another Phase 5 PDF candidate starts; QR review does not change this gate.
 - [ ] Approve the registry architecture and URL model.
 - [ ] Approve the remaining candidate scope and the resulting 90-tool total, with Phase 13 reserved for 100+.
 - [ ] Approve the eight-category taxonomy and remapping of the existing tools.
 - [ ] Approve the remaining Phase 5 PDF list and deferral of Compress/Protect pending technical evidence.
 - [ ] Decide whether account-free favorites may store tool IDs in local storage.
 - [ ] Decide whether to show editorial “Featured” tools while keeping “Popular” hidden until real aggregate data exists.
-- [ ] Decide whether to build the registry foundation before the next tool after PDF Merger approval.
+- [ ] Decide whether to build the registry foundation before the next roadmap tool after the current QR and PDF owner-review gates are resolved.
 
 ## 17. Change log
 
@@ -303,3 +338,6 @@ PDF Merger proceeded under the owner's explicit narrow-catalog integration decis
 | 1 November 2026 | Owner approved the PDF Merger plan with mandatory browser-only processing, explicit actionable errors/no silent skipping and a polished complete mobile workflow. PDF Merger became the sole active implementation. |
 | 1 November 2026 | Local PDF Merger work was backed up, integrated directly onto pushed baseline `db4e906`, committed at `070bc77` and pushed to `arena/eb17e485-quickkit`/PR #2. No merge into `main` was performed. |
 | 1 November 2026 | Final PDF Merger QA and owner-review handoff completed in `docs/pdf-merger/QA_REPORT.md`. Status set to **implemented — awaiting owner approval**; all other tools remain blocked. |
+| 1 November 2026 | At the owner's separate direction, expanded the existing QR Code Generator as tool #1 of the 20-tool QR/barcode sequence on `arena/9ad31977-quickkit`. Full local QA and screenshots completed; pending owner approval. QR Scanner and later sequence tools remain blocked; PDF Merger's separate approval status is unchanged. |
+| 1 November 2026 | Added contrast-checked gradient fill, circle-dot modules and customizable finder corners; validated all nine dot/finder combinations, logo add/remove, image clipboard content, and PNG/SVG/PDF decoding. Final result: 126/126 unit tests, 151/151 Chromium E2E tests, lint, typecheck, format check and production build passed. Updated four screenshots; QR work remains pending owner approval. |
+| 1 November 2026 | Completed V2 content types, template/design editing, adjustable logo, transparent output, local history, CSV/batch ZIP and print-sheet flows; expanded browser QA and desktop/tablet/mobile screenshots. Final checks: 139/139 unit tests, 155/155 Chromium E2E tests, lint, typecheck, format check, production build, and 0 production dependency vulnerabilities. QA report: `docs/qr-generator/QA_REPORT.md`; feature guide: `docs/qr-generator/README.md`. |
