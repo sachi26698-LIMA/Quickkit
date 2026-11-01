@@ -22,7 +22,7 @@ Statuses for the PDF tools belong to their own workstream and are recorded here 
 | 3 | Developer | JSON Formatter | `/tools/json-formatter` | ✅ Done | `main` | Phase 2 baseline |
 | 4 | Security | Password Generator | `/tools/password-generator` | ✅ Done | `main` | Phase 2 baseline |
 | 5 | Image & QR | QR Code Generator | `/tools/qr-generator` | ✅ Done | `main` | Phase 3 baseline |
-| 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2) — awaiting owner approval** | `feature/image-compressor` | Upgraded in place and passed the final real-image QA: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. Reports: `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
+| 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2) — owner approved** | `feature/image-compressor` | Upgraded in place and passed the final real-image QA: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. **Approved by the owner on 1 Nov 2026** (frozen). Reports: `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
 | 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete, **approved by the owner on 1 Nov 2026** (frozen) |
 | — | Image Tools | Next image tool | — | ⬜ Planned | — | Not started; waits for the owner to choose it |
 | — | PDF Tools | PDF Merger | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
@@ -139,12 +139,13 @@ be provisioned). Firefox/WebKit projects remain configured and are expected to r
 - Animation collapses to one frame; HEIC, GIF and SVG inputs are rejected by design.
 - Upscaling adds pixels, not detail. The ZIP uses the stored method (photos are compressed).
 
-## Image Compressor — ✅ complete (v2) · awaiting owner approval
+## Image Compressor — ✅ complete (v2) · owner approved 1 Nov 2026
 
 **Branch:** `feature/image-compressor` (work also committed on `arena/82ce86c2-quickkit`) ·
 **Route:** `/tools/image-compressor` · **Category:** `Image Tools`.
 The original single-image tool was **upgraded in place**; no existing capability was
-removed and the Image Resizer was not modified. Full record:
+removed and the Image Resizer was not modified. **Approved by the owner on 1 November
+2026 and frozen** — later image work does not alter it. Full record:
 `docs/FEATURE_IMAGE_COMPRESSOR.md`.
 
 | Area | Delivered |
@@ -182,10 +183,11 @@ playwright chromium  ✅ 181 passed — all specs
 screenshots          docs/verification/image-compressor-*.png
 ```
 
-## Next up (not started)
+## Next up
 
-1. **Owner approval for the Image Compressor** — it is complete and awaiting sign-off; nothing new starts before that.
-2. Image Tools category polish: shared image queue component, if a third image tool lands.
+1. **Image Cropper** — approved to start after the Image Compressor sign-off; work begins on
+   `feature/image-cropper` from the approved shared state (`bb88542`).
+2. Image Tools category polish: shared image queue component now that a third image tool has landed.
 
 ## PDF tools
 

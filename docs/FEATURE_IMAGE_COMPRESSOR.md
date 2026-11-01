@@ -8,6 +8,10 @@ language, same queue/ZIP/privacy model. Nothing was rebuilt from scratch, no exi
 capability was removed, and the Image Resizer plus the PDF tools were not touched.
 Every control described here is wired to real logic; there are no placeholders.
 
+> **Status: owner approved on 1 November 2026 and frozen.** The final real-image QA
+> (`docs/QA_IMAGE_COMPRESSOR_AUDIT.md`) passed and the tool is no longer changed by later
+> image work.
+
 ---
 
 ## 1. What v2 adds
