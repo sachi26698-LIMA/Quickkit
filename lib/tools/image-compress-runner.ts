@@ -5,6 +5,7 @@
  * must be reached) → encode with canvas.toBlob. Nothing leaves the browser.
  */
 
+import { METADATA_SCAN_LIMIT, scanMetadata } from "./exif";
 import { inspectImageHeader } from "./image-header";
 import { MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS } from "./image-input";
 import {
@@ -118,6 +119,17 @@ export async function inspectCompressFile(file: File) {
     throw new Error(
       "Use an image up to 24 megapixels, with neither side above 8,192 pixels.",
     );
+  // Phone photos often store landscape pixels with an EXIF rotation tag. The
+  // decoder applies that rotation, so report the dimensions people actually see
+  // instead of contradicting them after compression.
+  if (file.type === "image/jpeg") {
+    const { orientation } = scanMetadata(
+      bytes.subarray(0, METADATA_SCAN_LIMIT),
+      file.type,
+    );
+    if (orientation && orientation >= 5 && orientation <= 8)
+      return { width: dimensions.height, height: dimensions.width };
+  }
   return dimensions;
 }
 
@@ -230,6 +242,8 @@ async function searchQuality(
   targetBytes: number,
   attempts: { count: number },
   isCancelled?: () => boolean,
+  /** false for lossless formats, where quality cannot change the byte size. */
+  varyQuality = true,
 ): Promise<{
   blob: Blob;
   quality: number;
@@ -247,6 +261,15 @@ async function searchQuality(
   };
 
   const top = await encodeAt(MAX_QUALITY);
+  // Lossless formats ignore the quality knob: one probe is the whole search.
+  if (!varyQuality)
+    return {
+      blob: top.blob,
+      quality: MAX_QUALITY,
+      canvas: top.canvas,
+      samples,
+      fits: top.blob.size <= targetBytes,
+    };
   if (top.blob.size <= targetBytes)
     return {
       blob: top.blob,
@@ -359,6 +382,7 @@ export async function compressImageFile(
         settings.targetBytes,
         attempts,
         isCancelled,
+        usesQuality(settings.format),
       );
       outcome.canvas.width = 0;
       outcome.canvas.height = 0;

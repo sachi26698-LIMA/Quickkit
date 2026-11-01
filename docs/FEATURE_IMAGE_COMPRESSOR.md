@@ -103,13 +103,14 @@ npx tsc --noEmit     ✅ 0 errors
 npx eslint .         ✅ 0 problems
 npx vitest run       ✅ 13 files, 220 tests passed
 npm run build        ✅ 19 static routes, /tools/image-compressor prerendered
-playwright chromium  ✅ 160 passed (2.7 m) across all specs, including
-                        image-compressor.spec.ts (14: quality matrix, target KB,
-                        unreachable target + downscale, transparency vs JPEG flatten,
-                        batch + per-image overrides + ZIP names, rename/suffix,
-                        before/after views, stats accuracy, progress/Stop/Retry,
-                        axe + accessible names, JSON-LD, large 3,600×2,400 image,
-                        mobile touch flow, mobile target flow)
+playwright chromium  ✅ 181 passed across all specs
+                        · image-compressor-audit.spec.ts (21, final real-image QA)
+                        · image-compressor.spec.ts (14: quality matrix, target KB,
+                          unreachable target + downscale, transparency vs JPEG flatten,
+                          batch + per-image overrides + ZIP names, rename/suffix,
+                          before/after views, stats accuracy, progress/Stop/Retry,
+                          axe + accessible names, JSON-LD, large image,
+                          mobile touch flow, mobile target flow)
 screenshots          docs/verification/image-compressor-{empty,settings,compare,target,full}-1440.png
                      docs/verification/image-compressor-mobile-{390,full-390,320}.png
 ```
@@ -128,7 +129,31 @@ is detected at runtime and the option is disabled when the browser cannot encode
 
 ---
 
-## 5. Known limits (stated in-product)
+## 5. Final real-world QA (1 November 2026)
+
+Full report: `docs/QA_IMAGE_COMPRESSOR_AUDIT.md`. Real photographs and a real transparent
+PNG were compressed through the UI; every download was decoded, savings recomputed from
+the bytes, and the ZIP validated with `unzip -t`. Six defects were found and fixed:
+
+1. **Unreachable target returned the q100 blob** after the encode budget was exhausted —
+   now the smallest encode is returned and flagged; a 3,600 × 2,400 PNG hits 40 KB at
+   2,708 × 1,805 px.
+2. **EXIF-rotated phone photos** showed 900 × 600 before compression and
+   "600 × 900 · unchanged" after — the inspector now applies the orientation tag, and the
+   metadata panel names it.
+3. **PNG target mode** claimed "met at q100" and wasted eight identical encodes per pass —
+   lossless formats take one probe and report "met by resizing"/"met".
+4. **Per-image JPEG overrides** could not reach the Background colour when the batch was
+   not JPEG — the control now appears for any image that resolves to JPEG.
+5. **Target-mode footer** advertised a fixed quality while searching — it now reads
+   "target search".
+6. **Stopping a re-run** left an item "Ready" while its old result was still downloadable —
+   cancelled items with a result stay "Done".
+
+Measured on the production build: 20 MP → WebP q80 in 1.5 s, 24 MP in 1.9 s, a 20-image
+3 MP batch in 6.9 s (343 ms/image) with JS heap ≤ 7.9 MB and no page errors.
+
+## 6. Known limits (stated in-product)
 
 - AVIF encoding depends on the browser; unsupported options are disabled and explained.
 - PNG is lossless — the quality slider is disabled and the file can grow.
@@ -137,5 +162,8 @@ is detected at runtime and the option is disabled when the browser cannot encode
   abortable); the tooltip says so.
 - A byte target can be impossible for tiny sizes; the app says “not reachable” and
   returns the smallest result it found.
+- PNG cannot be tuned by quality; a PNG target is reached by resizing and the stats say
+  “met by resizing”.
+- EXIF rotation is auto-corrected on decode; the original file is never modified.
 - Animation collapses to one frame; GIF, SVG and HEIC inputs are rejected by design.
 - Preview URLs are revoked on replacement, reset, removal and unmount.

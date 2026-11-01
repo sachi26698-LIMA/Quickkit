@@ -493,7 +493,9 @@ export default function ImageCompressor() {
     setProgress({ done: 0, total: 0 });
     commitItems(
       itemsRef.current.map((item) =>
-        item.status === "working" ? { ...item, status: "ready" } : item,
+        item.status === "working"
+          ? { ...item, status: item.result ? "done" : "ready" }
+          : item,
       ),
     );
     const finished = itemsRef.current.filter((item) => item.result).length;
@@ -868,7 +870,12 @@ export default function ImageCompressor() {
                     ))}
                   </select>
                 </div>
-                {format === "image/jpeg" ? (
+                {format === "image/jpeg" ||
+                items.some(
+                  (item) =>
+                    item.override.enabled &&
+                    item.override.format === "image/jpeg",
+                ) ? (
                   <div className="compressor-field">
                     <label htmlFor="compressor-background">Background</label>
                     <div className="compressor-color-row">
@@ -971,6 +978,15 @@ export default function ImageCompressor() {
                         {activeItem.metadata.camera ?? "not recorded"}
                       </strong>
                     </li>
+                    {activeItem.metadata.orientation &&
+                    activeItem.metadata.orientation !== 1 ? (
+                      <li>
+                        EXIF orientation:{" "}
+                        <strong>
+                          tag {activeItem.metadata.orientation} · auto-corrected
+                        </strong>
+                      </li>
+                    ) : null}
                     <li>
                       Colour profile / XMP:{" "}
                       <strong>
@@ -1216,7 +1232,11 @@ export default function ImageCompressor() {
                         ? `${targetLabel(targetPreview)} · ${
                             activeResult
                               ? activeResult.targetMet
-                                ? `met at q${activeResult.quality}`
+                                ? usesQuality(formatFor(activeItem))
+                                  ? `met at q${activeResult.quality}`
+                                  : activeResult.scaled
+                                    ? "met by resizing"
+                                    : "met"
                                 : "not reachable"
                               : "search on compress"
                           }`
@@ -1321,7 +1341,11 @@ export default function ImageCompressor() {
         </button>
         <span className="compressor-format-note">
           <ShieldCheck size={15} aria-hidden="true" /> {formatLabel(format)} ·{" "}
-          {format === "image/png" ? "lossless" : `${quality}% quality`}
+          {mode === "target"
+            ? "target search"
+            : usesQuality(format)
+              ? `${quality}% quality`
+              : "lossless"}
         </span>
       </div>
 

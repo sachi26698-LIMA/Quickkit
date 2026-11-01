@@ -22,7 +22,7 @@ Statuses for the PDF tools belong to their own workstream and are recorded here 
 | 3 | Developer | JSON Formatter | `/tools/json-formatter` | ✅ Done | `main` | Phase 2 baseline |
 | 4 | Security | Password Generator | `/tools/password-generator` | ✅ Done | `main` | Phase 2 baseline |
 | 5 | Image & QR | QR Code Generator | `/tools/qr-generator` | ✅ Done | `main` | Phase 3 baseline |
-| 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2 premium compressor)** | `feature/image-compressor` | Upgraded in place on this branch: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. See `docs/FEATURE_IMAGE_COMPRESSOR.md` |
+| 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2) — awaiting owner approval** | `feature/image-compressor` | Upgraded in place and passed the final real-image QA: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. Reports: `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
 | 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete, **approved by the owner on 1 Nov 2026** (frozen) |
 | — | Image Tools | Next image tool | — | ⬜ Planned | — | Not started; waits for the owner to choose it |
 | — | PDF Tools | PDF Merger | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
@@ -139,7 +139,7 @@ be provisioned). Firefox/WebKit projects remain configured and are expected to r
 - Animation collapses to one frame; HEIC, GIF and SVG inputs are rejected by design.
 - Upscaling adds pixels, not detail. The ZIP uses the stored method (photos are compressed).
 
-## Image Compressor — ✅ complete (v2 premium compressor)
+## Image Compressor — ✅ complete (v2) · awaiting owner approval
 
 **Branch:** `feature/image-compressor` (work also committed on `arena/82ce86c2-quickkit`) ·
 **Route:** `/tools/image-compressor` · **Category:** `Image Tools`.
@@ -161,21 +161,30 @@ removed and the Image Resizer was not modified. Full record:
 | Privacy | 100 % local; metadata panel explains EXIF/GPS/ICC stripping; URLs revoked on reset/unmount |
 | SEO/UX | 5-step HowTo, 7 FAQs, `WebApplication`/`HowTo`/`FAQPage` JSON-LD, axe clean |
 | Bug fixed | Large-image target search returned a full-quality blob when the budget ran out; now the smallest encode is returned with “not reachable” and a 3,600 × 2,400 PNG hits a 40 KB target |
+| QA fixes | EXIF-rotated photos report the displayed dimensions; PNG target mode no longer claims “q100” and skips redundant encodes; the JPEG flatten colour is reachable for per-image overrides; target mode no longer advertises a fixed quality; cancelling a re-run keeps finished items “Done” |
 
-### Verification (this branch)
+### Final real-world QA (1 November 2026)
+
+`docs/QA_IMAGE_COMPRESSOR_AUDIT.md` — verified with real photographs, a real transparent
+PNG, decoded pixels, `unzip -t` CRC checks and byte-level savings maths. Six defects were
+found and fixed (unreachable-target fallback, EXIF orientation, PNG target labelling,
+per-image JPEG colour, target-mode footer, cancelled-item status).
 
 ```text
 npx tsc --noEmit     ✅ 0 errors
-npx eslint .         ✅ 0 problems
+npx eslint .         ✅ 0 errors, 0 warnings
 npx vitest run       ✅ 13 files, 220 tests passed
 npm run build        ✅ 19 static routes, /tools/image-compressor prerendered
-playwright chromium  ✅ 160 passed (2.7 m) — all specs, including image-compressor (14)
+playwright chromium  ✅ 181 passed — all specs
+                       · image-compressor-audit.spec.ts 21 (final QA)
+                       · image-compressor.spec.ts 14
+                       · browser-tools.spec.ts 6 compressor scenarios
 screenshots          docs/verification/image-compressor-*.png
 ```
 
 ## Next up (not started)
 
-1. The owner picks the next tool; nothing new is started until the compressor is signed off.
+1. **Owner approval for the Image Compressor** — it is complete and awaiting sign-off; nothing new starts before that.
 2. Image Tools category polish: shared image queue component, if a third image tool lands.
 
 ## PDF tools
