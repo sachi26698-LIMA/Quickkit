@@ -3,9 +3,13 @@ import {
   ALL_PRESETS,
   MAX_DIMENSION,
   PRESET_SIZES,
+  SOCIAL_PLATFORMS,
   SOCIAL_PRESETS,
+  presetsByPlatform,
   linkedHeight,
   linkedWidth,
+  extensionFor,
+  formatLabel,
   outputFileName,
   planResize,
   sanitizeBaseName,
@@ -128,6 +132,39 @@ describe("percentage mode", () => {
     ).toThrow("over the 8,192 px limit"));
 });
 
+describe("longest and shortest side modes", () => {
+  it("scales a landscape image by its longest side", () =>
+    expect(
+      planResize(1600, 1200, settings({ mode: "longest", sideLength: 800 })),
+    ).toMatchObject({ width: 800, height: 600 }));
+
+  it("scales a portrait image by its longest side", () =>
+    expect(
+      planResize(1200, 1600, settings({ mode: "longest", sideLength: 800 })),
+    ).toMatchObject({ width: 600, height: 800 }));
+
+  it("scales by the shortest side", () =>
+    expect(
+      planResize(1600, 1200, settings({ mode: "shortest", sideLength: 600 })),
+    ).toMatchObject({ width: 800, height: 600 }));
+
+  it("refuses a shortest side larger than the image", () =>
+    expect(() =>
+      planResize(1600, 1200, settings({ mode: "shortest", sideLength: 2000 })),
+    ).toThrow("shortest side of this image is 1,200 px"));
+
+  it("refuses outputs above 24 megapixels", () =>
+    expect(() =>
+      planResize(4000, 3000, settings({ mode: "longest", sideLength: 8192 })),
+    ).toThrow("24 megapixels"));
+
+
+  it("requires a positive whole side length", () =>
+    expect(() =>
+      planResize(1600, 1200, settings({ mode: "longest", sideLength: 0 })),
+    ).toThrow("at least 1 pixel"));
+});
+
 describe("preset mode", () => {
   it("fills and crops a landscape image to a square", () => {
     const plan = planResize(
@@ -207,6 +244,30 @@ describe("preset mode", () => {
     });
     expect(PRESET_SIZES.length).toBeGreaterThanOrEqual(6);
   });
+
+  it("groups social presets for every supported platform", () => {
+    const platforms = new Set(SOCIAL_PRESETS.map((preset) => preset.platform));
+    for (const platform of [
+      "Instagram",
+      "YouTube",
+      "Facebook",
+      "WhatsApp",
+      "X",
+    ])
+      expect(platforms.has(platform)).toBe(true);
+    expect(presetsByPlatform("WhatsApp").length).toBeGreaterThanOrEqual(2);
+    expect(presetsByPlatform("Instagram")).toHaveLength(4);
+    expect(SOCIAL_PLATFORMS.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("uses exact, well-known social dimensions", () => {
+    const find = (id: string) => SOCIAL_PRESETS.find((preset) => preset.id === id);
+    expect(find("instagram-story")).toMatchObject({ width: 1080, height: 1920 });
+    expect(find("youtube-thumbnail")).toMatchObject({ width: 1280, height: 720 });
+    expect(find("facebook-post")).toMatchObject({ width: 1200, height: 630 });
+    expect(find("whatsapp-status")).toMatchObject({ width: 1080, height: 1920 });
+    expect(find("x-post")).toMatchObject({ width: 1600, height: 900 });
+  });
 });
 
 describe("helpers", () => {
@@ -266,6 +327,11 @@ describe("helpers", () => {
       "photo-800x600.jpg",
     );
     expect(outputFileName("", 1, 1, "image/png")).toBe("image-1x1.png");
+    expect(outputFileName("photo.jpg", 100, 100, "image/avif")).toBe(
+      "photo-100x100.avif",
+    );
+    expect(extensionFor("image/avif")).toBe("avif");
+    expect(formatLabel("image/avif")).toBe("AVIF");
   });
 
   it("deduplicates ZIP entry names case-insensitively", () => {

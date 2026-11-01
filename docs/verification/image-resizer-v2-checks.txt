@@ -1,0 +1,46 @@
+QUICKKIT Image Resizer v2 — verification log
+Date: 2026-11-01 08:03 UTC
+Node: v22.22.3
+
+== npx tsc --noEmit ==
+OK: 0 type errors
+
+== npx eslint . ==
+OK: 0 problems
+
+== npx vitest run ==
+ Test Files  12 passed (12)
+      Tests  193 passed (193)
+   Duration  8.88s (transform 433ms, setup 0ms, import 877ms, tests 5.52s, environment 725ms)
+
+== npm run build ==
+  Generating static pages using 1 worker (0/19) ...
+  Generating static pages using 1 worker (4/19) 
+  Generating static pages using 1 worker (9/19) 
+  Generating static pages using 1 worker (14/19) 
+✓ Generating static pages using 1 worker (19/19) in 748ms
+  Finalizing page optimization ...
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /apple-icon.png
+├ ○ /icon.svg
+├ ○ /opengraph-image
+├ ○ /privacy
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /terms
+├ ○ /tools/case-converter
+├ ○ /tools/image-compressor
+├ ○ /tools/image-resizer
+├ ○ /tools/json-formatter
+├ ○ /tools/password-generator
+├ ○ /tools/qr-generator
+└ ○ /tools/word-counter
+○  (Static)  prerendered as static content
+
+== Playwright (chromium, production build on http://127.0.0.1:3001) ==
+Playwright 1.x · 6 spec files · 130 tests
+  130 passed — foundation/core/quality/browser-tools + image-resizer (6) + image-resizer-edits (13)
+  (the 13th is the axe WCAG 2.2 AA check on the populated editor with the crop overlay open)

@@ -231,7 +231,7 @@ test.describe("image resizer", () => {
     await page.getByRole("button", { name: /Resize 2 images/ }).click();
     await expect(page.locator(".resizer-status-done")).toHaveCount(2);
     await expect(page.locator(".resizer-notice")).toContainText(
-      "2 images resized locally",
+      "2 images processed locally",
     );
 
     const pending = page.waitForEvent("download");

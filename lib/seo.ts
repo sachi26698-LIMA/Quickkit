@@ -52,3 +52,56 @@ export function pageMetadata(
     },
   };
 }
+
+/**
+ * JSON-LD for a tool page: WebApplication + HowTo + FAQPage.
+ * Static content only; no user input is serialised.
+ */
+export function toolStructuredData({
+  name,
+  description,
+  path,
+  steps,
+  faqs,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  steps: string[];
+  faqs: { q: string; a: string }[];
+}) {
+  const url = siteOrigin ? siteOrigin + path : undefined;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        name: `${name} — QUICKKIT`,
+        description,
+        ...(url ? { url } : {}),
+        applicationCategory: "MultimediaApplication",
+        operatingSystem: "Any modern browser",
+        browserRequirements: "Requires JavaScript. Images are processed locally.",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        isAccessibleForFree: true,
+      },
+      {
+        "@type": "HowTo",
+        name: `How to use the QUICKKIT ${name}`,
+        step: steps.map((step, index) => ({
+          "@type": "HowToStep",
+          position: index + 1,
+          text: step,
+        })),
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: faqs.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      },
+    ],
+  };
+}

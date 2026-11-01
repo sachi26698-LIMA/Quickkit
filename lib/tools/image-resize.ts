@@ -10,9 +10,21 @@ export const MIN_PERCENTAGE = 5;
 export const MAX_PERCENTAGE = 400;
 export const MAX_BATCH_FILES = 20;
 
-export type ResizeMode = "dimensions" | "percentage" | "preset";
+export type ResizeMode =
+  | "dimensions"
+  | "percentage"
+  | "preset"
+  | "longest"
+  | "shortest";
 export type FitMode = "cover" | "contain" | "stretch";
-export type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
+export type OutputFormat = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
+
+export const OUTPUT_FORMATS: readonly OutputFormat[] = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+] as const;
 
 export type PresetSize = {
   id: string;
@@ -20,6 +32,7 @@ export type PresetSize = {
   width: number;
   height: number;
   note: string;
+  platform?: string;
 };
 
 export const PRESET_SIZES: readonly PresetSize[] = [
@@ -72,6 +85,7 @@ export const PRESET_SIZES: readonly PresetSize[] = [
 export const SOCIAL_PRESETS: readonly PresetSize[] = [
   {
     id: "instagram-post",
+    platform: "Instagram",
     label: "Instagram post",
     width: 1080,
     height: 1080,
@@ -79,6 +93,7 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "instagram-portrait",
+    platform: "Instagram",
     label: "Instagram portrait",
     width: 1080,
     height: 1350,
@@ -86,6 +101,7 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "instagram-story",
+    platform: "Instagram",
     label: "Instagram story",
     width: 1080,
     height: 1920,
@@ -93,6 +109,7 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "facebook-post",
+    platform: "Facebook",
     label: "Facebook post",
     width: 1200,
     height: 630,
@@ -100,6 +117,7 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "x-post",
+    platform: "X",
     label: "X post",
     width: 1600,
     height: 900,
@@ -107,6 +125,7 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "linkedin-banner",
+    platform: "LinkedIn",
     label: "LinkedIn banner",
     width: 1584,
     height: 396,
@@ -114,6 +133,7 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "youtube-thumbnail",
+    platform: "YouTube",
     label: "YouTube thumbnail",
     width: 1280,
     height: 720,
@@ -121,10 +141,91 @@ export const SOCIAL_PRESETS: readonly PresetSize[] = [
   },
   {
     id: "pinterest-pin",
+    platform: "Pinterest",
     label: "Pinterest pin",
     width: 1000,
     height: 1500,
     note: "2:3 tall pin",
+  },
+  {
+    id: "instagram-square-thumb",
+    platform: "Instagram",
+    label: "Instagram grid",
+    width: 1440,
+    height: 1440,
+    note: "High-res 1:1",
+  },
+  {
+    id: "youtube-banner",
+    platform: "YouTube",
+    label: "YouTube banner",
+    width: 2048,
+    height: 1152,
+    note: "Channel art 16:9",
+  },
+  {
+    id: "youtube-shorts",
+    platform: "YouTube",
+    label: "YouTube Short",
+    width: 1080,
+    height: 1920,
+    note: "9:16 vertical",
+  },
+  {
+    id: "facebook-cover",
+    platform: "Facebook",
+    label: "Facebook cover",
+    width: 851,
+    height: 315,
+    note: "Page cover",
+  },
+  {
+    id: "facebook-story",
+    platform: "Facebook",
+    label: "Facebook story",
+    width: 1080,
+    height: 1920,
+    note: "9:16 story",
+  },
+  {
+    id: "whatsapp-status",
+    platform: "WhatsApp",
+    label: "WhatsApp status",
+    width: 1080,
+    height: 1920,
+    note: "9:16 status",
+  },
+  {
+    id: "whatsapp-profile",
+    platform: "WhatsApp",
+    label: "WhatsApp profile",
+    width: 640,
+    height: 640,
+    note: "1:1 avatar",
+  },
+  {
+    id: "whatsapp-chat",
+    platform: "WhatsApp",
+    label: "WhatsApp photo",
+    width: 1600,
+    height: 1600,
+    note: "Square chat photo",
+  },
+  {
+    id: "x-header",
+    platform: "X",
+    label: "X header",
+    width: 1500,
+    height: 500,
+    note: "3:1 profile header",
+  },
+  {
+    id: "x-profile",
+    platform: "X",
+    label: "X profile photo",
+    width: 400,
+    height: 400,
+    note: "1:1 avatar",
   },
 ];
 
@@ -143,6 +244,8 @@ export type ResizeSettings = {
   percentage: number;
   fit: FitMode;
   preset: { width: number; height: number } | null;
+  /** Target size for the longest/shortest-side modes. */
+  sideLength?: number;
 };
 
 export type CropRect = { x: number; y: number; width: number; height: number };
@@ -246,6 +349,28 @@ export function planResize(
     return { width, height, crop: null, cropped: false, fit: "stretch" };
   }
 
+  if (settings.mode === "longest" || settings.mode === "shortest") {
+    const reference = Math.max(sourceWidth, sourceHeight);
+    const smallest = Math.min(sourceWidth, sourceHeight);
+    const target = validateDimension(
+      settings.sideLength ?? 0,
+      settings.mode === "longest" ? "Longest side" : "Shortest side",
+    );
+    if (settings.mode === "shortest" && target > smallest)
+      throw new Error(
+        `The shortest side of this image is ${smallest.toLocaleString("en-US")} px. Enter ${smallest.toLocaleString("en-US")} or less to shrink it.`,
+      );
+    const scale = target / (settings.mode === "longest" ? reference : smallest);
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
+    if (width > MAX_DIMENSION || height > MAX_DIMENSION)
+      throw new Error(
+        `That scales the other side to ${Math.max(width, height).toLocaleString("en-US")} px, over the 8,192 px limit.`,
+      );
+    validateOutputSize(width, height);
+    return { width, height, crop: null, cropped: false, fit: "stretch" };
+  }
+
   if (!settings.preset)
     throw new Error("Choose a preset size before resizing.");
   const targetWidth = validateDimension(settings.preset.width, "Preset width");
@@ -331,13 +456,30 @@ export function linkedWidth(
 export function extensionFor(format: OutputFormat) {
   if (format === "image/jpeg") return "jpg";
   if (format === "image/png") return "png";
-  return "webp";
+  if (format === "image/webp") return "webp";
+  return "avif";
 }
 
 export function formatLabel(format: OutputFormat) {
   if (format === "image/jpeg") return "JPEG";
   if (format === "image/png") return "PNG";
-  return "WebP";
+  if (format === "image/webp") return "WebP";
+  return "AVIF";
+}
+
+/** Social presets grouped by platform, in a stable display order. */
+export const SOCIAL_PLATFORMS = [
+  "Instagram",
+  "YouTube",
+  "Facebook",
+  "WhatsApp",
+  "X",
+  "LinkedIn",
+  "Pinterest",
+] as const;
+
+export function presetsByPlatform(platform: string) {
+  return SOCIAL_PRESETS.filter((preset) => preset.platform === platform);
 }
 
 export function sanitizeBaseName(name: string, fallback = "image") {
@@ -345,6 +487,7 @@ export function sanitizeBaseName(name: string, fallback = "image") {
     .replace(/\.[^.\\/]+$/, "")
     .normalize("NFKD")
     .replace(/[^\w\s.-]+/g, "")
+    .replace(/\.{2,}/g, ".")
     .trim()
     .replace(/[\s_]+/g, "-")
     .replace(/-+/g, "-")

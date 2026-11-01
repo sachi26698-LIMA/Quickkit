@@ -74,7 +74,7 @@ describe("image resizer workspace", () => {
     expect(screen.getByRole("button", { name: /Download ZIP/ })).toBeDisabled();
     expect(screen.getByLabelText("Add images")).toHaveAttribute(
       "accept",
-      "image/jpeg,image/png,image/webp",
+      "image/jpeg,image/png,image/webp,image/avif",
     );
   });
 
@@ -102,6 +102,39 @@ describe("image resizer workspace", () => {
     expect(
       screen.getByRole("radio", { name: /Instagram post/ }),
     ).not.toBeChecked();
+  });
+
+  it("switches to the edit tab and exposes crop, rotation and colour controls", async () => {
+    render(<ImageResizer />);
+    fireEvent.click(screen.getByRole("tab", { name: /Edit/ }));
+    expect(
+      screen.getByText("Add an image to unlock cropping, rotation, flips and colour adjustments."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Undo/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Redo/ })).toBeDisabled();
+    expect(screen.getByRole("tab", { name: /Edit/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: /Resize/ })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+    fireEvent.click(screen.getByRole("tab", { name: /Resize/ }));
+    expect(screen.getByLabelText("Width (px)")).toHaveValue(1920);
+  });
+
+  it("rejects invalid DPI and print sizes without crashing", async () => {
+    render(<ImageResizer />);
+    fireEvent.click(screen.getByText(/DPI & print size/));
+    const dpi = screen.getByLabelText("DPI (print resolution)");
+    fireEvent.change(dpi, { target: { value: "10" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use print size as pixels" }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "between 36 and 1,200",
+    );
   });
 
   it("toggles the aspect lock and output format controls", async () => {

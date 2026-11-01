@@ -23,7 +23,7 @@ Statuses for the PDF tools belong to their own workstream and are recorded here 
 | 4 | Security | Password Generator | `/tools/password-generator` | ✅ Done | `main` | Phase 2 baseline |
 | 5 | Image & QR | QR Code Generator | `/tools/qr-generator` | ✅ Done | `main` | Phase 3 baseline |
 | 6 | Image & QR | Image Compressor | `/tools/image-compressor` | ✅ Done (existing) | `main` | **Not modified on this branch.** Next Image Tools candidate after Image Resizer sign-off |
-| 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — awaiting owner approval** | `feature/image-resizer` | New category. Feature checklist below |
+| 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done (v2 premium editor) — awaiting owner approval** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete; checklist below |
 | — | Image Tools | Image Compressor v2 (category migration) | — | 🟡 Next | — | Starts only after Image Resizer approval |
 | — | PDF Tools | PDF Merger | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
 | — | PDF Tools | PDF Splitter | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
@@ -36,65 +36,85 @@ Only these shared files gained additive entries for the new category: `lib/catal
 (tool-count and route-list expectations). PDF routes and components are absent from
 this repository state and were not created, edited or deleted.
 
-## Image Resizer — ✅ complete
+## Image Resizer — ✅ complete (v2 premium editor)
 
-**Branch:** `feature/image-resizer` · **Route:** `/tools/image-resizer` ·
-**Category:** `Image Tools` (new) · **Approval:** pending owner sign-off.
+**Branch:** `arena/82ce86c2-quickkit` (continues the v1 work from `feature/image-resizer`,
+commit `e5ac3d5`) · **Route:** `/tools/image-resizer` · **Category:** `Image Tools`.
+The v1 tool was **upgraded in place**: the route, design system, queue, ZIP writer and
+privacy model are unchanged, and no v1 capability was removed.
 **Hard rule respected:** Image Compressor work has **not** started.
 
-### Feature checklist
+### v2 upgrade (what changed)
+
+| Area | Added in v2 |
+| --- | --- |
+| Resize | Longest-side and shortest-side modes; custom presets (save/use/delete, session, max 8); 18 social presets grouped by Instagram, YouTube, Facebook, WhatsApp, X, LinkedIn and Pinterest |
+| Editing | Crop (free + 1:1, 4:3, 3:2, 16:9, 9:16, 4:5, overlay handles, keyboard nudge); rotate 90/180/270 + any angle; flip H/V; brightness/contrast/saturation; grayscale, sepia, warm, cool, invert |
+| Compare | Split slider and side-by-side original/result, above the existing Original/Result toggle |
+| Preview | 25–400 % zoom, fit-to-screen, checkerboard stage with edited-size caption |
+| Print | DPI (36–1,200) and print size in cm/inches, both directions, "use print size as pixels" |
+| Format | AVIF output where supported (disabled + explained otherwise); quality 10–100 %; live estimate and real output size |
+| Batch | Per-image overrides (size, lock, format incl. `Same as batch`, quality, base name, suffix), replace file in place, per-image progress and errors |
+| Naming | Rename outputs and filename suffixes, batch-wide or per image, reflected in the ZIP |
+| History | Per-image undo/redo (40 steps), Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, reset edits |
+| Privacy | Metadata panel (EXIF/GPS/camera/date/ICC/XMP), explicit strip disclosure, EXIF auto-orient toggle |
+| SEO/UX | 5-step HowTo, 7 FAQs, FAQPage/HowTo/WebApplication JSON-LD, clearer empty/loading/success/error states |
+
+### Feature checklist (v2 acceptance criteria)
 
 | Area | Requirement | Status | Evidence |
 | --- | --- | --- | --- |
-| Dimensions | Custom width + height, whole pixels, 1–8,192 px | ✅ | `planResize` + 52 unit tests |
-| Dimensions | 24 MP output ceiling with a plain-language error | ✅ | unit + E2E guard test |
-| Aspect ratio | Lock → second side follows the source ratio | ✅ | `linkedHeight` / `linkedWidth`, E2E |
-| Aspect ratio | Unlock → free stretch, explicit warning copy | ✅ | E2E "unlocked dimensions" test |
-| Aspect ratio | Swap width ↔ height, match original | ✅ | component wiring |
-| Percentage | 5–400% slider + numeric input + 25/50/75/100 chips | ✅ | `validatePercentage`, E2E |
-| Percentage | Live target calculation, zero-pixel clamp, per-side guard | ✅ | unit tests |
-| Presets | 8 everyday sizes (HD, Full HD, 4K, square, portrait, compact, thumbnail, 3:2) | ✅ | `PRESET_SIZES` |
-| Social | Instagram post/portrait/story, Facebook, X, LinkedIn, YouTube, Pinterest | ✅ | `SOCIAL_PRESETS` |
-| Social | Fill & crop (centred), Fit inside, Stretch | ✅ | `planResize` crop maths, pixel-verified E2E |
-| Preview | Original/resized toggle, checkerboard stage, live target badge | ✅ | screenshots |
-| Preview | Per-file stats: source size/format, target, output size, scale %, MP | ✅ | `resizer-stats` |
-| Batch | Up to 20 files, sequential queue, per-file status + progress | ✅ | `resizeAll`, E2E 2-file batch |
-| Batch | Per-file remove, per-file download, batch-limit notice | ✅ | E2E remove test |
-| Formats | JPEG, PNG, WebP output; JPEG background colour picker | ✅ | E2E decode of JPEG/PNG/WebP bytes |
-| Quality | 10–100% for JPEG/WebP, disabled for lossless PNG | ✅ | E2E |
-| ZIP | Real stored-method ZIP written in-browser, unique names | ✅ | `lib/tools/zip.ts` + E2E ZIP byte inspection |
-| Privacy | No network: decode, resize, encode, ZIP all client-side | ✅ | existing "no input is transmitted" suite |
-| Validation | Empty batch, wrong type, empty file, >15 MB, corrupt bytes, invalid size | ✅ | `validateImage`, `preflightImage`, E2E |
-| Errors | Per-file error rows, batch summary, stale-output invalidation | ✅ | E2E |
-| Accessibility | Radio groups, labels, `aria-pressed` locks, `aria-invalid`, roles, focus-visible, 44 px targets | ✅ | axe (WCAG 2.2 AA) on route |
-| Responsive | 320–1440 px, no horizontal overflow, mobile control order | ✅ | 7 widths in `quality.spec.ts` |
-| SEO | Title, description, canonical/OG/Twitter via `pageMetadata`, sitemap entry | ✅ | `tests/launch.test.ts`, metadata suite |
-| Docs | Usage steps + 6 FAQs on-page, README, this file | ✅ | — |
+| Resize | Exact width/height, whole pixels, 1–8,192 px | ✅ | `planResize` + unit tests |
+| Resize | Percentage 5–400 % (slider, field, chips) | ✅ | unit + E2E |
+| Resize | Aspect-ratio lock/unlock, swap, match original/edited | ✅ | component + E2E |
+| Resize | Fit / Fill / Stretch / Contain modes | ✅ | `planResize` crop maths, pixel-verified E2E |
+| Resize | Longest **and** shortest side modes | ✅ | `sideLength`, E2E longest/shortest outputs |
+| Resize | Everyday + social presets, custom presets | ✅ | `PRESET_SIZES`, `SOCIAL_PRESETS`, E2E save/use/delete |
+| Resize | DPI and print-size controls | ✅ | `validateDpi`, `printPixelSize`, E2E 10×15 cm @ 300 DPI |
+| Edit | Crop freeform + fixed ratios, overlay handles, keyboard nudge | ✅ | `image-edits` tests, E2E crop flows |
+| Edit | Rotate 90/180/270 + custom angle, flip H/V | ✅ | rotated/flipped pixel-quadrant E2E |
+| Edit | Brightness/contrast/saturation, grayscale + filters | ✅ | E2E grayscale/brightness pixel checks |
+| Edit | Before/after comparison | ✅ | single/split/side-by-side E2E |
+| Format | JPEG, PNG, WebP, AVIF where supported | ✅ | `canEncode`/`formatSupport`, forced-format E2E |
+| Format | Quality slider + estimated output size | ✅ | live estimate + real size stats |
+| Format | Transparency preserved; JPEG flatten with background colour | ✅ | WebP-alpha vs JPEG E2E |
+| Format | Compatibility warnings + metadata/privacy controls | ✅ | in-product notes, metadata panel, EXIF strip E2E |
+| Batch | Multi-upload, per-image settings, remove/replace | ✅ | E2E replace + override flows |
+| Batch | Bulk resize + bulk conversion, per-image progress/error | ✅ | sequential runner, status chips, batch summary |
+| Batch | Individual or ZIP download, rename + suffixes | ✅ | ZIP entry-name E2E |
+| UX | DnD upload, thumbnails + large preview, zoom/fit | ✅ | screenshots + E2E zoom/fit |
+| UX | Undo/redo, clear empty/loading/success/error states | ✅ | E2E undo/redo/reset |
+| UX | Polished desktop/tablet/mobile, QUICKKIT light theme | ✅ | 1440/768/430/390/375/320 screenshots + overflow suite |
+| Reliability | Corrupt/unsupported/oversized/invalid files | ✅ | `preflightImage`, validation E2E |
+| Reliability | Memory-safe batches, 100 % local processing | ✅ | 20-file cap, 24 MP cap, sequential queue, no-network test |
+| A11y | Keyboard accessibility, tooltips, labels | ✅ | axe 0 violations empty **and** populated editor |
+| SEO | Metadata + structured data | ✅ | `toolStructuredData`, `tests/seo.test.ts`, metadata suite |
+| Docs | README, this file, `docs/FEATURE_IMAGE_RESIZER.md` | ✅ | — |
 
 ### Verification (this branch)
 
 ```text
-npm run lint        ✅ 0 problems
-npm run typecheck   ✅ 0 errors
-npm test            ✅ 134 passed (10 files) — 52 new resizer maths, 9 new ZIP,
-                       4 new component tests, catalog/launch expectations updated
-npm run build       ✅ 17 routes static, /tools/image-resizer prerendered
-npm run test:e2e    ✅ 117 passed (chromium) — quality/a11y/overflow + 7 resizer flows
-Screenshots         docs/verification/image-resizer-{top-1440,1440,375,top-375,catalog-1440}.png
+npx tsc --noEmit     ✅ 0 errors
+npx eslint .         ✅ 0 problems
+npx vitest run       ✅ 12 files, 193 tests passed
+npm run build        ✅ 19 static routes, /tools/image-resizer prerendered
+playwright chromium  ✅ 130 passed — foundation/core/quality/browser-tools
+                        + image-resizer (6) + image-resizer-edits (13)
+log                  docs/verification/image-resizer-v2-checks.txt
+screenshots          docs/verification/image-resizer-v2-*.png
 ```
 
-Cross-browser note: `playwright test` was executed in Chromium in this environment
-(the Linux sandbox could only provision one browser build). Firefox/WebKit projects
-remain configured and are expected to run in CI, where the full browser set installs.
+Cross-browser note: Playwright ran in Chromium in this sandbox (only one browser build could
+be provisioned). Firefox/WebKit projects remain configured and are expected to run in CI.
 
 ### Known limits (documented in-product)
 
-- Canvas re-encoding removes EXIF/GPS/colour profiles; the original is never modified.
+- AVIF encoding depends on the browser; unsupported options are disabled and explained.
+- Custom presets last for the browser session only (no storage, by design), max 8.
+- A canvas encoder cannot write a DPI tag: the panel converts values, printers read pixels.
+- Canvas re-encoding strips EXIF/GPS/XMP/ICC (privacy default); the original file is untouched.
 - Animation collapses to one frame; HEIC, GIF and SVG inputs are rejected by design.
-- Upscaling adds pixels, not detail.
-- Full rotations are not applied; camera orientation from `createImageBitmap` is honoured
-  when the browser supports it.
-- The ZIP uses the stored (uncompressed) method because photos are already compressed.
+- Upscaling adds pixels, not detail. The ZIP uses the stored method (photos are compressed).
 
 ## Next up (not started)
 
