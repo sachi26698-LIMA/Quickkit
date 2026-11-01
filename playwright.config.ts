@@ -19,12 +19,12 @@ export default defineConfig({
     {
       name: "firefox",
       use: { browserName: "firefox" },
-      testMatch: /core.spec.ts|browser-tools.spec.ts/,
+      testMatch: /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts/,
     },
     {
       name: "webkit",
       use: { browserName: "webkit" },
-      testMatch: /core.spec.ts|browser-tools.spec.ts/,
+      testMatch: /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts/,
     },
   ],
 });

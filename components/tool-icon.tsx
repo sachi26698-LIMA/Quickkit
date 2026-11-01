@@ -5,6 +5,7 @@ import {
   KeyRound,
   QrCode,
   ImageIcon,
+  Files,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -13,6 +14,7 @@ const icons = {
   key: KeyRound,
   qr: QrCode,
   image: ImageIcon,
+  pdf: Files,
 };
 export default function ToolIcon({
   icon,

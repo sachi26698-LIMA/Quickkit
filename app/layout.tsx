@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | QUICKKIT",
   },
   description:
-    "Six useful browser tools for text, JSON, passwords, QR codes and images. No account, no uploads, zero hassle.",
+    "Seven useful browser tools for PDFs, text, JSON, passwords, QR codes and images. No account, no uploads, zero hassle.",
   metadataBase: new URL(
     siteOrigin ||
       (process.env.VERCEL_URL
@@ -37,7 +37,7 @@ export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={geist.variable}>
       <body>
         <a className="skip-link" href="#main">
           Skip to content
