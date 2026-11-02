@@ -419,6 +419,10 @@ export function clampDpi(dpi: number): number {
 export function parsePageRange(input: string, pageCount: number): number[] {
   const trimmed = input.trim();
   const total = Math.max(1, Math.floor(pageCount));
+  if (total > CONVERT_LIMITS.maxPdfPages)
+    throw new Error(
+      `This PDF has ${total} pages. The limit is ${CONVERT_LIMITS.maxPdfPages} pages per document.`,
+    );
   if (!trimmed || /^all$/i.test(trimmed))
     return Array.from({ length: total }, (_, index) => index + 1);
   const pages = new Set<number>();
@@ -442,6 +446,10 @@ export function parsePageRange(input: string, pageCount: number): number[] {
     for (let page = from; page <= to; page += 1) pages.add(page);
   }
   if (!pages.size) throw new Error("Choose at least one page.");
+  if (pages.size > CONVERT_LIMITS.maxPdfPages)
+    throw new Error(
+      `Select at most ${CONVERT_LIMITS.maxPdfPages} pages at a time.`,
+    );
   return [...pages].sort((a, b) => a - b);
 }
 

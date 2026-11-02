@@ -218,6 +218,12 @@ describe("page ranges", () => {
     expect(() => parsePageRange("-2", 3)).toThrow();
   });
 
+  it("enforces the 100-page per-document ceiling", () => {
+    expect(parsePageRange("all", 100)).toHaveLength(100);
+    expect(() => parsePageRange("all", 101)).toThrow(/limit/i);
+    expect(() => parsePageRange("1-101", 101)).toThrow(/limit/i);
+  });
+
   it("describes runs compactly", () => {
     expect(describePageRange([1, 2, 3, 5, 7, 8])).toBe("1-3, 5, 7-8");
     expect(describePageRange([2])).toBe("2");

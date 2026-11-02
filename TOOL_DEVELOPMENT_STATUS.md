@@ -468,3 +468,46 @@ rejection, cancellation, corrupt input, mobile Files/Preview switch and the
 375/390/430/768/1440 overflow/keyboard sweep. Format check, lint, typecheck, 414 unit tests
 and the production build all passed on the same commit. The 375/390/430/768/1440 full-page
 captures are in the `browser-screenshots` CI artifact. **Not merged; owner approval pending.**
+
+---
+
+## Image & PDF Converter — dual-category integration and final upgrade (2 November 2026)
+
+Appended after the records above; nothing above was edited, re-scored or re-dated. Branch
+`arena/fadc144f-quickkit` (PR open, **not merged or deployed**).
+
+**Category integration (mandatory).** The existing `image-converter` catalogue record now carries
+`categories: ["Image Tools", "PDF Tools"]`; `toolCategoriesOf()` resolves membership and
+`toolsByCategory()` / `filterTools()` honour every category. One record, one route
+(`/tools/image-converter`), no duplicate tool. Category counts are computed from that function, so
+`/category/image-tools` shows **4 tools** and `/category/pdf-tools` shows **3 tools**, each with a
+single card for the converter. The All Tools explorer, search, category filter, sitemap (still 41
+URLs), breadcrumbs (now Home → Tools → Category → Tool), a "Filed under" nav on the tool page and
+round-robin related tools from both categories all reflect the same record. Existing PDF Merger,
+PDF to Word, Image Resizer, Image Compressor and Image Cropper records, routes and files are
+unchanged.
+
+**Functional audit and fixes in this pass.**
+
+- PDF uploads over 100 pages are rejected at inspection (`readPdfPageCount`) and `parsePageRange`
+  independently enforces the 100-page ceiling; 25 MB remains the size limit.
+- Password-protected and corrupt PDFs surface a specific error and disable Convert instead of
+  offering a confusing "page count not loaded" message.
+- Rotated PDF pages (`/Rotate`) export at their displayed orientation, verified by a browser test
+  that checks rotated and upright page dimensions plus ZIP integrity.
+- Per-file progress now reflects real page progress for PDF→images and images→PDF; the queue shows a
+  determinate bar for the converting file and the overall bar/counters remain.
+- Large PDF previews use a six-page sliding thumbnail window instead of a fixed pages 1–6 strip.
+- Result cards show `original size → output size` plus a savings chip; PDF results state they are
+  raster-only.
+- The settings panel states that metadata is always stripped (EXIF orientation applied first)
+  rather than offering a control that cannot be honoured; the file picker `accept` value changes per
+  mode (images vs `application/pdf`).
+- Duplicate `alt` attribute in the PDF preview was removed.
+
+**Tests added.** Unit: dual membership, category counts, dual-category search, related-tool
+round-robin, 100-page range ceiling (418 unit tests total). Browser: category discovery at
+`/category/image-tools` and `/category/pdf-tools` plus search-to-tool navigation, password-protected
+PDF rejection, corrupt PDF rejection, rotated-page dimensions/order/ZIP, existing conversion, batch,
+PDF page, cancel, axe and 375/390/430/768/1440 coverage. Format check, lint, typecheck and production
+build pass locally; browser results are recorded on the pull request.

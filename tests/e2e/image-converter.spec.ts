@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { PNG } from "pngjs";
 import { unzipSync } from "fflate";
 import { readFile } from "node:fs/promises";
-import { PDFDocument, StandardFonts, rgb } from "@cantoo/pdf-lib";
+import { PDFDocument, StandardFonts, degrees, rgb } from "@cantoo/pdf-lib";
 
 type Upload = { name: string; mimeType: string; buffer: Buffer };
 
@@ -59,6 +59,32 @@ async function imageFixture(
   return { name, mimeType: type, buffer: Buffer.from(base64, "base64") };
 }
 
+/** A minimal RC4-128 encrypted PDF (password "secret"), generated with pypdf. */
+const ENCRYPTED_PDF_BASE64 =
+  "JVBERi0xLjMKJeLjz9MKMSAwIG9iago8PAovUHJvZHVjZXIgPGQwNGQ3NmNjOWE+Cj4+CmVuZG9i" +
+  "agoyIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovQ291bnQgMQovS2lkcyBbIDQgMCBSIF0KPj4KZW5k" +
+  "b2JqCjMgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBSCj4+CmVuZG9iago0IDAg" +
+  "b2JqCjw8Ci9UeXBlIC9QYWdlCi9SZXNvdXJjZXMgPDwKPj4KL01lZGlhQm94IFsgMC4wIDAuMCAz" +
+  "MDAgNDAwIF0KL1BhcmVudCAyIDAgUgo+PgplbmRvYmoKNSAwIG9iago8PAovViAyCi9SIDMKL0xl" +
+  "bmd0aCAxMjgKL1AgNDI5NDk2NzI5MgovRmlsdGVyIC9TdGFuZGFyZAovTyA8MGU1MjI5MjVhM2U0" +
+  "ZTg3NGMzY2ZhY2JlZjUxMWE3M2FjNGVjMmJkODY1ZGNkM2Q0NjI3NjE0OTE3YWJmZDdlND4KL1Ug" +
+  "PDUwMzlhOTM3NTUwZTM1YjQ1OGZhNzAxM2M5NTViMjVjMjhiZjRlNWU0ZTc1OGE0MTY0MDA0ZTU2" +
+  "ZmZmYTAxMDg+Cj4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAw" +
+  "MTUgMDAwMDAgbiAKMDAwMDAwMDA1OSAwMDAwMCBuIAowMDAwMDAwMTE4IDAwMDAwIG4gCjAwMDAw" +
+  "MDAxNjcgMDAwMDAgbiAKMDAwMDAwMDI2MSAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDYKL1Jv" +
+  "b3QgMyAwIFIKL0luZm8gMSAwIFIKL0lEIFsgPDM2MzczMjY0MzYzODM0MzczMTM4NjM2MjMwMzE2" +
+  "NDMzMzgzNTYyNjUzNjMyNjYzMTMwNjIzMjMwMzY2NjM3Mzk+IDwzNjM3MzI2NDM2MzgzNDM3MzEz" +
+  "ODYzNjIzMDMxNjQzMzM4MzU2MjY1MzYzMjY2MzEzMDYyMzIzMDM2NjYzNzM5PiBdCi9FbmNyeXB0" +
+  "IDUgMCBSCj4+CnN0YXJ0eHJlZgo0NzYKJSVFT0YK";
+
+function encryptedPdf(): Upload {
+  return {
+    name: "locked.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from(ENCRYPTED_PDF_BASE64, "base64"),
+  };
+}
+
 async function makePdf(pages: number): Promise<Upload> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
@@ -84,6 +110,48 @@ async function makePdf(pages: number): Promise<Upload> {
     name: "sample.pdf",
     mimeType: "application/pdf",
     buffer: Buffer.from(bytes),
+  };
+}
+
+/** Two A4 pages: the first is rotated 90°, the second is upright. */
+async function makeRotatedPdf(): Promise<Upload> {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const first = doc.addPage([595.28, 841.89]);
+  first.drawRectangle({
+    x: 40,
+    y: 500,
+    width: 515,
+    height: 280,
+    color: rgb(0.42, 0.2, 0.9),
+  });
+  first.drawText("Rotated", {
+    x: 60,
+    y: 420,
+    size: 54,
+    font,
+    color: rgb(1, 1, 1),
+  });
+  first.setRotation(degrees(90));
+  const second = doc.addPage([595.28, 841.89]);
+  second.drawRectangle({
+    x: 40,
+    y: 500,
+    width: 515,
+    height: 280,
+    color: rgb(0.9, 0.4, 0.2),
+  });
+  second.drawText("Upright", {
+    x: 60,
+    y: 420,
+    size: 54,
+    font,
+    color: rgb(1, 1, 1),
+  });
+  return {
+    name: "rotated.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from(await doc.save()),
   };
 }
 
@@ -246,6 +314,16 @@ test.describe("Image & PDF Converter", () => {
     await expect(
       page.getByRole("button", { name: /Image to image/ }),
     ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("image-converter-input")).toHaveAttribute(
+      "accept",
+      /image\//,
+    );
+    await page.getByRole("button", { name: /PDF to image/ }).click();
+    await expect(page.getByTestId("image-converter-input")).toHaveAttribute(
+      "accept",
+      "application/pdf",
+    );
+    await page.getByRole("button", { name: /Image to image/ }).click();
 
     const axe = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
@@ -617,6 +695,113 @@ test.describe("Image & PDF Converter", () => {
     await expect(page.getByTestId("converter-result")).toHaveCount(0);
   });
 
+  test("rotated PDF pages render at their rotated size and keep page order", async ({
+    page,
+  }) => {
+    await page.goto("/tools/image-converter");
+    await page.getByRole("button", { name: /PDF to image/ }).click();
+    await upload(page, [await makeRotatedPdf()]);
+    await page.getByLabel("Page image format").selectOption("png");
+    await page.getByRole("button", { name: "96", exact: true }).click();
+    await runConversion(page);
+
+    const cards = page.getByTestId("converter-result");
+    await expect(cards).toHaveCount(2);
+    await expect(cards.nth(0)).toContainText("rotated-page-001.png");
+    await expect(cards.nth(1)).toContainText("rotated-page-002.png");
+    const rotated = PNG.sync.read(
+      (
+        await downloadFrom(
+          page,
+          cards.nth(0).getByRole("button", { name: /^Download / }),
+        )
+      ).buffer,
+    );
+    const upright = PNG.sync.read(
+      (
+        await downloadFrom(
+          page,
+          cards.nth(1).getByRole("button", { name: /^Download / }),
+        )
+      ).buffer,
+    );
+    // /Rotate 90 turns the A4 portrait page into a landscape bitmap.
+    expect(rotated.width).toBeGreaterThan(rotated.height);
+    expect(upright.width).toBeLessThan(upright.height);
+    expect(rotated.width).toBeGreaterThan(1100);
+    expect(rotated.width).toBeLessThan(1140);
+
+    const zip = await downloadFrom(
+      page,
+      page.getByTestId("converter-zip-results"),
+    );
+    const entries = unzipSync(new Uint8Array(zip.buffer));
+    expect(Object.keys(entries).sort()).toEqual([
+      "rotated-page-001.png",
+      "rotated-page-002.png",
+    ]);
+    expect(entries["rotated-page-002.png"].subarray(0, 8)).toEqual(
+      Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    );
+  });
+
+  test("a password-protected PDF is rejected without producing output", async ({
+    page,
+  }) => {
+    await page.goto("/tools/image-converter");
+    await page.getByRole("button", { name: /PDF to image/ }).click();
+    await upload(page, [encryptedPdf()]);
+    await expect(page.getByTestId("converter-item")).toContainText(/password/i);
+    await expect(page.getByTestId("converter-run")).toBeDisabled();
+    await expect(page.getByTestId("converter-result")).toHaveCount(0);
+  });
+
+  test("a corrupt PDF is rejected without producing output", async ({
+    page,
+  }) => {
+    await page.goto("/tools/image-converter");
+    await page.getByRole("button", { name: /PDF to image/ }).click();
+    await upload(page, [
+      {
+        name: "broken.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("this is definitely not a PDF file"),
+      },
+    ]);
+    await expect(page.getByTestId("converter-item")).toContainText(
+      /could not be opened|corrupt|password/i,
+    );
+    await expect(page.getByTestId("converter-run")).toBeDisabled();
+    await expect(page.getByTestId("converter-result")).toHaveCount(0);
+  });
+
+  test("appears in Image Tools, PDF Tools and search at the same route", async ({
+    page,
+  }) => {
+    for (const slug of ["image-tools", "pdf-tools"]) {
+      await page.goto(`/category/${slug}`);
+      const card = page.getByRole("link", { name: "Image & PDF Converter" });
+      await expect(card).toBeVisible();
+      await expect(card).toHaveAttribute("href", "/tools/image-converter");
+    }
+
+    await page.goto("/tools");
+    await page.getByLabel("Search tools").fill("pdf to image");
+    const result = page.getByRole("link", { name: "Image & PDF Converter" });
+    await expect(result).toBeVisible();
+    await result.click();
+    await expect(page.locator("h1")).toHaveText("Image & PDF Converter");
+    const categories = page.getByRole("navigation", {
+      name: "Tool categories",
+    });
+    await expect(
+      categories.getByRole("link", { name: "Image Tools" }),
+    ).toBeVisible();
+    await expect(
+      categories.getByRole("link", { name: "PDF Tools" }),
+    ).toBeVisible();
+  });
+
   test("cancel stops a long PDF export and keeps the UI usable", async ({
     page,
   }) => {
@@ -653,6 +838,68 @@ test.describe("Image & PDF Converter", () => {
     );
     await expect(page.getByTestId("converter-item")).toHaveCount(0);
     await expect(page.getByTestId("converter-run")).toBeDisabled();
+  });
+
+  test("captures category and mode screenshots for the evidence pack", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      !process.env.CAPTURE_SHOTS,
+      "Screenshot capture runs in the dedicated workflow.",
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+
+    await page.goto("/category/image-tools");
+    await page.screenshot({
+      path: testInfo.outputPath("category-image-tools.png"),
+      fullPage: true,
+    });
+    await page.goto("/category/pdf-tools");
+    await page.screenshot({
+      path: testInfo.outputPath("category-pdf-tools.png"),
+      fullPage: true,
+    });
+
+    await page.goto("/tools/image-converter");
+    await upload(page, [
+      await imageFixture(page, {
+        width: 900,
+        height: 600,
+        name: "qk-photo.png",
+      }),
+    ]);
+    await page.screenshot({
+      path: testInfo.outputPath("converter-desktop.png"),
+      fullPage: true,
+    });
+
+    await page.getByRole("button", { name: /Images to PDF/ }).click();
+    await upload(page, [
+      await imageFixture(page, {
+        width: 600,
+        height: 800,
+        name: "qk-page-two.png",
+      }),
+    ]);
+    await runConversion(page);
+    await expect(page.getByTestId("converter-pdf-page")).toBeVisible({
+      timeout: 20000,
+    });
+    await page.screenshot({
+      path: testInfo.outputPath("converter-images-to-pdf.png"),
+      fullPage: true,
+    });
+
+    await page.goto("/tools/image-converter");
+    await page.getByRole("button", { name: /PDF to image/ }).click();
+    await upload(page, [await makePdf(3)]);
+    await page.getByRole("button", { name: "96", exact: true }).click();
+    await runConversion(page);
+    await expect(page.getByTestId("converter-result-image")).toBeVisible();
+    await page.screenshot({
+      path: testInfo.outputPath("converter-pdf-to-image.png"),
+      fullPage: true,
+    });
   });
 
   test("keyboard and touch layouts work at every target width", async ({

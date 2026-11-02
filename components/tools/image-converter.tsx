@@ -213,7 +213,6 @@ export default function ImageConverter() {
           item.format === "pdf" &&
           (item.status === "ready" ||
             item.status === "done" ||
-            item.status === "error" ||
             item.status === "cancelled"),
       ) ?? null,
     [items],
@@ -486,7 +485,11 @@ export default function ImageConverter() {
         updateItem(item.id, { status: "cancelled", error: undefined });
         continue;
       }
-      updateItem(item.id, { status: "converting", error: undefined });
+      updateItem(item.id, {
+        status: "converting",
+        error: undefined,
+        progress: undefined,
+      });
       setProgress({
         done: index,
         total: targets.length,
@@ -591,7 +594,11 @@ export default function ImageConverter() {
     }
     for (const result of results) releaseUrl(result.url);
     setResults([]);
-    updateItem(item.id, { status: "converting", error: undefined });
+    updateItem(item.id, {
+      status: "converting",
+      error: undefined,
+      progress: 0,
+    });
     setProgress({ done: 0, total: pages.length, label: "Rendering page 1…" });
     try {
       const output = await pdfToImages(item.file, settings, {
@@ -602,6 +609,7 @@ export default function ImageConverter() {
             total,
             label: `Rendering page ${done} of ${total}…`,
           });
+          updateItem(item.id, { progress: done / total });
         },
       });
       const created = output.outputs.map<ConversionResult>((page) => ({
@@ -692,7 +700,11 @@ export default function ImageConverter() {
     for (const result of results) releaseUrl(result.url);
     setResults([]);
     for (const target of targets)
-      updateItem(target.id, { status: "converting", error: undefined });
+      updateItem(target.id, {
+        status: "converting",
+        error: undefined,
+        progress: 0,
+      });
     setProgress({
       done: 0,
       total: targets.length,
@@ -704,12 +716,15 @@ export default function ImageConverter() {
         settings,
         {
           signal: controller.signal,
-          onPage: (done, total) =>
+          onPage: (done, total) => {
             setProgress({
               done,
               total,
               label: `Placing page ${done} of ${total}…`,
-            }),
+            });
+            for (const target of targets)
+              updateItem(target.id, { progress: done / total });
+          },
         },
       );
       const url = trackUrl(output.blob);
@@ -1044,6 +1059,24 @@ export default function ImageConverter() {
                       <small className="converter-file-error">
                         {item.error}
                       </small>
+                    ) : null}
+                    {item.status === "converting" &&
+                    typeof item.progress === "number" &&
+                    item.progress > 0 ? (
+                      <span
+                        className="converter-file-progress"
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(item.progress * 100)}
+                        aria-label={`Progress for ${item.name}`}
+                      >
+                        <span
+                          style={{
+                            width: `${Math.round(item.progress * 100)}%`,
+                          }}
+                        />
+                      </span>
                     ) : null}
                   </span>
                 </button>
@@ -1526,12 +1559,17 @@ export default function ImageConverter() {
                           result.height,
                         )}`}
                   </small>
-                  <small>
-                    {formatBytes(result.blob.size)}
-                    {result.format !== "pdf"
-                      ? ` · ${savingsLabel(result.sourceBytes, result.blob.size)}`
-                      : ""}
-                  </small>
+                  {result.format !== "pdf" ? (
+                    <small className="converter-size-compare">
+                      {formatBytes(result.sourceBytes)} →{" "}
+                      {formatBytes(result.blob.size)}
+                      <span className="converter-saving">
+                        {savingsLabel(result.sourceBytes, result.blob.size)}
+                      </span>
+                    </small>
+                  ) : (
+                    <small>Raster PDF · no text layer</small>
+                  )}
                   {result.note ? (
                     <small className="converter-result-note">
                       {result.note}
@@ -1766,8 +1804,15 @@ function PdfGallery({
   });
   const urlsRef = useRef<string[]>([]);
   const loadedRef = useRef<Set<number>>(new Set());
-  const farPage = pageCount > 6 ? page : 0;
-  const requestKey = `${pageCount}:${farPage}`;
+  // Show a moving window of six thumbnails around the current page so large
+  // documents stay navigable without rendering every page at once.
+  const windowStart =
+    pageCount <= 6 ? 1 : Math.min(Math.max(1, page - 2), pageCount - 5);
+  const thumbPages = Array.from(
+    { length: Math.min(6, pageCount) },
+    (_, index) => windowStart + index,
+  );
+  const requestKey = `${pageCount}:${windowStart}`;
   const shown = thumbs[page];
   const error = failure.key === requestKey ? failure.message : "";
   const loading = !shown && !error;
@@ -1782,11 +1827,10 @@ function PdfGallery({
 
   useEffect(() => {
     let cancelled = false;
-    const pages = [1, 2, 3, 4, 5, 6].filter(
-      (value) => value <= pageCount && !loadedRef.current.has(value),
-    );
-    if (farPage && !pages.includes(farPage) && !loadedRef.current.has(farPage))
-      pages.push(farPage);
+    const pages = Array.from(
+      { length: Math.min(6, pageCount) },
+      (_, index) => windowStart + index,
+    ).filter((value) => !loadedRef.current.has(value));
     if (!pages.length) return () => undefined;
     renderPdfThumbnails(blob, pages, { maxWidth: 900 }, (thumb) => {
       if (cancelled) return;
@@ -1801,7 +1845,7 @@ function PdfGallery({
     return () => {
       cancelled = true;
     };
-  }, [blob, pageCount, farPage, requestKey]);
+  }, [blob, pageCount, windowStart, requestKey]);
 
   return (
     <div className="converter-pdfgallery">
@@ -1834,39 +1878,37 @@ function PdfGallery({
         )}
       </div>
       <div className="converter-thumbs" aria-label="Page thumbnails">
-        {[1, 2, 3, 4, 5, 6]
-          .filter((value) => value <= pageCount)
-          .map((value) => {
-            const selected = selectedPages?.includes(value);
-            return (
-              <button
-                key={value}
-                type="button"
-                className={
-                  value === page
-                    ? "converter-thumb-button active"
-                    : selected
-                      ? "converter-thumb-button in-range"
-                      : "converter-thumb-button"
-                }
-                onClick={() => onPage(value)}
-                aria-label={`Show page ${value}${
-                  selected ? " (in the export range)" : ""
-                }`}
-                aria-current={value === page ? "page" : undefined}
-              >
-                {thumbs[value] ? (
-                  <img src={thumbs[value]} alt="" />
-                ) : (
-                  <span className="converter-thumb-loading" />
-                )}
-                <small>{value}</small>
-                {selected ? (
-                  <span className="converter-thumb-flag">Selected</span>
-                ) : null}
-              </button>
-            );
-          })}
+        {thumbPages.map((value) => {
+          const selected = selectedPages?.includes(value);
+          return (
+            <button
+              key={value}
+              type="button"
+              className={
+                value === page
+                  ? "converter-thumb-button active"
+                  : selected
+                    ? "converter-thumb-button in-range"
+                    : "converter-thumb-button"
+              }
+              onClick={() => onPage(value)}
+              aria-label={`Show page ${value}${
+                selected ? " (in the export range)" : ""
+              }`}
+              aria-current={value === page ? "page" : undefined}
+            >
+              {thumbs[value] ? (
+                <img src={thumbs[value]} alt="" />
+              ) : (
+                <span className="converter-thumb-loading" />
+              )}
+              <small>{value}</small>
+              {selected ? (
+                <span className="converter-thumb-flag">Selected</span>
+              ) : null}
+            </button>
+          );
+        })}
         {pageCount > 6 ? (
           <span className="converter-thumb-more">+{pageCount - 6} more</span>
         ) : null}

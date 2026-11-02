@@ -26,9 +26,9 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "PDF Tools",
     slug: "pdf-tools",
-    blurb: "Merge, split, compress and manage PDF files.",
+    blurb: "Merge, split, convert and manage PDF files.",
     description:
-      "Everything you need to work with PDFs — combine documents and organize pages right in your browser, with nothing uploaded.",
+      "Everything you need to work with PDFs — combine documents, export pages as images and turn photos into a PDF, all in your browser with nothing uploaded.",
     tint: "tint-pdf",
     icon: "pdf",
   },
@@ -198,8 +198,9 @@ export const tools = [
     slug: "image-converter",
     name: "Image & PDF Converter",
     category: "Image Tools",
+    categories: ["Image Tools", "PDF Tools"],
     description:
-      "Change image formats, turn photos into a PDF, and export PDF pages as JPG, PNG or WEBP — all on your device.",
+      "Convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF, turn images into multi-page PDFs, and export PDF pages as JPG, PNG or WEBP — all on your device.",
     keywords:
       "convert conversion format jpg jpeg png webp avif gif bmp tiff pdf images to pdf pdf to image export dpi page range batch zip transparency",
     icon: "convert",
@@ -358,16 +359,56 @@ export const tools = [
 ] as const;
 
 export type Tool = (typeof tools)[number];
+
+/**
+ * A tool can belong to more than one category (the Image & PDF Converter is
+ * both an image tool and a PDF tool) without duplicating its route or record.
+ */
+export function toolCategoriesOf(tool: Tool): ToolCategory[] {
+  return "categories" in tool && Array.isArray(tool.categories)
+    ? [...(tool.categories as readonly ToolCategory[])]
+    : [tool.category as ToolCategory];
+}
+
 export const toolBySlug = (slug: string): Tool | undefined =>
   tools.find((t) => t.slug === slug);
+
 export const toolsByCategory = (category: ToolCategory) =>
-  tools.filter((t) => t.category === category);
+  tools.filter((tool) => toolCategoriesOf(tool).includes(category));
+
+/**
+ * Related tools for a detail page: round-robin across the tool's categories so
+ * a tool listed in two categories surfaces neighbours from both, then fill
+ * with the rest of the catalogue.
+ */
+export function relatedTools(tool: Tool, limit = 3): Tool[] {
+  const categories = toolCategoriesOf(tool);
+  const pool = tools.filter((candidate) => candidate.slug !== tool.slug);
+  const buckets = categories.map((name) =>
+    pool.filter((candidate) => toolCategoriesOf(candidate).includes(name)),
+  );
+  const ordered: Tool[] = [];
+  for (let index = 0; ; index += 1) {
+    let found = false;
+    for (const bucket of buckets) {
+      const next = bucket[index];
+      if (!next) continue;
+      found = true;
+      if (!ordered.includes(next)) ordered.push(next);
+    }
+    if (!found) break;
+  }
+  for (const candidate of pool)
+    if (!ordered.includes(candidate)) ordered.push(candidate);
+  return ordered.slice(0, limit);
+}
 
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();
   return tools.filter(
     (tool) =>
-      (category === "All tools" || tool.category === category) &&
+      (category === "All tools" ||
+        toolCategoriesOf(tool).includes(category as ToolCategory)) &&
       `${tool.name} ${tool.description} ${tool.keywords}`
         .toLocaleLowerCase()
         .includes(search),

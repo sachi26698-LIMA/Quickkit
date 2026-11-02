@@ -1,6 +1,6 @@
 # Image & PDF Converter (Image Converter V1)
 
-Route: `/tools/image-converter` · Category: Image Tools · Feature branch: `feature/image-converter`
+Route: `/tools/image-converter` · Categories: **Image Tools** and **PDF Tools** · Branch: `arena/fadc144f-quickkit`
 
 Status: **implemented and under verification — awaiting owner approval. Not merged and not deployed.**
 The existing Image Resizer, Image Compressor and Image Cropper code, routes and behaviour were not
@@ -20,6 +20,18 @@ Three independent modes share one queue, one settings panel and one preview work
 3. **PDF to image** — render selected pages as JPG, PNG or WEBP at 72–300 DPI, with a page range
    (`1-3, 5`), page background, zero-padded filenames, page navigation, per-page downloads and a ZIP.
    PDF previews are rendered from the real uploaded PDF; source↔converted comparison is available.
+
+## Discovery and categories
+
+- The single catalogue record `image-converter` carries
+  `categories: ["Image Tools", "PDF Tools"]`; `toolCategoriesOf()` powers category
+  listings, counts, search and related tools. There is no duplicate record and no second route.
+- `/category/image-tools` (4 tools) and `/category/pdf-tools` (3 tools) both list it, opening the
+  same `/tools/image-converter` URL. All Tools, the category filter and the search find it once.
+- Breadcrumbs now include the primary category, the tool header shows both categories and a
+  "Filed under" nav links to each category page. Related tools are chosen round-robin from both
+  categories, so the converter suggests image tools _and_ PDF tools.
+- The sitemap still contains the route once (41 URLs: 10 static + 8 category + 23 tools).
 
 ## Format matrix
 
@@ -86,10 +98,20 @@ broken file.
   3,600 px on the longest side to keep files sane. Cover mode centre-crops in pixel space so page
   clipping never depends on the viewer. Layout preview uses the exact same geometry maths as export.
 - **PDF→image** renders with PDF.js at `dpi / 72` scale, fills the chosen background before drawing,
-  caps each page at 36 MP, and reports the cap. Password-protected PDFs are rejected with a clear
-  message; encrypted PDF support is out of scope for V1.
+  caps each page at 36 MP, and reports the cap. Page rotation (`/Rotate`) is applied by the PDF.js
+  viewport, so rotated pages export at their displayed orientation. Password-protected PDFs and
+  corrupt files are rejected during inspection with a specific message and never produce output.
+- **Limits at inspection**: PDFs over 25 MB or 100 pages are rejected before conversion;
+  `parsePageRange` independently enforces the 100-page ceiling. Exporting all pages of a hundred-page
+  document is allowed; a 101-page document is not.
+- **Large-document preview**: the thumbnail strip shows a moving window of six pages around the
+  current page instead of only pages 1–6, and thumbnails render on demand.
 - **Cancellation** aborts between files and between PDF pages; files finished before the cancel stay
-  available for download.
+  available for download. Per-file progress is real for page-based work (PDF→images and images→PDF
+  report `done / total`), while single-image conversions show the per-file busy state.
+- **Metadata** is always stripped from exports (EXIF, GPS, XMP, ICC) because every file is decoded to
+  pixels and re-encoded; EXIF orientation is applied first so photos stay upright. The settings panel
+  states this explicitly instead of offering a switch that would not work.
 - **Worker usage**: GIF/BMP/TIFF encoding runs in `workers/image-encode.worker.ts`; if the worker
   cannot start or crashes, the same encoder retries on the main thread so a conversion is never lost
   to a worker failure. PDF parsing already uses pdf.js's own worker. Canvas-bound decode/draw and PDF
@@ -128,7 +150,9 @@ Unit (`vitest`):
 
 Browser (`playwright`, chromium):
 
-- `tests/e2e/image-converter.spec.ts` — mobile Files/Preview switch at 375/390/430/768 px; JPG→PNG
+- `tests/e2e/image-converter.spec.ts` — dual-category discovery (Image Tools + PDF Tools + search +
+  both category links on the tool page); password-protected and corrupt PDF rejection; rotated PDF
+  page dimensions, order and ZIP integrity; mobile Files/Preview switch at 375/390/430/768 px; JPG→PNG
   with output reopened in Chromium; transparent PNG→JPG
   corner-pixel check; WEBP/GIF/BMP/TIFF/AVIF outputs; quality and resize effects; batch + ZIP contents;
   images→PDF page count/size/raster-only check and PDF preview navigation; PDF→PNG selected pages,
@@ -146,7 +170,8 @@ Browser (`playwright`, chromium):
 - TIFF output is baseline 8-bit; 16-bit, CMYK, tiled and JPEG-in-TIFF inputs are rejected.
 - AVIF/WEBP availability depends on the browser encoder; unsupported formats are disabled.
 - TIFF previews are shown from the decoded canvas; browsers themselves cannot open `.tiff` files.
-- Encrypted/password-protected PDFs are not supported in V1.
+- Encrypted/password-protected PDFs are rejected (not decrypted) in V1.
+- PDFs over 100 pages or 25 MB are rejected rather than truncated.
 - PDF rendering is main-thread work; very large pages are capped at 36 MP and cancel applies between
   pages rather than mid-page.
 - No OCR or text extraction; visible page content is rasterised.

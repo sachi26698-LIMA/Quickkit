@@ -416,6 +416,12 @@ export default function ConverterSettings({
                 </select>
               </Field>
               <Field
+                label="Metadata removal"
+                hint="EXIF, GPS, XMP and ICC metadata are removed from every export. EXIF orientation is applied to the pixels before it is stripped."
+              >
+                <span className="converter-badge">Always stripped</span>
+              </Field>
+              <Field
                 label="Custom base name"
                 hint="Blank keeps each original name."
               >

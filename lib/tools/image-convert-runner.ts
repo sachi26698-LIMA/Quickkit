@@ -742,6 +742,10 @@ async function openPdf(blob: Blob) {
 export async function readPdfPageCount(blob: Blob): Promise<number> {
   const { doc, task } = await openPdf(blob);
   try {
+    if (doc.numPages > CONVERT_LIMITS.maxPdfPages)
+      throw new Error(
+        `This PDF has ${doc.numPages} pages. The limit is ${CONVERT_LIMITS.maxPdfPages} pages per document.`,
+      );
     return doc.numPages;
   } finally {
     await task.destroy().catch(() => undefined);

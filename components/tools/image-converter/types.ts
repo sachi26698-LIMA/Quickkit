@@ -28,6 +28,8 @@ export type QueueItem = {
   pageCount?: number;
   status: QueueStatus;
   error?: string;
+  /** 0–1 when the source reports real page progress; undefined otherwise. */
+  progress?: number;
   /** Per-file target format in image mode; "auto" follows the shared setting. */
   override: ConvertFormat | "auto";
 };
