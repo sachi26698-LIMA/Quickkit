@@ -8,7 +8,7 @@
 
 ## Phase 9 checkpoint (owner-directed, 2 November 2026)
 
-The current owner request supersedes the historical one-tool-at-a-time restriction for this phase. Phase 9 is **In Progress**, not complete or approved for launch. Percentage, BMI, discount and GST calculators have initial implementations and passing representative unit tests; eight requested tools remain pending. Browser and accessibility verification and screenshots are blocked by the unavailable Playwright browser download. See `PHASE_9_FEATURE_CHECKLIST.md` for per-feature status, test evidence, limitations and continuation steps; see `PHASE_9_CALCULATOR_PLAN.md` for the audit and plan. The older portfolio figures below are historical and do not account for this in-progress work.
+The current owner request supersedes the historical one-tool-at-a-time restriction for this phase. Phase 9 is **Testing / In Progress**, not complete or approved for launch. All 12 calculator routes now have initial implementations and representative passing tests. Chromium browser checks and genuine desktop/mobile screenshots are available, but broader formula, keyboard, visual and cross-browser verification remains. See `PHASE_9_FEATURE_CHECKLIST.md` for per-feature status, test evidence, limitations and continuation steps; see `PHASE_9_CALCULATOR_PLAN.md` for the audit and plan. The older portfolio figures below are historical and do not account for this in-progress work.
 
 ## 1. Status definitions
 

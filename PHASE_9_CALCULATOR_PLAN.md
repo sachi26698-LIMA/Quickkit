@@ -15,3 +15,6 @@
 6. Integrate catalog and SEO, then automated math, regression, responsive browser, keyboard and accessibility tests; capture genuine screenshots and report failures.
 
 Shared files are integrated sequentially; independent workstreams are not delegated because no parallel coding agents are available. Do not expose placeholders or mark untested tools verified. See `PHASE_9_FEATURE_CHECKLIST.md` for the authoritative progress and next steps.
+
+## Continuation checkpoint
+All twelve routes now have initial implementations. Integration was sequential to avoid shared-file conflicts. Chromium became usable through an npm-distributed binary and its bundled NSS libraries; the CDN remains inaccessible and Firefox/WebKit have not been tested. The current evidence and remaining acceptance work are recorded in `PHASE_9_FEATURE_CHECKLIST.md`. This is not a release approval.
