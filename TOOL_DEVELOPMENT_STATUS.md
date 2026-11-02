@@ -550,3 +550,27 @@ tests (filename normalisation, page-picker contrast) that also fail on `main` at
 (run `41412528307`, 478 passed). Evidence refreshed from CI at this head: readable page labels in the
 `examples/` PDF and page image, fit-to-panel preview captures, and one added browser test for the
 fit/zoom behaviour. Merge and deploy remain blocked on explicit owner approval.
+
+## Repository cleanup (2 November 2026)
+
+Housekeeping only — no tool code, route, limit, catalogue entry or test was changed, and nothing
+above this line was edited, re-scored or re-dated.
+
+**Removed as finished-phase material** (content remains in Git history): `PHASE_9_CALCULATOR_PLAN.md`,
+`PHASE_9_FEATURE_CHECKLIST.md`, `PHASE_9_V2_CHECKLIST.md` and `PERCENTAGE_CALCULATOR_QA.md`. Phase 9
+shipped; these files still described the calculators as "Testing / In Progress" and duplicated what
+this status file records. Their evidence folders under `docs/phase-9-*` are untouched.
+
+**Removed the screenshot-trigger marker** (`.github/screenshot-trigger`) and its `push` path trigger in
+`.github/workflows/screenshots.yml`. It existed only because `workflow_dispatch` is not registered
+from a feature branch; with the workflow on the default branch it can be started manually, so the
+marker is no longer needed and no longer commits evidence to `main` on unrelated pushes.
+
+**Removed an unused direct dependency**: `html-entities` was declared in `package.json` but never
+imported by application code (it remains present transitively through `node-html-better-parser`).
+
+**Deliberately kept** and still authoritative: `TOOL_DEVELOPMENT_STATUS.md`,
+`QUICKKIT_AGENT_BRAIN_FINAL.md` (the superseded `QUICKKIT_AGENT_BRAIN.md` is preserved as the README
+promises), `TOOL_REGISTRY_ARCHITECTURE.md`, `PDF_MERGER_PLAN.md`, `MULTIPLE_TOOLS_ROADMAP.md`,
+`RELEASE_CHECKLIST.md` with its `docs/RELEASE_CHECKLIST.md` pointer, all feature docs under `docs/`
+and every screenshot under `docs/verification` and `docs/phase-*`.
