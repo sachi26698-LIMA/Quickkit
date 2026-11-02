@@ -31,6 +31,29 @@ export interface HistoryItem {
 const DB_NAME = "quickkit-pdf-to-word";
 const DB_VERSION = 1;
 const STORE = "results";
+const DOCX_MIME =
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+/**
+ * What actually lands in IndexedDB. The DOCX is stored as an ArrayBuffer,
+ * not a Blob: WebKit/Safari has long-standing bugs storing Blob/File
+ * objects in IndexedDB ("Error preparing Blob/File data…"), while
+ * ArrayBuffer structured-clones reliably everywhere. The public
+ * HistoryItem still exposes a Blob, re-wrapped on load.
+ */
+interface StoredHistoryItem extends Omit<HistoryItem, "blob"> {
+  data: ArrayBuffer;
+  /** Pre-fix records only; read for backward compatibility, never written. */
+  blob?: Blob;
+}
+
+function toHistoryItem(stored: StoredHistoryItem): HistoryItem | null {
+  const { data, blob, ...rest } = stored;
+  if (data instanceof ArrayBuffer)
+    return { ...rest, blob: new Blob([data], { type: DOCX_MIME }) };
+  if (blob instanceof Blob) return { ...rest, blob };
+  return null;
+}
 
 const RETENTION_MS: Record<Exclude<HistoryRetention, "session">, number> = {
   "24h": 24 * 60 * 60 * 1000,
@@ -95,15 +118,18 @@ export async function loadHistory(
   retention: HistoryRetention,
 ): Promise<HistoryItem[]> {
   if (retention === "session" || typeof window === "undefined") return [];
-  let items: HistoryItem[];
+  let stored: StoredHistoryItem[];
   try {
-    items = await tx(
+    stored = await tx(
       "readonly",
-      (store) => store.getAll() as IDBRequest<HistoryItem[]>,
+      (store) => store.getAll() as IDBRequest<StoredHistoryItem[]>,
     );
   } catch {
     return [];
   }
+  const items = stored
+    .map(toHistoryItem)
+    .filter((item): item is HistoryItem => item !== null);
   const cutoff = Date.now() - RETENTION_MS[retention];
   const fresh = items
     .filter((item) => item.createdAt >= cutoff)
@@ -125,15 +151,21 @@ export async function addHistoryItem(
 ): Promise<HistoryItem | null> {
   if (retention === "session") return null;
   if (item.blob.size > MAX_HISTORY_BLOB_BYTES) return null;
-  const stored: HistoryItem = {
+  const created: HistoryItem = {
     ...item,
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     createdAt: Date.now(),
     size: item.blob.size,
   };
   try {
-    await tx("readwrite", (store) => store.put(stored));
-    return stored;
+    const { blob, ...rest } = created;
+    void blob;
+    const record: StoredHistoryItem = {
+      ...rest,
+      data: await item.blob.arrayBuffer(),
+    };
+    await tx("readwrite", (store) => store.put(record));
+    return created;
   } catch {
     return null;
   }
