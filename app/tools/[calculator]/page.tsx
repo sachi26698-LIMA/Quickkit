@@ -1,10 +1,14 @@
 import { notFound } from "next/navigation";
 import ToolShell from "@/components/tool-shell";
 import Calculator from "@/components/tools/calculator";
+import GSTInvoice from "@/components/tools/phase9-v2-gst";
+import PercentageAdvanced from "@/components/tools/phase9-v2-percentage";
+import DiscountAdvanced from "@/components/tools/phase9-v2-discount";
 import Dates from "@/components/tools/phase9-dates";
 import Loans from "@/components/tools/phase9-loans";
 import Converters from "@/components/tools/phase9-converters";
 import Scientific from "@/components/tools/phase9-scientific";
+import TimeAdvanced from "@/components/tools/phase9-v2-time";
 import { pageMetadata } from "@/lib/seo";
 import { calculatorInfo } from "@/lib/calculator-info";
 
@@ -44,11 +48,19 @@ export default async function Page({
           "temperature-converter",
           "time-converter",
         ].includes(calculator) ? (
-        <Converters kind={calculator} />
+        <>
+          <Converters kind={calculator} />
+          {calculator === "time-converter" && <TimeAdvanced />}
+        </>
       ) : calculator === "scientific-calculator" ? (
         <Scientific />
       ) : (
-        <Calculator kind={calculator} />
+        <>
+          <Calculator kind={calculator} />
+          {calculator === "gst-calculator" && <GSTInvoice />}
+          {calculator === "percentage-calculator" && <PercentageAdvanced />}
+          {calculator === "discount-calculator" && <DiscountAdvanced />}
+        </>
       )}
     </ToolShell>
   );

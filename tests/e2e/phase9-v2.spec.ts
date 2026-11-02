@@ -70,7 +70,9 @@ test("BMI target and discount currency", async ({ page }) => {
   await page
     .getByRole("textbox", { name: "Discounts (%) — comma separated" })
     .fill("10");
-  await page.getByLabel("Currency").selectOption("USD");
+  await page
+    .getByRole("combobox", { name: "Currency", exact: true })
+    .selectOption("USD");
   await expect(page.locator("output")).toContainText("$90");
 });
 for (const slug of [

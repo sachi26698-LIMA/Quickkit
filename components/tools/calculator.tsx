@@ -16,7 +16,18 @@ export default function Calculator({ kind }: { kind: string }) {
   const [extra, setExtra] = useState("");
   const [mode, setMode] = useState("of");
   const [toggle, setToggle] = useState(false);
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<
+    {
+      a: string;
+      b: string;
+      extra: string;
+      mode: string;
+      toggle: boolean;
+      currency: string;
+      targetBmi: string;
+      summary: string;
+    }[]
+  >([]);
   const [notice, setNotice] = useState("");
   const [targetBmi, setTargetBmi] = useState("");
   const [currency, setCurrency] = useState("INR");
@@ -209,9 +220,29 @@ export default function Calculator({ kind }: { kind: string }) {
             <button
               type="button"
               className="secondary"
-              disabled={!result}
+              disabled={!result || !!error}
               onClick={() => {
-                setHistory((h) => [result + " — " + detail, ...h].slice(0, 20));
+                setHistory((h) =>
+                  [
+                    {
+                      a,
+                      b,
+                      extra,
+                      mode,
+                      toggle,
+                      currency,
+                      targetBmi,
+                      summary:
+                        result +
+                        " — " +
+                        detail +
+                        (targetWeight
+                          ? ` Target weight: ${targetWeight}.`
+                          : ""),
+                    },
+                    ...h,
+                  ].slice(0, 20),
+                );
                 setNotice("Added to history.");
               }}
             >
@@ -252,7 +283,7 @@ export default function Calculator({ kind }: { kind: string }) {
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(
-                      `${result} — ${detail}`,
+                      `${result} — ${detail}${targetWeight ? ` Target weight: ${targetWeight}.` : ""}`,
                     );
                     setNotice("Copied to clipboard.");
                   } catch {
@@ -292,7 +323,25 @@ export default function Calculator({ kind }: { kind: string }) {
           </div>
           <ol>
             {history.map((entry, i) => (
-              <li key={i}>{entry}</li>
+              <li key={i}>
+                {entry.summary}{" "}
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    setA(entry.a);
+                    setB(entry.b);
+                    setExtra(entry.extra);
+                    setMode(entry.mode);
+                    setToggle(entry.toggle);
+                    setCurrency(entry.currency);
+                    setTargetBmi(entry.targetBmi);
+                    setNotice("Calculation restored.");
+                  }}
+                >
+                  Restore
+                </button>
+              </li>
             ))}
           </ol>
           <p>History is kept only until you leave or refresh this page.</p>

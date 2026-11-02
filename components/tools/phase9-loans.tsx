@@ -3,6 +3,7 @@ import { useState } from "react";
 import { loan } from "@/lib/tools/phase9-loans";
 import { Workspace } from "./phase9-shared";
 import { downloadText } from "@/lib/tools/download";
+import { loanAffordability } from "@/lib/tools/phase9-v2-advanced";
 const money = (n: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -18,6 +19,11 @@ export default function Loans({ kind }: { kind: string }) {
   const [compare, setCompare] = useState<string[]>([]);
   const [oneTimeAmount, setOneTimeAmount] = useState("");
   const [oneTimeMonth, setOneTimeMonth] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [downPayment, setDownPayment] = useState("");
+  const [income, setIncome] = useState("");
+  const [existingDebt, setExistingDebt] = useState("");
+  const [ratio, setRatio] = useState("36");
   let r: ReturnType<typeof loan> | undefined,
     error = "";
   try {
@@ -52,6 +58,35 @@ export default function Loans({ kind }: { kind: string }) {
         };
       })
     : [];
+  let financed: number | undefined,
+    affordability: ReturnType<typeof loanAffordability> | undefined,
+    helperError = "";
+  try {
+    if (purchasePrice !== "" && downPayment !== "") {
+      const price = Number(purchasePrice),
+        down = Number(downPayment);
+      if (
+        !Number.isFinite(price) ||
+        !Number.isFinite(down) ||
+        price <= 0 ||
+        price > 1e12 ||
+        down < 0 ||
+        down >= price
+      )
+        throw new Error(
+          "Purchase price must be positive; down payment must be non-negative and less than the price.",
+        );
+      financed = price - down;
+    }
+    if (income !== "" && existingDebt !== "" && ratio !== "")
+      affordability = loanAffordability(
+        Number(income),
+        Number(existingDebt),
+        Number(ratio),
+      );
+  } catch (e) {
+    helperError = e instanceof Error ? e.message : "Invalid inputs.";
+  }
   return (
     <>
       <Workspace
@@ -181,6 +216,89 @@ export default function Loans({ kind }: { kind: string }) {
           </button>
         )}
       </Workspace>
+      {kind === "loan-calculator" && (
+        <section className="workspace advanced-workspace">
+          <details>
+            <summary>Down payment &amp; affordability estimate</summary>
+            <p>
+              Use monthly gross income and existing monthly debt payments. The
+              ratio is an assumption you choose, not a lender approval or
+              financial advice. Living expenses, fees and taxes are not
+              included.
+            </p>
+            <div className="advanced-options">
+              <label>
+                Purchase price (₹)
+                <input
+                  type="number"
+                  value={purchasePrice}
+                  onChange={(e) => setPurchasePrice(e.target.value)}
+                />
+              </label>
+              <label>
+                Down payment (₹)
+                <input
+                  type="number"
+                  value={downPayment}
+                  onChange={(e) => setDownPayment(e.target.value)}
+                />
+              </label>
+              <label>
+                Monthly gross income (₹)
+                <input
+                  type="number"
+                  value={income}
+                  onChange={(e) => setIncome(e.target.value)}
+                />
+              </label>
+              <label>
+                Existing monthly debt payments (₹)
+                <input
+                  type="number"
+                  value={existingDebt}
+                  onChange={(e) => setExistingDebt(e.target.value)}
+                />
+              </label>
+              <label>
+                Maximum debt-to-income ratio (%)
+                <input
+                  type="number"
+                  value={ratio}
+                  onChange={(e) => setRatio(e.target.value)}
+                />
+              </label>
+            </div>
+            {helperError && (
+              <p className="calculator-error" role="alert">
+                {helperError}
+              </p>
+            )}
+            {financed !== undefined && (
+              <p>
+                Financed amount: {money(financed)}{" "}
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setPrincipal(String(financed))}
+                >
+                  Use as principal
+                </button>
+              </p>
+            )}
+            {affordability && (
+              <p>
+                Estimated monthly debt allowance:{" "}
+                {money(affordability.allowedDebt)}. Remaining for this loan:{" "}
+                {money(affordability.budget)}.{" "}
+                {r &&
+                  (r.payment > affordability.budget
+                    ? "The base payment exceeds this chosen budget."
+                    : "The base payment is within this chosen budget.")}
+              </p>
+            )}
+          </details>
+        </section>
+      )}
       {compare.length > 0 && (
         <section className="workspace">
           <h2>Scenario comparison</h2>
