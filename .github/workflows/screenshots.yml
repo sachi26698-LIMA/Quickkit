@@ -28,11 +28,14 @@ jobs:
         run: npx playwright test tests/e2e/image-converter.spec.ts --project=chromium
       - name: Copy screenshots into docs/verification
         run: |
-          mkdir -p docs/verification
-          find test-results -name "*.png" -print0 | while IFS= read -r -d '' file; do
+          mkdir -p docs/verification/examples
+          find test-results -name "*.png" ! -path "*/examples/*" -print0 | while IFS= read -r -d '' file; do
             cp "$file" "docs/verification/$(basename "$file")"
           done
-          ls -la docs/verification
+          find test-results -path "*/examples/*" -type f -print0 | while IFS= read -r -d '' file; do
+            cp "$file" "docs/verification/examples/$(basename "$file")"
+          done
+          ls -la docs/verification docs/verification/examples
       - name: Commit screenshots to the feature branch
         run: |
           git config user.name "github-actions[bot]"

@@ -2,7 +2,7 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { PNG } from "pngjs";
 import { unzipSync } from "fflate";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { PDFDocument, StandardFonts, degrees, rgb } from "@cantoo/pdf-lib";
 
 type Upload = { name: string; mimeType: string; buffer: Buffer };
@@ -260,9 +260,13 @@ async function cornerPixel(page: Page, buffer: Buffer, mimeType: string) {
 
 /* --------------------------------- helpers -------------------------------- */
 
-async function upload(page: Page, files: Upload[]) {
+async function upload(
+  page: Page,
+  files: Upload[],
+  expectedCount = files.length,
+) {
   await page.getByTestId("image-converter-input").setInputFiles(files);
-  await expect(page.getByTestId("converter-item")).toHaveCount(files.length);
+  await expect(page.getByTestId("converter-item")).toHaveCount(expectedCount);
   await expect(page.getByText("Reading…")).toHaveCount(0, { timeout: 15000 });
 }
 
@@ -321,7 +325,7 @@ test.describe("Image & PDF Converter", () => {
     await page.getByRole("button", { name: /PDF to image/ }).click();
     await expect(page.getByTestId("image-converter-input")).toHaveAttribute(
       "accept",
-      "application/pdf",
+      /application\/pdf/,
     );
     await page.getByRole("button", { name: /Image to image/ }).click();
 
@@ -786,7 +790,9 @@ test.describe("Image & PDF Converter", () => {
     }
 
     await page.goto("/tools");
-    await page.getByLabel("Search tools").fill("pdf to image");
+    await page
+      .getByRole("searchbox", { name: "Search tools" })
+      .fill("pdf to image");
     const result = page.getByRole("link", { name: "Image & PDF Converter" });
     await expect(result).toBeVisible();
     await result.click();
@@ -868,23 +874,44 @@ test.describe("Image & PDF Converter", () => {
         name: "qk-photo.png",
       }),
     ]);
+    await runConversion(page);
+    const exampleDir = testInfo.outputPath("examples");
+    await mkdir(exampleDir, { recursive: true });
+    const imageResult = await downloadFrom(
+      page,
+      page
+        .getByTestId("converter-result")
+        .getByRole("button", { name: /^Download / }),
+    );
+    await writeFile(`${exampleDir}/image-to-image.png`, imageResult.buffer);
     await page.screenshot({
       path: testInfo.outputPath("converter-desktop.png"),
       fullPage: true,
     });
 
     await page.getByRole("button", { name: /Images to PDF/ }).click();
-    await upload(page, [
-      await imageFixture(page, {
-        width: 600,
-        height: 800,
-        name: "qk-page-two.png",
-      }),
-    ]);
+    await upload(
+      page,
+      [
+        await imageFixture(page, {
+          width: 600,
+          height: 800,
+          name: "qk-page-two.png",
+        }),
+      ],
+      2,
+    );
     await runConversion(page);
     await expect(page.getByTestId("converter-pdf-page")).toBeVisible({
       timeout: 20000,
     });
+    const pdfExample = await downloadFrom(
+      page,
+      page
+        .getByTestId("converter-result")
+        .getByRole("button", { name: /^Download / }),
+    );
+    await writeFile(`${exampleDir}/images-to-pdf.pdf`, pdfExample.buffer);
     await page.screenshot({
       path: testInfo.outputPath("converter-images-to-pdf.png"),
       fullPage: true,
@@ -896,6 +923,14 @@ test.describe("Image & PDF Converter", () => {
     await page.getByRole("button", { name: "96", exact: true }).click();
     await runConversion(page);
     await expect(page.getByTestId("converter-result-image")).toBeVisible();
+    const pageExample = await downloadFrom(
+      page,
+      page
+        .getByTestId("converter-result")
+        .first()
+        .getByRole("button", { name: /^Download / }),
+    );
+    await writeFile(`${exampleDir}/pdf-to-image.png`, pageExample.buffer);
     await page.screenshot({
       path: testInfo.outputPath("converter-pdf-to-image.png"),
       fullPage: true,
