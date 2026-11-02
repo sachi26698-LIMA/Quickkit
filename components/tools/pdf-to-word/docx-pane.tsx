@@ -75,6 +75,9 @@ export default function DocxPane({
           renderFootnotes: false,
         });
         if (cancelled) return;
+        host.querySelectorAll("img:not([alt])").forEach((img) => {
+          img.setAttribute("alt", "Image from the source PDF");
+        });
         const sections = [...host.querySelectorAll<HTMLElement>("section")];
         sectionsRef.current = sections;
         onPageCount(Math.max(1, sections.length));
@@ -177,7 +180,12 @@ export default function DocxPane({
 
   return (
     <div className="p2wv-pane">
-      <div className="p2wv-docx-scroll" ref={scrollRef}>
+      <div
+        className="p2wv-docx-scroll"
+        ref={scrollRef}
+        tabIndex={0}
+        aria-label="Word document view"
+      >
         {status === "loading" && (
           <div className="p2wv-skeleton" aria-hidden="true">
             <span />

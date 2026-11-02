@@ -1,5 +1,11 @@
 import { deflateSync } from "node:zlib";
-import { PDFDocument, StandardFonts, rgb } from "@cantoo/pdf-lib";
+import {
+  PDFDocument,
+  PDFName,
+  PDFString,
+  StandardFonts,
+  rgb,
+} from "@cantoo/pdf-lib";
 
 /**
  * Deterministic PDF fixtures for the PDF to Word e2e suite. Everything is
@@ -229,4 +235,61 @@ export async function createScannedTextPdf(): Promise<Uint8Array> {
   const page = doc.addPage([612, 792]);
   page.drawImage(img, { x: 36, y: 480, width: 540, height: 270 });
   return doc.save();
+}
+
+/**
+ * One page with a real external hyperlink annotation (URI action) drawn
+ * over the word "website", so hyperlink extraction can be verified end to
+ * end. The sentence is drawn in three pieces so the linked word arrives
+ * as its own text item.
+ */
+export async function createLinkedTextPdf(): Promise<Uint8Array> {
+  const doc = await PDFDocument.create({ updateMetadata: false });
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const page = doc.addPage([612, 792]);
+  page.drawText("Useful Links", { font: bold, size: 18, x: 56, y: 730 });
+
+  const size = 12;
+  const y = 700;
+  const prefix = "Visit our ";
+  const word = "website";
+  const suffix = " for details";
+  const prefixWidth = font.widthOfTextAtSize(prefix, size);
+  const wordWidth = font.widthOfTextAtSize(word, size);
+  page.drawText(prefix, { font, size, x: 56, y });
+  page.drawText(word, {
+    font,
+    size,
+    x: 56 + prefixWidth,
+    y,
+    color: rgb(0.1, 0.2, 0.8),
+  });
+  page.drawText(suffix, { font, size, x: 56 + prefixWidth + wordWidth, y });
+  page.drawText("This line has no link at all.", { font, size, x: 56, y: 676 });
+
+  const ctx = doc.context;
+  const action = ctx.obj({});
+  action.set(PDFName.of("S"), PDFName.of("URI"));
+  action.set(
+    PDFName.of("URI"),
+    PDFString.of("https://example.com/annual-report"),
+  );
+  const annot = ctx.obj({});
+  annot.set(PDFName.of("Type"), PDFName.of("Annot"));
+  annot.set(PDFName.of("Subtype"), PDFName.of("Link"));
+  annot.set(
+    PDFName.of("Rect"),
+    ctx.obj([
+      56 + prefixWidth - 1,
+      y - 3,
+      56 + prefixWidth + wordWidth + 1,
+      y + size + 3,
+    ]),
+  );
+  annot.set(PDFName.of("Border"), ctx.obj([0, 0, 0]));
+  annot.set(PDFName.of("A"), action);
+  page.node.addAnnot(ctx.register(annot));
+
+  return doc.save({ useObjectStreams: false });
 }

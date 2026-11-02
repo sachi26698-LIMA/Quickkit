@@ -79,7 +79,7 @@ interface Entry {
 }
 
 function kindLabel(kind: InspectResult["kind"] | null): string {
-  if (kind === "scanned") return "Scanned";
+  if (kind === "scanned") return "Scanned (image-only PDF)";
   if (kind === "mixed") return "Mixed (some scanned pages)";
   return "Text-based";
 }

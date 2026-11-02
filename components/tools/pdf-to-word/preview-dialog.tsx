@@ -218,7 +218,7 @@ export default function PreviewDialog({
     }
   }, []);
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
+  const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       e.stopPropagation();
       onClose();
@@ -243,6 +243,11 @@ export default function PreviewDialog({
     }
   };
 
+  useEffect(() => {
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
+
   const showPdf = hasPdf && effectiveView !== "docx";
   const showDocx = hasDocx && effectiveView !== "pdf";
 
@@ -259,7 +264,6 @@ export default function PreviewDialog({
         role="dialog"
         aria-modal="true"
         aria-label={`Preview of ${target.sourceName}`}
-        onKeyDown={onKeyDown}
       >
         <div className="p2wv-toolbar">
           <div className="p2wv-title">

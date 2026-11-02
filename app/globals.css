@@ -4899,7 +4899,7 @@ select:focus {
   font-size: 12.5px;
 }
 .p2w-quality-cell dt {
-  color: var(--secondary);
+  color: #5d5870;
   font-weight: 600;
 }
 .p2w-quality-cell dd {
@@ -5041,4 +5041,15 @@ select:focus {
   .p2w-history-main small {
     white-space: normal;
   }
+}
+
+/* PDF to Word local token aliases (mapped to the QUICKKIT palette) */
+:root {
+  --text: var(--ink);
+  --primary: var(--purple);
+  --primary-deep: var(--purple-deep);
+  --line: var(--border);
+  --line-strong: #d8cbf5;
+  --lavender-50: var(--lavender-soft);
+  --lavender-100: var(--lavender);
 }

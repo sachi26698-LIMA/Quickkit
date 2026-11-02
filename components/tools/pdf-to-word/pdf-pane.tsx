@@ -232,7 +232,7 @@ export default function PdfPane({
   return (
     <div className="p2wv-pane">
       {showThumbnails && handle && (
-        <div className="p2wv-thumbs" aria-label="Page thumbnails">
+        <div className="p2wv-thumbs" aria-label="Page thumbnails" tabIndex={0}>
           {Array.from({ length: handle.pageCount }, (_, i) => i + 1).map(
             (pageNo) => (
               <Thumb
@@ -246,7 +246,12 @@ export default function PdfPane({
           )}
         </div>
       )}
-      <div className="p2wv-stage" ref={stageRef}>
+      <div
+        className="p2wv-stage"
+        ref={stageRef}
+        tabIndex={0}
+        aria-label="PDF page view"
+      >
         {!rendered && (
           <div className="p2wv-skeleton" aria-hidden="true">
             <span />
