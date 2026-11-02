@@ -63,7 +63,12 @@ export default function ToolShell({
         </div>
         <div className="related-grid">
           {tools
-            .filter((t) => t.slug !== slug)
+            .filter(
+              (t) =>
+                t.slug !== slug &&
+                (tool.category !== "Calculators" ||
+                  t.category === "Calculators"),
+            )
             .slice(0, 3)
             .map((t) => (
               <Link

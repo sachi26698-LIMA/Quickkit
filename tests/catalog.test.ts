@@ -9,7 +9,7 @@ import {
 } from "../lib/catalog";
 describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
-    expect(filterTools("", "All tools")).toHaveLength(8));
+    expect(filterTools("", "All tools")).toHaveLength(tools.length));
   it("ignores case and surrounding spaces", () =>
     expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter"));
   it("searches keywords", () =>
@@ -49,7 +49,7 @@ describe("catalog discovery", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
     expect(toolsByCategory("Image Tools")).toHaveLength(1);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
-    expect(toolsByCategory("Calculators")).toHaveLength(0);
+    expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);
   });
 });

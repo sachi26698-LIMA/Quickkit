@@ -7,6 +7,7 @@ import {
   ImageIcon,
   Files,
   FileText,
+  Calculator,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -17,6 +18,7 @@ const icons = {
   image: ImageIcon,
   pdf: Files,
   word: FileText,
+  calc: Calculator,
 };
 export default function ToolIcon({
   icon,
