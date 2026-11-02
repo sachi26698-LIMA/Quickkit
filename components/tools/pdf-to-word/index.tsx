@@ -6,6 +6,7 @@ import {
   Ban,
   Check,
   Download,
+  Eye,
   FileText,
   Play,
   RefreshCw,
@@ -32,7 +33,8 @@ import {
   type ConversionMode,
   type ConversionReport,
 } from "@/lib/tools/pdf-to-word/types";
-import { WorkspaceHeading } from "./tool-ui";
+import { WorkspaceHeading } from "../tool-ui";
+import PreviewDialog, { type PreviewView } from "./preview-dialog";
 
 type EntryStatus = "inspecting" | "ready" | "converting" | "done" | "failed";
 
@@ -47,7 +49,15 @@ interface Entry {
   resultBlob: Blob | null;
   resultUrl: string | null;
   resultName: string | null;
+  /** Mode the current result was converted with. */
+  resultMode: ConversionMode | null;
   report: ConversionReport | null;
+}
+
+function kindLabel(kind: InspectResult["kind"] | null): string {
+  if (kind === "scanned") return "Scanned";
+  if (kind === "mixed") return "Mixed (some scanned pages)";
+  return "Text-based";
 }
 
 const MODE_COPY: Record<
@@ -78,6 +88,10 @@ export default function PdfToWord() {
   const [running, setRunning] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [batchNotice, setBatchNotice] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    id: number;
+    view: PreviewView;
+  } | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
   const idRef = useRef(1);
@@ -182,6 +196,7 @@ export default function PdfToWord() {
         resultBlob: null,
         resultUrl: null,
         resultName: null,
+        resultMode: null,
         report: null,
       };
       if (file.size > PDF_TO_WORD_LIMITS.maxFileBytes) {
@@ -217,6 +232,44 @@ export default function PdfToWord() {
       if (entry?.resultUrl) URL.revokeObjectURL(entry.resultUrl);
       return current.filter((e) => e.id !== id);
     });
+  }
+
+  function replaceEntryFile(id: number, file: File) {
+    const current = entriesRef.current.find((e) => e.id === id);
+    if (!current) return;
+    if (current.resultUrl) URL.revokeObjectURL(current.resultUrl);
+    const othersBytes = entriesRef.current
+      .filter((e) => e.id !== id)
+      .reduce((n, e) => n + e.file.size, 0);
+    let replacement: Entry = {
+      ...current,
+      file,
+      status: "inspecting",
+      pageCount: null,
+      kind: null,
+      progress: 0,
+      error: null,
+      resultBlob: null,
+      resultUrl: null,
+      resultName: null,
+      resultMode: null,
+      report: null,
+    };
+    if (file.size > PDF_TO_WORD_LIMITS.maxFileBytes) {
+      replacement = {
+        ...replacement,
+        status: "failed",
+        error: `This file is ${formatBytes(file.size)}. The limit is ${formatBytes(PDF_TO_WORD_LIMITS.maxFileBytes)} per file.`,
+      };
+    } else if (othersBytes + file.size > PDF_TO_WORD_LIMITS.maxBatchBytes) {
+      replacement = {
+        ...replacement,
+        status: "failed",
+        error: `Replacing with this file exceeds the ${formatBytes(PDF_TO_WORD_LIMITS.maxBatchBytes)} batch limit. Remove some files first.`,
+      };
+    }
+    setEntries((all) => all.map((e) => (e.id === id ? replacement : e)));
+    if (replacement.status === "inspecting") void inspectEntry(replacement);
   }
 
   function clearAll() {
@@ -291,6 +344,7 @@ export default function PdfToWord() {
         resultBlob: blob,
         resultUrl: url,
         resultName: resultNameFor(entry.file.name),
+        resultMode: mode,
         report: {
           sourcePages: entry.pageCount ?? structured.length,
           convertedPages: structured.length,
@@ -424,6 +478,10 @@ export default function PdfToWord() {
         );
     }
   };
+
+  const previewEntry = preview
+    ? (entries.find((e) => e.id === preview.id) ?? null)
+    : null;
 
   return (
     <fieldset
@@ -646,6 +704,22 @@ export default function PdfToWord() {
                 </div>
                 {statusChip(entry)}
                 <span className="p2w-row-actions">
+                  {entry.pageCount !== null &&
+                    entry.status !== "converting" && (
+                      <button
+                        type="button"
+                        className="icon-button"
+                        aria-label={`Preview ${entry.file.name}`}
+                        onClick={() =>
+                          setPreview({
+                            id: entry.id,
+                            view: entry.status === "done" ? "compare" : "pdf",
+                          })
+                        }
+                      >
+                        <Eye size={16} aria-hidden="true" />
+                      </button>
+                    )}
                   {entry.status === "done" && entry.resultUrl && (
                     <a
                       className="icon-button"
@@ -707,6 +781,29 @@ export default function PdfToWord() {
         substituted and complex vector graphics cannot be carried over. Your
         original PDFs are never modified.
       </p>
+
+      {previewEntry && preview && (
+        <PreviewDialog
+          target={{
+            file: previewEntry.file,
+            sourceName: previewEntry.file.name,
+            sourceMeta: `${formatBytes(previewEntry.file.size)} · ${previewEntry.pageCount ?? "?"} page(s) · ${kindLabel(previewEntry.kind)}`,
+            resultBlob: previewEntry.resultBlob,
+            resultUrl: previewEntry.resultUrl,
+            resultName: previewEntry.resultName,
+            resultMeta: previewEntry.resultBlob
+              ? `${previewEntry.resultName} · ${formatBytes(previewEntry.resultBlob.size)} · ${previewEntry.resultMode === "layout" ? "Original Layout" : "Clean Editable"}`
+              : null,
+          }}
+          initialView={preview.view}
+          onClose={() => setPreview(null)}
+          onRemove={() => {
+            removeEntry(previewEntry.id);
+            setPreview(null);
+          }}
+          onReplace={(file) => replaceEntryFile(previewEntry.id, file)}
+        />
+      )}
 
       <div className="sr-only" role="status" aria-live="polite">
         {announcement}
