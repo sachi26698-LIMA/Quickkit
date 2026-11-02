@@ -327,3 +327,42 @@ In progress, not released: see `PHASE_9_V2_CHECKLIST.md` for per-tool status, fi
 ### Phase 9 V2 populated preview checkpoint
 
 All 12 calculator routes have populated mobile and desktop Chromium screenshots indexed in `docs/phase-9-v2-final-evidence/README.md`; 319 Chromium regression tests, 188 unit tests, lint, typecheck and production build passed on this application code. Feature and cross-browser coverage remain incomplete; see `PHASE_9_V2_CHECKLIST.md`. Not merged or deployed.
+
+---
+
+## Image Tools workstream (separate branch, merged into the shared tree on 2 November 2026)
+
+This section records the Image Tools workstream on `arena/82ce86c2-quickkit` / PR #8.
+It is **append-only**: nothing above (PDF Merger, PDF to Word, Phase 9, the portfolio
+counts and the change log) was edited, re-scored or re-dated by this workstream.
+
+| # | Tool | Route | Status | Branch | Notes |
+|---|---|---|---|---|---|
+| 1 | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved 1 Nov 2026** (frozen) | `feature/image-resizer` | Full local editor: exact/percentage/longest-side sizing, 26 presets, crop, free-angle rotation, flips, colour adjustments, compare, DPI/print, per-image undo/redo, batch + ZIP, metadata panel. `docs/FEATURE_IMAGE_RESIZER.md`, `docs/QA_IMAGE_RESIZER_AUDIT.md` |
+| 2 | **Image Compressor** | `/tools/image-compressor` | ✅ **Done (v2) — owner approved 1 Nov 2026** (frozen) | `feature/image-compressor` | Quality **and** exact KB/MB target modes, JPEG/PNG/WebP (+AVIF where supported), per-image overrides, split/side-by-side compare, transparency handling, batch + ZIP, Stop/Retry. `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
+| 3 | **Image Cropper** | `/tools/image-cropper` | ✅ **Done — verified, awaiting owner sign-off** | `feature/image-cropper` | New tool: freeform + fixed ratios, 18 social presets, custom width/height, circle and square masks, rotate/flip, 25–400 % zoom with pan and “crop to visible area”, 1:1 crop-pixel export, JPEG/PNG/WebP with quality, per-image batch crops + ZIP, EXIF auto-correction, 50-step undo/redo. `docs/FEATURE_IMAGE_CROPPER.md`, `docs/QA_IMAGE_CROPPER_AUDIT.md` |
+
+Integration notes:
+
+- The three tools are ordinary additive entries in `lib/catalog.ts` (Image Tools category)
+  plus their icon keys (`resize`, `crop`) in `components/tool-icon.tsx`; the Image Tools
+  category therefore lists three tools on `/tools` and `/category/image-tools`.
+- Their CSS is appended to `app/globals.css` under `.resizer-*`, `.compressor-*`,
+  `.cropper-*` and a `.sky` icon tint. No existing rule was edited or removed.
+- Tests added: `tests/image-resize.test.ts`, `tests/image-edits.test.ts`,
+  `tests/image-compress.test.ts`, `tests/image-crop.test.ts`, `tests/zip.test.ts`,
+  `tests/exif.test.ts`, `tests/image-header.test.ts`, plus the browser suites
+  `image-resizer.spec.ts`, `image-resizer-edits.spec.ts`, `image-resizer-audit.spec.ts`,
+  `image-compressor.spec.ts`, `image-compressor-audit.spec.ts` and
+  `image-cropper-audit.spec.ts`.
+- No PDF file, PDF route, PDF component or PDF status above was modified by this workstream.
+
+**Merge record (2 November 2026).** `main` had advanced 36 commits (PRs #4–#7: premium
+redesign, 8 categories, saved tools, QR expansion, PDF to Word, calculator suite) after this
+branch was cut from `35f957b`. The image work was integrated by merging `main` into
+`arena/82ce86c2-quickkit` and resolving 16 conflicting shared files: the new catalogue,
+category metadata and icon map were kept, the three image tool records and icon keys were
+re-added, the `.resizer-*` / `.compressor-*` / `.cropper-*` / `.sky` CSS blocks were appended
+to the redesigned `globals.css`, and the route-count expectations were re-based on the new
+catalogue (22 tools, 40 sitemap routes). The owner-approved components themselves were not
+changed.

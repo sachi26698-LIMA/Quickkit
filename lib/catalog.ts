@@ -163,11 +163,36 @@ export const tools = [
     name: "Image Compressor",
     category: "Image Tools",
     description:
-      "Less file size, more possibilities. Compress images right in your browser.",
-    keywords: "photo picture jpeg webp optimize resize",
+      "Less file size, more possibilities. Compress to a quality level or an exact KB target, in batches.",
+    keywords:
+      "photo picture jpeg jpg webp png avif compress optimise optimize quality size kb mb batch zip transparency",
     icon: "image",
     color: "peach",
-    phase: 2,
+    phase: 3,
+  },
+  {
+    slug: "image-resizer",
+    name: "Image Resizer",
+    category: "Image Tools",
+    description:
+      "Make every image fit. Resize by pixels or percentage, crop to social presets and export in batches.",
+    keywords:
+      "resize dimensions scale aspect ratio percentage instagram story facebook post linkedin banner youtube thumbnail webp jpeg png batch zip banner",
+    icon: "resize",
+    color: "sky",
+    phase: 3,
+  },
+  {
+    slug: "image-cropper",
+    name: "Image Cropper",
+    category: "Image Tools",
+    description:
+      "Frame it your way. Crop to any ratio, social preset, circle or square, and export exactly the pixels you need.",
+    keywords:
+      "crop cut trim frame aspect ratio instagram instagram story youtube thumbnail facebook post square circle round avatar rotate flip zoom pan batch zip exif transparent",
+    icon: "crop",
+    color: "mint",
+    phase: 3,
   },
   {
     slug: "merge-pdf",

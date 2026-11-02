@@ -30,6 +30,17 @@ describe("catalog discovery", () => {
     expect(filterTools("not here", "All tools")).toHaveLength(0);
     expect(filterTools("x".repeat(100000), "All tools")).toHaveLength(0);
   });
+  it("finds the image tools by intent", () => {
+    expect(filterTools("circle", "Image Tools")).toEqual([
+      expect.objectContaining({ slug: "image-cropper" }),
+    ]);
+    expect(filterTools("percentage", "Image Tools")).toEqual([
+      expect.objectContaining({ slug: "image-resizer" }),
+    ]);
+    expect(filterTools("kb target", "All tools")[0].slug).toBe(
+      "image-compressor",
+    );
+  });
   it("uses unique stable slugs", () =>
     expect(new Set(tools.map((t) => t.slug)).size).toBe(tools.length));
   it("defines eight categories with unique slugs", () => {
@@ -47,7 +58,7 @@ describe("catalog discovery", () => {
   });
   it("groups tools by category, with future categories empty", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
-    expect(toolsByCategory("Image Tools")).toHaveLength(1);
+    expect(toolsByCategory("Image Tools")).toHaveLength(3);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);

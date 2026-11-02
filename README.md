@@ -1,13 +1,13 @@
 # QUICKKIT
 
-**Handy tools. Zero hassle.** A premium light-theme collection of eight genuinely functional, local-first browser utilities.
+**Handy tools. Zero hassle.** A premium light-theme collection of ten genuinely functional, local-first browser utilities.
 
 ## Product and architecture
 
 - Next.js 16 App Router, React 19, strict TypeScript, npm (`package-lock.json` only).
 - Server-rendered route content and metadata; client islands for inputs and browser APIs.
 - CSS-variable design system, bundled Geist Variable font, Lucide icons and optimized WebP 3D hero illustration. No dark theme, external font requests or decorative fake controls.
-- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator, Image Compressor, PDF Merger and PDF to Word on distinct `/tools/...` routes, plus a `/tools` explorer and `/category/<slug>` pages. PDF to Word additionally previews the original PDF and the converted Word file side by side in the browser, converts selected page ranges, issues a per-file quality report, and ships optional on-device OCR (self-hosted tesseract.js, English/Hindi/Gujarati, lazy-loaded only for scanned pages) plus an opt-in browser-local history of converted files — still no uploads.
+- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator, Image Compressor, Image Resizer, Image Cropper, PDF Merger and PDF to Word on distinct `/tools/...` routes, plus a `/tools` explorer and `/category/<slug>` pages. PDF to Word additionally previews the original PDF and the converted Word file side by side in the browser, converts selected page ranges, issues a per-file quality report, and ships optional on-device OCR (self-hosted tesseract.js, English/Hindi/Gujarati, lazy-loaded only for scanned pages) plus an opt-in browser-local history of converted files — still no uploads.
 - Tool logic: `lib/tools/`. Workspaces: `components/tools/`. Shared content shell: `components/tool-shell.tsx`. Catalog: `lib/catalog.ts`.
 - Source of truth: **`QUICKKIT_AGENT_BRAIN_FINAL.md`**. Earlier Brain and original uploads are preserved; the FINAL specification supersedes the old one. Reference and screenshot evidence: `docs/`.
 
@@ -47,7 +47,9 @@ Verification: **129 unit/component/config/compatibility tests; 253 Chromium brow
 | JSON Formatter | 1,000,000 characters, 128 nesting levels; rejects non-finite numeric overflow; JSON.parse/stringify; JavaScript number precision; duplicate keys collapse to last value |
 | Password Generator | 8–64 characters; crypto.getRandomValues, rejection sampling, secure shuffle; at least one from each selected set |
 | QR Generator | 2,000 UTF-8 bytes; client-side qrcode loaded on demand; 768×768 PNG; downloaded QR independently decoded in tests |
-| Image Compressor | JPEG/PNG/WebP input; 15 MB, 24 MP, 8,192 px/side; same dimensions; WebP/JPEG/PNG output; JPEG uses white behind transparency; animation becomes a single frame |
+| Image Compressor (v2, owner approved 1 Nov 2026) | JPEG/PNG/WebP/AVIF input (AVIF output where the browser can encode it); 15 MB, 24 MP, 8,192 px/side; batches of 20 with per-image format, quality, name and suffix overrides; quality mode 10–100 % or an exact KB/MB target found by binary quality search with optional stepped downscaling; original vs compressed size with % savings, dimensions, split/side-by-side comparison; transparency kept for PNG/WebP/AVIF and JPEG flattening onto a chosen background; individual or ZIP download, progress bar, Stop, Retry failed and Reset; local only. Record: `docs/FEATURE_IMAGE_COMPRESSOR.md` |
+| Image Resizer (v2, owner approved 1 Nov 2026) | JPEG/PNG/WebP/AVIF input; width/height, percentage, longest/shortest side, aspect lock, 8 everyday + 18 social presets and session custom presets; crop with fixed ratios, rotate any angle, flip, brightness/contrast/saturation and filters; split/side-by-side compare, zoom, per-image undo/redo; DPI and print-size conversion; batches of 20 with per-image overrides, progress, Stop, Retry failed, individual or ZIP download; metadata panel; no upload. Full audit: `docs/QA_IMAGE_RESIZER_AUDIT.md` |
+| Image Cropper | JPEG/PNG/WebP input; 15 MB, 24 MP, 8,192 px/side; batches of 20 with a per-image frame, ratio, shape, rotation, flip, output size, format, quality and file name; freeform + 1:1/4:3/3:2/16:9/9:16/4:5 ratios, 18 social presets, Square and Circle masks, custom width/height, 90° rotation and H/V flips, 25–400 % zoom with pan and “crop to visible area”, 1:1 crop-pixel export (no resampling), Scale %/Custom px/Preset sizes, JPEG/PNG/WebP output with quality control, transparent PNG/WebP circle corners or a JPEG flatten colour, original vs cropped split/side-by-side comparison, 50-step undo/redo/reset, individual and ZIP downloads with custom names, EXIF auto-correction, progress/Stop/Retry, local only. Record: `docs/FEATURE_IMAGE_CROPPER.md` |
 
 Canvas re-encoding may remove metadata and alter color profiles. Output can be larger; compare sizes. PNG quality is lossless and the quality slider is disabled for PNG. Preview URLs are revoked on replacement, reset and unmount. File decode/encode support depends on the browser.
 

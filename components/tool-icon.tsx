@@ -8,6 +8,8 @@ import {
   Files,
   FileText,
   Calculator,
+  Scaling,
+  Crop,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -19,6 +21,8 @@ const icons = {
   pdf: Files,
   word: FileText,
   calc: Calculator,
+  resize: Scaling,
+  crop: Crop,
 };
 export default function ToolIcon({
   icon,
