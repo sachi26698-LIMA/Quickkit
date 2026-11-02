@@ -83,6 +83,8 @@ export function sequentialChanges(initial: number, rates: number[]) {
     value = before * (1 + rate / 100);
     if (!Number.isFinite(value) || Math.abs(value) > 1e15)
       throw new Error("Result exceeds the supported range.");
+    if (value === 0 && before !== 0 && 1 + rate / 100 !== 0)
+      throw new Error("Result is too small to represent accurately.");
     return { before, rate, after: value };
   });
 }
@@ -93,14 +95,14 @@ export function compareValues(values: number[]) {
     values.some((v) => !Number.isFinite(v) || Math.abs(v) > 1e12)
   )
     throw new Error("Enter 2–100 values between −1 trillion and 1 trillion.");
-  return values.slice(1).map((value, i) => ({
-    previous: values[i],
-    value,
-    change:
-      values[i] === 0
-        ? null
-        : ((value - values[i]) / Math.abs(values[i])) * 100,
-  }));
+  return values.slice(1).map((value, i) => {
+    const previous = values[i];
+    const change =
+      previous === 0 ? null : ((value - previous) / Math.abs(previous)) * 100;
+    if (change !== null && !Number.isFinite(change))
+      throw new Error("Percentage change exceeds the supported numeric range.");
+    return { previous, value, change };
+  });
 }
 export function buyGet(
   unitPrice: number,

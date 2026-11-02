@@ -1,6 +1,10 @@
 "use client";
 import { useState } from "react";
 import { bmi, discount, gst, percentage } from "@/lib/tools/calculators";
+import {
+  formatPercentageNumber,
+  parsePercentageNumber,
+} from "@/lib/tools/percentage-format";
 
 const format = (n: number) =>
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 }).format(n);
@@ -38,13 +42,20 @@ export default function Calculator({ kind }: { kind: string }) {
   let error = "";
   try {
     if (a !== "" && b !== "") {
-      const x = Number(a),
-        y = Number(b);
+      const x =
+          kind === "percentage-calculator"
+            ? parsePercentageNumber(a)
+            : Number(a),
+        y =
+          kind === "percentage-calculator"
+            ? parsePercentageNumber(b)
+            : Number(b);
       if (kind === "percentage-calculator") {
         const r = percentage(mode, x, y);
         result =
-          format(r.value) + (["is", "difference"].includes(mode) ? "%" : "");
-        detail = r.formula;
+          formatPercentageNumber(r.value) +
+          (["is", "difference"].includes(mode) ? "%" : "");
+        detail = `${r.formula} = ${result}`;
       }
       if (kind === "bmi-calculator") {
         const r = bmi(x, y, toggle);
@@ -119,6 +130,19 @@ export default function Calculator({ kind }: { kind: string }) {
               </select>
             </label>
           )}
+          {isPercentage && (
+            <p>
+              {mode === "reverse"
+                ? "Enter the final value and the signed percentage change: use −20 for a 20% decrease."
+                : mode === "difference"
+                  ? "Difference uses the average of the absolute magnitudes. For two zeros it is undefined."
+                  : mode === "increase" || mode === "decrease"
+                    ? "The selected operation uses the rate as entered; a negative rate reverses the operation."
+                    : mode === "is"
+                      ? "The second value is the reference; it cannot be zero."
+                      : "Example: 20% of 150 is 30."}
+            </p>
+          )}
           {!isPercentage && (
             <label className="calculator-check">
               <input
@@ -150,6 +174,7 @@ export default function Calculator({ kind }: { kind: string }) {
               value={a}
               onChange={(e) => setA(e.target.value)}
               placeholder="Enter a value"
+              step={isPercentage ? "any" : undefined}
             />
           </label>
           <label>
@@ -169,6 +194,7 @@ export default function Calculator({ kind }: { kind: string }) {
               value={b}
               onChange={(e) => setB(e.target.value)}
               placeholder={isDiscount ? "e.g. 10, 5" : "Enter a value"}
+              step={isPercentage ? "any" : undefined}
             />
           </label>
           {isBmi && (
@@ -258,6 +284,13 @@ export default function Calculator({ kind }: { kind: string }) {
             <>
               <output>{result}</output>
               <p>{detail}</p>
+              {isPercentage && (
+                <p>
+                  Results are rounded to at most four decimal places; nonzero
+                  values below 0.0001 or at least 10¹⁵ use scientific notation
+                  with seven significant digits.
+                </p>
+              )}
               {isBmi && bmiValue !== undefined && (
                 <>
                   <div

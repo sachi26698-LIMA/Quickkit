@@ -7,31 +7,60 @@ export function percentage(mode: string, a: number, b: number) {
     Math.abs(b) > 1e12
   )
     throw new Error("Enter numbers between −1 trillion and 1 trillion.");
+  let value: number, formula: string;
   switch (mode) {
     case "of":
-      return { value: (a * b) / 100, formula: `${a} ÷ 100 × ${b}` };
+      value = (a * b) / 100;
+      formula = `${a} ÷ 100 × ${b}`;
+      if (value === 0 && a !== 0 && b !== 0)
+        throw new Error("Result is too small to represent accurately.");
+      break;
     case "is":
       if (b === 0) throw new Error("The reference value cannot be zero.");
-      return { value: (a / b) * 100, formula: `${a} ÷ ${b} × 100` };
+      value = (a / b) * 100;
+      formula = `${a} ÷ ${b} × 100`;
+      break;
     case "increase":
-      return { value: a * (1 + b / 100), formula: `${a} × (1 + ${b} ÷ 100)` };
+      value = a * (1 + b / 100);
+      formula = `${a} × (1 + ${b} ÷ 100)`;
+      break;
     case "decrease":
-      return { value: a * (1 - b / 100), formula: `${a} × (1 − ${b} ÷ 100)` };
-    case "difference":
-      if (Math.abs(a) + Math.abs(b) === 0)
-        throw new Error("The average magnitude cannot be zero.");
-      return {
-        value: (Math.abs(a - b) / ((Math.abs(a) + Math.abs(b)) / 2)) * 100,
-        formula: `|${a} − ${b}| ÷ average magnitude × 100`,
-      };
+      value = a * (1 - b / 100);
+      formula = `${a} × (1 − ${b} ÷ 100)`;
+      break;
+    case "difference": {
+      const scale = Math.max(Math.abs(a), Math.abs(b));
+      if (scale === 0) throw new Error("The average magnitude cannot be zero.");
+      // Scale first to avoid underflow when both values are extremely small.
+      const x = a / scale,
+        y = b / scale;
+      value = (Math.abs(x - y) / ((Math.abs(x) + Math.abs(y)) / 2)) * 100;
+      formula = `|${a} − ${b}| ÷ average of |${a}| and |${b}| × 100`;
+      break;
+    }
     case "reverse":
       if (1 + b / 100 === 0)
         throw new Error("A −100% change cannot be reversed.");
-      return { value: a / (1 + b / 100), formula: `${a} ÷ (1 + ${b} ÷ 100)` };
+      value = a / (1 + b / 100);
+      formula = `${a} ÷ (1 + ${b} ÷ 100)`;
+      break;
     default:
       throw new Error("Select a calculation.");
   }
+  if (!Number.isFinite(value))
+    throw new Error("Result is outside the supported numeric range.");
+  if (
+    value === 0 &&
+    a !== 0 &&
+    (mode === "is" ||
+      mode === "reverse" ||
+      (mode === "increase" && 1 + b / 100 !== 0) ||
+      (mode === "decrease" && 1 - b / 100 !== 0))
+  )
+    throw new Error("Result is too small to represent accurately.");
+  return { value, formula };
 }
+
 export function bmi(height: number, weight: number, imperial: boolean) {
   if (
     !Number.isFinite(height) ||

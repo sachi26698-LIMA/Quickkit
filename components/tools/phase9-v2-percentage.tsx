@@ -7,13 +7,15 @@ import {
   csvCell,
 } from "@/lib/tools/phase9-v2-advanced";
 import { downloadText } from "@/lib/tools/download";
-const format = (n: number) =>
-  new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 }).format(n);
+import {
+  formatPercentageNumber as format,
+  parsePercentageNumber,
+} from "@/lib/tools/percentage-format";
 function numbers(text: string) {
   const parts = text.split(",");
   if (parts.some((s) => !s.trim()))
     throw new Error("Enter comma-separated numbers without empty entries.");
-  return parts.map((s) => Number(s.trim()));
+  return parts.map((s) => parsePercentageNumber(s));
 }
 type Snapshot = {
   mode: string;
@@ -34,7 +36,10 @@ export default function PercentageAdvanced() {
   try {
     if (first !== "" && values !== "") {
       if (mode === "sequence") {
-        const steps = sequentialChanges(Number(first), numbers(values));
+        const steps = sequentialChanges(
+          parsePercentageNumber(first),
+          numbers(values),
+        );
         title = `Final value: ${format(steps[steps.length - 1].after)}`;
         lines = steps.map(
           (s, i) =>
@@ -45,7 +50,7 @@ export default function PercentageAdvanced() {
           value: s.after,
         }));
       } else if (mode === "compare") {
-        const series = [Number(first), ...numbers(values)];
+        const series = [parsePercentageNumber(first), ...numbers(values)];
         const changes = compareValues(series);
         title = `${series.length} values compared`;
         lines = changes.map(
@@ -54,7 +59,10 @@ export default function PercentageAdvanced() {
         );
         chart = series.map((value, i) => ({ label: `Value ${i + 1}`, value }));
       } else {
-        const original = originalFromDiscount(Number(first), Number(values));
+        const original = originalFromDiscount(
+          parsePercentageNumber(first),
+          parsePercentageNumber(values),
+        );
         title = `Original value: ${format(original)}`;
         lines = [
           `${format(Number(first))} ÷ (1 − ${format(Number(values))} / 100) = ${format(original)}`,
@@ -69,7 +77,7 @@ export default function PercentageAdvanced() {
     error = e instanceof Error ? e.message : "Invalid input.";
   }
   const summary = [title, ...lines].join("\n");
-  const max = Math.max(1, ...chart.map((c) => Math.abs(c.value)));
+  const max = Math.max(0, ...chart.map((c) => Math.abs(c.value))) || 1;
   return (
     <section
       className="workspace advanced-workspace"
@@ -174,7 +182,10 @@ export default function PercentageAdvanced() {
                   <li key={i}>{line}</li>
                 ))}
               </ol>
-              <div aria-label="Value comparison" role="img">
+              <div
+                aria-label={`Value comparison: ${chart.map((c) => `${c.label}: ${format(c.value)}`).join(", ")}`}
+                role="img"
+              >
                 {chart.map((c, i) => (
                   <div key={i} className="advanced-chart-row">
                     <span>
@@ -190,6 +201,8 @@ export default function PercentageAdvanced() {
               </div>
               <p>
                 Bars show absolute magnitude; signs are retained in the labels.
+                Results are rounded to four decimal places, or seven significant
+                digits in scientific notation for very small or large values.
               </p>
               <div className="calculator-actions">
                 <button
