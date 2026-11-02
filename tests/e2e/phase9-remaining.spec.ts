@@ -24,9 +24,9 @@ const cases: {
   ...["emi-calculator", "loan-calculator"].map((slug) => ({
     slug,
     fill: async (p: Page) => {
-      await p.getByLabel("Principal (₹)").fill("100000");
+      await p.getByLabel("Principal (₹)", { exact: true }).fill("100000");
       await p.getByLabel("Annual interest rate (%)").fill("12");
-      await p.getByLabel("Tenure (months)").fill("12");
+      await p.getByLabel("Tenure (months)", { exact: true }).fill("12");
     },
     expected: "8,884.88",
   })),

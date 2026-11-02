@@ -129,5 +129,7 @@ test("loan down payment and affordability workflow", async ({ page }) => {
     page.getByText(/Remaining for this loan: ₹26,000.00/),
   ).toBeVisible();
   await page.getByRole("button", { name: "Use as principal" }).click();
-  await expect(page.getByLabel("Principal (₹)")).toHaveValue("800000");
+  await expect(page.getByLabel("Principal (₹)", { exact: true })).toHaveValue(
+    "800000",
+  );
 });

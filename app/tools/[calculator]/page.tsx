@@ -4,11 +4,14 @@ import Calculator from "@/components/tools/calculator";
 import GSTInvoice from "@/components/tools/phase9-v2-gst";
 import PercentageAdvanced from "@/components/tools/phase9-v2-percentage";
 import DiscountAdvanced from "@/components/tools/phase9-v2-discount";
+import OfferComparison from "@/components/tools/phase9-v2-offers";
 import Dates from "@/components/tools/phase9-dates";
 import Loans from "@/components/tools/phase9-loans";
+import VariableLoan from "@/components/tools/phase9-v2-variable-loan";
 import Converters from "@/components/tools/phase9-converters";
 import Scientific from "@/components/tools/phase9-scientific";
 import TimeAdvanced from "@/components/tools/phase9-v2-time";
+import CalendarTime from "@/components/tools/phase9-v2-calendar-time";
 import { pageMetadata } from "@/lib/seo";
 import { calculatorInfo } from "@/lib/calculator-info";
 
@@ -42,7 +45,10 @@ export default async function Page({
       {["age-calculator", "date-difference-calculator"].includes(calculator) ? (
         <Dates kind={calculator} />
       ) : ["emi-calculator", "loan-calculator"].includes(calculator) ? (
-        <Loans kind={calculator} />
+        <>
+          <Loans kind={calculator} />
+          <VariableLoan kind={calculator} />
+        </>
       ) : [
           "unit-converter",
           "temperature-converter",
@@ -50,7 +56,12 @@ export default async function Page({
         ].includes(calculator) ? (
         <>
           <Converters kind={calculator} />
-          {calculator === "time-converter" && <TimeAdvanced />}
+          {calculator === "time-converter" && (
+            <>
+              <TimeAdvanced />
+              <CalendarTime />
+            </>
+          )}
         </>
       ) : calculator === "scientific-calculator" ? (
         <Scientific />
@@ -59,7 +70,12 @@ export default async function Page({
           <Calculator kind={calculator} />
           {calculator === "gst-calculator" && <GSTInvoice />}
           {calculator === "percentage-calculator" && <PercentageAdvanced />}
-          {calculator === "discount-calculator" && <DiscountAdvanced />}
+          {calculator === "discount-calculator" && (
+            <>
+              <DiscountAdvanced />
+              <OfferComparison />
+            </>
+          )}
         </>
       )}
     </ToolShell>

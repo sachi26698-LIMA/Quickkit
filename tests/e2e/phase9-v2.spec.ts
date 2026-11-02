@@ -47,9 +47,9 @@ test("conversion comparison and session restore", async ({ page }) => {
 });
 test("loan prepayment and CSV download", async ({ page }) => {
   await page.goto("/tools/emi-calculator");
-  await page.getByLabel("Principal (₹)").fill("1200");
+  await page.getByLabel("Principal (₹)", { exact: true }).fill("1200");
   await page.getByLabel("Annual interest rate (%)").fill("0");
-  await page.getByLabel("Tenure (months)").fill("12");
+  await page.getByLabel("Tenure (months)", { exact: true }).fill("12");
   await page.getByText("One-time prepayment").click();
   await page.getByLabel("Extra amount (₹)").fill("500");
   await page.getByLabel("Payment month").fill("2");
