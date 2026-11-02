@@ -729,7 +729,9 @@ export function qualitySummary(settings: ImageSettings): string {
 
 export function describeImageSettings(settings: ImageSettings): string[] {
   const parts = [formatLabel(settings.format)];
-  if (usesQuality(settings.format)) parts.push(`q${settings.quality}`);
+  parts.push(
+    usesQuality(settings.format) ? `q${settings.quality}` : "lossless",
+  );
   if (!keepsAlpha(settings.format) || settings.alpha === "background")
     parts.push(`background ${settings.background}`);
   if (settings.resize.mode !== "none") parts.push("resized");
