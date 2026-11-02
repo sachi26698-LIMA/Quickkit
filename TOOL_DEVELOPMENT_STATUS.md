@@ -543,3 +543,10 @@ Addendum (same day, branch head `c73803e`, CI run `41436170818`): **505 passed, 
 the same two pre-existing WebKit PDF Merger failures, now with one added browser test covering the
 Fit-to-panel default and zoom unlock. No application code changed after the evidence capture in
 `docs/verification`.
+
+Final addendum (branch head `2888180`): push run `41440266635` and PR run `41440274038` both report
+**505 passed, 5 skipped, 2 failed**, and the two failures are again the pre-existing WebKit PDF Merger
+tests (filename normalisation, page-picker contrast) that also fail on `main` at `2ed5bdc`
+(run `41412528307`, 478 passed). Evidence refreshed from CI at this head: readable page labels in the
+`examples/` PDF and page image, fit-to-panel preview captures, and one added browser test for the
+fit/zoom behaviour. Merge and deploy remain blocked on explicit owner approval.
