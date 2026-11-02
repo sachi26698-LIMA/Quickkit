@@ -4140,3 +4140,220 @@ select:focus {
     gap: 7px;
   }
 }
+
+/* ---------- PDF to Word ---------- */
+.p2w-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 16px 0 12px;
+}
+.p2w-mode-card {
+  display: block;
+  cursor: pointer;
+  border: 1.5px solid #e2d8f8;
+  border-radius: 14px;
+  background: #fdfbff;
+  padding: 14px 16px;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    box-shadow 0.18s;
+}
+.p2w-mode-card:hover {
+  border-color: #bda9f2;
+}
+.p2w-mode-card:has(input:checked) {
+  border-color: var(--purple);
+  background: #f3eeff;
+  box-shadow: 0 0 0 3px #6c35e81f;
+}
+.p2w-mode-card:has(input:focus-visible) {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+.p2w-mode-body {
+  display: grid;
+  gap: 4px;
+}
+.p2w-mode-body strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.p2w-mode-body span {
+  font-size: 12.5px;
+  line-height: 1.6;
+  /* One step darker than --secondary: #706b83 falls below WCAG AA at this
+     size on the selected card's lavender background. */
+  color: #5d5870;
+}
+.p2w-ocr-toggle {
+  flex-wrap: wrap;
+  margin: 4px 0 14px;
+}
+.p2w-ocr-toggle .help {
+  flex-basis: 100%;
+  margin: 0 0 0 26px;
+}
+.p2w-dropzone {
+  margin-bottom: 14px;
+}
+.p2w-browse {
+  cursor: pointer;
+}
+.p2w-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #7a4d00;
+  background: #fff6e3;
+  border: 1px solid #f0d9a8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+.p2w-notice svg {
+  flex: none;
+  margin-top: 2px;
+}
+.p2w-batchbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--secondary);
+  margin: 6px 0 4px;
+}
+.p2w-batch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.p2w-batch-actions .primary,
+.p2w-batch-actions .toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.p2w-overall {
+  margin: 10px 0 14px;
+}
+.p2w-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.p2w-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: start;
+  gap: 10px;
+  border: 1px solid #e7defc;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+.p2w-row-icon {
+  color: #8a76c9;
+  margin-top: 2px;
+}
+.p2w-row-main {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.p2w-row-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.p2w-row-meta {
+  font-size: 12px;
+  color: var(--secondary);
+}
+.p2w-file-progress {
+  margin: 8px 0 2px;
+}
+.p2w-error {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #b3261e;
+  margin: 4px 0 0;
+}
+.p2w-notes {
+  font-size: 12.5px;
+  color: var(--secondary);
+  margin-top: 6px;
+}
+.p2w-notes summary {
+  cursor: pointer;
+  color: var(--purple);
+  font-weight: 600;
+}
+.p2w-notes ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+}
+.p2w-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 99px;
+  padding: 3px 10px;
+  background: #f1ecff;
+  color: #5b4a9e;
+  white-space: nowrap;
+}
+.p2w-chip-ready {
+  background: #eef2ff;
+  color: #3355aa;
+}
+.p2w-chip-busy {
+  background: #f3eeff;
+  color: var(--purple);
+}
+.p2w-chip-done {
+  background: #e7f7ee;
+  color: #1d7a45;
+}
+.p2w-chip-failed {
+  background: #fdecec;
+  color: #b3261e;
+}
+.p2w-row-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+@media (max-width: 600px) {
+  .p2w-row {
+    grid-template-columns: auto 1fr auto;
+  }
+  .p2w-chip {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .p2w-row-actions {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .p2w-batch-actions {
+    width: 100%;
+  }
+  .p2w-batch-actions .primary {
+    flex: 1;
+    justify-content: center;
+  }
+}

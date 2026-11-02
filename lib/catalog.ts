@@ -180,6 +180,17 @@ export const tools = [
     color: "purple",
     phase: 5,
   },
+  {
+    slug: "pdf-to-word",
+    name: "PDF to Word",
+    category: "PDF Tools",
+    description:
+      "Turn PDFs into editable Word documents. Headings, lists, tables and images carried over — converted on your device.",
+    keywords: "pdf word docx convert office edit document",
+    icon: "word",
+    color: "blue",
+    phase: 6,
+  },
 ] as const;
 
 export type Tool = (typeof tools)[number];

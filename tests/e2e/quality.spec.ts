@@ -18,6 +18,7 @@ const routes = [
   "/tools/qr-generator",
   "/tools/image-compressor",
   "/tools/merge-pdf",
+  "/tools/pdf-to-word",
   "/about",
   "/privacy",
   "/terms",
