@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 test("search, category filters, clear and empty state", async ({ page }) => {
   await page.goto("/tools");
-  await expect(page.locator(".tool-card")).toHaveCount(7);
+  await expect(page.locator(".tool-card")).toHaveCount(8);
   await page.getByRole("searchbox").fill("json");
   await expect(page.locator(".tool-card")).toHaveCount(1);
   await page
@@ -9,13 +9,13 @@ test("search, category filters, clear and empty state", async ({ page }) => {
     .click();
   await expect(page.getByText("No tools found")).toBeVisible();
   await page.getByRole("button", { name: "Clear search & filters" }).click();
-  await expect(page.locator(".tool-card")).toHaveCount(7);
+  await expect(page.locator(".tool-card")).toHaveCount(8);
   await page.getByRole("searchbox").fill("crypto");
   await page.getByRole("searchbox").press("Escape");
-  await expect(page.locator(".tool-card")).toHaveCount(7);
+  await expect(page.locator(".tool-card")).toHaveCount(8);
   await page.getByRole("searchbox").fill("json");
   await page.getByRole("button", { name: "Clear search", exact: true }).click();
-  await expect(page.locator(".tool-card")).toHaveCount(7);
+  await expect(page.locator(".tool-card")).toHaveCount(8);
 });
 test("hero search suggests tools and opens results in All Tools", async ({
   page,

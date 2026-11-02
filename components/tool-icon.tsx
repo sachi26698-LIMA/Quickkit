@@ -6,6 +6,7 @@ import {
   QrCode,
   ImageIcon,
   Files,
+  FileText,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -15,6 +16,7 @@ const icons = {
   qr: QrCode,
   image: ImageIcon,
   pdf: Files,
+  word: FileText,
 };
 export default function ToolIcon({
   icon,

@@ -9,7 +9,7 @@ import {
 } from "../lib/catalog";
 describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
-    expect(filterTools("", "All tools")).toHaveLength(7));
+    expect(filterTools("", "All tools")).toHaveLength(8));
   it("ignores case and surrounding spaces", () =>
     expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter"));
   it("searches keywords", () =>

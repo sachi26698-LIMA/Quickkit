@@ -44,7 +44,7 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(robots().rules).toEqual({ userAgent: "*", allow: "/" });
   const routes = sitemap();
   // 10 static pages + 8 category pages + 7 tool pages.
-  expect(routes).toHaveLength(25);
+  expect(routes).toHaveLength(26);
   expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
     true,
   );

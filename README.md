@@ -1,13 +1,13 @@
 # QUICKKIT
 
-**Handy tools. Zero hassle.** A premium light-theme collection of seven genuinely functional, local-first browser utilities.
+**Handy tools. Zero hassle.** A premium light-theme collection of eight genuinely functional, local-first browser utilities.
 
 ## Product and architecture
 
 - Next.js 16 App Router, React 19, strict TypeScript, npm (`package-lock.json` only).
 - Server-rendered route content and metadata; client islands for inputs and browser APIs.
 - CSS-variable design system, bundled Geist Variable font, Lucide icons and optimized WebP 3D hero illustration. No dark theme, external font requests or decorative fake controls.
-- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator, Image Compressor and PDF Merger on distinct `/tools/...` routes, plus a `/tools` explorer and `/category/<slug>` pages.
+- Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator, Image Compressor, PDF Merger and PDF to Word on distinct `/tools/...` routes, plus a `/tools` explorer and `/category/<slug>` pages. PDF to Word additionally previews the original PDF and the converted Word file side by side in the browser, converts selected page ranges, issues a per-file quality report, and ships optional on-device OCR (self-hosted tesseract.js, English/Hindi/Gujarati, lazy-loaded only for scanned pages) plus an opt-in browser-local history of converted files — still no uploads.
 - Tool logic: `lib/tools/`. Workspaces: `components/tools/`. Shared content shell: `components/tool-shell.tsx`. Catalog: `lib/catalog.ts`.
 - Source of truth: **`QUICKKIT_AGENT_BRAIN_FINAL.md`**. Earlier Brain and original uploads are preserved; the FINAL specification supersedes the old one. Reference and screenshot evidence: `docs/`.
 
@@ -36,7 +36,7 @@ npm run test:e2e
 
 Playwright starts the built production server on port 3001 automatically (or reuses a local server). `TEST_BASE_URL` can target another already-running preview. The quality suite intentionally expects an unconfigured, noindex preview. The CI workflow runs the same checks; it has not been executed on a remote repository in this environment.
 
-Verification: **117 unit/component/config/compatibility tests; 238 Chromium browser tests passed in the 2026-11-02 QC audit, plus a 189-check responsive sweep (21 routes × 9 widths) with zero issues**. Chromium covers accessibility, all routes, seven widths, links, headers and core workflows. The Playwright configuration also defines Firefox and WebKit projects covering all seven tool workflows in CI. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
+Verification: **129 unit/component/config/compatibility tests; 253 Chromium browser tests passed on 2026-11-02 (including axe + overflow sweeps at 9 widths for every audited route, plus an end-to-end OCR conversion test)**. Chromium covers accessibility, all routes, links, headers and core workflows. The Playwright configuration also defines Firefox and WebKit projects covering the tool workflows in CI. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
 
 ## Processing and limits
 
