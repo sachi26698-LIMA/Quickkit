@@ -1,10 +1,10 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 1 November 2026  
+**Last updated:** 2 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF Merger — **implemented — awaiting owner approval**. The owner approved the plan on 1 November 2026 with explicit browser-only privacy, actionable error-handling and complete mobile-workflow requirements. Implementation and QA are complete for owner review; **do not mark it live/complete and do not start another tool until the owner personally approves it**. It has not been deployed or indexed.
+**Current active tool:** PDF to Word Converter — **implemented — awaiting owner approval**. PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed.
 
 ## 1. Status definitions
 
@@ -24,11 +24,11 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 
 | Group | Count | Notes |
 |---|---:|---|
-| Implemented in repository (`live`) | 6 | Existing tools listed in Section 4. |
-| Implemented — awaiting owner approval | 1 | PDF Merger only; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
-| In research/planning | 0 | No next tool may enter research/planning as active work until the owner approves PDF Merger. |
-| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger, which has moved to owner review. |
-| Projected total after Phase 12 | 90 | Only if every candidate passes its individual quality gate. |
+| Implemented in repository (`live`) | 7 | Tools listed in Section 4 (now including PDF Merger, merged by the owner). |
+| Implemented — awaiting owner approval | 1 | PDF to Word Converter; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
+| In research/planning | 0 | No next tool may enter research/planning as active work until the owner approves PDF to Word. (A PDF Translator architecture plan was delivered in chat on 2 November 2026; it remains unimplemented and unapproved.) |
+| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger (implemented). PDF to Word is an owner-directed addition beyond that list. |
+| Projected total after Phase 12 | 91 | Only if every candidate passes its individual quality gate (7 implemented + PDF to Word if approved + 83 remaining). |
 | Additional tools needed to exceed 100 | 11+ | Reserved for evidence-led Phase 13; candidates not selected yet. |
 
 > Reaching exactly 100 from the current six would require 94 net-new tools. Exceeding 100 requires at least 95 net-new tools. The requested Phases 5–12 contain 84, so the honest projected total is 90—not 100+.
@@ -37,18 +37,18 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 
 | Work item | Status | Evidence / next step |
 |---|---|---|
-| Current inline catalog | Implemented for seven repository tools | `lib/catalog.ts`; six previously implemented tools plus PDF Merger under the approved narrow integration. Suitable for the current homepage but not the 90-tool target. |
+| Current inline catalog | Implemented for eight repository tools | `lib/catalog.ts`; seven implemented tools plus PDF to Word under the approved narrow integration. Suitable for the current homepage but not the 90-tool target. |
 | Scalable tool registry | **Designed, not implemented** | Proposal in `TOOL_REGISTRY_ARCHITECTURE.md`; this remains a separate future migration and was not bundled into PDF Merger. |
-| Generated tool routes | **Not started** | Current seven routes are maintained individually under `app/tools/*/page.tsx`. |
-| `/tools` directory | **Not started** | Proposed as part of the registry foundation. |
-| Generated category pages | **Not started** | Proposed route: `/tools/category/{categorySlug}`. |
-| Global registry search | **Partial precursor only** | Current homepage search/filter works for seven repository tools; ranking, aliases and dedicated directory search are not implemented. |
+| Generated tool routes | **Not started** | Current eight routes are maintained individually under `app/tools/*/page.tsx`. |
+| `/tools` directory | Implemented (Phase 2) | Explorer with search and category filters lives at `/tools`; registry-driven generation is still future work. |
+| Generated category pages | Implemented (Phase 2, different route) | Category pages live at `/category/{categorySlug}`; the proposed `/tools/category/...` shape was not adopted. |
+| Global registry search | **Partial precursor only** | Current homepage search/filter works for eight repository tools; ranking, aliases and dedicated directory search are not implemented. |
 | Functional category filters | **Partial precursor only** | Current category buttons work for the existing display categories; canonical category IDs/slugs are not implemented. |
 | Featured tools | **Not started** | Must be labeled “Featured” until real popularity data exists. |
 | Popular tools from real data | **Blocked by design decision** | No approved aggregate usage-data source currently exists; do not fabricate rankings. |
 | Recently added | **Not started** | Requires a trustworthy `addedAt` policy in the registry migration. |
 | Relevant related tools | **Partial precursor only** | Current shell lists other tools, but not the proposed curated/tag-scored relevance model. |
-| Account-free favorites | **Not started** | Requires approval to store tool IDs only in browser local storage. |
+| Account-free favorites | Implemented (Phase 2) | “Saved tools” stores tool slugs in browser local storage only. |
 | Per-tool privacy disclosure | **Partial precursor only** | Current tools are browser-processed; the shell must become per-tool before any server or AI tool. |
 
 ## 4. Implemented tools
@@ -63,24 +63,25 @@ The proposed IDs below use the existing slug values. During registry migration t
 | `password-generator` | Password Generator | `/tools/password-generator` | Security | Security & Privacy Tools | `live` | Implemented with cryptographically secure generation; included in existing tests. |
 | `qr-generator` | QR Code Generator | `/tools/qr-generator` | Image & QR | QR & Barcode Tools | `live` | Implemented locally in the browser; included in existing tests. |
 | `image-compressor` | Image Compressor | `/tools/image-compressor` | Image & QR | Image Tools | `live` | Implemented with bounded canvas processing; included in existing tests. |
+| `merge-pdf` | PDF Merger | `/tools/merge-pdf` | PDF Tools | PDF Tools | `live` | Browser-only merger with page selection, previews and password unlock; merged into `main` by the owner. |
 
 ### Implemented — awaiting owner approval
 
 | ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
 |---|---|---|---|---|---|---|
-| `merge-pdf` | PDF Merger | `/tools/merge-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only implementation committed on `arena/eb17e485-quickkit`; final QA evidence is in `docs/pdf-merger/QA_REPORT.md`. Not owner-approved, live, deployed or indexed. |
+| `pdf-to-word` | PDF to Word Converter | `/tools/pdf-to-word` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR). Two modes, batch queue, ZIP + batch report. Implemented on `arena/dc1f7709-quickkit` for owner review. Not owner-approved, live, deployed or indexed. |
 
 ### Current regression evidence
 
-The most recent full run recorded after PDF Merger Git resynchronization is:
+The most recent full run, recorded for the PDF to Word owner review on 2 November 2026, is:
 
-- Vitest: **114/114 passed**.
-- Chromium Playwright suite: **146/146 passed** in the sandbox browser environment.
-- Production build: passed with seven repository tool routes and 19 static pages.
+- Vitest: **129/129 passed** (including DOCX generation/structure tests that unzip and verify the OOXML output).
+- Chromium Playwright suite: **253/253 passed** in the sandbox browser environment (includes an end-to-end on-device OCR test and axe/overflow sweeps for the new route at 9 widths).
+- Production build: passed with eight repository tool routes and 34 static pages.
 - Format check, ESLint and TypeScript: passed.
 - Production dependency audit: **0 vulnerabilities**.
 
-Firefox/WebKit execution is not claimed for that sandbox run. Any registry migration or later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
+Firefox/WebKit execution is not claimed for that sandbox run; the Playwright config covers the PDF tool specs there in CI (the OCR test is Chromium-only). Any later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
 
 ## 5. Proposed Phase 5 — PDF Tools
 
@@ -303,3 +304,5 @@ PDF Merger proceeded under the owner's explicit narrow-catalog integration decis
 | 1 November 2026 | Owner approved the PDF Merger plan with mandatory browser-only processing, explicit actionable errors/no silent skipping and a polished complete mobile workflow. PDF Merger became the sole active implementation. |
 | 1 November 2026 | Local PDF Merger work was backed up, integrated directly onto pushed baseline `db4e906`, committed at `070bc77` and pushed to `arena/eb17e485-quickkit`/PR #2. No merge into `main` was performed. |
 | 1 November 2026 | Final PDF Merger QA and owner-review handoff completed in `docs/pdf-merger/QA_REPORT.md`. Status set to **implemented — awaiting owner approval**; all other tools remain blocked. |
+| 2 November 2026 | PDF Merger merged into `main` by the owner (via PR #4/#5) and moved to implemented (`live`). Portfolio now counts 7 implemented tools. |
+| 2 November 2026 | PDF to Word Converter implemented at the owner's direction on `arena/dc1f7709-quickkit`: on-device PDF→DOCX with Original Layout + Clean Editable modes, batch queue with ZIP/batch report, optional self-hosted OCR for scanned pages, honest per-file errors (password/corrupt/limits), and conversion notes instead of silent loss. Added `'wasm-unsafe-eval'` to the CSP `script-src` (permits WebAssembly compilation for OCR; does not enable JS eval). Full gates green (129 unit, 253 Chromium e2e, build, audit). Status: **implemented — awaiting owner approval**; do not merge or start another tool until the owner approves. |

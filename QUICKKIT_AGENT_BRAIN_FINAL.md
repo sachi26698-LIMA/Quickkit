@@ -794,3 +794,34 @@ This section records the ACTUAL current codebase, verified by direct inspection 
 - Activate Calculators/AI Tools only with real, working tools; flip the coming-soon state via catalog entries (pages already exist).
 - Before public launch: real social URLs + verified contact inbox/endpoint in `lib/site.ts`; reconsider "100+ Tools" copy; set `SITE_URL` + `LAUNCH_APPROVED=true`; run the full gate battery + full e2e on all three engines in CI.
 - Preserve: light theme, honesty rules, local-first processing, no-new-dependency bias, and the format/lint/typecheck/unit/e2e gates on every change.
+
+---
+
+## Addendum — 2026-11-02: PDF to Word Converter (8th tool) — IMPLEMENTED, AWAITING OWNER APPROVAL
+
+**Status:** Built on branch `arena/dc1f7709-quickkit` from `main` `c2a592a`; PR opened for owner review. **Do not merge without explicit owner approval.** Sitemap route count is now **26** (10 static + 8 categories + 8 tools); unit 129/129, Chromium e2e 253/253, build 34 pages, prod audit 0 vulnerabilities (2026-11-02 run). Owner-merged PDF Merger is counted as implemented — portfolio: **7 live + 1 awaiting approval**.
+
+### Architecture (all on-device, $0/request)
+`PDF bytes → ExtractedPage[] → StructuredPage[] → DOCX → ZIP`
+- `lib/tools/pdf-to-word/types.ts` — limits (50 files, 25 MB/file, 250 MB/batch, 300 pages/file), `PdfToWordError` taxonomy (not-a-pdf, password-protected, corrupted, empty, *-too-*, ocr-unavailable, ocr-failed, conversion-failed, cancelled), pipeline model types. Coordinates: PDF points, top-left origin after extraction.
+- `extract.ts` — pdfjs (same-origin assets via `prepare:pdfjs`), text items with viewport-transform geometry (font size from transform, bold/italic via `page.commonObjs` defensive lookup), image extraction by walking the operator list with CTM tracking (unit-square → page rect), 1bpp/RGB/RGBA/bitmap → PNG. Scanned detection: <20 non-space chars/page. Inspection samples first 3 pages.
+- `structure.ts` (pure, unit-tested) — line grouping → median body size → heading tiers, list grouping + continuations, paragraph merging + dehyphenation, table detection (≥3 rows/≥2 cols via >14 pt gaps), 2-column gutter handling, image interleaving, running header/footer removal across ≥3 pages.
+- `render-docx.ts` — `docx` package. **Clean Editable**: one flowing section, real Heading styles/lists/tables. **Original Layout**: one section per PDF page at original size (pt×20 twips), geometry-approximated indents/spacing/sizes. Neither mode claims pixel-perfect output; limitations surface as per-file "Conversion notes" + a batch report inside the ZIP.
+- `ocr.ts` — tesseract.js v7, **self-hosted** under `/ocr` by `scripts/copy-ocr-assets.mjs` (`prepare:ocr` in predev/prebuild; `/public/ocr/` gitignored + eslint-ignored). Lazy dynamic import, only when the user enables OCR; English data only. Never a CDN.
+
+### Hard-won integration facts (do not rediscover)
+1. Tesseract spawns its worker through a **Blob URL by default** (`workerBlobURL: true`) → blocked by CSP. Fix: `workerBlobURL: false` with same-origin `workerPath` — **no `worker-src`/blob CSP relaxation needed**.
+2. WebAssembly compilation needs **`'wasm-unsafe-eval'`** in `script-src` (added to `next.config.ts`, site-wide because CSP is per-document and SPA navigation keeps the entry document's policy). This permits WASM only — JS `eval` remains blocked.
+3. A dead OCR worker can leave `createWorker`/`recognize` pending forever → both are wrapped in timeouts (90 s init / 180 s per page) that surface `ocr-unavailable`/`ocr-failed` and terminate the wedged worker. Never remove these guards.
+4. pdfjs `getTextContent()` styles carry **no reliable bold/italic**; font flags come from `page.commonObjs.get(fontName)` (may throw — guard it). Whitespace "gap" items exist — skip whitespace-only items and let x-gaps imply spaces.
+5. The new `react-hooks/refs` lint rule forbids assigning `ref.current` during render — sync refs inside `useEffect`.
+6. When asserting DOCX text, join `<w:t>` contents per paragraph (runs concatenate without spaces, as Word renders). Tag-stripping with spaces invents false word breaks (e.g. "fulfil ment").
+
+### Honesty rules carried by this tool
+- Output is always a freshly generated OOXML file — never a renamed PDF (tests assert ZIP `PK` magic + `word/document.xml`).
+- Scanned pages without OCR produce an image-carrying DOCX **with an explicit note**, or an honest failure when there is nothing readable at all.
+- Catalog/FAQ copy says layout is approximated and names what cannot carry over (fonts substituted, vector graphics, form fields).
+
+### Remaining / future
+- Owner to review the PR and the desktop/mobile screenshots, then approve or request changes. Deployment note: `/public/ocr` adds ~54 MB of static files at build time, but browsers only download the worker + one WASM core + English data (~17 MB) **when a user enables OCR**.
+- The deferred **PDF Translator** remains plan-only (architecture delivered in chat 2026-11-02); its extraction layer can reuse this tool's pdfjs scaffolding when approved.
