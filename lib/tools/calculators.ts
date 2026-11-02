@@ -1,0 +1,96 @@
+/** Pure calculation helpers. Reject invalid input rather than returning misleading results. */
+export function percentage(mode: string, a: number, b: number) {
+  if (!Number.isFinite(a) || !Number.isFinite(b))
+    throw new Error("Enter valid numbers.");
+  switch (mode) {
+    case "of":
+      return { value: (a * b) / 100, formula: `${a} ÷ 100 × ${b}` };
+    case "is":
+      if (b === 0) throw new Error("The reference value cannot be zero.");
+      return { value: (a / b) * 100, formula: `${a} ÷ ${b} × 100` };
+    case "increase":
+      return { value: a * (1 + b / 100), formula: `${a} × (1 + ${b} ÷ 100)` };
+    case "decrease":
+      return { value: a * (1 - b / 100), formula: `${a} × (1 − ${b} ÷ 100)` };
+    case "difference":
+      if (Math.abs(a) + Math.abs(b) === 0)
+        throw new Error("The average magnitude cannot be zero.");
+      return {
+        value: (Math.abs(a - b) / ((Math.abs(a) + Math.abs(b)) / 2)) * 100,
+        formula: `|${a} − ${b}| ÷ average magnitude × 100`,
+      };
+    case "reverse":
+      if (1 + b / 100 === 0)
+        throw new Error("A −100% change cannot be reversed.");
+      return { value: a / (1 + b / 100), formula: `${a} ÷ (1 + ${b} ÷ 100)` };
+    default:
+      throw new Error("Select a calculation.");
+  }
+}
+export function bmi(height: number, weight: number, imperial: boolean) {
+  if (
+    !Number.isFinite(height) ||
+    !Number.isFinite(weight) ||
+    height <= 0 ||
+    weight <= 0
+  )
+    throw new Error("Height and weight must be positive numbers.");
+  const metres = imperial ? height * 0.0254 : height / 100;
+  const kg = imperial ? weight * 0.45359237 : weight;
+  const value = kg / metres ** 2;
+  if (
+    !Number.isFinite(value) ||
+    !Number.isFinite(metres ** 2) ||
+    metres ** 2 === 0
+  )
+    throw new Error("Values are outside the supported range.");
+  const factor = imperial ? 1 / 0.45359237 : 1;
+  return {
+    value,
+    category:
+      value < 18.5
+        ? "Underweight"
+        : value < 25
+          ? "Healthy weight"
+          : value < 30
+            ? "Overweight"
+            : "Obesity",
+    low: 18.5 * metres ** 2 * factor,
+    high: 24.9 * metres ** 2 * factor,
+  };
+}
+export function discount(
+  price: number,
+  rates: number[],
+  tax: number,
+  reverse: boolean,
+) {
+  if (
+    ![price, tax, ...rates].every(Number.isFinite) ||
+    price < 0 ||
+    tax < 0 ||
+    rates.some((r) => r < 0 || r > 100)
+  )
+    throw new Error(
+      "Enter a non-negative price and tax, and discounts between 0 and 100%.",
+    );
+  const multiplier = rates.reduce((v, r) => v * (1 - r / 100), 1);
+  if (reverse && multiplier === 0)
+    throw new Error("A 100% discount cannot be reversed.");
+  const original = reverse ? price / multiplier : price;
+  const discounted = original * multiplier;
+  return {
+    original,
+    discounted,
+    saved: original - discounted,
+    taxAmount: (discounted * tax) / 100,
+    total: discounted * (1 + tax / 100),
+  };
+}
+export function gst(amount: number, rate: number, inclusive: boolean) {
+  if (![amount, rate].every(Number.isFinite) || amount < 0 || rate < 0)
+    throw new Error("Amount and GST rate must be non-negative numbers.");
+  const taxable = inclusive ? amount / (1 + rate / 100) : amount;
+  const tax = (taxable * rate) / 100;
+  return { taxable, tax, total: taxable + tax, half: tax / 2 };
+}

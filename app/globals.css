@@ -5053,3 +5053,79 @@ select:focus {
   --lavender-50: var(--lavender-soft);
   --lavender-100: var(--lavender);
 }
+
+/* Phase 9 calculator workspace */
+.calculator-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 26px;
+}
+.calculator-fields {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+.calculator-fields label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.calculator-fields input:not([type="checkbox"]),
+.calculator-fields select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #ded8ef;
+  border-radius: 10px;
+  padding: 12px;
+  background: white;
+  color: #29213e;
+}
+.calculator-fields .calculator-check {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+.calculator-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.calculator-result {
+  min-width: 0;
+  border-radius: 16px;
+  background: #f5f1ff;
+  border: 1px solid #e8dfff;
+  padding: 24px;
+  overflow-wrap: anywhere;
+}
+.calculator-result output {
+  display: block;
+  color: #5830aa;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  font-weight: 700;
+  margin-top: 12px;
+}
+.calculator-result p,
+.calculator-history p {
+  color: var(--secondary);
+  line-height: 1.6;
+}
+.calculator-result .calculator-error {
+  color: #a33047;
+}
+.calculator-disclaimer {
+  margin-top: 20px;
+  color: var(--secondary);
+  line-height: 1.6;
+}
+.calculator-history {
+  margin-top: 24px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .calculator-grid {
+    grid-template-columns: 1fr;
+  }
+}

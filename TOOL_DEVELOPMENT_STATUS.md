@@ -6,6 +6,10 @@
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
 **Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed.
 
+## Phase 9 checkpoint (owner-directed, 2 November 2026)
+
+The current owner request supersedes the historical one-tool-at-a-time restriction for this phase. Phase 9 is **In Progress**, not complete or approved for launch. Percentage, BMI, discount and GST calculators have initial implementations and passing representative unit tests; eight requested tools remain pending. Browser and accessibility verification and screenshots are blocked by the unavailable Playwright browser download. See `PHASE_9_FEATURE_CHECKLIST.md` for per-feature status, test evidence, limitations and continuation steps; see `PHASE_9_CALCULATOR_PLAN.md` for the audit and plan. The older portfolio figures below are historical and do not account for this in-progress work.
+
 ## 1. Status definitions
 
 These statuses match the proposed registry model in `TOOL_REGISTRY_ARCHITECTURE.md`.
