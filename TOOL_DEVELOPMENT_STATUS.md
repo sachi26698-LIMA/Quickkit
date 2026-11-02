@@ -8,7 +8,7 @@
 
 ## Phase 9 V2 checkpoint (owner-directed)
 
-**In Progress — not accepted or verified.** V2 work has begun in place across scientific, dates, conversion, loans, BMI and discount; substantial requested features remain, including GST and percentage V2 work. See `PHASE_9_V2_CHECKLIST.md` for feature-level status, test scope, browser evidence, screenshots and next steps. No merge or deployment. The Phase 9 checkpoint below describes V1 and is historical.
+**In Progress — not accepted or verified.** V2 work has continued in place across the suite, including advanced percentage and multi-item GST workflows; substantial requested features and verification remain. See `PHASE_9_V2_CHECKLIST.md` for feature-level status, test scope, browser evidence, screenshots and next steps. No merge or deployment. The Phase 9 checkpoint below describes V1 and is historical.
 
 ## Phase 9 checkpoint (owner-directed, 2 November 2026)
 
