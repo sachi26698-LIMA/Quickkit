@@ -13,9 +13,10 @@ Three independent modes share one queue, one settings panel and one preview work
 1. **Image to image** — convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF files between formats, with
    quality, transparency/flattening, optional resize, EXIF orientation handling, per-file format
    overrides, batch progress, cancel/retry and individual or ZIP downloads.
-2. **Images to PDF** — one image per page, with A4/A3/Letter/Legal/custom page sizes, portrait or
-   landscape, 0–60 mm margins, contain/cover/fill placement, page background, embedded JPEG quality,
-   document title and a configurable filename. Pages are raster; the tool never claims editable text.
+2. **Images to PDF** — one image per page in queue order (Move earlier/later controls), with
+   A4/A3/Letter/Legal/custom page sizes, portrait or landscape, 0–60 mm margins, contain/cover/fill
+   placement, page background, embedded JPEG quality, document title and a configurable filename.
+   Pages are raster; the tool never claims editable text.
 3. **PDF to image** — render selected pages as JPG, PNG or WEBP at 72–300 DPI, with a page range
    (`1-3, 5`), page background, zero-padded filenames, page navigation, per-page downloads and a ZIP.
    PDF previews are rendered from the real uploaded PDF; source↔converted comparison is available.
@@ -26,16 +27,16 @@ Input detection uses the filename extension and MIME type. A browser can be unab
 encode a format; the interface probes real encoder support and disables options rather than writing a
 broken file.
 
-| Input | Read with | Output JPG | PNG | WEBP | AVIF | GIF | BMP | TIFF |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| JPG | browser decoder (EXIF orientation applied) | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| PNG | browser decoder | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| WEBP | browser decoder | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| AVIF | browser decoder (Chrome/Edge/Firefox; probe + explicit error) | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| GIF | browser decoder, first frame only | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| BMP | browser decoder | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| TIFF | built-in baseline decoder | ✅ | ✅ | ✅ | ✅ probe | ✅ | ✅ | ✅ |
-| PDF | PDF.js 6.4.299 | ✅ | ✅ | ✅ | ❌ by design | ❌ by design | ❌ by design | ❌ by design |
+| Input | Read with                                                     | Output JPG | PNG | WEBP |         AVIF |          GIF |          BMP |         TIFF |
+| ----- | ------------------------------------------------------------- | ---------: | --: | ---: | -----------: | -----------: | -----------: | -----------: |
+| JPG   | browser decoder (EXIF orientation applied)                    |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| PNG   | browser decoder                                               |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| WEBP  | browser decoder                                               |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| AVIF  | browser decoder (Chrome/Edge/Firefox; probe + explicit error) |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| GIF   | browser decoder, first frame only                             |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| BMP   | browser decoder                                               |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| TIFF  | built-in baseline decoder                                     |         ✅ |  ✅ |   ✅ |     ✅ probe |           ✅ |           ✅ |           ✅ |
+| PDF   | PDF.js 6.4.299                                                |         ✅ |  ✅ |   ✅ | ❌ by design | ❌ by design | ❌ by design | ❌ by design |
 
 - Canvas encoders: JPG, PNG, WEBP, AVIF. `canvas.toBlob` is probed for each type and the returned
   Blob's MIME type is checked — a browser that silently falls back to PNG is treated as unsupported.
@@ -50,19 +51,19 @@ broken file.
 
 ## Limits (enforced, never "unlimited")
 
-| Limit | Value |
-|---|---|
-| Files per batch | 20 |
-| Image size | 15 MB |
-| Image pixels | 24 MP, neither side over 8,192 px |
-| PDF size | 25 MB |
-| PDF pages | 100 |
-| Batch size | 150 MB |
-| Rendered PDF page | 36 MP cap |
-| PDF render DPI | 72–300 |
-| JPEG/WEBP/AVIF quality | 10–100 |
-| PDF margin | 0–60 mm |
-| Custom page | 20–2,000 mm per side |
+| Limit                     | Value                             |
+| ------------------------- | --------------------------------- |
+| Files per batch           | 20                                |
+| Image size                | 15 MB                             |
+| Image pixels              | 24 MP, neither side over 8,192 px |
+| PDF size                  | 25 MB                             |
+| PDF pages                 | 100                               |
+| Batch size                | 150 MB                            |
+| Rendered PDF page         | 36 MP cap                         |
+| PDF render DPI            | 72–300                            |
+| JPEG/WEBP/AVIF quality    | 10–100                            |
+| PDF margin                | 0–60 mm                           |
+| Custom page               | 20–2,000 mm per side              |
 | One PDF per PDF→image run | enforced (mode uses one document) |
 
 ## Behaviour details
@@ -74,6 +75,11 @@ broken file.
   JPG/BMP or when "flatten" is selected. The preview uses a checkerboard to show alpha.
 - **Resize** is optional: keep pixels, percentage 1–800 %, exact width×height with an aspect lock, or
   fit the longest side. Output dimensions are validated against the 24 MP / 8,192 px limits.
+- **Ordering**: the Images to PDF page order is the queue order; each row has Move earlier / Move later
+  buttons (disabled at the ends) and the layout preview plus the exported PDF follow that order.
+- **Supported vs unsupported** is visible in the tool itself under "Format & limitation notes":
+  GIF first frame only, PDF→JPG/PNG/WEBP only, AVIF/WEBP probed, TIFF handled locally, no editable
+  text in image-built PDFs.
 - **Naming**: `<base or original>-converted.<ext>` for images; `<base>-page-001.<ext>` for PDF pages;
   a custom PDF filename (forced `.pdf`) for images→PDF. Duplicates inside ZIPs are suffixed.
 - **Images→PDF** embeds each placed image as JPEG at up to 300 DPI of the placed size, capped at
@@ -97,17 +103,17 @@ broken file.
 
 ## Architecture
 
-| File | Purpose |
-|---|---|
-| `lib/tools/image-convert.ts` | DOM-free model: formats, limits, modes, page sizes/geometry, fit placement, DPI→pixels, range parsing, defaults, resize planning, naming, summaries, estimates |
-| `lib/tools/image-codec.ts` | BMP/GIF/TIFF encoders, median-cut palette, shared LZW, TIFF decoder, size/DPI inspection, colour helpers |
-| `lib/tools/image-encode-client.ts` | Worker client for special encoders with a main-thread fallback |
-| `workers/image-encode.worker.ts` | Off-thread BMP/GIF/TIFF encoding |
-| `lib/tools/image-convert-runner.ts` | Browser engine: inspect/decode, canvas composition, encode, images→PDF (pdf-lib), PDF→images and thumbnails (PDF.js), ZIP |
-| `components/tools/image-converter.tsx` | Workspace state, queue, conversion orchestration, preview, results, downloads |
-| `components/tools/image-converter/settings-panel.tsx` | Mode-specific settings with labelled controls |
-| `components/tools/image-converter/types.ts` | Queue/result types and display helpers |
-| `app/tools/image-converter/page.tsx` | Route metadata, steps, FAQs and structured data |
+| File                                                  | Purpose                                                                                                                                                        |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/tools/image-convert.ts`                          | DOM-free model: formats, limits, modes, page sizes/geometry, fit placement, DPI→pixels, range parsing, defaults, resize planning, naming, summaries, estimates |
+| `lib/tools/image-codec.ts`                            | BMP/GIF/TIFF encoders, median-cut palette, shared LZW, TIFF decoder, size/DPI inspection, colour helpers                                                       |
+| `lib/tools/image-encode-client.ts`                    | Worker client for special encoders with a main-thread fallback                                                                                                 |
+| `workers/image-encode.worker.ts`                      | Off-thread BMP/GIF/TIFF encoding                                                                                                                               |
+| `lib/tools/image-convert-runner.ts`                   | Browser engine: inspect/decode, canvas composition, encode, images→PDF (pdf-lib), PDF→images and thumbnails (PDF.js), ZIP                                      |
+| `components/tools/image-converter.tsx`                | Workspace state, queue, conversion orchestration, preview, results, downloads                                                                                  |
+| `components/tools/image-converter/settings-panel.tsx` | Mode-specific settings with labelled controls                                                                                                                  |
+| `components/tools/image-converter/types.ts`           | Queue/result types and display helpers                                                                                                                         |
+| `app/tools/image-converter/page.tsx`                  | Route metadata, steps, FAQs and structured data                                                                                                                |
 
 ## Tests
 

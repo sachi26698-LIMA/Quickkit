@@ -9894,6 +9894,7 @@ select:focus {
 }
 .converter-mobile-tabs button {
   flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -9922,4 +9923,25 @@ select:focus {
   .converter-layout.mobile-preview > section.converter-panel {
     display: none;
   }
+}
+.converter-notes {
+  width: 100%;
+  text-align: left;
+  margin-top: 2px;
+}
+.converter-notes summary {
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #5b3fa0;
+  padding: 4px 2px;
+}
+.converter-notes ul {
+  margin: 6px 0 2px;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--secondary);
 }

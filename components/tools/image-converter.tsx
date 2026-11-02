@@ -7,8 +7,10 @@ import {
   ArrowRightLeft,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   CircleStop,
   Download,
   Eye,
@@ -393,6 +395,21 @@ export default function ImageConverter() {
       setCompare("source");
     },
     [busy, commitItems, releaseUrl, selectedId],
+  );
+
+  const moveItem = useCallback(
+    (id: string, delta: number) => {
+      if (busy) return;
+      const current = itemsRef.current;
+      const index = current.findIndex((entry) => entry.id === id);
+      const target = index + delta;
+      if (index < 0 || target < 0 || target >= current.length) return;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      commitItems(next);
+      setMessage(null);
+    },
+    [busy, commitItems],
   );
 
   const clearAll = useCallback(() => {
@@ -943,6 +960,29 @@ export default function ImageConverter() {
             </span>
           ))}
         </div>
+        <details className="converter-notes">
+          <summary>Format &amp; limitation notes</summary>
+          <ul>
+            <li>
+              Image inputs: JPG, PNG, WEBP, AVIF, GIF, BMP, TIFF. Outputs add
+              every format the browser can actually encode; AVIF and WEBP are
+              probed and disabled instead of writing a broken file.
+            </li>
+            <li>
+              GIF is exported as a single still frame — animation is not
+              preserved. TIFF is read and written locally by QUICKKIT because
+              browsers cannot open it.
+            </li>
+            <li>
+              PDF → image exports JPG, PNG or WEBP only. PDFs built from images
+              contain raster pages with no editable or selectable text layer.
+            </li>
+            <li>
+              Everything runs in this tab. Files are never uploaded, and
+              originals on your device are never modified.
+            </li>
+          </ul>
+        </details>
       </div>
 
       {items.length > 0 ? (
@@ -1067,6 +1107,37 @@ export default function ImageConverter() {
                   >
                     <RefreshCw size={15} aria-hidden="true" />
                   </button>
+                ) : null}
+                {mode === "images-to-pdf" ? (
+                  <>
+                    <button
+                      type="button"
+                      className="converter-icon-button"
+                      onClick={() => moveItem(item.id, -1)}
+                      disabled={
+                        busy ||
+                        items.findIndex((entry) => entry.id === item.id) === 0
+                      }
+                      aria-label={`Move ${item.name} earlier`}
+                      title="Move earlier"
+                    >
+                      <ChevronUp size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="converter-icon-button"
+                      onClick={() => moveItem(item.id, 1)}
+                      disabled={
+                        busy ||
+                        items.findIndex((entry) => entry.id === item.id) ===
+                          items.length - 1
+                      }
+                      aria-label={`Move ${item.name} later`}
+                      title="Move later"
+                    >
+                      <ChevronDown size={16} aria-hidden="true" />
+                    </button>
+                  </>
                 ) : null}
                 {mode === "image"
                   ? (() => {
@@ -1589,7 +1660,11 @@ function ExportedPageNav({
 }) {
   const index = results.findIndex((entry) => entry.id === current.id);
   return (
-    <div className="converter-pagenav" aria-label="Exported page navigation">
+    <div
+      className="converter-pagenav"
+      role="group"
+      aria-label="Exported page navigation"
+    >
       <button
         type="button"
         className="converter-icon-button"
@@ -1626,7 +1701,11 @@ function PageNav({
 }) {
   const max = Math.max(1, pageCount);
   return (
-    <div className="converter-pagenav" aria-label="Page navigation">
+    <div
+      className="converter-pagenav"
+      role="group"
+      aria-label="Page navigation"
+    >
       <button
         type="button"
         className="converter-icon-button"

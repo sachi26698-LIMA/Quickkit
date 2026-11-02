@@ -433,3 +433,24 @@ with `/tools/image-converter` emitted as a static route, and the browser suite r
 (`.github/workflows/ci.yml`) because this sandbox has no browser binaries. Local browser
 verification is therefore CI-only; desktop and mobile screenshots come from the CI
 Playwright run. Known limitations are listed in `docs/FEATURE_IMAGE_CONVERTER.md`.
+
+### Image & PDF Converter — verification pass addendum (2 November 2026)
+
+Appended after the record above; nothing above was edited. First CI run on `1149448` exposed four
+browser-test issues that this pass fixed:
+
+- the quality range input had no accessible name (axe `label`) — it now has one;
+- the resize sub-check re-read a WEBP with a PNG decoder — it now converts to PNG for that check;
+- pdf-lib always writes an empty `/Font` resource dictionary, so the "raster-only" assertion was
+  wrong — it now checks for real font objects (`/Type1`, `/Type0`, `Helvetica`) instead;
+- controlled range inputs were being changed through `element.value`, which React's tracker
+  swallows; the browser tests now use the native value setter.
+
+Also added in this pass: a mobile Files/Preview switch (aria-pressed + aria-controls, real panels,
+auto-switch after a finished conversion), Move earlier/later ordering for Images to PDF, a visible
+"Format & limitation notes" panel, an 800 % resize ceiling matching the documented range, a
+main-thread retry if the encoder worker fails, exported-page navigation for PDF→image results, and a
+CI artifact (`browser-screenshots`) that keeps the 375/390/430/768/1440 captures from the converter
+spec so the owner can review the real layout. Full suite: 27 unit files / 414 tests, lint,
+format:check, typecheck and production build pass. Browser results are recorded in the pull request;
+the two pre-existing webkit pdf-merger failures are unchanged and out of scope. Not merged.

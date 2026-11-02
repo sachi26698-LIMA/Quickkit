@@ -218,6 +218,22 @@ async function downloadFrom(page: Page, target: Locator) {
   };
 }
 
+/**
+ * Set a React-controlled input through the native value setter. Assigning
+ * element.value directly updates React's tracker, which then swallows the
+ * following input event and leaves the controlled state unchanged.
+ */
+async function setNativeValue(target: Locator, value: number) {
+  await target.evaluate((element, next) => {
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    setter?.call(element, String(next));
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+  }, value);
+}
+
 /* ---------------------------------- tests --------------------------------- */
 
 test.describe("Image & PDF Converter", () => {
@@ -432,10 +448,7 @@ test.describe("Image & PDF Converter", () => {
 
     await page.locator("#converter-format").selectOption("webp");
     const quality = page.locator("#converter-quality");
-    await quality.evaluate((element) => {
-      (element as HTMLInputElement).value = "20";
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+    await setNativeValue(quality, 20);
     await runConversion(page);
     const low = await downloadFrom(
       page,
@@ -444,10 +457,7 @@ test.describe("Image & PDF Converter", () => {
         .getByRole("button", { name: /^Download / }),
     );
 
-    await quality.evaluate((element) => {
-      (element as HTMLInputElement).value = "95";
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+    await setNativeValue(quality, 95);
     await runConversion(page);
     const high = await downloadFrom(
       page,
@@ -506,12 +516,24 @@ test.describe("Image & PDF Converter", () => {
       }),
     ]);
     await page.getByRole("button", { name: /Images to PDF/ }).click();
+
+    // Page order follows the queue; the reorder controls must be real.
+    await page
+      .getByRole("button", { name: "Move page-two.png earlier" })
+      .click();
+    let order = await page
+      .getByTestId("converter-item")
+      .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ""));
+    expect(order[0]).toContain("page-two.png");
+    await page.getByRole("button", { name: "Move page-two.png later" }).click();
+    order = await page
+      .getByTestId("converter-item")
+      .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ""));
+    expect(order[0]).toContain("page-one.png");
+
     await page.getByLabel("PDF file name").fill("album.pdf");
     await page.getByLabel("PDF page size").selectOption("a4");
-    await page.getByLabel("Page margin in millimetres").evaluate((element) => {
-      (element as HTMLInputElement).value = "20";
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+    await setNativeValue(page.getByLabel("Page margin in millimetres"), 20);
     await runConversion(page);
 
     const card = page.getByTestId("converter-result");
@@ -602,10 +624,7 @@ test.describe("Image & PDF Converter", () => {
     await page.getByRole("button", { name: /PDF to image/ }).click();
     await upload(page, [await makePdf(30)]);
     await page.getByLabel("Page image format").selectOption("jpeg");
-    await page.getByLabel("Output resolution in DPI").evaluate((element) => {
-      (element as HTMLInputElement).value = "300";
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+    await setNativeValue(page.getByLabel("Output resolution in DPI"), 300);
     await page.getByTestId("converter-run").click();
     const cancel = page.getByTestId("converter-cancel");
     await expect(cancel).toBeVisible({ timeout: 15000 });
