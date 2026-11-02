@@ -10046,3 +10046,10 @@ select:focus {
 .converter-fit input {
   accent-color: #6c35e8;
 }
+@media (max-width: 640px) {
+  /* Keep the zoom slider usable next to the fit toggle on small screens. */
+  .converter-zoom {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+}

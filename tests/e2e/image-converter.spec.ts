@@ -1008,6 +1008,12 @@ test.describe("Image & PDF Converter", () => {
         await previewTab.click();
         await expect(previewTab).toHaveAttribute("aria-pressed", "true");
         await expect(page.getByTestId("converter-preview-image")).toBeVisible();
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth - window.innerWidth,
+          ),
+          `horizontal overflow in the preview at ${width}px`,
+        ).toBeLessThanOrEqual(1);
         const filesTab = page.getByRole("button", { name: /Files & settings/ });
         await filesTab.click();
         await expect(filesTab).toHaveAttribute("aria-pressed", "true");
