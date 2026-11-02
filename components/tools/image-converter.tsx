@@ -104,6 +104,9 @@ export default function ImageConverter() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [compare, setCompare] = useState<"source" | "result">("source");
   const [zoom, setZoom] = useState(100);
+  // "Fit" is the default so a tall page is shown whole; moving the zoom
+  // slider opts into free zoom (with scrolling) for close inspection.
+  const [fit, setFit] = useState(true);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({
     done: 0,
@@ -1496,7 +1499,12 @@ export default function ImageConverter() {
                 compare === "result" && results.length ? "result" : "source"
               }
               zoom={zoom}
-              onZoom={setZoom}
+              fit={fit}
+              onZoom={(value) => {
+                setZoom(value);
+                setFit(false);
+              }}
+              onFit={setFit}
             />
           )}
         </aside>
@@ -1619,13 +1627,17 @@ function ImagePreview({
   result,
   compare,
   zoom,
+  fit,
   onZoom,
+  onFit,
 }: {
   item: QueueItem;
   result?: ConversionResult;
   compare: "source" | "result";
   zoom: number;
+  fit: boolean;
   onZoom: (value: number) => void;
+  onFit: (value: boolean) => void;
 }) {
   const showingResult = compare === "result" && Boolean(result);
   const source = showingResult && result ? result : null;
@@ -1645,7 +1657,8 @@ function ImagePreview({
         <img
           src={source ? source.url : item.url}
           alt={`${showingResult ? "Converted" : "Original"} preview of ${item.name}`}
-          style={{ width: `${zoom}%` }}
+          className={fit ? "converter-preview-fit" : undefined}
+          style={fit ? undefined : { width: `${zoom}%` }}
           data-testid="converter-preview-image"
         />
       </div>
@@ -1658,9 +1671,18 @@ function ImagePreview({
           max={300}
           step={10}
           value={zoom}
+          disabled={fit}
           onChange={(event) => onZoom(Number(event.target.value))}
         />
-        <output>{zoom}%</output>
+        <output>{fit ? "Fit" : `${zoom}%`}</output>
+        <label className="converter-fit">
+          <input
+            type="checkbox"
+            checked={fit}
+            onChange={(event) => onFit(event.target.checked)}
+          />
+          Fit to panel
+        </label>
       </div>
       <div className="converter-detail-grid">
         <span>Original</span>
