@@ -101,9 +101,9 @@ test("image compression downloads real WebP, JPEG and PNG without resizing", asy
     await page.getByLabel("Output format").selectOption(format);
     await page.getByRole("button", { name: /Compress 1 image/ }).click();
     await expect(page.locator(".compressor-status-done")).toHaveCount(1);
-    await expect(
-      page.locator(".compressor-stats"),
-    ).toContainText("640 × 480 px · unchanged");
+    await expect(page.locator(".compressor-stats")).toContainText(
+      "640 × 480 px · unchanged",
+    );
     const pending = page.waitForEvent("download");
     await page.locator(".compressor-download").click();
     const download = await pending;
@@ -179,7 +179,9 @@ test("oversized decoded dimensions are rejected before preview allocation", asyn
     mimeType: "image/png",
     buffer: bytes,
   });
-  await expect(page.locator(".compressor-alert")).toContainText("24 megapixels");
+  await expect(page.locator(".compressor-alert")).toContainText(
+    "24 megapixels",
+  );
   await expect(page.locator(".compressor-item")).toHaveCount(0);
 });
 
@@ -226,4 +228,3 @@ test("image reset releases all object URLs and discards a pending encode", async
     ),
   ).toBe(0);
 });
-

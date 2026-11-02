@@ -11,13 +11,10 @@ export const MAX_PERCENTAGE = 400;
 export const MAX_BATCH_FILES = 20;
 
 export type ResizeMode =
-  | "dimensions"
-  | "percentage"
-  | "preset"
-  | "longest"
-  | "shortest";
+  "dimensions" | "percentage" | "preset" | "longest" | "shortest";
 export type FitMode = "cover" | "contain" | "stretch";
-export type OutputFormat = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
+export type OutputFormat =
+  "image/jpeg" | "image/png" | "image/webp" | "image/avif";
 
 export const OUTPUT_FORMATS: readonly OutputFormat[] = [
   "image/jpeg",

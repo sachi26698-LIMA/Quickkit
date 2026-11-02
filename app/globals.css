@@ -5980,7 +5980,6 @@ select:focus {
   }
 }
 @media (max-width: 600px) {
-
   .resizer-drop {
     flex-wrap: wrap;
     padding: 14px;

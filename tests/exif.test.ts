@@ -6,8 +6,7 @@ import {
   scanMetadata,
 } from "../lib/tools/exif";
 
-const ascii = (value: string) =>
-  Array.from(new TextEncoder().encode(value));
+const ascii = (value: string) => Array.from(new TextEncoder().encode(value));
 
 /** Build a minimal little-endian TIFF block with orientation/camera/GPS tags. */
 function exifBlock() {
@@ -86,7 +85,12 @@ describe("EXIF scanning", () => {
       captured: null,
       hasGps: false,
     });
-    expect(() => scanMetadata(new Uint8Array([0xff, 0xd8, 0xff, 0xe1, 0, 2]), "image/jpeg")).not.toThrow();
+    expect(() =>
+      scanMetadata(
+        new Uint8Array([0xff, 0xd8, 0xff, 0xe1, 0, 2]),
+        "image/jpeg",
+      ),
+    ).not.toThrow();
   });
 
   it("reports PNG eXIf and iCCP chunks", () => {

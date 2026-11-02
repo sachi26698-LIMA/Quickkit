@@ -71,7 +71,9 @@ describe("crop geometry", () => {
   it("detects a full-frame crop", () => {
     expect(cropIsFull(fullCrop(10, 10), 10, 10)).toBe(true);
     expect(cropIsFull(null, 10, 10)).toBe(true);
-    expect(cropIsFull({ x: 1, y: 0, width: 9, height: 10 }, 10, 10)).toBe(false);
+    expect(cropIsFull({ x: 1, y: 0, width: 9, height: 10 }, 10, 10)).toBe(
+      false,
+    );
   });
 
   it("builds the largest centred crop for a ratio", () => {
@@ -114,7 +116,13 @@ describe("crop geometry", () => {
   });
 
   it("moves a crop and keeps it inside the frame", () => {
-    const moved = moveCrop({ x: 0, y: 0, width: 200, height: 200 }, 500, -50, 640, 480);
+    const moved = moveCrop(
+      { x: 0, y: 0, width: 200, height: 200 },
+      500,
+      -50,
+      640,
+      480,
+    );
     expect(moved).toEqual({ x: 440, y: 0, width: 200, height: 200 });
   });
 
@@ -358,7 +366,9 @@ describe("size estimation", () => {
     expect(estimateOutputBytes(2000, 2000, "image/jpeg", 85)).toBeGreaterThan(
       base * 3,
     );
-    expect(estimateOutputBytes(1000, 1000, "image/jpeg", 50)).toBeLessThan(base);
+    expect(estimateOutputBytes(1000, 1000, "image/jpeg", 50)).toBeLessThan(
+      base,
+    );
     expect(estimateOutputBytes(1000, 1000, "image/png", 85)).toBeGreaterThan(
       base,
     );

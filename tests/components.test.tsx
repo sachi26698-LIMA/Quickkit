@@ -109,7 +109,9 @@ describe("image resizer workspace", () => {
     render(<ImageResizer />);
     fireEvent.click(screen.getByRole("tab", { name: /Edit/ }));
     expect(
-      screen.getByText("Add an image to unlock cropping, rotation, flips and colour adjustments."),
+      screen.getByText(
+        "Add an image to unlock cropping, rotation, flips and colour adjustments.",
+      ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Undo/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /Redo/ })).toBeDisabled();

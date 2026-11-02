@@ -232,11 +232,14 @@ test.describe("image resizer audit", () => {
     await page.getByRole("button", { name: "Zoom in" }).click();
     await page.getByRole("button", { name: "Zoom in" }).click();
     await expect(page.locator(".resizer-zoom-value")).toHaveText("150%");
-    const zoomed = await image.evaluate((el) => el.getBoundingClientRect().height);
+    const zoomed = await image.evaluate(
+      (el) => el.getBoundingClientRect().height,
+    );
     expect(zoomed).toBeGreaterThan(fitted.image);
     expect(
       await stage.evaluate(
-        (el) => el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth,
+        (el) =>
+          el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth,
       ),
     ).toBe(true);
 
@@ -264,7 +267,9 @@ test.describe("image resizer audit", () => {
     expect(graph).toContain("WebApplication");
     expect(graph).toContain("HowTo");
     expect(graph).toContain("FAQPage");
-    await expect(page.getByRole("heading", { name: /How to use it/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /How to use it/i }),
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /A few useful answers/i }),
     ).toBeVisible();
@@ -333,7 +338,9 @@ test.describe("image resizer audit", () => {
         timeout: 30_000,
       });
       const pending = page.waitForEvent("download");
-      await page.getByRole("link", { name: /^Download filter-source-/ }).click();
+      await page
+        .getByRole("link", { name: /^Download filter-source-/ })
+        .click();
       const download = await pending;
       const png = PNG.sync.read(await readFile((await download.path())!));
       const middle = ((png.height >> 1) * png.width + (png.width >> 1)) * 4;
@@ -381,14 +388,18 @@ test.describe("image resizer audit", () => {
       "style",
       /left: 25%/,
     );
-    await expect(page.locator(".resizer-split-label-left")).toHaveText("Before");
+    await expect(page.locator(".resizer-split-label-left")).toHaveText(
+      "Before",
+    );
     await page.getByRole("button", { name: /Side by side/ }).click();
     await expect(page.locator(".resizer-compare figure")).toHaveCount(2);
-    await expect(page.locator(".resizer-compare figcaption").first()).toContainText(
-      "Original",
-    );
+    await expect(
+      page.locator(".resizer-compare figcaption").first(),
+    ).toContainText("Original");
     await page.getByRole("button", { name: /Single/ }).click();
-    await expect(page.getByRole("button", { name: /^Original$/ })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^Original$/ }),
+    ).toBeVisible();
     await page.getByRole("button", { name: /^Original$/ }).click();
     await expect(page.locator(".resizer-preview-tag")).toContainText(
       "480 × 360 px",
@@ -413,7 +424,9 @@ test.describe("image resizer audit", () => {
     page,
   }) => {
     test.setTimeout(60_000);
-    await addImages(page, [await fixture(page, 720, 540, "quality-source.png")]);
+    await addImages(page, [
+      await fixture(page, 720, 540, "quality-source.png"),
+    ]);
     await page.getByLabel("Output format").selectOption("image/jpeg");
     await setExactSize(page, 720, 540);
 
@@ -495,7 +508,9 @@ test.describe("image resizer audit", () => {
     expect(x).toBeGreaterThan(40);
     expect(y).toBeGreaterThan(20);
     expect(width).toBeLessThan(800);
-    await expect(page.locator(".resizer-hint").filter({ hasText: "Crop area" })).toContainText("px");
+    await expect(
+      page.locator(".resizer-hint").filter({ hasText: "Crop area" }),
+    ).toContainText("px");
 
     // Keyboard nudge moves the frame and the fields stay in sync.
     await box.focus();
@@ -551,7 +566,9 @@ test.describe("image resizer audit", () => {
     expect(done).toBeGreaterThan(0);
     expect(done).toBeLessThan(4);
     await expect(
-      page.getByRole("button", { name: new RegExp(`Download ZIP \\(${done}\\)`) }),
+      page.getByRole("button", {
+        name: new RegExp(`Download ZIP \\(${done}\\)`),
+      }),
     ).toBeEnabled();
 
     // The queue can be started again and completes this time.
@@ -706,7 +723,9 @@ test.describe("image resizer audit — mobile", () => {
       );
       return [...nodes]
         .filter((el) => (el as HTMLElement).offsetParent !== null)
-        .map((el) => Math.round((el as HTMLElement).getBoundingClientRect().height));
+        .map((el) =>
+          Math.round((el as HTMLElement).getBoundingClientRect().height),
+        );
     });
     expect(Math.min(...targets)).toBeGreaterThanOrEqual(36);
   });

@@ -263,8 +263,8 @@ function CropOverlay({
   }
 
   function onCornerPointerDown(event: React.PointerEvent) {
-    const handle = (event.currentTarget as HTMLElement).dataset
-      .handle as CropHandle | undefined;
+    const handle = (event.currentTarget as HTMLElement).dataset.handle as
+      CropHandle | undefined;
     if (handle) startDrag(event, handle);
   }
 
@@ -289,7 +289,9 @@ function CropOverlay({
 
   const end = (event: React.PointerEvent) => {
     dragRef.current = null;
-    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    (event.currentTarget as HTMLElement).releasePointerCapture?.(
+      event.pointerId,
+    );
   };
 
   const nudge = (handle: CropHandle, dx: number, dy: number) =>
@@ -470,7 +472,10 @@ export default function ImageResizer() {
   }, []);
 
   const selectedPreset = useMemo<PresetSize | null>(
-    () => [...ALL_PRESETS, ...customPresets].find((preset) => preset.id === presetId) ?? null,
+    () =>
+      [...ALL_PRESETS, ...customPresets].find(
+        (preset) => preset.id === presetId,
+      ) ?? null,
     [presetId, customPresets],
   );
 
@@ -576,9 +581,10 @@ export default function ImageResizer() {
   const targetLabel = activePlan
     ? `${formatPixels(activePlan.width)} × ${formatPixels(activePlan.height)} px`
     : "—";
-  const scale = activePlan && activeItem
-    ? scalePercent(activePlan.width, editedSizeFor(activeItem).width)
-    : 0;
+  const scale =
+    activePlan && activeItem
+      ? scalePercent(activePlan.width, editedSizeFor(activeItem).width)
+      : 0;
 
   /* ------------------------------ invalidation ---------------------------- */
 
@@ -626,7 +632,8 @@ export default function ImageResizer() {
 
   const commitEdits = useCallback(
     (next: ImageEdits, record = true) => {
-      const current = itemsRef.current.find((item) => item.id === selectedId) ??
+      const current =
+        itemsRef.current.find((item) => item.id === selectedId) ??
         itemsRef.current[0];
       if (!current) return;
       clearResults();
@@ -651,7 +658,8 @@ export default function ImageResizer() {
   const activeHistory = activeItem ? history[activeItem.id] : undefined;
 
   const pushHistory = useCallback(() => {
-    const current = itemsRef.current.find((item) => item.id === selectedId) ??
+    const current =
+      itemsRef.current.find((item) => item.id === selectedId) ??
       itemsRef.current[0];
     if (!current) return;
     setHistory((previous) => {
@@ -667,7 +675,8 @@ export default function ImageResizer() {
   }, [selectedId]);
 
   const undo = useCallback(() => {
-    const current = itemsRef.current.find((item) => item.id === selectedId) ??
+    const current =
+      itemsRef.current.find((item) => item.id === selectedId) ??
       itemsRef.current[0];
     if (!current) return;
     const entry = history[current.id];
@@ -685,7 +694,8 @@ export default function ImageResizer() {
   }, [clearResults, history, selectedId, updateItem]);
 
   const redo = useCallback(() => {
-    const current = itemsRef.current.find((item) => item.id === selectedId) ??
+    const current =
+      itemsRef.current.find((item) => item.id === selectedId) ??
       itemsRef.current[0];
     if (!current) return;
     const entry = history[current.id];
@@ -726,7 +736,10 @@ export default function ImageResizer() {
       try {
         const dimensions = await inspectFile(file);
         const pixels =
-          itemsRef.current.reduce((sum, item) => sum + item.width * item.height, 0) +
+          itemsRef.current.reduce(
+            (sum, item) => sum + item.width * item.height,
+            0,
+          ) +
           fresh.reduce((sum, item) => sum + item.width * item.height, 0) +
           dimensions.width * dimensions.height;
         if (pixels > MAX_BATCH_PIXELS)
@@ -959,7 +972,9 @@ export default function ImageResizer() {
   async function downloadZip() {
     const finished = itemsRef.current.filter((item) => item.result);
     if (!finished.length) {
-      setIssues(["Process at least one image before downloading a ZIP archive."]);
+      setIssues([
+        "Process at least one image before downloading a ZIP archive.",
+      ]);
       return;
     }
     setZipBusy(true);
@@ -1107,17 +1122,28 @@ export default function ImageResizer() {
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [measure, zoom, previewMode, compare, activeItem?.id, activeItem?.result?.url]);
+  }, [
+    measure,
+    zoom,
+    previewMode,
+    compare,
+    activeItem?.id,
+    activeItem?.result?.url,
+  ]);
 
   const cropsEnabled = Boolean(activeItem) && cropTool;
   const showResult =
-    Boolean(activeItem?.result) && previewMode === "resized" && compare === "single";
-  const stageSrc = showResult && activeItem?.result
-    ? activeItem.result.url
-    : activeItem?.originalUrl ?? "";
-  const stageAlt = showResult && activeItem?.result
-    ? `Resized preview of ${activeItem.file.name}`
-    : `Original preview of ${activeItem?.file.name ?? "image"}`;
+    Boolean(activeItem?.result) &&
+    previewMode === "resized" &&
+    compare === "single";
+  const stageSrc =
+    showResult && activeItem?.result
+      ? activeItem.result.url
+      : (activeItem?.originalUrl ?? "");
+  const stageAlt =
+    showResult && activeItem?.result
+      ? `Resized preview of ${activeItem.file.name}`
+      : `Original preview of ${activeItem?.file.name ?? "image"}`;
   const liveFilter =
     !showResult && activeItem ? filterCss(activeItem.edits) : "";
   const liveTransform =
@@ -1127,20 +1153,24 @@ export default function ImageResizer() {
 
   /* Fit the preview inside the stage, then apply zoom on top of that fit. */
   const fitNatural =
-    naturalSize ?? (activeItem ? { width: activeItem.width, height: activeItem.height } : null);
+    naturalSize ??
+    (activeItem
+      ? { width: activeItem.width, height: activeItem.height }
+      : null);
   const fitBox = {
     width: Math.max(80, stageSize.width - 28),
     height: Math.max(80, stageSize.height - 28),
   };
   const fitScale = fitNatural
-    ? Math.min(fitBox.width / fitNatural.width, fitBox.height / fitNatural.height, 1)
+    ? Math.min(
+        fitBox.width / fitNatural.width,
+        fitBox.height / fitNatural.height,
+        1,
+      )
     : 1;
   const previewWidth =
     fitNatural && fitNatural.width
-      ? Math.max(
-          20,
-          Math.round(fitNatural.width * fitScale * (zoom / 100)),
-        )
+      ? Math.max(20, Math.round(fitNatural.width * fitScale * (zoom / 100)))
       : undefined;
 
   const zoomBy = (delta: number) =>
@@ -1170,7 +1200,8 @@ export default function ImageResizer() {
     }
   };
 
-  const ratio = CROP_ASPECTS.find((entry) => entry.id === cropAspect)?.ratio ?? null;
+  const ratio =
+    CROP_ASPECTS.find((entry) => entry.id === cropAspect)?.ratio ?? null;
   const metadata = activeItem?.metadata;
   const missingFormats = (Object.keys(support) as OutputFormat[]).filter(
     (value) => !support[value],
@@ -1195,7 +1226,9 @@ export default function ImageResizer() {
       </div>
 
       <label
-        className={dragging ? "resizer-drop resizer-drop-active" : "resizer-drop"}
+        className={
+          dragging ? "resizer-drop resizer-drop-active" : "resizer-drop"
+        }
         htmlFor="resizer-files"
         onDragOver={(event) => {
           event.preventDefault();
@@ -1228,13 +1261,18 @@ export default function ImageResizer() {
         </span>
         <span className="resizer-drop-copy">
           <strong>Drop images here or browse</strong>
-          <span>JPEG, PNG, WebP{activeItem || support["image/avif"] ? " or AVIF" : ""} · up to 15 MB each</span>
+          <span>
+            JPEG, PNG, WebP
+            {activeItem || support["image/avif"] ? " or AVIF" : ""} · up to 15
+            MB each
+          </span>
         </span>
         <span className="resizer-drop-action">Choose files</span>
       </label>
       <p id="resizer-help" className="help resizer-help">
-        Up to {MAX_BATCH_FILES} images per batch · 24 megapixels and 8,192 px per
-        side · processed one at a time to keep memory flat · nothing is uploaded.
+        Up to {MAX_BATCH_FILES} images per batch · 24 megapixels and 8,192 px
+        per side · processed one at a time to keep memory flat · nothing is
+        uploaded.
       </p>
 
       <div className="resizer-grid">
@@ -1257,7 +1295,9 @@ export default function ImageResizer() {
               aria-selected={tab === "resize"}
               aria-controls="resizer-panel-resize"
               tabIndex={tab === "resize" ? 0 : -1}
-              className={tab === "resize" ? "resizer-tab active" : "resizer-tab"}
+              className={
+                tab === "resize" ? "resizer-tab active" : "resizer-tab"
+              }
               onClick={() => setTab("resize")}
             >
               <Scaling size={14} aria-hidden="true" /> Resize
@@ -1347,7 +1387,11 @@ export default function ImageResizer() {
                                   : { width: 16, height: 9 };
                                 setHeight(
                                   String(
-                                    linkedHeight(parsed, size.width, size.height),
+                                    linkedHeight(
+                                      parsed,
+                                      size.width,
+                                      size.height,
+                                    ),
                                   ),
                                 );
                               }
@@ -1400,7 +1444,11 @@ export default function ImageResizer() {
                                   : { width: 16, height: 9 };
                                 setWidth(
                                   String(
-                                    linkedWidth(parsed, size.width, size.height),
+                                    linkedWidth(
+                                      parsed,
+                                      size.width,
+                                      size.height,
+                                    ),
                                   ),
                                 );
                               }
@@ -1425,7 +1473,10 @@ export default function ImageResizer() {
                     </button>
                   </div>
                   <div className="resizer-inline-row">
-                    <p id="resizer-dimension-hint" className="help resizer-hint">
+                    <p
+                      id="resizer-dimension-hint"
+                      className="help resizer-hint"
+                    >
                       {lock
                         ? "Aspect ratio is locked, so the second side follows automatically."
                         : "Aspect ratio is unlocked — the image will stretch to fit both values."}
@@ -1547,7 +1598,9 @@ export default function ImageResizer() {
                 <>
                   <div className="resizer-field resizer-side-field">
                     <label htmlFor="resizer-side">
-                      {mode === "longest" ? "Longest side (px)" : "Shortest side (px)"}
+                      {mode === "longest"
+                        ? "Longest side (px)"
+                        : "Shortest side (px)"}
                     </label>
                     <input
                       id="resizer-side"
@@ -1590,7 +1643,9 @@ export default function ImageResizer() {
                             name="resize-preset"
                             value={preset.id}
                             checked={presetId === preset.id}
-                            onChange={() => invalidate(() => setPresetId(preset.id))}
+                            onChange={() =>
+                              invalidate(() => setPresetId(preset.id))
+                            }
                           />
                           <strong>{preset.label}</strong>
                           <span>
@@ -1641,7 +1696,10 @@ export default function ImageResizer() {
                     {customPresets.length ? (
                       <div className="resizer-presets">
                         {customPresets.map((preset) => (
-                          <div className="resizer-preset resizer-preset-custom" key={preset.id}>
+                          <div
+                            className="resizer-preset resizer-preset-custom"
+                            key={preset.id}
+                          >
                             <label>
                               <input
                                 className="resizer-radio"
@@ -1665,7 +1723,9 @@ export default function ImageResizer() {
                               title="Delete preset"
                               onClick={() => {
                                 setCustomPresets((list) =>
-                                  list.filter((entry) => entry.id !== preset.id),
+                                  list.filter(
+                                    (entry) => entry.id !== preset.id,
+                                  ),
                                 );
                                 if (presetId === preset.id)
                                   setPresetId(PRESET_SIZES[0].id);
@@ -1780,7 +1840,9 @@ export default function ImageResizer() {
                   </div>
                   <div className="resizer-print-row">
                     <div className="resizer-field">
-                      <label htmlFor="resizer-print-width">Print width (cm)</label>
+                      <label htmlFor="resizer-print-width">
+                        Print width (cm)
+                      </label>
                       <input
                         id="resizer-print-width"
                         type="number"
@@ -1792,7 +1854,9 @@ export default function ImageResizer() {
                       />
                     </div>
                     <div className="resizer-field">
-                      <label htmlFor="resizer-print-height">Print height (cm)</label>
+                      <label htmlFor="resizer-print-height">
+                        Print height (cm)
+                      </label>
                       <input
                         id="resizer-print-height"
                         type="number"
@@ -1813,7 +1877,8 @@ export default function ImageResizer() {
                       : "Choose an image to see its print size."}
                   </p>
                   <p className="help resizer-hint">
-                    Pixels needed for {printWidth || "—"} × {printHeight || "—"} cm:{" "}
+                    Pixels needed for {printWidth || "—"} × {printHeight || "—"}{" "}
+                    cm:{" "}
                     {(() => {
                       try {
                         const value = validateDpi(Number(dpi));
@@ -1904,7 +1969,11 @@ export default function ImageResizer() {
                     }}
                     disabled={
                       !activeItem ||
-                      !hasEdits(activeEdits, activeItem.width, activeItem.height)
+                      !hasEdits(
+                        activeEdits,
+                        activeItem.width,
+                        activeItem.height,
+                      )
                     }
                     title="Clear crop, rotation, flips and colour changes"
                   >
@@ -1915,7 +1984,10 @@ export default function ImageResizer() {
 
               {activeItem ? (
                 <>
-                  <section className="resizer-section" aria-labelledby="edit-crop">
+                  <section
+                    className="resizer-section"
+                    aria-labelledby="edit-crop"
+                  >
                     <div className="resizer-section-head">
                       <h4 id="edit-crop">
                         <Crop size={13} aria-hidden="true" /> Crop
@@ -1923,7 +1995,9 @@ export default function ImageResizer() {
                       <button
                         type="button"
                         className={
-                          cropTool ? "resizer-chip resizer-chip-active" : "resizer-chip"
+                          cropTool
+                            ? "resizer-chip resizer-chip-active"
+                            : "resizer-chip"
                         }
                         aria-pressed={cropTool}
                         onClick={() => {
@@ -1936,11 +2010,15 @@ export default function ImageResizer() {
                       </button>
                     </div>
                     <div className="resizer-field">
-                      <label htmlFor="resizer-crop-aspect">Crop aspect ratio</label>
+                      <label htmlFor="resizer-crop-aspect">
+                        Crop aspect ratio
+                      </label>
                       <select
                         id="resizer-crop-aspect"
                         value={cropAspect}
-                        onChange={(event) => selectCropAspect(event.target.value)}
+                        onChange={(event) =>
+                          selectCropAspect(event.target.value)
+                        }
                       >
                         {CROP_ASPECTS.map((option) => (
                           <option key={option.id} value={option.id}>
@@ -1969,8 +2047,13 @@ export default function ImageResizer() {
                             value={activeCrop ? activeCrop[key] : 0}
                             onChange={(event) => {
                               if (!activeCrop) return;
-                              const parsed = Math.round(Number(event.target.value) || 0);
-                              handleCropChange({ ...activeCrop, [key]: parsed });
+                              const parsed = Math.round(
+                                Number(event.target.value) || 0,
+                              );
+                              handleCropChange({
+                                ...activeCrop,
+                                [key]: parsed,
+                              });
                             }}
                           />
                         </div>
@@ -1985,16 +2068,24 @@ export default function ImageResizer() {
                       <button
                         type="button"
                         className="resizer-text-button"
-                        onClick={() => handleCropChange(fullCrop(activeItem.width, activeItem.height))}
+                        onClick={() =>
+                          handleCropChange(
+                            fullCrop(activeItem.width, activeItem.height),
+                          )
+                        }
                       >
                         Reset crop
                       </button>
                     </div>
                   </section>
 
-                  <section className="resizer-section" aria-labelledby="edit-rotate">
+                  <section
+                    className="resizer-section"
+                    aria-labelledby="edit-rotate"
+                  >
                     <h4 id="edit-rotate">
-                      <RotateCw size={13} aria-hidden="true" /> Rotate &amp; flip
+                      <RotateCw size={13} aria-hidden="true" /> Rotate &amp;
+                      flip
                     </h4>
                     <div className="resizer-chip-row">
                       {ROTATIONS.map((angle) => (
@@ -2006,7 +2097,9 @@ export default function ImageResizer() {
                               ? "resizer-chip resizer-chip-active"
                               : "resizer-chip"
                           }
-                          aria-pressed={normalizeAngle(activeEdits.rotation) === angle}
+                          aria-pressed={
+                            normalizeAngle(activeEdits.rotation) === angle
+                          }
                           onClick={() => applyEditsPatch({ rotation: angle })}
                         >
                           {angle === 0 ? "0°" : `${angle}°`}
@@ -2018,7 +2111,9 @@ export default function ImageResizer() {
                         aria-pressed={activeEdits.flipH}
                         aria-label="Flip horizontally"
                         title="Flip horizontally"
-                        onClick={() => applyEditsPatch({ flipH: !activeEdits.flipH })}
+                        onClick={() =>
+                          applyEditsPatch({ flipH: !activeEdits.flipH })
+                        }
                       >
                         <FlipHorizontal2 size={14} />
                       </button>
@@ -2028,7 +2123,9 @@ export default function ImageResizer() {
                         aria-pressed={activeEdits.flipV}
                         aria-label="Flip vertically"
                         title="Flip vertically"
-                        onClick={() => applyEditsPatch({ flipV: !activeEdits.flipV })}
+                        onClick={() =>
+                          applyEditsPatch({ flipV: !activeEdits.flipV })
+                        }
                       >
                         <FlipVertical2 size={14} />
                       </button>
@@ -2057,7 +2154,9 @@ export default function ImageResizer() {
                           step={1}
                           value={normalizeAngle(activeEdits.rotation)}
                           onChange={(event) =>
-                            applyEditsPatch({ rotation: Number(event.target.value) })
+                            applyEditsPatch({
+                              rotation: Number(event.target.value),
+                            })
                           }
                         />
                         <output htmlFor="resizer-angle">
@@ -2067,7 +2166,10 @@ export default function ImageResizer() {
                     </div>
                   </section>
 
-                  <section className="resizer-section" aria-labelledby="edit-colour">
+                  <section
+                    className="resizer-section"
+                    aria-labelledby="edit-colour"
+                  >
                     <h4 id="edit-colour">
                       <Sun size={13} aria-hidden="true" /> Light &amp; colour
                     </h4>
@@ -2092,14 +2194,22 @@ export default function ImageResizer() {
                             step={1}
                             value={activeEdits[key]}
                             onChange={(event) =>
-                              applyEditsPatch({ [key]: Number(event.target.value) })
+                              applyEditsPatch({
+                                [key]: Number(event.target.value),
+                              })
                             }
                           />
-                          <output htmlFor={`resizer-${key}`}>{activeEdits[key]}%</output>
+                          <output htmlFor={`resizer-${key}`}>
+                            {activeEdits[key]}%
+                          </output>
                         </div>
                       </div>
                     ))}
-                    <div className="resizer-filter-row" role="group" aria-label="Quick filters">
+                    <div
+                      className="resizer-filter-row"
+                      role="group"
+                      aria-label="Quick filters"
+                    >
                       {FILTERS.map((entry) => (
                         <button
                           key={entry.id}
@@ -2137,7 +2247,11 @@ export default function ImageResizer() {
           <div className="resizer-panel-head">
             <h3 id="resize-output">Preview &amp; output</h3>
             {activeItem?.result ? (
-              <div className="resizer-toggle" role="group" aria-label="Preview version">
+              <div
+                className="resizer-toggle"
+                role="group"
+                aria-label="Preview version"
+              >
                 <button
                   type="button"
                   aria-pressed={previewMode === "original"}
@@ -2189,7 +2303,11 @@ export default function ImageResizer() {
                     <Maximize size={15} />
                   </button>
                 </div>
-                <div className="resizer-viewswitch" role="group" aria-label="Comparison view">
+                <div
+                  className="resizer-viewswitch"
+                  role="group"
+                  aria-label="Comparison view"
+                >
                   <button
                     type="button"
                     aria-pressed={compare === "single"}
@@ -2282,37 +2400,38 @@ export default function ImageResizer() {
                     </>
                   ) : (
                     <>
-                  <img
-                    ref={imageRef}
-                    className="resizer-main-image"
-                    src={stageSrc}
-                    alt={stageAlt}
-                    style={{
-                      width: compare === "single" ? previewWidth : undefined,
-                      filter: liveFilter || undefined,
-                      transform: liveTransform,
-                    }}
-                    draggable={false}
-                  />
+                      <img
+                        ref={imageRef}
+                        className="resizer-main-image"
+                        src={stageSrc}
+                        alt={stageAlt}
+                        style={{
+                          width:
+                            compare === "single" ? previewWidth : undefined,
+                          filter: liveFilter || undefined,
+                          transform: liveTransform,
+                        }}
+                        draggable={false}
+                      />
 
-                  {cropsEnabled && activeCrop ? (
-                    <CropOverlay
-                      rect={imgRect}
-                      crop={activeCrop}
-                      imageWidth={activeItem.width}
-                      imageHeight={activeItem.height}
-                      ratio={ratio}
-                      onChange={(next) => handleCropChange(next, false)}
-                      onStart={pushHistory}
-                    />
-                  ) : null}
-                  {cropsEnabled ? null : (
-                    <span className="resizer-preview-tag">
-                      {showResult && activeItem.result
-                        ? `${formatPixels(activeItem.result.width)} × ${formatPixels(activeItem.result.height)} px`
-                        : `${formatPixels(activeItem.width)} × ${formatPixels(activeItem.height)} px · edits preview`}
-                    </span>
-                  )}
+                      {cropsEnabled && activeCrop ? (
+                        <CropOverlay
+                          rect={imgRect}
+                          crop={activeCrop}
+                          imageWidth={activeItem.width}
+                          imageHeight={activeItem.height}
+                          ratio={ratio}
+                          onChange={(next) => handleCropChange(next, false)}
+                          onStart={pushHistory}
+                        />
+                      ) : null}
+                      {cropsEnabled ? null : (
+                        <span className="resizer-preview-tag">
+                          {showResult && activeItem.result
+                            ? `${formatPixels(activeItem.result.width)} × ${formatPixels(activeItem.result.height)} px`
+                            : `${formatPixels(activeItem.width)} × ${formatPixels(activeItem.height)} px · edits preview`}
+                        </span>
+                      )}
                     </>
                   )}
                 </div>
@@ -2348,7 +2467,11 @@ export default function ImageResizer() {
                   <dd>
                     {formatPixels(editedSizeFor(activeItem).width)} ×{" "}
                     {formatPixels(editedSizeFor(activeItem).height)} px
-                    {hasEdits(activeItem.edits, activeItem.width, activeItem.height)
+                    {hasEdits(
+                      activeItem.edits,
+                      activeItem.width,
+                      activeItem.height,
+                    )
                       ? ` · ${describeEdits(activeItem.edits, activeItem.width, activeItem.height).join(", ")}`
                       : " · untouched"}
                   </dd>
@@ -2382,7 +2505,11 @@ export default function ImageResizer() {
                 <div>
                   <dt>Scale</dt>
                   <dd>
-                    {scale}% of the edited width · {activePlan ? megapixels(activePlan.width, activePlan.height) : 0} MP
+                    {scale}% of the edited width ·{" "}
+                    {activePlan
+                      ? megapixels(activePlan.width, activePlan.height)
+                      : 0}{" "}
+                    MP
                     {activePlan?.cropped ? " · centre crop" : ""}
                   </dd>
                 </div>
@@ -2408,7 +2535,9 @@ export default function ImageResizer() {
                 value={format}
                 disabled={busy}
                 onChange={(event) =>
-                  invalidate(() => setFormat(event.target.value as OutputFormat))
+                  invalidate(() =>
+                    setFormat(event.target.value as OutputFormat),
+                  )
                 }
               >
                 {(Object.keys(FORMAT_NOTES) as OutputFormat[]).map((value) => (
@@ -2464,14 +2593,18 @@ export default function ImageResizer() {
               </div>
             ) : null}
             <div className="resizer-field">
-              <label htmlFor="resizer-base-name">Rename outputs (optional)</label>
+              <label htmlFor="resizer-base-name">
+                Rename outputs (optional)
+              </label>
               <input
                 id="resizer-base-name"
                 type="text"
                 placeholder="Keep original names"
                 value={baseName}
                 maxLength={60}
-                onChange={(event) => invalidate(() => setBaseName(event.target.value))}
+                onChange={(event) =>
+                  invalidate(() => setBaseName(event.target.value))
+                }
               />
             </div>
             <div className="resizer-field">
@@ -2482,7 +2615,9 @@ export default function ImageResizer() {
                 placeholder="e.g. web"
                 value={suffix}
                 maxLength={30}
-                onChange={(event) => invalidate(() => setSuffix(event.target.value))}
+                onChange={(event) =>
+                  invalidate(() => setSuffix(event.target.value))
+                }
               />
             </div>
           </div>
@@ -2496,7 +2631,8 @@ export default function ImageResizer() {
           </p>
 
           <div className="resizer-warnings" role="note">
-            {(activeItem ? outputFormatFor(activeItem) : format) === "image/jpeg" ? (
+            {(activeItem ? outputFormatFor(activeItem) : format) ===
+            "image/jpeg" ? (
               <p>
                 <AlertCircle size={13} aria-hidden="true" /> JPEG has no alpha
                 channel — transparent pixels become {background.toUpperCase()}.
@@ -2510,22 +2646,21 @@ export default function ImageResizer() {
                 usually makes the file much larger.
               </p>
             ) : null}
-            {activeItem && activePlan
-              ? activePlan.width > editedSizeFor(activeItem).width ||
-                activePlan.height > editedSizeFor(activeItem).height
-                ? (
-                  <p>
-                    <AlertCircle size={13} aria-hidden="true" /> This output is
-                    larger than the source, so it cannot add real detail.
-                  </p>
-                )
-                : null
-              : null}
+            {activeItem && activePlan ? (
+              activePlan.width > editedSizeFor(activeItem).width ||
+              activePlan.height > editedSizeFor(activeItem).height ? (
+                <p>
+                  <AlertCircle size={13} aria-hidden="true" /> This output is
+                  larger than the source, so it cannot add real detail.
+                </p>
+              ) : null
+            ) : null}
           </div>
 
           <details className="resizer-details resizer-metadata">
             <summary>
-              <ShieldCheck size={13} aria-hidden="true" /> Metadata &amp; privacy
+              <ShieldCheck size={13} aria-hidden="true" /> Metadata &amp;
+              privacy
             </summary>
             <div className="resizer-metadata-body">
               {metadata ? (
@@ -2538,18 +2673,24 @@ export default function ImageResizer() {
                   </li>
                   <li>
                     GPS location:{" "}
-                    <strong>{metadata.hasGps ? "present — removed" : "none"}</strong>
+                    <strong>
+                      {metadata.hasGps ? "present — removed" : "none"}
+                    </strong>
                   </li>
                   <li>
                     Camera: <strong>{metadata.camera ?? "not recorded"}</strong>
                   </li>
                   <li>
-                    Captured: <strong>{metadata.captured ?? "not recorded"}</strong>
+                    Captured:{" "}
+                    <strong>{metadata.captured ?? "not recorded"}</strong>
                   </li>
                   <li>
                     Colour profile / XMP:{" "}
                     <strong>
-                      {[metadata.hasIcc ? "ICC" : "", metadata.hasXmp ? "XMP" : ""]
+                      {[
+                        metadata.hasIcc ? "ICC" : "",
+                        metadata.hasXmp ? "XMP" : "",
+                      ]
                         .filter(Boolean)
                         .join(" · ") || "none"}
                     </strong>
@@ -2581,9 +2722,17 @@ export default function ImageResizer() {
           </details>
 
           <ul className="resizer-tips">
-            <li>JPEG output always gets a solid background behind transparency.</li>
-            <li>Scaling up adds pixels, not detail — start from the largest source.</li>
-            <li>Batch settings apply to every queued image; open an image row for per-image overrides.</li>
+            <li>
+              JPEG output always gets a solid background behind transparency.
+            </li>
+            <li>
+              Scaling up adds pixels, not detail — start from the largest
+              source.
+            </li>
+            <li>
+              Batch settings apply to every queued image; open an image row for
+              per-image overrides.
+            </li>
           </ul>
         </section>
       </div>
@@ -2650,7 +2799,11 @@ export default function ImageResizer() {
       </div>
 
       {busy ? (
-        <div className="resizer-progress" role="group" aria-label="Batch progress">
+        <div
+          className="resizer-progress"
+          role="group"
+          aria-label="Batch progress"
+        >
           <progress
             value={progress.done}
             max={progress.total || 1}
@@ -2687,7 +2840,10 @@ export default function ImageResizer() {
       ) : null}
 
       {items.length ? (
-        <section className="resizer-queue" aria-labelledby="resizer-queue-title">
+        <section
+          className="resizer-queue"
+          aria-labelledby="resizer-queue-title"
+        >
           <div className="resizer-queue-head">
             <h3 id="resizer-queue-title">
               Batch queue <span>{items.length}</span>
@@ -2708,7 +2864,9 @@ export default function ImageResizer() {
                 <li
                   key={item.id}
                   className={
-                    isActive ? "resizer-item resizer-item-active" : "resizer-item"
+                    isActive
+                      ? "resizer-item resizer-item-active"
+                      : "resizer-item"
                   }
                 >
                   <div className="resizer-item-main">
@@ -2726,7 +2884,9 @@ export default function ImageResizer() {
                           if (Number.isFinite(parsed) && parsed > 0) {
                             const size = editedSizeFor(item);
                             setHeight(
-                              String(linkedHeight(parsed, size.width, size.height)),
+                              String(
+                                linkedHeight(parsed, size.width, size.height),
+                              ),
                             );
                           }
                         }
@@ -2741,7 +2901,8 @@ export default function ImageResizer() {
                     <div className="resizer-item-body">
                       <strong title={item.file.name}>{item.file.name}</strong>
                       <span>
-                        {formatPixels(item.width)} × {formatPixels(item.height)} px
+                        {formatPixels(item.width)} × {formatPixels(item.height)}{" "}
+                        px
                         {" → "}
                         {plan
                           ? `${formatPixels(plan.width)} × ${formatPixels(plan.height)} px`
@@ -2755,7 +2916,10 @@ export default function ImageResizer() {
                       ) : item.result ? (
                         <span className="resizer-item-size">
                           {formatBytes(item.result.blob.size)} ·{" "}
-                          {sizeDeltaLabel(item.result.blob.size, item.file.size)}
+                          {sizeDeltaLabel(
+                            item.result.blob.size,
+                            item.file.size,
+                          )}
                         </span>
                       ) : (
                         <span className="resizer-item-size">
@@ -2766,7 +2930,9 @@ export default function ImageResizer() {
                         </span>
                       )}
                     </div>
-                    <span className={`resizer-status resizer-status-${item.status}`}>
+                    <span
+                      className={`resizer-status resizer-status-${item.status}`}
+                    >
                       {item.status === "ready" ? (
                         "Ready"
                       ) : item.status === "working" ? (
@@ -2853,7 +3019,9 @@ export default function ImageResizer() {
                     {item.override.enabled ? (
                       <div className="resizer-extra-grid">
                         <div className="resizer-field">
-                          <label htmlFor={`ov-width-${item.id}`}>Custom width (px)</label>
+                          <label htmlFor={`ov-width-${item.id}`}>
+                            Custom width (px)
+                          </label>
                           <input
                             id={`ov-width-${item.id}`}
                             type="number"
@@ -2861,7 +3029,9 @@ export default function ImageResizer() {
                             max={8192}
                             value={item.override.width}
                             onChange={(event) => {
-                              const value = Math.round(Number(event.target.value) || 0);
+                              const value = Math.round(
+                                Number(event.target.value) || 0,
+                              );
                               clearResults();
                               updateItem(item.id, {
                                 override: {
@@ -2881,7 +3051,9 @@ export default function ImageResizer() {
                           />
                         </div>
                         <div className="resizer-field">
-                          <label htmlFor={`ov-height-${item.id}`}>Custom height (px)</label>
+                          <label htmlFor={`ov-height-${item.id}`}>
+                            Custom height (px)
+                          </label>
                           <input
                             id={`ov-height-${item.id}`}
                             type="number"
@@ -2889,7 +3061,9 @@ export default function ImageResizer() {
                             max={8192}
                             value={item.override.height}
                             onChange={(event) => {
-                              const value = Math.round(Number(event.target.value) || 0);
+                              const value = Math.round(
+                                Number(event.target.value) || 0,
+                              );
                               clearResults();
                               updateItem(item.id, {
                                 override: {
@@ -2919,8 +3093,7 @@ export default function ImageResizer() {
                                 override: {
                                   ...item.override,
                                   format: event.target.value as
-                                    | OutputFormat
-                                    | "auto",
+                                    OutputFormat | "auto",
                                 },
                               });
                             }}
@@ -2930,7 +3103,11 @@ export default function ImageResizer() {
                             </option>
                             {(Object.keys(FORMAT_NOTES) as OutputFormat[]).map(
                               (value) => (
-                                <option key={value} value={value} disabled={!support[value]}>
+                                <option
+                                  key={value}
+                                  value={value}
+                                  disabled={!support[value]}
+                                >
                                   {formatLabel(value)}
                                 </option>
                               ),
@@ -2938,7 +3115,9 @@ export default function ImageResizer() {
                           </select>
                         </div>
                         <div className="resizer-field">
-                          <label htmlFor={`ov-quality-${item.id}`}>Quality</label>
+                          <label htmlFor={`ov-quality-${item.id}`}>
+                            Quality
+                          </label>
                           <div className="range-row">
                             <input
                               id={`ov-quality-${item.id}`}
@@ -2963,7 +3142,9 @@ export default function ImageResizer() {
                           </div>
                         </div>
                         <div className="resizer-field">
-                          <label htmlFor={`ov-name-${item.id}`}>Output name</label>
+                          <label htmlFor={`ov-name-${item.id}`}>
+                            Output name
+                          </label>
                           <input
                             id={`ov-name-${item.id}`}
                             type="text"
@@ -2982,7 +3163,9 @@ export default function ImageResizer() {
                           />
                         </div>
                         <div className="resizer-field">
-                          <label htmlFor={`ov-suffix-${item.id}`}>Suffix for this image</label>
+                          <label htmlFor={`ov-suffix-${item.id}`}>
+                            Suffix for this image
+                          </label>
                           <input
                             id={`ov-suffix-${item.id}`}
                             type="text"

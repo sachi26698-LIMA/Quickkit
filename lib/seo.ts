@@ -81,7 +81,8 @@ export function toolStructuredData({
         ...(url ? { url } : {}),
         applicationCategory: "MultimediaApplication",
         operatingSystem: "Any modern browser",
-        browserRequirements: "Requires JavaScript. Images are processed locally.",
+        browserRequirements:
+          "Requires JavaScript. Images are processed locally.",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         isAccessibleForFree: true,
       },

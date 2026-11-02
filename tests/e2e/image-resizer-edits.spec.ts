@@ -6,7 +6,11 @@ import AxeBuilder from "@axe-core/playwright";
 type Upload = { name: string; mimeType: string; buffer: Buffer };
 
 /** Quadrant fixture: TL red, TR green, BL blue, BR yellow. */
-async function quadrants(page: Page, width = 800, height = 600): Promise<Upload> {
+async function quadrants(
+  page: Page,
+  width = 800,
+  height = 600,
+): Promise<Upload> {
   const base64 = await page.evaluate(
     ([w, h]) => {
       const canvas = document.createElement("canvas");
@@ -146,7 +150,9 @@ test.describe("image resizer editing", () => {
     expect(near(pixelAt(mirrored, 40, 40).b, 255)).toBe(true);
   });
 
-  test("crops with a fixed ratio and exports only the crop", async ({ page }) => {
+  test("crops with a fixed ratio and exports only the crop", async ({
+    page,
+  }) => {
     await addImage(page, await quadrants(page));
     await page.getByLabel("Output format").selectOption("image/png");
     await page.getByRole("tab", { name: /Edit/ }).click();
@@ -162,7 +168,10 @@ test.describe("image resizer editing", () => {
     const start = await box.boundingBox();
     const stage = await page.locator(".resizer-preview-stage").boundingBox();
     expect(start && stage).toBeTruthy();
-    await page.mouse.move(start!.x + start!.width / 2, start!.y + start!.height / 2);
+    await page.mouse.move(
+      start!.x + start!.width / 2,
+      start!.y + start!.height / 2,
+    );
     await page.mouse.down();
     await page.mouse.move(
       start!.x + start!.width / 2 + (stage!.width / 800) * 150,
@@ -283,12 +292,16 @@ test.describe("image resizer editing", () => {
     await page.getByLabel("DPI (print resolution)").fill("300");
     await page.getByLabel("Print width (cm)").fill("2.54");
     await page.getByLabel("Print height (cm)").fill("2.54");
-    await page.getByRole("button", { name: "Use print size as pixels" }).click();
+    await page
+      .getByRole("button", { name: "Use print size as pixels" })
+      .click();
     await expect(page.locator(".resizer-summary")).toHaveText("300 × 300 px");
     await expect(page.locator(".resizer-notice")).toContainText("300 DPI");
   });
 
-  test("per-image overrides, suffix naming and ZIP entries", async ({ page }) => {
+  test("per-image overrides, suffix naming and ZIP entries", async ({
+    page,
+  }) => {
     const input = page.getByLabel("Add images");
     await input.setInputFiles([
       await quadrants(page, 400, 300),
@@ -297,11 +310,23 @@ test.describe("image resizer editing", () => {
     await expect(page.locator(".resizer-item")).toHaveCount(2);
     await setExactSize(page, 200, 200);
 
-    await page.getByRole("button", { name: /Custom settings for quadrants.png/ }).first().click();
-    await page.getByLabel(/Custom size and format/).first().check();
+    await page
+      .getByRole("button", { name: /Custom settings for quadrants.png/ })
+      .first()
+      .click();
+    await page
+      .getByLabel(/Custom size and format/)
+      .first()
+      .check();
     await page.getByLabel("Custom width (px)").fill("100");
-    await page.getByRole("button", { name: "Custom settings for quadrants.png" }).nth(1).click();
-    await page.getByLabel(/Custom size and format/).nth(1).check();
+    await page
+      .getByRole("button", { name: "Custom settings for quadrants.png" })
+      .nth(1)
+      .click();
+    await page
+      .getByLabel(/Custom size and format/)
+      .nth(1)
+      .check();
     await page.getByLabel("Suffix for this image").nth(1).fill("square");
 
     await page.getByLabel("Output format").selectOption("image/png");
@@ -322,9 +347,7 @@ test.describe("image resizer editing", () => {
   }) => {
     await addImage(page, await quadrants(page, 400, 300));
     await page.getByLabel("Output format").selectOption("image/png");
-    await expect(
-      page.getByRole("button", { name: /Split/ }),
-    ).toBeDisabled();
+    await expect(page.getByRole("button", { name: /Split/ })).toBeDisabled();
     await page.getByRole("button", { name: /Resize 1 image/ }).click();
     await expect(page.locator(".resizer-status-done")).toBeVisible();
 
@@ -369,7 +392,9 @@ test.describe("image resizer editing", () => {
     await page.getByRole("button", { name: /Resize 1 image/ }).click();
     await expect(page.locator(".resizer-status-done")).toBeVisible();
     const pending = page.waitForEvent("download");
-    await page.getByRole("link", { name: "Download alpha-200x200.webp" }).click();
+    await page
+      .getByRole("link", { name: "Download alpha-200x200.webp" })
+      .click();
     const webp = await readFile((await (await pending).path())!);
     expect(webp.subarray(0, 4).toString()).toBe("RIFF");
     const hasAlpha = await page.evaluate(async (data) => {
@@ -390,7 +415,9 @@ test.describe("image resizer editing", () => {
     await page.getByRole("button", { name: /Resize 1 image/ }).click();
     await expect(page.locator(".resizer-status-done")).toBeVisible();
     const jpegPending = page.waitForEvent("download");
-    await page.getByRole("link", { name: "Download alpha-200x200.jpg" }).click();
+    await page
+      .getByRole("link", { name: "Download alpha-200x200.jpg" })
+      .click();
     const jpeg = await readFile((await (await jpegPending).path())!);
     expect([jpeg[0], jpeg[1]]).toEqual([0xff, 0xd8]);
     const cornerColour = await page.evaluate(async (data) => {
@@ -478,7 +505,9 @@ test.describe("image resizer editing", () => {
     await addImage(page, await quadrants(page, 400, 300));
     await page.getByRole("radio", { name: /Presets/ }).check();
     await page.getByRole("button", { name: "+ Save current size" }).click();
-    await expect(page.locator(".resizer-notice")).toContainText("Preset 400 × 300");
+    await expect(page.locator(".resizer-notice")).toContainText(
+      "Preset 400 × 300",
+    );
     const custom = page.getByRole("radio", { name: /400 × 300/ });
     await expect(custom).toBeChecked();
     await expect(page.locator(".resizer-summary")).toHaveText("400 × 300 px");

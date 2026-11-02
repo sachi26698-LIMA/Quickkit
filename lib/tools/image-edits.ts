@@ -26,7 +26,8 @@ export const CROP_ASPECTS = [
 ] as const;
 
 export type CropAspectId = (typeof CROP_ASPECTS)[number]["id"];
-export type QuickFilter = "none" | "grayscale" | "sepia" | "invert" | "warm" | "cool";
+export type QuickFilter =
+  "none" | "grayscale" | "sepia" | "invert" | "warm" | "cool";
 
 export type ImageEdits = {
   crop: CropRect | null;
@@ -55,7 +56,9 @@ export const DEFAULT_EDITS: ImageEdits = {
   autoOrient: true,
 };
 
-export function withDefaults(edits: Partial<ImageEdits> | undefined): ImageEdits {
+export function withDefaults(
+  edits: Partial<ImageEdits> | undefined,
+): ImageEdits {
   return { ...DEFAULT_EDITS, ...(edits ?? {}) };
 }
 
@@ -82,13 +85,15 @@ export function rotatedSize(width: number, height: number, angle: number) {
     width: Math.max(
       1,
       Math.round(
-        Math.abs(width * Math.cos(radians)) + Math.abs(height * Math.sin(radians)),
+        Math.abs(width * Math.cos(radians)) +
+          Math.abs(height * Math.sin(radians)),
       ),
     ),
     height: Math.max(
       1,
       Math.round(
-        Math.abs(width * Math.sin(radians)) + Math.abs(height * Math.cos(radians)),
+        Math.abs(width * Math.sin(radians)) +
+          Math.abs(height * Math.cos(radians)),
       ),
     ),
   };
@@ -114,10 +119,15 @@ export function hasEdits(edits: ImageEdits, width?: number, height?: number) {
   );
 }
 
-export function describeEdits(edits: ImageEdits, width?: number, height?: number) {
+export function describeEdits(
+  edits: ImageEdits,
+  width?: number,
+  height?: number,
+) {
   const parts: string[] = [];
   if (cropCounts(edits, width, height)) parts.push("cropped");
-  if (normalizeAngle(edits.rotation)) parts.push(`${normalizeAngle(edits.rotation)}°`);
+  if (normalizeAngle(edits.rotation))
+    parts.push(`${normalizeAngle(edits.rotation)}°`);
   if (edits.flipH) parts.push("flipped H");
   if (edits.flipV) parts.push("flipped V");
   if (edits.brightness !== 100) parts.push(`brightness ${edits.brightness}%`);
@@ -175,7 +185,11 @@ export function fullCrop(width: number, height: number): CropRect {
   return { x: 0, y: 0, width, height };
 }
 
-export function cropIsFull(crop: CropRect | null, width: number, height: number) {
+export function cropIsFull(
+  crop: CropRect | null,
+  width: number,
+  height: number,
+) {
   if (!crop) return true;
   return (
     crop.x === 0 &&
@@ -218,7 +232,8 @@ export function centredCrop(
   height: number,
   ratio: number | null,
 ): CropRect {
-  if (!ratio || !Number.isFinite(ratio) || ratio <= 0) return fullCrop(width, height);
+  if (!ratio || !Number.isFinite(ratio) || ratio <= 0)
+    return fullCrop(width, height);
   if (width / height > ratio) {
     const cropWidth = Math.max(1, Math.round(height * ratio));
     return {
@@ -302,7 +317,7 @@ export function pxFromCm(cm: number, dpi: number) {
 }
 
 export function cmFromPx(px: number, dpi: number) {
-  return (inchesFromPixels(px, dpi) * CM_PER_INCH);
+  return inchesFromPixels(px, dpi) * CM_PER_INCH;
 }
 
 export function printLabel(px: number, dpi: number) {
@@ -312,11 +327,7 @@ export function printLabel(px: number, dpi: number) {
 }
 
 /** Megapixels needed to print a physical size at a DPI. */
-export function printPixelSize(
-  widthCm: number,
-  heightCm: number,
-  dpi: number,
-) {
+export function printPixelSize(widthCm: number, heightCm: number, dpi: number) {
   return {
     width: pxFromCm(widthCm, dpi),
     height: pxFromCm(heightCm, dpi),
@@ -348,8 +359,10 @@ export function estimateOutputBytes(
     Number.isFinite(height) && height > 0 ? Math.round(height) : 1;
   const pixels = Math.max(1, safeWidth * safeHeight);
   const q =
-    Math.min(100, Math.max(10, Number.isFinite(quality) ? Math.round(quality) : 85)) /
-    100;
+    Math.min(
+      100,
+      Math.max(10, Number.isFinite(quality) ? Math.round(quality) : 85),
+    ) / 100;
   let bitsPerPixel: number;
   switch (format) {
     case "image/png":
@@ -364,7 +377,10 @@ export function estimateOutputBytes(
     default:
       bitsPerPixel = 0.06 + 0.2 * Math.pow(q / 0.5, 3);
   }
-  return Math.max(1, Math.round((pixels * bitsPerPixel) / 8) + OVERHEAD[format]);
+  return Math.max(
+    1,
+    Math.round((pixels * bitsPerPixel) / 8) + OVERHEAD[format],
+  );
 }
 
 /** Cheap quality heuristic for already-encoded output (not re-encoding). */
@@ -393,7 +409,8 @@ export type NameOptions = {
 
 /** `photo.jpg` → `photo-<suffix>-1920x1080.webp` (suffix optional). */
 export function buildOutputName(originalName: string, options: NameOptions) {
-  const base = sanitizeFragment(options.baseName ?? "") || sanitizeBaseName(originalName);
+  const base =
+    sanitizeFragment(options.baseName ?? "") || sanitizeBaseName(originalName);
   const suffix = sanitizeFragment(options.suffix ?? "");
   const parts = [base, suffix].filter(Boolean);
   return `${parts.join("-")}-${options.width}x${options.height}.${extensionFor(
@@ -452,7 +469,8 @@ export function resizeCropByHandle(
   ratio: number | null,
 ): CropRect {
   const start = clampCrop(crop, imageWidth, imageHeight);
-  if (handle === "move") return moveCrop(start, dx, dy, imageWidth, imageHeight);
+  if (handle === "move")
+    return moveCrop(start, dx, dy, imageWidth, imageHeight);
 
   const left = start.x;
   const top = start.y;

@@ -28,9 +28,12 @@ function clean(value: string) {
 }
 
 /** Reads the EXIF TIFF block inside a JPEG APP1 segment. */
-export function scanExifBlock(
-  block: Uint8Array,
-): { orientation: number | null; camera: string | null; captured: string | null; hasGps: boolean } {
+export function scanExifBlock(block: Uint8Array): {
+  orientation: number | null;
+  camera: string | null;
+  captured: string | null;
+  hasGps: boolean;
+} {
   const result = {
     orientation: null as number | null,
     camera: null as string | null,
@@ -42,8 +45,10 @@ export function scanExifBlock(
   const big = block[0] === 0x4d && block[1] === 0x4d;
   if (!little && !big) return result;
   const view = new DataView(block.buffer, block.byteOffset, block.byteLength);
-  const u16 = (offset: number) => (little ? view.getUint16(offset, true) : view.getUint16(offset, false));
-  const u32 = (offset: number) => (little ? view.getUint32(offset, true) : view.getUint32(offset, false));
+  const u16 = (offset: number) =>
+    little ? view.getUint16(offset, true) : view.getUint16(offset, false);
+  const u32 = (offset: number) =>
+    little ? view.getUint32(offset, true) : view.getUint32(offset, false);
 
   try {
     if (u16(2) !== 42) return result;
@@ -73,9 +78,10 @@ export function scanExifBlock(
       } else if (tag === 0x0110) {
         const model = ascii();
         if (model)
-          result.camera = result.camera && !model.startsWith(result.camera)
-            ? `${result.camera} ${model}`
-            : model;
+          result.camera =
+            result.camera && !model.startsWith(result.camera)
+              ? `${result.camera} ${model}`
+              : model;
       } else if (tag === 0x0132) {
         const taken = ascii();
         if (taken) result.captured = taken;
@@ -89,10 +95,7 @@ export function scanExifBlock(
   return result;
 }
 
-export function scanMetadata(
-  bytes: Uint8Array,
-  type: string,
-): MetadataReport {
+export function scanMetadata(bytes: Uint8Array, type: string): MetadataReport {
   const report: MetadataReport = {
     format: type.replace("image/", "").toUpperCase(),
     hasExif: false,
@@ -127,7 +130,10 @@ export function scanMetadata(
         report.captured = exif.captured;
         report.hasGps = report.hasGps || exif.hasGps;
       }
-      if (marker === 0xe1 && ASCII(payload, 0, 29).includes("http://ns.adobe.com/xap/1.0/"))
+      if (
+        marker === 0xe1 &&
+        ASCII(payload, 0, 29).includes("http://ns.adobe.com/xap/1.0/")
+      )
         report.hasXmp = true;
       if (marker === 0xe2 && ASCII(payload, 0, 11) === "ICC_PROFILE")
         report.hasIcc = true;
@@ -140,11 +146,16 @@ export function scanMetadata(
     let offset = 8;
     while (offset + 8 <= data.length) {
       const length =
-        (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+        (data[offset] << 24) |
+        (data[offset + 1] << 16) |
+        (data[offset + 2] << 8) |
+        data[offset + 3];
       const chunk = ASCII(data, offset + 4, 4);
       if (chunk === "eXIf") {
         report.hasExif = true;
-        const exif = scanExifBlock(data.subarray(offset + 8, offset + 8 + length));
+        const exif = scanExifBlock(
+          data.subarray(offset + 8, offset + 8 + length),
+        );
         report.orientation = exif.orientation;
         report.camera = exif.camera;
         report.captured = exif.captured;
@@ -153,7 +164,8 @@ export function scanMetadata(
       if (chunk === "iCCP") report.hasIcc = true;
       if (chunk === "iTXt" || chunk === "tEXt") {
         const text = ASCII(data, offset + 8, Math.min(length, 64));
-        if (text.toLowerCase().includes("xml:com.adobe.xmp")) report.hasXmp = true;
+        if (text.toLowerCase().includes("xml:com.adobe.xmp"))
+          report.hasXmp = true;
       }
       if (chunk === "IEND" || length < 0) break;
       offset += 12 + length;
@@ -166,7 +178,10 @@ export function scanMetadata(
     while (offset + 8 <= data.length) {
       const chunk = ASCII(data, offset, 4);
       const size =
-        data[offset + 4] | (data[offset + 5] << 8) | (data[offset + 6] << 16) | (data[offset + 7] << 24);
+        data[offset + 4] |
+        (data[offset + 5] << 8) |
+        (data[offset + 6] << 16) |
+        (data[offset + 7] << 24);
       if (size < 0) break;
       if (chunk === "EXIF") {
         report.hasExif = true;

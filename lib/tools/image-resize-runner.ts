@@ -102,7 +102,8 @@ function applyManualFilter(canvas: HTMLCanvasElement, edits: ImageEdits) {
   const grayscale = edits.filter === "grayscale";
   const sepia = edits.filter === "sepia" || edits.filter === "warm";
   const invert = edits.filter === "invert";
-  const warmShift = edits.filter === "warm" ? 12 : edits.filter === "cool" ? -12 : 0;
+  const warmShift =
+    edits.filter === "warm" ? 12 : edits.filter === "cool" ? -12 : 0;
   const contrastFactor = (1 - contrast) * 128;
 
   for (let index = 0; index < data.length; index += 4) {
@@ -146,7 +147,10 @@ function applyManualFilter(canvas: HTMLCanvasElement, edits: ImageEdits) {
   ctx.putImageData(image, 0, 0);
 }
 
-async function decodeImage(file: File, autoOrient: boolean): Promise<DecodedImage> {
+async function decodeImage(
+  file: File,
+  autoOrient: boolean,
+): Promise<DecodedImage> {
   if (typeof createImageBitmap === "function") {
     try {
       const bitmap = await createImageBitmap(file, {
@@ -187,7 +191,8 @@ async function decodeImage(file: File, autoOrient: boolean): Promise<DecodedImag
     }
     const width = image.naturalWidth;
     const height = image.naturalHeight;
-    if (!width || !height) throw new Error("This image has no pixels to resize.");
+    if (!width || !height)
+      throw new Error("This image has no pixels to resize.");
     return {
       source: image,
       width,
@@ -328,11 +333,15 @@ function encode(
       (blob) => {
         if (settled) return;
         if (!blob) {
-          fail("The browser could not encode this image. Try JPEG, PNG or WebP.");
+          fail(
+            "The browser could not encode this image. Try JPEG, PNG or WebP.",
+          );
           return;
         }
         if (blob.type !== format) {
-          fail("Your browser cannot encode this format. Choose JPEG, PNG or WebP instead.");
+          fail(
+            "Your browser cannot encode this format. Choose JPEG, PNG or WebP instead.",
+          );
           return;
         }
         settled = true;

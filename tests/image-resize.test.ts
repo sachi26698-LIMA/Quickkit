@@ -158,7 +158,6 @@ describe("longest and shortest side modes", () => {
       planResize(4000, 3000, settings({ mode: "longest", sideLength: 8192 })),
     ).toThrow("24 megapixels"));
 
-
   it("requires a positive whole side length", () =>
     expect(() =>
       planResize(1600, 1200, settings({ mode: "longest", sideLength: 0 })),
@@ -261,11 +260,21 @@ describe("preset mode", () => {
   });
 
   it("uses exact, well-known social dimensions", () => {
-    const find = (id: string) => SOCIAL_PRESETS.find((preset) => preset.id === id);
-    expect(find("instagram-story")).toMatchObject({ width: 1080, height: 1920 });
-    expect(find("youtube-thumbnail")).toMatchObject({ width: 1280, height: 720 });
+    const find = (id: string) =>
+      SOCIAL_PRESETS.find((preset) => preset.id === id);
+    expect(find("instagram-story")).toMatchObject({
+      width: 1080,
+      height: 1920,
+    });
+    expect(find("youtube-thumbnail")).toMatchObject({
+      width: 1280,
+      height: 720,
+    });
     expect(find("facebook-post")).toMatchObject({ width: 1200, height: 630 });
-    expect(find("whatsapp-status")).toMatchObject({ width: 1080, height: 1920 });
+    expect(find("whatsapp-status")).toMatchObject({
+      width: 1080,
+      height: 1920,
+    });
     expect(find("x-post")).toMatchObject({ width: 1600, height: 900 });
   });
 });
