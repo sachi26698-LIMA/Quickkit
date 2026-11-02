@@ -7,6 +7,125 @@ export const calculatorInfo: Record<
     faqs: { q: string; a: string }[];
   }
 > = {
+  "time-converter": {
+    name: "Time Converter",
+    description:
+      "Convert durations and add or subtract them from a local date and time.",
+    steps: [
+      "Enter a duration and choose units. Optionally select a date and operation.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "How long are a month and year?",
+        a: "For duration conversion a month is 30 days and a year is 365 days, not calendar periods. Date arithmetic uses elapsed time.",
+      },
+    ],
+  },
+  "temperature-converter": {
+    name: "Temperature Converter",
+    description:
+      "Convert Celsius, Fahrenheit and Kelvin with absolute-zero validation.",
+    steps: [
+      "Enter a temperature and select source and destination units.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "Can a temperature be negative?",
+        a: "Celsius and Fahrenheit can be negative, but physical temperatures cannot fall below absolute zero.",
+      },
+    ],
+  },
+  "unit-converter": {
+    name: "Unit Converter",
+    description: "Convert common units of length, mass, energy, data and more.",
+    steps: [
+      "Choose a category, value and units; use search and swap as needed.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "What is the fuel economy convention?",
+        a: "US and imperial miles per gallon use different gallons and are reciprocal to litres per 100 kilometres.",
+      },
+    ],
+  },
+  "scientific-calculator": {
+    name: "Scientific Calculator",
+    description:
+      "Evaluate scientific expressions with trigonometry, powers, constants and memory.",
+    steps: [
+      "Type an expression or use the keypad; choose degree or radian mode.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "How are expressions evaluated?",
+        a: "A bounded mathematical parser evaluates the expression; JavaScript eval is not used. Functions require parentheses.",
+      },
+    ],
+  },
+  "loan-calculator": {
+    name: "Loan Calculator",
+    description:
+      "Estimate loan payments, compare scenarios and review amortization.",
+    steps: [
+      "Enter loan details and add scenarios to compare.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "Are these lender quotes?",
+        a: "No. These estimates assume a fixed rate and monthly compounding with no fees or taxes.",
+      },
+    ],
+  },
+  "emi-calculator": {
+    name: "EMI Calculator",
+    description:
+      "Estimate monthly installments and see a complete repayment schedule.",
+    steps: [
+      "Enter principal, annual rate and tenure. Add an optional extra monthly payment.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "How is interest calculated?",
+        a: "The estimate uses a fixed rate divided by 12, applied to the monthly outstanding balance. Fees, taxes and rate changes are excluded.",
+      },
+    ],
+  },
+  "date-difference-calculator": {
+    name: "Date Difference Calculator",
+    description:
+      "Find calendar and business-day differences or add and subtract days.",
+    steps: [
+      "Choose a start and end date; optionally include the end date.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "Are holidays excluded from business days?",
+        a: "No. Business days count Monday to Friday only, without public holidays.",
+      },
+    ],
+  },
+  "age-calculator": {
+    name: "Age Calculator",
+    description:
+      "Calculate exact age on any date and count down to a birthday.",
+    steps: [
+      "Choose a date of birth and the date to calculate age on.",
+      "Review the result and its assumptions.",
+    ],
+    faqs: [
+      {
+        q: "How are leap-day birthdays handled?",
+        a: "A February 29 birthday is observed on February 28 in non-leap years. Dates are calculated as calendar dates without time zones.",
+      },
+    ],
+  },
   "percentage-calculator": {
     name: "Percentage Calculator",
     description:

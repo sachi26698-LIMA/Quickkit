@@ -4,6 +4,13 @@ export default defineConfig({
   use: {
     baseURL: process.env.TEST_BASE_URL || "http://127.0.0.1:3001",
     trace: "retain-on-failure",
+    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+      ? {
+          launchOptions: {
+            executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+          },
+        }
+      : {}),
   },
   // In CI, also emit GitHub annotations so failed tests are identifiable
   // from the Checks UI/API without downloading log bundles.

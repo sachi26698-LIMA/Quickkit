@@ -49,7 +49,7 @@ describe("catalog discovery", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
     expect(toolsByCategory("Image Tools")).toHaveLength(1);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
-    expect(toolsByCategory("Calculators")).toHaveLength(4);
+    expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);
   });
 });

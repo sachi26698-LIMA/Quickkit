@@ -5129,3 +5129,51 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+.loan-bar {
+  height: 12px;
+  border-radius: 10px;
+  background: #bfa5ed;
+  overflow: hidden;
+}
+.loan-bar span {
+  display: block;
+  height: 100%;
+  background: #7040bd;
+}
+.loan-schedule {
+  margin-top: 20px;
+}
+.loan-table {
+  overflow-x: auto;
+  max-height: 420px;
+}
+.loan-table table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 520px;
+}
+.loan-table th,
+.loan-table td {
+  text-align: left;
+  border-bottom: 1px solid #e9e3f3;
+  padding: 10px;
+}
+.calculator-fields input[type="date"],
+.calculator-fields input[type="datetime-local"] {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #ded8ef;
+  border-radius: 10px;
+  padding: 12px;
+  background: white;
+  color: #29213e;
+}
+.scientific-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.scientific-buttons .secondary {
+  min-width: 0;
+  padding: 8px 2px;
+}

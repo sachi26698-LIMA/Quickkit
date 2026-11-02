@@ -231,6 +231,93 @@ export const tools = [
     color: "purple",
     phase: 9,
   },
+  {
+    slug: "age-calculator",
+    name: "Age Calculator",
+    category: "Calculators",
+    description:
+      "Calculate exact age on any date and count down to a birthday.",
+    keywords: "age calculator",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "date-difference-calculator",
+    name: "Date Difference Calculator",
+    category: "Calculators",
+    description:
+      "Find calendar and business-day differences or add and subtract days.",
+    keywords: "date difference calculator",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "emi-calculator",
+    name: "EMI Calculator",
+    category: "Calculators",
+    description:
+      "Estimate monthly installments and see a complete repayment schedule.",
+    keywords: "emi calculator",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "loan-calculator",
+    name: "Loan Calculator",
+    category: "Calculators",
+    description:
+      "Estimate loan payments, compare scenarios and review amortization.",
+    keywords: "loan calculator",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "scientific-calculator",
+    name: "Scientific Calculator",
+    category: "Calculators",
+    description:
+      "Evaluate scientific expressions with trigonometry, powers, constants and memory.",
+    keywords: "scientific calculator",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "unit-converter",
+    name: "Unit Converter",
+    category: "Calculators",
+    description: "Convert common units of length, mass, energy, data and more.",
+    keywords: "unit converter",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "temperature-converter",
+    name: "Temperature Converter",
+    category: "Calculators",
+    description:
+      "Convert Celsius, Fahrenheit and Kelvin with absolute-zero validation.",
+    keywords: "temperature converter",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
+  {
+    slug: "time-converter",
+    name: "Time Converter",
+    category: "Calculators",
+    description:
+      "Convert durations and add or subtract them from a local date and time.",
+    keywords: "time converter",
+    icon: "calc",
+    color: "purple",
+    phase: 9,
+  },
 ] as const;
 
 export type Tool = (typeof tools)[number];

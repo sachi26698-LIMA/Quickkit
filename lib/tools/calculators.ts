@@ -1,7 +1,12 @@
 /** Pure calculation helpers. Reject invalid input rather than returning misleading results. */
 export function percentage(mode: string, a: number, b: number) {
-  if (!Number.isFinite(a) || !Number.isFinite(b))
-    throw new Error("Enter valid numbers.");
+  if (
+    !Number.isFinite(a) ||
+    !Number.isFinite(b) ||
+    Math.abs(a) > 1e12 ||
+    Math.abs(b) > 1e12
+  )
+    throw new Error("Enter numbers between −1 trillion and 1 trillion.");
   switch (mode) {
     case "of":
       return { value: (a * b) / 100, formula: `${a} ÷ 100 × ${b}` };
@@ -32,7 +37,9 @@ export function bmi(height: number, weight: number, imperial: boolean) {
     !Number.isFinite(height) ||
     !Number.isFinite(weight) ||
     height <= 0 ||
-    weight <= 0
+    weight <= 0 ||
+    height > 1e6 ||
+    weight > 1e12
   )
     throw new Error("Height and weight must be positive numbers.");
   const metres = imperial ? height * 0.0254 : height / 100;
@@ -68,7 +75,10 @@ export function discount(
   if (
     ![price, tax, ...rates].every(Number.isFinite) ||
     price < 0 ||
+    price > 1e12 ||
     tax < 0 ||
+    tax > 1e6 ||
+    rates.length > 100 ||
     rates.some((r) => r < 0 || r > 100)
   )
     throw new Error(
@@ -88,7 +98,13 @@ export function discount(
   };
 }
 export function gst(amount: number, rate: number, inclusive: boolean) {
-  if (![amount, rate].every(Number.isFinite) || amount < 0 || rate < 0)
+  if (
+    ![amount, rate].every(Number.isFinite) ||
+    amount < 0 ||
+    amount > 1e12 ||
+    rate < 0 ||
+    rate > 1e6
+  )
     throw new Error("Amount and GST rate must be non-negative numbers.");
   const taxable = inclusive ? amount / (1 + rate / 100) : amount;
   const tax = (taxable * rate) / 100;
