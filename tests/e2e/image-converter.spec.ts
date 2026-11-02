@@ -413,7 +413,9 @@ test.describe("Image & PDF Converter", () => {
         name: "quality.png",
       }),
     ]);
-    await page.locator("#converter-format").selectOption("webp");
+    // Start on PNG so the resized output can be re-read with pngjs. WEBP is
+    // exercised separately below for the quality comparison.
+    await page.locator("#converter-format").selectOption("png");
 
     await page.getByLabel("Resize mode").selectOption("exact");
     await page.getByLabel("Output width in pixels").fill("200");
@@ -521,7 +523,11 @@ test.describe("Image & PDF Converter", () => {
     );
     expect(file.name).toBe("album.pdf");
     expect(file.buffer.subarray(0, 5).toString("ascii")).toBe("%PDF-");
-    expect(file.buffer.includes(Buffer.from("/Font"))).toBe(false);
+    // A raster-only PDF must not embed a text font; pdf-lib still writes an
+    // empty /Font resource dictionary, so check for real font objects instead.
+    expect(file.buffer.includes(Buffer.from("/Type1"))).toBe(false);
+    expect(file.buffer.includes(Buffer.from("/Type0"))).toBe(false);
+    expect(file.buffer.includes(Buffer.from("Helvetica"))).toBe(false);
 
     const pdf = await PDFDocument.load(file.buffer);
     expect(pdf.getPageCount()).toBe(2);
@@ -655,6 +661,22 @@ test.describe("Image & PDF Converter", () => {
 
       const convertBox = await page.getByTestId("converter-run").boundingBox();
       expect(convertBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+      if (width <= 1080) {
+        // Below the two-column breakpoint the Files/Preview switch must reveal
+        // the real preview panel, not a placeholder.
+        const previewTab = page.getByRole("button", {
+          name: "Preview",
+          exact: true,
+        });
+        await previewTab.click();
+        await expect(previewTab).toHaveAttribute("aria-pressed", "true");
+        await expect(page.getByTestId("converter-preview-image")).toBeVisible();
+        const filesTab = page.getByRole("button", { name: /Files & settings/ });
+        await filesTab.click();
+        await expect(filesTab).toHaveAttribute("aria-pressed", "true");
+        await expect(page.getByTestId("converter-run")).toBeVisible();
+      }
 
       const mode = page.getByRole("button", { name: /Image to image/ });
       await mode.focus();

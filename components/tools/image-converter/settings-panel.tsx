@@ -183,6 +183,7 @@ export default function ConverterSettings({
                   <input
                     id="converter-quality"
                     type="range"
+                    aria-label="Image quality"
                     min={CONVERT_LIMITS.minQuality}
                     max={CONVERT_LIMITS.maxQuality}
                     step={1}
@@ -321,7 +322,7 @@ export default function ConverterSettings({
                     <input
                       type="range"
                       min={1}
-                      max={400}
+                      max={800}
                       step={1}
                       value={image.resize.percent}
                       disabled={disabled}

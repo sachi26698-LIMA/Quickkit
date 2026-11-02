@@ -26,6 +26,8 @@ export type EncodeOptions = {
 type Pending = {
   resolve: (bytes: Uint8Array) => void;
   reject: (error: Error) => void;
+  /** Main-thread retry if the worker cannot start or crashes mid-request. */
+  fallback: () => Uint8Array;
 };
 
 let worker: Worker | null = null;
@@ -52,17 +54,28 @@ function getWorker(): Worker | null {
         if (!request) return;
         pending.delete(event.data.id);
         if (event.data.type === "done") request.resolve(event.data.bytes);
-        else request.reject(new Error(event.data.message));
+        else {
+          try {
+            request.resolve(request.fallback());
+          } catch {
+            request.reject(new Error(event.data.message));
+          }
+        }
       },
     );
     instance.addEventListener("error", () => {
       workerBroken = true;
-      for (const request of pending.values())
-        request.reject(
-          new Error("The background encoder stopped unexpectedly."),
-        );
-      pending.clear();
       worker = null;
+      for (const request of pending.values()) {
+        try {
+          request.resolve(request.fallback());
+        } catch {
+          request.reject(
+            new Error("The background encoder stopped unexpectedly."),
+          );
+        }
+      }
+      pending.clear();
     });
     worker = instance;
     return instance;
@@ -109,9 +122,15 @@ export async function encodeSpecial(
     dpi: options.dpi,
   };
   return new Promise<Uint8Array>((resolve, reject) => {
-    pending.set(id, { resolve, reject });
+    pending.set(id, {
+      resolve,
+      reject,
+      fallback: () => encodeHere(image, format, options),
+    });
     try {
-      instance.postMessage(request, [buffer]);
+      // No transfer list: the payload is copied, so a worker failure can be
+      // retried on the main thread with the original pixels intact.
+      instance.postMessage(request);
     } catch (error) {
       pending.delete(id);
       try {

@@ -112,6 +112,9 @@ export default function ImageConverter() {
   const [dragging, setDragging] = useState(false);
   const [support, setSupport] = useState<CanvasSupport | null>(null);
   const [pdfPage, setPdfPage] = useState(1);
+  // Small screens get an explicit Files/Preview switch instead of one very
+  // long column; both panels stay mounted so previews keep their state.
+  const [mobilePanel, setMobilePanel] = useState<"files" | "preview">("files");
 
   const itemsRef = useRef<QueueItem[]>([]);
   const urlsRef = useRef<Set<string>>(new Set());
@@ -415,15 +418,15 @@ export default function ImageConverter() {
       next === "pdf-to-image"
         ? itemsRef.current.filter((item) => item.format === "pdf").slice(0, 1)
         : itemsRef.current.filter((item) => item.format !== "pdf");
+    for (const result of results) releaseUrl(result.url);
+    setResults([]);
+    setCompare("source");
+    setPdfPage(1);
     if (keeps.length !== itemsRef.current.length) {
       for (const item of itemsRef.current)
         if (!keeps.includes(item)) releaseUrl(item.url);
-      for (const result of results) releaseUrl(result.url);
       commitItems(keeps);
-      setResults([]);
       setSelectedId(keeps[0]?.id ?? null);
-      setCompare("source");
-      setPdfPage(1);
       setMessage({
         tone: "info",
         text:
@@ -535,6 +538,7 @@ export default function ImageConverter() {
     }
 
     abortRef.current = null;
+    if (ok > 0) setMobilePanel("preview");
     resetImageEncoder();
     setBusy(false);
     setMessage(
@@ -598,6 +602,7 @@ export default function ImageConverter() {
         note: `Page ${page.page} of ${output.pageCount}`,
       }));
       setResults(created);
+      setMobilePanel("preview");
       updateItem(item.id, { status: "done", error: undefined });
       setPdfPage(created[0]?.page ?? 1);
       const capped = created.some(
@@ -703,6 +708,7 @@ export default function ImageConverter() {
         note: output.note,
       };
       setResults([result]);
+      setMobilePanel("preview");
       for (const target of targets)
         updateItem(target.id, { status: "done", error: undefined });
       setSelectedId(targets[0].id);
@@ -1096,8 +1102,37 @@ export default function ImageConverter() {
         </section>
       ) : null}
 
-      <div className="converter-layout">
-        <section className="converter-panel" aria-labelledby="settings-heading">
+      <div
+        className="converter-mobile-tabs"
+        role="group"
+        aria-label="Mobile workspace panel"
+      >
+        <button
+          type="button"
+          aria-pressed={mobilePanel === "files"}
+          aria-controls="converter-files-panel"
+          className={mobilePanel === "files" ? "active" : ""}
+          onClick={() => setMobilePanel("files")}
+        >
+          <Files size={15} aria-hidden="true" /> Files &amp; settings
+        </button>
+        <button
+          type="button"
+          aria-pressed={mobilePanel === "preview"}
+          aria-controls="converter-preview-panel"
+          className={mobilePanel === "preview" ? "active" : ""}
+          onClick={() => setMobilePanel("preview")}
+        >
+          <Eye size={15} aria-hidden="true" /> Preview
+        </button>
+      </div>
+
+      <div className={`converter-layout mobile-${mobilePanel}`}>
+        <section
+          id="converter-files-panel"
+          className="converter-panel"
+          aria-labelledby="settings-heading"
+        >
           <div className="converter-panel-head">
             <h3 id="settings-heading">
               <Settings2 size={16} aria-hidden="true" /> Conversion settings
@@ -1221,6 +1256,7 @@ export default function ImageConverter() {
         </section>
 
         <aside
+          id="converter-preview-panel"
           className="converter-panel converter-preview"
           aria-labelledby="preview-heading"
         >
@@ -1319,10 +1355,12 @@ export default function ImageConverter() {
                   >
                     <Download size={15} aria-hidden="true" /> Download page
                   </button>
-                  <PageNav
-                    page={pdfPage}
-                    pageCount={pdfItem.pageCount ?? 1}
-                    onChange={(next) => setPdfPage(next)}
+                  <ExportedPageNav
+                    results={results.filter(
+                      (entry) => entry.itemId === selectedResult.itemId,
+                    )}
+                    current={selectedResult}
+                    onSelect={(page) => setPdfPage(page)}
                   />
                 </div>
               </div>
@@ -1540,6 +1578,43 @@ function ImagePreview({
   );
 }
 
+function ExportedPageNav({
+  results,
+  current,
+  onSelect,
+}: {
+  results: ConversionResult[];
+  current: ConversionResult;
+  onSelect: (page: number) => void;
+}) {
+  const index = results.findIndex((entry) => entry.id === current.id);
+  return (
+    <div className="converter-pagenav" aria-label="Exported page navigation">
+      <button
+        type="button"
+        className="converter-icon-button"
+        onClick={() => onSelect(results[index - 1].page ?? 1)}
+        disabled={index <= 0}
+        aria-label="Previous exported page"
+      >
+        <ChevronLeft size={16} aria-hidden="true" />
+      </button>
+      <span className="converter-pagecount">
+        Page {current.page ?? "—"} · {index + 1} of {results.length}
+      </span>
+      <button
+        type="button"
+        className="converter-icon-button"
+        onClick={() => onSelect(results[index + 1].page ?? 1)}
+        disabled={index < 0 || index >= results.length - 1}
+        aria-label="Next exported page"
+      >
+        <ChevronRight size={16} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
 function PageNav({
   page,
   pageCount,
@@ -1611,6 +1686,7 @@ function PdfGallery({
     message: "",
   });
   const urlsRef = useRef<string[]>([]);
+  const loadedRef = useRef<Set<number>>(new Set());
   const farPage = pageCount > 6 ? page : 0;
   const requestKey = `${pageCount}:${farPage}`;
   const shown = thumbs[page];
@@ -1627,11 +1703,15 @@ function PdfGallery({
 
   useEffect(() => {
     let cancelled = false;
-    const pages = [1, 2, 3, 4, 5, 6].filter((value) => value <= pageCount);
-    if (farPage && !pages.includes(farPage)) pages.push(farPage);
+    const pages = [1, 2, 3, 4, 5, 6].filter(
+      (value) => value <= pageCount && !loadedRef.current.has(value),
+    );
+    if (farPage && !pages.includes(farPage) && !loadedRef.current.has(farPage))
+      pages.push(farPage);
     if (!pages.length) return () => undefined;
     renderPdfThumbnails(blob, pages, { maxWidth: 900 }, (thumb) => {
       if (cancelled) return;
+      loadedRef.current.add(thumb.page);
       const url = URL.createObjectURL(thumb.blob);
       urlsRef.current.push(url);
       setThumbs((previous) => ({ ...previous, [thumb.page]: url }));

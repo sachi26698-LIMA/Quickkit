@@ -366,3 +366,70 @@ re-added, the `.resizer-*` / `.compressor-*` / `.cropper-*` / `.sky` CSS blocks 
 to the redesigned `globals.css`, and the route-count expectations were re-based on the new
 catalogue (22 tools, 40 sitemap routes). The owner-approved components themselves were not
 changed.
+
+---
+
+## Image & PDF Converter workstream (feature branch, pending owner approval)
+
+This section is appended after the merged Image Tools record above. It records the
+Image & PDF Converter built on `feature/image-converter` from `main` at `2ed5bdc`
+(PR #8 merge). Nothing above was edited, re-scored or re-dated. **Not merged and not
+deployed; owner approval is required first.**
+
+| # | Tool | Route | Status | Branch | Notes |
+|---|---|---|---|---|---|
+| 1 | **Image & PDF Converter** | `/tools/image-converter` | 🟡 **Implemented, awaiting owner approval** | `feature/image-converter` | Three modes in one tool: image→image (JPG, PNG, WEBP, AVIF, GIF, BMP, TIFF), images→PDF (single/multi, A4/A3/Letter/Legal/custom, portrait/landscape, margins, contain/cover/fill, page background, live layout preview) and PDF→image (JPG/PNG/WEBP, page ranges, 72–300 DPI, page thumbnails, individual downloads, ZIP). Advanced settings: quality (lossy only), transparency keep/flatten with background, resize by percentage/exact/longest side, EXIF orientation handling, TIFF LZW/uncompressed, per-file format override, filename suffix, real before/after preview. Batch queue with real dimensions, page counts, per-file status, retry, cancel, clear, per-file and ZIP downloads. `docs/FEATURE_IMAGE_CONVERTER.md` |
+
+Supported matrix and honest limits:
+
+- Image→image outputs: JPG, PNG, WEBP, AVIF, GIF, BMP, TIFF. AVIF and WEBP output are
+  offered **only after a real encoder probe succeeds** in the current browser; a format
+  the browser cannot write is disabled instead of emitting a broken file.
+- TIFF is read by a built-in decoder (browsers cannot open TIFF) and written by the
+  built-in encoder; BMP and GIF are also written by built-in encoders. GIF input uses its
+  first frame only — animation is **not** preserved and the interface says so.
+- PDF→image exports **JPG, PNG and WEBP only**. GIF/BMP/TIFF from PDF is intentionally
+  unsupported and never shown as available.
+- Images placed into a PDF are embedded as JPEG pixels. Exported PDFs contain **no
+  editable text layer**, no font objects and no claimed text fidelity.
+- Limits (configurable in `lib/tools/image-convert.ts`): 20 files, 15 MB per image,
+  25 MB / 100 pages per PDF, 150 MB per batch, 24 MP per image, 8,192 px per side,
+  36 MP per rendered PDF page, 72–300 DPI, quality 10–100, margins 0–60 mm. There is no
+  "unlimited" path.
+
+Integration notes (additive only):
+
+- New route `app/tools/image-converter/page.tsx` (static, SEO metadata, breadcrumbs,
+  FAQs, HowTo/FAQ JSON-LD); new catalogue record `image-converter` in `lib/catalog.ts`
+  (Image Tools category, `convert` icon, purple tint, phase 3); new `convert` key in
+  `components/tool-icon.tsx`. The sitemap derives the new URL from the catalogue.
+- New CSS is appended to `app/globals.css` under the `.converter-*` namespace only.
+  No existing rule was edited. The frozen Image Resizer, Image Compressor and Image
+  Cropper libraries, components, routes and CSS were not modified.
+- New engine files: `lib/tools/image-convert.ts` (DOM-free model: formats, support
+  matrix, page geometry, page ranges, naming), `lib/tools/image-codec.ts` (BMP/GIF/TIFF
+  codecs, TIFF decoder), `lib/tools/image-encode-client.ts` +
+  `workers/image-encode.worker.ts` (off-thread encoders with main-thread fallback),
+  `lib/tools/image-convert-runner.ts` (canvas conversion, PDF build/render, ZIP).
+- New UI: `components/tools/image-converter.tsx`,
+  `components/tools/image-converter/settings-panel.tsx`,
+  `components/tools/image-converter/types.ts`. Reuses the shared `ToolShell`, catalogue,
+  design tokens, `downloadBlob`, `zip` and PDF.js assets already in the repo.
+- Tests added: `tests/image-convert.test.ts` (model, page ranges, naming, PDF geometry,
+  format matrix), `tests/image-codec.test.ts` (BMP/GIF/TIFF encoders, TIFF round-trip),
+  `tests/e2e/image-converter.spec.ts` (empty state + axe, JPG→PNG, transparent PNG→JPG,
+  WEBP/AVIF/GIF/BMP/TIFF, quality and resize, batch + ZIP, images→PDF page sizes and
+  raster-only check, PDF→PNG range + ZIP, out-of-range rejection, cancel of a 30-page
+  300-DPI render, corrupt file, 375/390/430/768/1440 overflow, keyboard and mobile
+  Files/Preview switch). `tests/catalog.test.ts`, `tests/launch.test.ts` and
+  `tests/e2e/quality.spec.ts` were extended for the new route. No existing test
+  expectation was deleted or re-scored.
+- No PDF Merger, PDF Splitter, PDF to Word, Image Resizer, Image Compressor or Image
+  Cropper file, route, status or score above was changed.
+
+Verification record (branch tip at the time of this entry): `npm run format:check` pass,
+`npm run lint` 0 errors, `npm test` 27 files / 414 tests pass, `npm run build` compiles
+with `/tools/image-converter` emitted as a static route, and the browser suite runs in CI
+(`.github/workflows/ci.yml`) because this sandbox has no browser binaries. Local browser
+verification is therefore CI-only; desktop and mobile screenshots come from the CI
+Playwright run. Known limitations are listed in `docs/FEATURE_IMAGE_CONVERTER.md`.
