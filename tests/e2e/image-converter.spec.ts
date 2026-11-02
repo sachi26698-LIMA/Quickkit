@@ -779,6 +779,42 @@ test.describe("Image & PDF Converter", () => {
     await expect(page.getByTestId("converter-result")).toHaveCount(0);
   });
 
+  test("preview fits tall images and unlocks zoom on request", async ({
+    page,
+  }) => {
+    await page.goto("/tools/image-converter");
+    await upload(page, [
+      await imageFixture(page, {
+        name: "tall-preview.png",
+        width: 600,
+        height: 1400,
+      }),
+    ]);
+
+    const zoom = page.getByLabel("Zoom");
+    const output = page.locator(".converter-zoom output");
+    await expect(output).toHaveText("Fit");
+    await expect(zoom).toBeDisabled();
+
+    // A fitted preview never overflows its stage.
+    const fitted = await page.evaluate(() => {
+      const stage = document.querySelector(".converter-stage")!;
+      const image = document.querySelector(
+        '[data-testid="converter-preview-image"]',
+      )!;
+      return {
+        stage: stage.getBoundingClientRect().height,
+        image: image.getBoundingClientRect().height,
+      };
+    });
+    expect(fitted.image).toBeLessThanOrEqual(fitted.stage + 1);
+
+    await page.getByLabel("Fit to panel").uncheck();
+    await expect(zoom).toBeEnabled();
+    await setNativeValue(zoom, 150);
+    await expect(output).toHaveText("150%");
+  });
+
   test("appears in Image Tools, PDF Tools and search at the same route", async ({
     page,
   }) => {
