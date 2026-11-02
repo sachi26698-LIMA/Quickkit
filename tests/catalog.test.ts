@@ -3,7 +3,9 @@ import {
   categoryMeta,
   filterTools,
   metaBySlug,
+  relatedTools,
   toolCategories,
+  toolCategoriesOf,
   tools,
   toolsByCategory,
 } from "../lib/catalog";
@@ -40,6 +42,9 @@ describe("catalog discovery", () => {
     expect(filterTools("kb target", "All tools")[0].slug).toBe(
       "image-compressor",
     );
+    expect(filterTools("pdf to image", "Image Tools")).toEqual([
+      expect.objectContaining({ slug: "image-converter" }),
+    ]);
   });
   it("uses unique stable slugs", () =>
     expect(new Set(tools.map((t) => t.slug)).size).toBe(tools.length));
@@ -58,9 +63,52 @@ describe("catalog discovery", () => {
   });
   it("groups tools by category, with future categories empty", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
-    expect(toolsByCategory("Image Tools")).toHaveLength(3);
+    expect(toolsByCategory("Image Tools")).toHaveLength(4);
+    expect(toolsByCategory("PDF Tools")).toHaveLength(3);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);
+  });
+  it("lists the converter in both Image Tools and PDF Tools without duplication", () => {
+    const inImages = toolsByCategory("Image Tools").map((t) => t.slug);
+    const inPdf = toolsByCategory("PDF Tools").map((t) => t.slug);
+    expect(inImages).toContain("image-converter");
+    expect(inPdf).toContain("image-converter");
+    expect(tools.filter((t) => t.slug === "image-converter")).toHaveLength(1);
+    expect(
+      toolCategoriesOf(tools.find((t) => t.slug === "image-converter")!),
+    ).toEqual(["Image Tools", "PDF Tools"]);
+    expect(filterTools("pdf to image", "PDF Tools")).toEqual([
+      expect.objectContaining({ slug: "image-converter" }),
+    ]);
+    expect(filterTools("", "PDF Tools").map((t) => t.slug)).toEqual([
+      "image-converter",
+      "merge-pdf",
+      "pdf-to-word",
+    ]);
+  });
+  it("suggests related tools from both categories of a dual-category tool", () => {
+    const converter = tools.find((t) => t.slug === "image-converter")!;
+    const related = relatedTools(converter).map((t) => t.slug);
+    expect(related).toHaveLength(3);
+    expect(related).not.toContain("image-converter");
+    expect(related).toEqual(["image-compressor", "merge-pdf", "image-resizer"]);
+    expect(
+      related.some((slug) =>
+        toolsByCategory("PDF Tools").some((t) => t.slug === slug),
+      ),
+    ).toBe(true);
+    expect(
+      related.some((slug) =>
+        toolsByCategory("Image Tools").some((t) => t.slug === slug),
+      ),
+    ).toBe(true);
+  });
+  it("gives every tool at least one real category", () => {
+    for (const tool of tools) {
+      const cats = toolCategoriesOf(tool);
+      expect(cats.length).toBeGreaterThan(0);
+      for (const cat of cats) expect(toolCategories).toContain(cat);
+    }
   });
 });
