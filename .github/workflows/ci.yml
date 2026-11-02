@@ -24,7 +24,11 @@ jobs:
       - run: npm run typecheck
       - run: npm audit --omit=dev
       - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run test:e2e
+      - id: e2e
+        run: npm run test:e2e
+      - name: Summarize Playwright failures
+        if: failure() && steps.e2e.outcome == 'failure'
+        run: node scripts/report-playwright-failures.mjs
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

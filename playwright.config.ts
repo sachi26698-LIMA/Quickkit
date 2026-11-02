@@ -5,7 +5,9 @@ export default defineConfig({
     baseURL: process.env.TEST_BASE_URL || "http://127.0.0.1:3001",
     trace: "retain-on-failure",
   },
-  reporter: "list",
+  reporter: process.env.CI
+    ? [["list"], ["json", { outputFile: "test-results/e2e-results.json" }]]
+    : "list",
   webServer: process.env.TEST_BASE_URL
     ? undefined
     : {
