@@ -7,6 +7,7 @@ import {
   shiftCalendar,
 } from "@/lib/tools/phase9-dates";
 import { Workspace } from "./phase9-shared";
+import CalendarView from "./phase9-calendar-view";
 export default function Dates({ kind }: { kind: string }) {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -29,6 +30,14 @@ export default function Dates({ kind }: { kind: string }) {
         const r = age(s, e);
         result = `${r.years} years, ${r.months} months, ${r.remainder} days`;
         detail = `Total: ${r.days} days, ${(r.days / 7).toFixed(2)} weeks, ${r.totalMonths} completed months, ${r.days * 24} calendar-day hours. Born on ${r.weekday}. Most recent birthday: ${r.previousBirthday ?? "not yet available"}. Next birthday: ${r.nextBirthday ?? "outside supported range"} (${r.untilBirthday} days away). February 29 birthdays are observed on February 28 in non-leap years.`;
+        const milestoneYears = (Math.floor(r.years / 10) + 1) * 10;
+        try {
+          const milestone = shiftCalendar(s, milestoneYears, "years");
+          const daysAway = dateDifference(e, parseDate(milestone)).days;
+          detail += ` Next decade milestone: ${milestoneYears} years on ${milestone} (${daysAway} days away).`;
+        } catch {
+          detail += " Next decade milestone is outside the supported calendar.";
+        }
         if (secondBirth) {
           const other = parseDate(secondBirth);
           age(other, e);
@@ -43,7 +52,7 @@ export default function Dates({ kind }: { kind: string }) {
           : [];
         const r = dateDifference(s, e, inclusive, holidayDates);
         result = `${r.years} years, ${r.months} months, ${r.remainder} days`;
-        detail = `${r.days} total days · ${r.weeks.toFixed(2)} total weeks · ${r.business} business days (weekends and supplied holidays excluded). Whole months are clamped to the last day of shorter months.`;
+        detail = `Countdown from the selected start to end: ${dateDifference(s, e).days} days (end excluded). ${r.days} total days · ${r.weeks.toFixed(2)} total weeks · ${r.business} business days (weekends and supplied holidays excluded). Whole months are clamped to the last day of shorter months.`;
       }
     }
   } catch (e) {
@@ -59,6 +68,25 @@ export default function Dates({ kind }: { kind: string }) {
   return (
     <Workspace
       result={result}
+      snapshot={JSON.stringify({
+        start,
+        end,
+        inclusive,
+        shift,
+        shiftUnit,
+        holidays,
+        secondBirth,
+      })}
+      restore={(value) => {
+        const s = JSON.parse(value);
+        setStart(s.start);
+        setEnd(s.end);
+        setInclusive(s.inclusive);
+        setShift(s.shift);
+        setShiftUnit(s.shiftUnit);
+        setHolidays(s.holidays);
+        setSecondBirth(s.secondBirth);
+      }}
       detail={<p>{detail}</p>}
       error={error}
       reset={() => {
@@ -141,6 +169,7 @@ export default function Dates({ kind }: { kind: string }) {
               last valid day.
             </p>
           )}
+          {start && end && !error && <CalendarView start={start} end={end} />}
           <details>
             <summary>Holiday exclusions</summary>
             <label>

@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { bmi, discount, gst, percentage } from "@/lib/tools/calculators";
+import { downloadText } from "@/lib/tools/download";
+import { csvCell } from "@/lib/tools/phase9-v2-advanced";
 import {
   formatPercentageNumber,
   parsePercentageNumber,
@@ -29,11 +31,13 @@ export default function Calculator({ kind }: { kind: string }) {
       toggle: boolean;
       currency: string;
       targetBmi: string;
+      previousWeight: string;
       summary: string;
     }[]
   >([]);
   const [notice, setNotice] = useState("");
   const [targetBmi, setTargetBmi] = useState("");
+  const [previousWeight, setPreviousWeight] = useState("");
   const [currency, setCurrency] = useState("INR");
   let bmiValue: number | undefined;
   let targetWeight = "";
@@ -90,6 +94,22 @@ export default function Calculator({ kind }: { kind: string }) {
   } catch (e) {
     error = e instanceof Error ? e.message : "Invalid input.";
   }
+  let comparison = "",
+    comparisonError = "";
+  if (
+    kind === "bmi-calculator" &&
+    a !== "" &&
+    previousWeight !== "" &&
+    bmiValue !== undefined
+  ) {
+    try {
+      const previous = bmi(Number(a), Number(previousWeight), toggle);
+      comparison = `Previous BMI: ${format(previous.value)} · ${previous.category}. Change: ${format(bmiValue - previous.value)} BMI points (same height).`;
+    } catch (e) {
+      comparisonError =
+        e instanceof Error ? e.message : "Invalid previous weight.";
+    }
+  }
   function reset() {
     setA("");
     setB("");
@@ -98,6 +118,7 @@ export default function Calculator({ kind }: { kind: string }) {
     setToggle(false);
     setNotice("");
     setTargetBmi("");
+    setPreviousWeight("");
     setCurrency("INR");
   }
   const isPercentage = kind === "percentage-calculator",
@@ -214,6 +235,23 @@ export default function Calculator({ kind }: { kind: string }) {
               </p>
             </details>
           )}
+          {isBmi && (
+            <details>
+              <summary>Compare previous weight</summary>
+              <label>
+                Previous weight ({toggle ? "lb" : "kg"})
+                <input
+                  type="number"
+                  value={previousWeight}
+                  onChange={(e) => setPreviousWeight(e.target.value)}
+                />
+              </label>
+              <p>
+                Comparison uses the same height and unit system as the current
+                calculation.
+              </p>
+            </details>
+          )}
           {isDiscount && (
             <label>
               Currency
@@ -258,13 +296,15 @@ export default function Calculator({ kind }: { kind: string }) {
                       toggle,
                       currency,
                       targetBmi,
+                      previousWeight,
                       summary:
                         result +
                         " — " +
                         detail +
                         (targetWeight
                           ? ` Target weight: ${targetWeight}.`
-                          : ""),
+                          : "") +
+                        (comparison ? ` ${comparison}` : ""),
                     },
                     ...h,
                   ].slice(0, 20),
@@ -304,6 +344,10 @@ export default function Calculator({ kind }: { kind: string }) {
                       }}
                     />
                   </div>
+                  {comparisonError && (
+                    <p className="calculator-error">{comparisonError}</p>
+                  )}
+                  {comparison && <p>{comparison}</p>}
                   <p>
                     Scale 0–40 (higher values shown at the edge).{" "}
                     {targetWeight && `Weight at target BMI: ${targetWeight}.`}
@@ -316,7 +360,7 @@ export default function Calculator({ kind }: { kind: string }) {
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(
-                      `${result} — ${detail}${targetWeight ? ` Target weight: ${targetWeight}.` : ""}`,
+                      `${result} — ${detail}${targetWeight ? ` Target weight: ${targetWeight}.` : ""}${comparison ? ` ${comparison}` : ""}`,
                     );
                     setNotice("Copied to clipboard.");
                   } catch {
@@ -349,6 +393,21 @@ export default function Calculator({ kind }: { kind: string }) {
             <button
               type="button"
               className="secondary"
+              onClick={() =>
+                downloadText(
+                  ["Result", ...history.map((h) => csvCell(h.summary))].join(
+                    "\r\n",
+                  ),
+                  "calculator-history.csv",
+                  "text/csv;charset=utf-8",
+                )
+              }
+            >
+              Export history CSV
+            </button>
+            <button
+              type="button"
+              className="secondary"
               onClick={() => setHistory([])}
             >
               Clear history
@@ -369,6 +428,7 @@ export default function Calculator({ kind }: { kind: string }) {
                     setToggle(entry.toggle);
                     setCurrency(entry.currency);
                     setTargetBmi(entry.targetBmi);
+                    setPreviousWeight(entry.previousWeight);
                     setNotice("Calculation restored.");
                   }}
                 >

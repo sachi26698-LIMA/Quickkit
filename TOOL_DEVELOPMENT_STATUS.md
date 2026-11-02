@@ -323,3 +323,7 @@ PDF Merger proceeded under the owner's explicit narrow-catalog integration decis
 ## Phase 9 V2 continuation — 2 November 2026
 
 In progress, not released: see `PHASE_9_V2_CHECKLIST.md` for per-tool status, financial/calendar additions, independent sample calculations, production Chromium results and outstanding work. Full per-feature verification of all 12 remains pending. No merge or deployment.
+
+### Phase 9 V2 populated preview checkpoint
+
+All 12 calculator routes have populated mobile and desktop Chromium screenshots indexed in `docs/phase-9-v2-final-evidence/README.md`; 319 Chromium regression tests, 188 unit tests, lint, typecheck and production build passed on this application code. Feature and cross-browser coverage remain incomplete; see `PHASE_9_V2_CHECKLIST.md`. Not merged or deployed.

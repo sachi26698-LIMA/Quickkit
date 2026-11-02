@@ -16,6 +16,17 @@ export default function VariableLoan({ kind }: { kind: string }) {
   const [changes, setChanges] = useState("");
   const [extra, setExtra] = useState("0");
   const [notice, setNotice] = useState("");
+  const [saved, setSaved] = useState<
+    {
+      principal: string;
+      months: string;
+      rate: string;
+      frequency: string;
+      changes: string;
+      extra: string;
+      summary: string;
+    }[]
+  >([]);
   let result: ReturnType<typeof variableLoan> | undefined,
     baseline: ReturnType<typeof variableLoan> | undefined,
     error = "";
@@ -134,6 +145,30 @@ export default function VariableLoan({ kind }: { kind: string }) {
           <button
             className="secondary"
             type="button"
+            disabled={!result || !!error}
+            onClick={() => {
+              setSaved((current) =>
+                [
+                  {
+                    principal,
+                    months,
+                    rate,
+                    frequency,
+                    changes,
+                    extra,
+                    summary,
+                  },
+                  ...current,
+                ].slice(0, 20),
+              );
+              setNotice("Scenario saved for this session.");
+            }}
+          >
+            Save scenario
+          </button>
+          <button
+            className="secondary"
+            type="button"
             onClick={() => {
               setPrincipal("");
               setMonths("");
@@ -214,6 +249,41 @@ export default function VariableLoan({ kind }: { kind: string }) {
           <p role="status">{notice}</p>
         </div>
       </div>
+      {saved.length > 0 && (
+        <div className="calculator-history">
+          <h3>Saved scenarios</h3>
+          <ol>
+            {saved.map((item, i) => (
+              <li key={i}>
+                {item.summary}{" "}
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    setPrincipal(item.principal);
+                    setMonths(item.months);
+                    setRate(item.rate);
+                    setFrequency(item.frequency);
+                    setChanges(item.changes);
+                    setExtra(item.extra);
+                    setNotice("Scenario restored.");
+                  }}
+                >
+                  Restore scenario {i + 1}
+                </button>
+              </li>
+            ))}
+          </ol>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setSaved([])}
+          >
+            Clear saved scenarios
+          </button>
+          <p>Saved until you leave or refresh this page.</p>
+        </div>
+      )}
       {result && (
         <details className="calculator-history">
           <summary>View scenario schedule</summary>

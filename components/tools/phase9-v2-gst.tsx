@@ -27,6 +27,9 @@ export default function GSTInvoice() {
   const [inclusive, setInclusive] = useState(false);
   const [supply, setSupply] = useState("intra");
   const [notice, setNotice] = useState("");
+  const [saved, setSaved] = useState<
+    { items: Item[]; inclusive: boolean; supply: string; summary: string }[]
+  >([]);
   let result: ReturnType<typeof gstInvoice> | undefined,
     error = "";
   try {
@@ -242,6 +245,27 @@ export default function GSTInvoice() {
         <button
           className="secondary"
           type="button"
+          disabled={!result || !!error}
+          onClick={() => {
+            setSaved((current) =>
+              [
+                {
+                  items: items.map((item) => ({ ...item })),
+                  inclusive,
+                  supply,
+                  summary,
+                },
+                ...current,
+              ].slice(0, 20),
+            );
+            setNotice("Invoice saved for this session.");
+          }}
+        >
+          Save invoice
+        </button>
+        <button
+          className="secondary"
+          type="button"
           onClick={() => {
             setItems([fresh()]);
             setInclusive(false);
@@ -252,6 +276,38 @@ export default function GSTInvoice() {
           Reset invoice
         </button>
       </div>
+      {saved.length > 0 && (
+        <div className="calculator-history">
+          <h3>Saved invoices</h3>
+          <ol>
+            {saved.map((item, i) => (
+              <li key={i}>
+                {item.summary}{" "}
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    setItems(item.items.map((row) => ({ ...row })));
+                    setInclusive(item.inclusive);
+                    setSupply(item.supply);
+                    setNotice("Invoice restored.");
+                  }}
+                >
+                  Restore invoice {i + 1}
+                </button>
+              </li>
+            ))}
+          </ol>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setSaved([])}
+          >
+            Clear saved invoices
+          </button>
+          <p>Saved until you leave or refresh this page.</p>
+        </div>
+      )}
       <div className="calculator-result advanced-result" aria-live="polite">
         <h3>Invoice breakdown</h3>
         {error ? (

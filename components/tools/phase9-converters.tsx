@@ -20,6 +20,8 @@ export default function Converters({ kind }: { kind: string }) {
   const [precision, setPrecision] = useState(10);
   const [categorySearch, setCategorySearch] = useState("");
   const [showComparison, setShowComparison] = useState(false);
+  const [otherTemp, setOtherTemp] = useState("");
+  const [otherUnit, setOtherUnit] = useState("Celsius");
   const [saved, setSaved] = useState<
     { category: string; from: string; to: string; value: string }[]
   >([]);
@@ -54,6 +56,18 @@ export default function Converters({ kind }: { kind: string }) {
   } catch (e) {
     error = e instanceof Error ? e.message : "Invalid input.";
   }
+  let tempComparison = "",
+    tempError = "";
+  if (isTemp && value !== "" && otherTemp !== "" && !error) {
+    try {
+      const current = temperature(Number(value), from, "Celsius");
+      const other = temperature(Number(otherTemp), otherUnit, "Celsius");
+      tempComparison = `Difference (current − comparison): ${new Intl.NumberFormat("en-US", { maximumSignificantDigits: precision }).format(current - other)} °C (same magnitude in K).`;
+    } catch (e) {
+      tempError =
+        e instanceof Error ? e.message : "Invalid comparison temperature.";
+    }
+  }
   const options = (selected: string) =>
     choices
       .filter(
@@ -79,6 +93,8 @@ export default function Converters({ kind }: { kind: string }) {
         setPrecision(10);
         setCategorySearch("");
         setShowComparison(false);
+        setOtherTemp("");
+        setOtherUnit("Celsius");
       }}
       detail={
         <p>
@@ -200,6 +216,32 @@ export default function Converters({ kind }: { kind: string }) {
           </p>
         )}
       </details>
+      {isTemp && (
+        <details>
+          <summary>Compare another temperature</summary>
+          <label>
+            Comparison temperature
+            <input
+              type="number"
+              value={otherTemp}
+              onChange={(e) => setOtherTemp(e.target.value)}
+            />
+          </label>
+          <label>
+            Comparison unit
+            <select
+              value={otherUnit}
+              onChange={(e) => setOtherUnit(e.target.value)}
+            >
+              <option>Celsius</option>
+              <option>Fahrenheit</option>
+              <option>Kelvin</option>
+            </select>
+          </label>
+          {tempError && <p className="calculator-error">{tempError}</p>}
+          {tempComparison && <p>{tempComparison}</p>}
+        </details>
+      )}
       <button
         className="secondary"
         type="button"

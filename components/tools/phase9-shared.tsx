@@ -1,20 +1,28 @@
 "use client";
 import { useState, type ReactNode } from "react";
+import { downloadText } from "@/lib/tools/download";
+import { csvCell } from "@/lib/tools/phase9-v2-advanced";
 export function Workspace({
   children,
   result,
   detail,
   error,
   reset,
+  snapshot,
+  restore,
 }: {
   children: ReactNode;
   result: string;
   detail?: ReactNode;
   error?: string;
   reset: () => void;
+  snapshot?: string;
+  restore?: (snapshot: string) => void;
 }) {
   const [notice, setNotice] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<
+    { result: string; snapshot?: string }[]
+  >([]);
   return (
     <section
       className="workspace calculator-workspace"
@@ -38,7 +46,7 @@ export function Workspace({
               className="secondary"
               disabled={!result || !!error}
               onClick={() => {
-                setHistory((h) => [result, ...h].slice(0, 20));
+                setHistory((h) => [{ result, snapshot }, ...h].slice(0, 20));
                 setNotice("Added to history.");
               }}
             >
@@ -78,13 +86,41 @@ export function Workspace({
         <div className="calculator-history">
           <div className="calculator-actions">
             <h3>Session history</h3>
+            <button
+              className="secondary"
+              onClick={() =>
+                downloadText(
+                  ["Result", ...history.map((h) => csvCell(h.result))].join(
+                    "\r\n",
+                  ),
+                  "calculator-history.csv",
+                  "text/csv;charset=utf-8",
+                )
+              }
+            >
+              Export history CSV
+            </button>
             <button className="secondary" onClick={() => setHistory([])}>
               Clear history
             </button>
           </div>
           <ol>
             {history.map((h, i) => (
-              <li key={i}>{h}</li>
+              <li key={i}>
+                {h.result}{" "}
+                {restore && h.snapshot !== undefined && (
+                  <button
+                    className="secondary"
+                    type="button"
+                    onClick={() => {
+                      restore(h.snapshot!);
+                      setNotice("Calculation restored.");
+                    }}
+                  >
+                    Restore
+                  </button>
+                )}
+              </li>
             ))}
           </ol>
           <p>History is cleared when you leave or refresh.</p>

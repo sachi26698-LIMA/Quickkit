@@ -83,11 +83,13 @@ test("buy-get offer, CSV and BMI restore", async ({ page }) => {
   await page.goto("/tools/bmi-calculator");
   const basic = page.getByRole("region", { name: "Calculator workspace" });
   await basic.getByLabel("Height (cm)").fill("170");
-  await basic.getByLabel("Weight (kg)").fill("65");
+  await basic.getByLabel("Weight (kg)", { exact: true }).fill("65");
   await basic.getByRole("button", { name: "Save to history" }).click();
-  await basic.getByLabel("Weight (kg)").fill("80");
+  await basic.getByLabel("Weight (kg)", { exact: true }).fill("80");
   await basic.getByRole("button", { name: "Restore" }).click();
-  await expect(basic.getByLabel("Weight (kg)")).toHaveValue("65");
+  await expect(basic.getByLabel("Weight (kg)", { exact: true })).toHaveValue(
+    "65",
+  );
 });
 for (const item of [
   { slug: "percentage-calculator", fill: percentage },
