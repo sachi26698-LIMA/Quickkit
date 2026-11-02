@@ -168,10 +168,17 @@ no fake buttons, no network calls.
 ```text
 npx tsc --noEmit     ✅ 0 errors
 npx eslint .         ✅ 0 problems
-npx vitest run       ✅ 14 files, 249 tests passed (28 cropper)
-npm run build        ✅ 20 static routes, /tools/image-cropper prerendered
-playwright chromium  ✅ 210 passed — all specs (4.2 m)
+npx vitest run       ✅ 25 files, 364 tests passed (28 cropper)
+npm run build        ✅ /tools/image-cropper prerendered (22 tools, 8 categories)
+playwright chromium  ✅ 210 passed — all specs on the pre-merge tree
                        · image-cropper-audit.spec.ts 21 tests
 screenshots          docs/verification/image-cropper-*.png
 report               docs/QA_IMAGE_CROPPER_AUDIT.md
 ```
+
+> **Post-merge note (2 November 2026).** The image work was merged with the redesigned
+> `main` shell (8 categories, 22 tools, `/tools` explorer). Typecheck, lint, the 364-test
+> unit suite and the production build were re-run on the merged tree and pass. The browser
+> suites were **not** re-run after that merge: this sandbox has no Chromium and the
+> Playwright browser CDN is unreachable from it. The screenshots below therefore show the
+> pre-merge shell; the tool workspaces themselves are unchanged.

@@ -118,10 +118,15 @@ an `aria-label`, sliders have visible labels, and status changes use `role="stat
 ```text
 npx tsc --noEmit     ✅ 0 errors
 npx eslint .         ✅ 0 problems
-npx vitest run       ✅ 14 files, 249 tests (28 in tests/image-crop.test.ts)
-npm run build        ✅ 20 static routes
-playwright chromium  ✅ 210 passed (4.2 m; image-cropper-audit: 21 tests)
+npx vitest run       ✅ 25 files, 364 tests (28 in tests/image-crop.test.ts)
+npm run build        ✅ /tools/image-cropper prerendered
+playwright chromium  ✅ 210 passed (4.2 m; image-cropper-audit: 21 tests) — pre-merge tree
 ```
+
+Post-merge (2 November 2026): the branch was integrated with the redesigned `main` shell.
+Static gates and the unit suite were re-run green on the merged tree; the browser suites
+could not be re-run here because the sandbox has no Chromium and the Playwright CDN is
+unreachable. Re-run `npx playwright test` before release.
 
 Screenshots: `docs/verification/image-cropper-empty-1440.png`,
 `image-cropper-workspace-1440.png`, `image-cropper-preset-1440.png`,

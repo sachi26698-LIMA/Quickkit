@@ -1,5 +1,6 @@
 node_modules/
 .next/
+/public/pdfjs/
 coverage/
 playwright-report/
 test-results/
@@ -10,3 +11,4 @@ test-results/
 .DS_Store
 *.pem
 *.key
+/public/ocr/

@@ -1,19 +1,45 @@
 import { test, expect } from "@playwright/test";
+import { tools } from "../../lib/catalog";
 test("search, category filters, clear and empty state", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await page.goto("/tools");
+  await expect(page.locator(".tool-card")).toHaveCount(tools.length);
   await page.getByRole("searchbox").fill("json");
   await expect(page.locator(".tool-card")).toHaveCount(1);
-  await page.getByRole("button", { name: "Text", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Text & Writing", exact: true })
+    .click();
   await expect(page.getByText("No tools found")).toBeVisible();
   await page.getByRole("button", { name: "Clear search & filters" }).click();
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(tools.length);
   await page.getByRole("searchbox").fill("crypto");
   await page.getByRole("searchbox").press("Escape");
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(tools.length);
   await page.getByRole("searchbox").fill("json");
   await page.getByRole("button", { name: "Clear search", exact: true }).click();
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(tools.length);
+});
+test("hero search suggests tools and opens results in All Tools", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("searchbox").fill("json");
+  await expect(
+    page.locator(".search-result", { hasText: "JSON Formatter" }),
+  ).toBeVisible();
+  await page.getByRole("searchbox").press("Enter");
+  await expect(page).toHaveURL(/\/tools\?q=json$/);
+  await expect(page.locator(".tool-card")).toHaveCount(1);
+});
+test("saving a tool adds it to the Saved page", async ({ page }) => {
+  await page.goto("/tools");
+  await page.getByRole("button", { name: "Save Word Counter" }).click();
+  await page.getByRole("link", { name: /^Saved tools \(1\)/ }).click();
+  await expect(page).toHaveURL(/\/saved$/);
+  await expect(page.locator(".tool-card")).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Remove Word Counter from saved tools" })
+    .click();
+  await expect(page.getByText("No saved tools yet")).toBeVisible();
 });
 for (const width of [320, 375, 390, 430, 768, 1366, 1440])
   test(`responsive shell ${width}px`, async ({ page }) => {

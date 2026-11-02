@@ -32,6 +32,33 @@ function randomIndex(max: number) {
   } while (buffer[0] >= limit);
   return buffer[0] % max;
 }
+/** Size of the effective character pool for the chosen options. */
+export function passwordPoolSize(options: PasswordOptions) {
+  return Object.entries(characterSets)
+    .filter(([key]) => options[key as keyof typeof characterSets])
+    .map(([, value]) =>
+      options.excludeAmbiguous ? value.replace(/[Il1O0o|]/g, "") : value,
+    )
+    .join("").length;
+}
+
+/** Theoretical entropy in bits: length × log2(pool). */
+export function passwordEntropy(options: PasswordOptions) {
+  const pool = passwordPoolSize(options);
+  if (!pool || !Number.isInteger(options.length) || options.length < 1)
+    return 0;
+  return Math.round(options.length * Math.log2(pool));
+}
+
+export function passwordStrength(bits: number) {
+  if (bits <= 0) return { label: "Select a character set", level: 0 };
+  if (bits < 50)
+    return { label: "Fair — add length or character sets", level: 1 };
+  if (bits < 75) return { label: "Good", level: 2 };
+  if (bits < 110) return { label: "Strong", level: 3 };
+  return { label: "Excellent", level: 4 };
+}
+
 export function generatePassword(options: PasswordOptions) {
   if (
     !Number.isInteger(options.length) ||

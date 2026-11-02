@@ -1,241 +1,368 @@
-# QUICKKIT — Tool Development Status
+# QUICKKIT Tool Development Status
 
-Last updated: 1 November 2026 · maintained by the Image Tools workstream.
-Statuses for the PDF tools belong to their own workstream and are recorded here only as
-"owned elsewhere / untouched" so the two tracks never collide.
+**Last updated:** 2 November 2026  
+**Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
+**Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
+**Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
+**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed.
 
-## How to read this file
+## Percentage Calculator focused verification
 
-| Symbol | Meaning |
-| --- | --- |
-| ✅ Done | Implemented, unit-tested, browser-tested, build-verified and documented |
-| 🟡 Next | Approved to start after the current tool is signed off |
-| ⬜ Planned | Scoped, not started |
-| ➖ Owned elsewhere | Another workstream owns it; this branch does not modify it |
+Percentage Calculator was reviewed and tested in isolation. The feature checklist, exact expected/actual results and Chromium UI/accessibility evidence are recorded in `PERCENTAGE_CALCULATOR_QA.md`. Firefox, WebKit and manual screen-reader verification remain outstanding; no broader Phase 9 completion or deployment is implied.
 
-## Tool status board
+## Phase 9 V2 checkpoint (owner-directed)
 
-| # | Category | Tool | Route | Status | Branch | Notes |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | Text | Word Counter | `/tools/word-counter` | ✅ Done | `main` | Phase 2 baseline |
-| 2 | Text | Case Converter | `/tools/case-converter` | ✅ Done | `main` | Phase 2 baseline |
-| 3 | Developer | JSON Formatter | `/tools/json-formatter` | ✅ Done | `main` | Phase 2 baseline |
-| 4 | Security | Password Generator | `/tools/password-generator` | ✅ Done | `main` | Phase 2 baseline |
-| 5 | Image & QR | QR Code Generator | `/tools/qr-generator` | ✅ Done | `main` | Phase 3 baseline |
-| 6 | Image & QR → **Image Tools** | Image Compressor | `/tools/image-compressor` | ✅ **Done (v2) — owner approved** | `feature/image-compressor` | Upgraded in place and passed the final real-image QA: quality + target size, batch, before/after, transparency, ZIP, naming, Stop/Retry. **Approved by the owner on 1 Nov 2026** (frozen). Reports: `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
-| 7 | **Image Tools** | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved** | `feature/image-resizer` | New category. v1 shipped, v2 upgrade complete, **approved by the owner on 1 Nov 2026** (frozen) |
-| 8 | **Image Tools** | **Image Cropper** | `/tools/image-cropper` | ✅ **Done — verified, awaiting owner sign-off** | `feature/image-cropper` | New tool. Freeform/ratio/social crops, circle + square, rotate/flip, zoom/pan, custom sizes, per-image batch, ZIP, EXIF auto-correction, undo/redo. Reports: `docs/FEATURE_IMAGE_CROPPER.md`, `docs/QA_IMAGE_CROPPER_AUDIT.md` |
-| — | Image Tools | Next image tool | — | ⬜ Planned | — | Not started; waits for the owner to choose it |
-| — | PDF Tools | PDF Merger | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
-| — | PDF Tools | PDF Splitter | — | ➖ Owned elsewhere | PDF workstream | **Not touched: no code, no status change, no shared files rewritten** |
+**In Progress — not accepted or verified.** V2 work has continued in place across the suite, including advanced percentage and multi-item GST workflows; substantial requested features and verification remain. See `PHASE_9_V2_CHECKLIST.md` for feature-level status, test scope, browser evidence, screenshots and next steps. No merge or deployment. The Phase 9 checkpoint below describes V1 and is historical.
 
-Only these shared files gained additive entries for the image work: `lib/catalog.ts`
-(tool records + `"Image Tools"` category), `components/catalog.tsx` and
-`components/tool-icon.tsx` (icon map entries), `app/globals.css` (new `.resizer-*`,
-`.sky`, `.compressor-*` and `.cropper-*` blocks appended — no existing rule edited),
-`tests/catalog.test.ts`, `tests/launch.test.ts`, `tests/e2e/foundation.spec.ts`,
-`tests/e2e/quality.spec.ts` (tool-count and route-list expectations). The Image
-Compressor moved from *Image & QR* to *Image Tools*; its route and features were kept
-and extended. PDF routes and components are absent from this repository state and were
-not created, edited or deleted.
+## Phase 9 checkpoint (owner-directed, 2 November 2026)
 
-## Image Resizer — ✅ complete (v2 premium editor)
+The current owner request supersedes the historical one-tool-at-a-time restriction for this phase. Phase 9 is **Testing / In Progress**, not complete or approved for launch. All 12 calculator routes now have initial implementations and representative passing tests. Chromium browser checks and genuine desktop/mobile screenshots are available, but broader formula, keyboard, visual and cross-browser verification remains. See `PHASE_9_FEATURE_CHECKLIST.md` for per-feature status, test evidence, limitations and continuation steps; see `PHASE_9_CALCULATOR_PLAN.md` for the audit and plan. The older portfolio figures below are historical and do not account for this in-progress work.
 
-**Branch:** `arena/82ce86c2-quickkit` (continues the v1 work from `feature/image-resizer`,
-commit `e5ac3d5`) · **Route:** `/tools/image-resizer` · **Category:** `Image Tools`.
-The v1 tool was **upgraded in place**: the route, design system, queue, ZIP writer and
-privacy model are unchanged, and no v1 capability was removed.
-**Hard rule respected:** the Image Resizer is frozen — the later Image Compressor work did not touch it.
+## 1. Status definitions
 
-### v2 upgrade (what changed)
+These statuses match the proposed registry model in `TOOL_REGISTRY_ARCHITECTURE.md`.
 
-| Area | Added in v2 |
-| --- | --- |
-| Resize | Longest-side and shortest-side modes; custom presets (save/use/delete, session, max 8); 18 social presets grouped by Instagram, YouTube, Facebook, WhatsApp, X, LinkedIn and Pinterest |
-| Editing | Crop (free + 1:1, 4:3, 3:2, 16:9, 9:16, 4:5, overlay handles, keyboard nudge); rotate 90/180/270 + any angle; flip H/V; brightness/contrast/saturation; grayscale, sepia, warm, cool, invert |
-| Compare | Split slider and side-by-side original/result, above the existing Original/Result toggle |
-| Preview | 25–400 % zoom, fit-to-screen, checkerboard stage with edited-size caption |
-| Print | DPI (36–1,200) and print size in cm/inches, both directions, "use print size as pixels" |
-| Format | AVIF output where supported (disabled + explained otherwise); quality 10–100 %; live estimate and real output size |
-| Batch | Per-image overrides (size, lock, format incl. `Same as batch`, quality, base name, suffix), replace file in place, per-image progress and errors |
-| Control | **Audit pass:** determinate progress bar, `Stop` for a running batch (finished images kept), `Retry failed (n)`, `Match original`, fitted-then-zoomed scrollable preview with true pan |
-| Naming | Rename outputs and filename suffixes, batch-wide or per image, reflected in the ZIP |
-| History | Per-image undo/redo (40 steps), Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, reset edits |
-| Privacy | Metadata panel (EXIF/GPS/camera/date/ICC/XMP), explicit strip disclosure, EXIF auto-orient toggle |
-| SEO/UX | 5-step HowTo, 7 FAQs, FAQPage/HowTo/WebApplication JSON-LD, clearer empty/loading/success/error states |
+| Status | Meaning | Public card/route? |
+|---|---|---:|
+| `live` | Fully implemented, content-complete and verified against the tool exit gate. | Yes, subject to the separate site launch/indexing gate |
+| `in-development` | Approved and actively being built; not yet releasable. | No |
+| `planned` | Candidate recorded for a future phase. It is not implemented and must not be advertised as available. | No |
+| `deprecated` | Still controlled temporarily but replaced or scheduled for retirement. | Only under an explicit migration plan |
+| `retired` | Historical record retained so its ID and slug are never reused. | No |
 
-### Feature checklist — final audit status
+Additional labels such as **research/planning**, **pending approval**, **implemented — awaiting owner approval**, **deferred** and **gated** are workflow notes, not registry statuses. In particular, a tool in research/planning remains `planned` and must not receive a public card or route.
 
-Legend: **VERIFIED** = implemented and proven by an automated test (pixel/byte level where visual);
-**NOT SUPPORTED** = impossible in-browser or in this sandbox and labelled as such in-product;
-**NOT IMPLEMENTED** = deliberately absent (no dead control exists for it).
-Full report with per-feature evidence: `docs/QA_IMAGE_RESIZER_AUDIT.md`.
+## 2. Portfolio summary
 
-| Area | Requirement | Status | Evidence |
-| --- | --- | --- | --- |
-| Crop | Freeform drag, keyboard nudge, numeric X/Y/W/H | **VERIFIED** | audit crop test (drag → X>0, `ArrowLeft` −2 px, reset) |
-| Crop | Fixed ratios 1:1, 4:3, 3:2, 16:9, 9:16, 4:5 | **VERIFIED** | edits suite 1:1 → 600×600; screenshot 16:9 → 1,600×900 |
-| Crop | Crop frame inside a rotated image | **NOT SUPPORTED** | rotation applies after the crop |
-| Edit | Rotate 90/180/270 | **VERIFIED** | pixel-quadrant decode (600×800 from 800×600) |
-| Edit | Custom angle with correct bounding box | **VERIFIED** | 400×300 @ 37° → 499×458 decoded |
-| Edit | Flip H / V | **VERIFIED** | corner-colour swap test |
-| Edit | Brightness / contrast / saturation | **VERIFIED** | live CSS filter + exported pixel tests |
-| Edit | Grayscale, sepia, warm, cool, invert (baked in) | **VERIFIED** | 5 distinct downloaded-PNG samples |
-| Edit | EXIF auto-orient toggle | **VERIFIED** | checkbox drives `imageOrientation` |
-| Edit | Curves / masks / sharpening | **NOT IMPLEMENTED** | out of scope, no UI surface |
-| History | Undo / Redo (40 steps, per image) + shortcuts | **VERIFIED** | edits suite undo/redo test |
-| History | Reset edits / reset per-image settings | **VERIFIED** | edits + audit suites |
-| Compare | Split slider with BEFORE/AFTER | **VERIFIED** | split line at 25 % asserted |
-| Compare | Side-by-side with captions | **VERIFIED** | two captioned figures asserted |
-| Compare | Original ⇄ Result toggle | **VERIFIED** | tag flips back to source size |
-| Batch | Per-image size/lock/format/quality/name/suffix | **VERIFIED** | ZIP entry names decoded from the archive |
-| Batch | Replace and remove a queued file | **VERIFIED** | replace keeps position, resets crop |
-| Batch | Queue reordering | **NOT IMPLEMENTED** | upload order only, no drag handle shown |
-| ZIP | Only finished images, final names, valid PNG/JPEG/WebP payloads | **VERIFIED** | mixed-batch ZIP: 2 entries, damaged file absent, PNG decoded |
-| ZIP | Duplicate names de-duplicated | **VERIFIED** | `uniqueName` + zip unit tests |
-| ZIP | Deflate compression | **NOT SUPPORTED** | stored method by design |
-| Output | Dimensions equal the plan (PNG/JPEG/WebP) | **VERIFIED** | 6 decoded sizes across suites |
-| Output | Transparency kept (PNG/WebP), flattened (JPEG) + background colour | **VERIFIED** | alpha matrix + red background decode |
-| Output | Quality slider changes encoded size | **VERIFIED** | q20 < q95 bytes, both decodable |
-| Output | AVIF | **NOT SUPPORTED** in this Chromium | option disabled and labelled; capability auto-detected |
-| Progress | Determinate bar (n/total, %) | **VERIFIED** | added in audit pass, asserted visible then cleared |
-| Progress | Stop a running batch, keep finished output | **VERIFIED** | added in audit pass, asserted end-to-end |
-| Progress | Cancelling mid-encode | **NOT SUPPORTED** | encoders are not abortable; Stop applies after the in-flight image (tooltip says so) |
-| Errors | Per-image error text, batch summary, retry failed | **VERIFIED** | corrupt-file test, `Retry failed (1)` |
-| Errors | Wrong type/empty/oversized/limit rejections | **VERIFIED** | validation suites + unit tests |
-| Mobile | Touch thumbnail, tabs, crop drag, no overflow | **VERIFIED** | touch pointer events + overflow checks at 390 px |
-| Mobile | ≥ 40 px icon targets | **VERIFIED** | mobile CSS block + measured heights |
-| A11y | Every visible control has an accessible name | **VERIFIED** | 0 unnamed across 4 states |
-| A11y | axe WCAG 2.0/2.1/2.2 A+AA | **VERIFIED** | 0 violations, empty route and populated editor |
-| A11y | Screen-reader narration of crop edges while dragging | **NOT IMPLEMENTED** | numeric crop fields are the accessible path |
-| Preview | Zoom 25–400 % with pan + Fit to screen | **VERIFIED** | fitted preview stays inside the stage; zoom 150 % overflows and pans |
-| Resize | Dimensions, percentage, longest/shortest side, presets (+custom), DPI/print | **VERIFIED** | edits + audit suites, print 10×15 cm @ 300 DPI → 1,181 × 1,772 px |
-| SEO | Metadata + WebApplication/HowTo/FAQPage JSON-LD, 5 steps, 7 FAQs | **VERIFIED** | audit structured-data test |
+| Group | Count | Notes |
+|---|---:|---|
+| Implemented in repository (`live`) | 7 | Tools listed in Section 4 (now including PDF Merger, merged by the owner). |
+| Implemented — awaiting owner approval | 1 | PDF to Word Converter; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
+| In research/planning | 0 | No next tool may enter research/planning as active work until the owner approves PDF to Word. (A PDF Translator architecture plan was delivered in chat on 2 November 2026; it remains unimplemented and unapproved.) |
+| Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger (implemented). PDF to Word is an owner-directed addition beyond that list. |
+| Projected total after Phase 12 | 91 | Only if every candidate passes its individual quality gate (7 implemented + PDF to Word if approved + 83 remaining). |
+| Additional tools needed to exceed 100 | 11+ | Reserved for evidence-led Phase 13; candidates not selected yet. |
 
-### Verification (at the resizer sign-off)
+> Reaching exactly 100 from the current six would require 94 net-new tools. Exceeding 100 requires at least 95 net-new tools. The requested Phases 5–12 contain 84, so the honest projected total is 90—not 100+.
 
-```text
-npx tsc --noEmit     ✅ 0 errors
-npx eslint .         ✅ 0 problems
-npx vitest run       ✅ 12 files, 193 tests passed
-npm run build        ✅ 19 static routes, /tools/image-resizer prerendered
-playwright chromium  ✅ 146 passed (1.9 m) — foundation/core/quality/browser-tools
-                        + image-resizer (6) + image-resizer-edits (13)
-                        + image-resizer-audit (16, added in the final audit)
-log                  docs/verification/image-resizer-v2-checks.txt
-report               docs/QA_IMAGE_RESIZER_AUDIT.md  (VERIFIED / NOT SUPPORTED / NOT IMPLEMENTED)
-screenshots          docs/verification/image-resizer-v2-*.png and -v3-*.png
-```
+## 3. Platform foundation status
 
-Cross-browser note: Playwright ran in Chromium in this sandbox (only one browser build could
-be provisioned). Firefox/WebKit projects remain configured and are expected to run in CI.
+| Work item | Status | Evidence / next step |
+|---|---|---|
+| Current inline catalog | Implemented for eight repository tools | `lib/catalog.ts`; seven implemented tools plus PDF to Word under the approved narrow integration. Suitable for the current homepage but not the 90-tool target. |
+| Scalable tool registry | **Designed, not implemented** | Proposal in `TOOL_REGISTRY_ARCHITECTURE.md`; this remains a separate future migration and was not bundled into PDF Merger. |
+| Generated tool routes | **Not started** | Current eight routes are maintained individually under `app/tools/*/page.tsx`. |
+| `/tools` directory | Implemented (Phase 2) | Explorer with search and category filters lives at `/tools`; registry-driven generation is still future work. |
+| Generated category pages | Implemented (Phase 2, different route) | Category pages live at `/category/{categorySlug}`; the proposed `/tools/category/...` shape was not adopted. |
+| Global registry search | **Partial precursor only** | Current homepage search/filter works for eight repository tools; ranking, aliases and dedicated directory search are not implemented. |
+| Functional category filters | **Partial precursor only** | Current category buttons work for the existing display categories; canonical category IDs/slugs are not implemented. |
+| Featured tools | **Not started** | Must be labeled “Featured” until real popularity data exists. |
+| Popular tools from real data | **Blocked by design decision** | No approved aggregate usage-data source currently exists; do not fabricate rankings. |
+| Recently added | **Not started** | Requires a trustworthy `addedAt` policy in the registry migration. |
+| Relevant related tools | **Partial precursor only** | Current shell lists other tools, but not the proposed curated/tag-scored relevance model. |
+| Account-free favorites | Implemented (Phase 2) | “Saved tools” stores tool slugs in browser local storage only. |
+| Per-tool privacy disclosure | **Partial precursor only** | Current tools are browser-processed; the shell must become per-tool before any server or AI tool. |
 
-### Known limits (documented in-product)
+## 4. Implemented tools
 
-- AVIF encoding depends on the browser; unsupported options are disabled and explained.
-- `Stop` halts the queue after the in-flight image settles — browser encoders are not abortable.
-- Custom presets last for the browser session only (no storage, by design), max 8.
-- A canvas encoder cannot write a DPI tag: the panel converts values, printers read pixels.
-- Canvas re-encoding strips EXIF/GPS/XMP/ICC (privacy default); the original file is untouched.
-- Animation collapses to one frame; HEIC, GIF and SVG inputs are rejected by design.
-- Upscaling adds pixels, not detail. The ZIP uses the stored method (photos are compressed).
+The proposed IDs below use the existing slug values. During registry migration they must be frozen as immutable IDs; URLs must remain unchanged.
 
-## Image Compressor — ✅ complete (v2) · owner approved 1 Nov 2026
+| ID | Tool | Current URL | Current category | Proposed category | Registry status | Verification state |
+|---|---|---|---|---|---|---|
+| `word-counter` | Word Counter | `/tools/word-counter` | Text | Text & Writing Tools | `live` | Implemented; included in existing unit/browser suites. |
+| `case-converter` | Case Converter | `/tools/case-converter` | Text | Text & Writing Tools | `live` | Implemented; included in existing unit/browser suites. |
+| `json-formatter` | JSON Formatter | `/tools/json-formatter` | Developer | Developer Tools | `live` | Implemented; included in existing unit/browser suites. |
+| `password-generator` | Password Generator | `/tools/password-generator` | Security | Security & Privacy Tools | `live` | Implemented with cryptographically secure generation; included in existing tests. |
+| `qr-generator` | QR Code Generator | `/tools/qr-generator` | Image & QR | QR & Barcode Tools | `live` | Implemented locally in the browser; included in existing tests. |
+| `image-compressor` | Image Compressor | `/tools/image-compressor` | Image & QR | Image Tools | `live` | Implemented with bounded canvas processing; included in existing tests. |
+| `merge-pdf` | PDF Merger | `/tools/merge-pdf` | PDF Tools | PDF Tools | `live` | Browser-only merger with page selection, previews and password unlock; merged into `main` by the owner. |
 
-**Branch:** `feature/image-compressor` (work also committed on `arena/82ce86c2-quickkit`) ·
-**Route:** `/tools/image-compressor` · **Category:** `Image Tools`.
-The original single-image tool was **upgraded in place**; no existing capability was
-removed and the Image Resizer was not modified. **Approved by the owner on 1 November
-2026 and frozen** — later image work does not alter it. Full record:
-`docs/FEATURE_IMAGE_COMPRESSOR.md`.
+### Implemented — awaiting owner approval
 
-| Area | Delivered |
-| --- | --- |
-| Formats | JPEG, PNG, WebP, plus AVIF where the browser can encode it (disabled + labelled otherwise) |
-| Size control | Quality mode 10–100 % **and** target mode in KB/MB with binary quality search and controlled downscaling |
-| Batch | Up to 20 images, per-image overrides, per-image progress, errors and retry |
-| Compare | Original ⇄ Result, Split slider, Side by side, BEFORE/AFTER captions |
-| Numbers | Original vs compressed size, **% savings**, dimensions, quality used, target status |
-| Transparency | Kept for PNG/WebP/AVIF; JPEG flattens onto a chosen background (default white) |
-| Downloads | Individual files **and** a ZIP with final names |
-| Naming | Rename outputs and filename suffixes, batch-wide or per image |
-| Control | Determinate progress, Stop (finished images kept), Retry failed (n), Reset |
-| Privacy | 100 % local; metadata panel explains EXIF/GPS/ICC stripping; URLs revoked on reset/unmount |
-| SEO/UX | 5-step HowTo, 7 FAQs, `WebApplication`/`HowTo`/`FAQPage` JSON-LD, axe clean |
-| Bug fixed | Large-image target search returned a full-quality blob when the budget ran out; now the smallest encode is returned with “not reachable” and a 3,600 × 2,400 PNG hits a 40 KB target |
-| QA fixes | EXIF-rotated photos report the displayed dimensions; PNG target mode no longer claims “q100” and skips redundant encodes; the JPEG flatten colour is reachable for per-image overrides; target mode no longer advertises a fixed quality; cancelling a re-run keeps finished items “Done” |
+| ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
+|---|---|---|---|---|---|---|
+| `pdf-to-word` | PDF to Word Converter | `/tools/pdf-to-word` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR in English/Hindi/Gujarati). Two modes, page ranges, preserve toggles (images/tables/headings+lists/hyperlinks/headers+footers), custom output filenames, live original-PDF preview + real generated-DOCX preview (`docx-preview`) with side-by-side compare, batch dashboard (retry failed, ZIP, batch report, clear completed), per-file quality reports (no accuracy percentages), opt-in browser-local history (IndexedDB; converted DOCX only). Implemented on `arena/dc1f7709-quickkit` for owner review. Not owner-approved, live, deployed or indexed. |
 
-### Final real-world QA (1 November 2026)
+### Current regression evidence
 
-`docs/QA_IMAGE_COMPRESSOR_AUDIT.md` — verified with real photographs, a real transparent
-PNG, decoded pixels, `unzip -t` CRC checks and byte-level savings maths. Six defects were
-found and fixed (unreachable-target fallback, EXIF orientation, PNG target labelling,
-per-image JPEG colour, target-mode footer, cancelled-item status).
+The most recent full run, recorded for the PDF to Word V2 owner review on 2 November 2026, is:
 
-```text
-npx tsc --noEmit     ✅ 0 errors
-npx eslint .         ✅ 0 errors, 0 warnings
-npx vitest run       ✅ 13 files, 220 tests passed
-npm run build        ✅ 19 static routes, /tools/image-compressor prerendered
-playwright chromium  ✅ 181 passed — all specs
-                       · image-compressor-audit.spec.ts 21 (final QA)
-                       · image-compressor.spec.ts 14
-                       · browser-tools.spec.ts 6 compressor scenarios
-screenshots          docs/verification/image-compressor-*.png
-```
+- Vitest: **138/138 passed** (including DOCX generation/structure tests that unzip and verify the OOXML output, page-range/filename parsers, preserve-option structuring, and real DOCX hyperlink relationships).
+- Chromium Playwright suite: **259/259 passed** in the sandbox browser environment — the tool's own spec has 11 tests (inspection honesty, clean/layout conversion, on-device OCR, ZIP, live PDF+DOCX preview with compare/zoom/keyboard + axe inside the dialog, page-range conversion, hyperlink round-trip, batch dashboard actions, IndexedDB history across reload, mobile tabbed preview) plus site-wide axe/overflow sweeps at 9 widths.
+- Production build: passed with eight repository tool routes and 34 static pages.
+- Format check, ESLint and TypeScript: passed.
+- Production dependency audit: **0 vulnerabilities**.
 
-## Image Cropper — ✅ complete (verified, awaiting owner sign-off)
+Firefox/WebKit execution is not claimed for that sandbox run; the Playwright config covers the PDF tool specs there in CI (the OCR test is Chromium-only). Any later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
 
-**Branch:** `feature/image-cropper` (work also committed on `arena/82ce86c2-quickkit`) ·
-**Route:** `/tools/image-cropper` · **Category:** `Image Tools`.
-A **new tool** built on the shared design system and the proven image primitives. The Image
-Resizer, the owner-approved Image Compressor and the PDF tools were not modified. Every
-visible control is wired; there are no placeholders. Full record:
-`docs/FEATURE_IMAGE_CROPPER.md` · QA: `docs/QA_IMAGE_CROPPER_AUDIT.md`.
+## 5. Proposed Phase 5 — PDF Tools
 
-| Area | Delivered |
-| --- | --- |
-| Crop | Freeform drag, four corner resize handles, arrow-key nudge, ratio chips 1:1 · 4:3 · 3:2 · 16:9 · 9:16 · 4:5, crop-follows-content on rotate/flip |
-| Presets | 18 social sizes across Instagram, YouTube, Facebook, X, LinkedIn, Pinterest and WhatsApp, grouped in a select; each sets the ratio **and** the export size |
-| Custom size | Width/height fields set both the ratio and the exact output pixels, validated against 8–8,192 px and 24 MP |
-| Shapes | Rectangle, Square (1:1) and Circle (1:1 + alpha mask); PNG/WebP keep transparent corners, JPEG flattens onto a chosen colour |
-| Stage | 25–400 % zoom, Fit, pan by drag/scroll, rule-of-thirds grid, **Crop to visible area**, live crop-size badge, checkerboard transparency |
-| Edit | 90° left/right, 180°, Flip H/V, per-image 50-step undo/redo and reset |
-| Export | JPEG/PNG/WebP (probe-disabled when unsupported), quality 10–100, size modes Crop pixels (1:1, no resampling) / Scale % / Custom px / Preset, estimated bytes and resolution note |
-| Compare | Crop · Original · Cropped · Compare views; Compare has a Split slider and Side by side with ORIGINAL/CROPPED captions |
-| Batch | Up to 20 images, every item keeps its own frame and settings, per-image status and downloads, apply ratio/shape or export settings to all, progress bar, Stop, Retry failed |
-| Downloads | Individual files plus `quickkit-cropped-images.zip` with unique entry names; custom base name + suffix with a live name preview |
-| EXIF | Orientation applied on decode, source panel reports header dimensions and the orientation tag (“auto-corrected”) |
-| Privacy | 100 % local: decode, rotate, mask, encode and ZIP in the tab; no uploads, storage or analytics; object URLs revoked |
-| SEO/UX | 5-step HowTo, 7 FAQs, `WebApplication`/`HowTo`/`FAQPage` JSON-LD, preview-first mobile layout, axe AA clean |
+**Phase status:** One tool is at owner review — **PDF Merger is implemented — awaiting owner approval. Every other Phase 5 tool is blocked until the owner personally approves PDF Merger.**
+**Candidate count:** 10  
+**Projected cumulative total:** 16
 
-QA found and fixed five real defects (flip order after rotation, ratios applied to the
-unrotated frame, shape re-centring, 12 contrast failures, mobile stage below the settings
-column). The browser suite also corrected four wrong test expectations rather than bending
-the product. Details: `docs/QA_IMAGE_CROPPER_AUDIT.md`.
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | PDF Merger | `merge-pdf` | `merge-pdf` | **implemented — awaiting owner approval** |
+| 2 | Split PDF | `split-pdf` | `split-pdf` | `planned` |
+| 3 | Organize PDF | `organize-pdf` | `organize-pdf` | `planned` |
+| 4 | Rotate PDF | `rotate-pdf` | `rotate-pdf` | `planned` |
+| 5 | Images to PDF | `images-to-pdf` | `images-to-pdf` | `planned` |
+| 6 | PDF to Images | `pdf-to-images` | `pdf-to-images` | `planned` |
+| 7 | Extract PDF Text | `extract-pdf-text` | `extract-pdf-text` | `planned` |
+| 8 | Add PDF Page Numbers | `add-pdf-page-numbers` | `add-pdf-page-numbers` | `planned` |
+| 9 | Add PDF Watermark | `add-pdf-watermark` | `add-pdf-watermark` | `planned` |
+| 10 | PDF Metadata Editor | `pdf-metadata-editor` | `pdf-metadata-editor` | `planned` |
 
-```text
-npx tsc --noEmit     ✅ 0 errors
-npx eslint .         ✅ 0 problems
-npx vitest run       ✅ 14 files, 249 tests passed (28 cropper)
-npm run build        ✅ 20 static routes, /tools/image-cropper prerendered
-playwright chromium  ✅ 210 passed — all specs (image-cropper-audit: 21)
-screenshots          docs/verification/image-cropper-*.png
-```
+**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool until the owner personally approves PDF Merger.
 
-Known limits (documented in-product): quarter-turn rotation only, JPEG/PNG/WebP inputs,
-upscaling adds pixels not detail, canvas exports strip metadata, `Stop` halts after the
-in-flight image, and batches are bounded to 20 files / 200 MP.
+## 6. Proposed Phase 6 — Image Tools
 
-## Next up
+**Phase status:** Planned — pending approval and completion of earlier phases  
+**Candidate count:** 10  
+**Projected cumulative total:** 26
 
-1. **Image Cropper owner review** — the tool is complete and verified; awaiting the owner's
-   sign-off on `feature/image-cropper` (not merged into `main`).
-2. Image Tools category polish: shared image queue component now that a third image tool has landed.
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Crop Image | `crop-image` | `crop-image` | `planned` |
+| 2 | Resize Image | `resize-image` | `resize-image` | `planned` |
+| 3 | Rotate & Flip Image | `rotate-flip-image` | `rotate-flip-image` | `planned` |
+| 4 | Image Filters & Adjustments | `image-filters` | `image-filters` | `planned` |
+| 5 | Color Picker from Image | `color-picker-from-image` | `color-picker-from-image` | `planned` |
+| 6 | Image Metadata Viewer | `image-metadata-viewer` | `image-metadata-viewer` | `planned` |
+| 7 | Remove Image Metadata | `remove-image-metadata` | `remove-image-metadata` | `planned` |
+| 8 | Favicon Generator | `favicon-generator` | `favicon-generator` | `planned` |
+| 9 | Watermark Image | `watermark-image` | `watermark-image` | `planned` |
+| 10 | Blur or Pixelate Image | `blur-pixelate-image` | `blur-pixelate-image` | `planned` |
 
-## PDF tools
+## 7. Proposed Phase 7 — Text & Writing Tools
 
-PDF Merger and PDF Splitter are pending in a separate workstream. This branch adds no
-PDF files, changes no PDF status, and does not touch any shared file that the PDF
-workstream owns. When that work merges, the only likely conflict is the menu of tool
-records in `lib/catalog.ts`, which appends cleanly.
+**Phase status:** Planned — pending approval and completion of earlier phases  
+**Candidate count:** 12  
+**Projected cumulative total:** 38
+
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Remove Duplicate Lines | `remove-duplicate-lines` | `remove-duplicate-lines` | `planned` |
+| 2 | Sort Lines | `sort-lines` | `sort-lines` | `planned` |
+| 3 | Find and Replace Text | `find-and-replace-text` | `find-and-replace-text` | `planned` |
+| 4 | Text Diff Checker | `text-diff` | `text-diff` | `planned` |
+| 5 | Remove Extra Spaces | `remove-extra-spaces` | `remove-extra-spaces` | `planned` |
+| 6 | Reverse Text | `reverse-text` | `reverse-text` | `planned` |
+| 7 | Repeat Text | `repeat-text` | `repeat-text` | `planned` |
+| 8 | Lorem Ipsum Generator | `lorem-ipsum-generator` | `lorem-ipsum-generator` | `planned` |
+| 9 | Random Word Generator | `random-word-generator` | `random-word-generator` | `planned` |
+| 10 | Slug Generator | `slug-generator` | `slug-generator` | `planned` |
+| 11 | Invisible Character Inspector | `invisible-character-inspector` | `invisible-character-inspector` | `planned` |
+| 12 | Text to Speech | `text-to-speech` | `text-to-speech` | `planned` |
+
+## 8. Proposed Phase 8 — Developer Tools
+
+**Phase status:** Planned — pending approval and completion of earlier phases  
+**Candidate count:** 14  
+**Projected cumulative total:** 52
+
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Base64 Encoder / Decoder | `base64-encoder-decoder` | `base64-encoder-decoder` | `planned` |
+| 2 | URL Encoder / Decoder | `url-encoder-decoder` | `url-encoder-decoder` | `planned` |
+| 3 | JWT Decoder | `jwt-decoder` | `jwt-decoder` | `planned` |
+| 4 | UUID Generator | `uuid-generator` | `uuid-generator` | `planned` |
+| 5 | Hash Generator | `hash-generator` | `hash-generator` | `planned` |
+| 6 | Regex Tester | `regex-tester` | `regex-tester` | `planned` |
+| 7 | Timestamp Converter | `timestamp-converter` | `timestamp-converter` | `planned` |
+| 8 | Color Converter | `color-converter` | `color-converter` | `planned` |
+| 9 | CSS Gradient Generator | `css-gradient-generator` | `css-gradient-generator` | `planned` |
+| 10 | SQL Formatter | `sql-formatter` | `sql-formatter` | `planned` |
+| 11 | XML Formatter | `xml-formatter` | `xml-formatter` | `planned` |
+| 12 | YAML ↔ JSON Converter | `yaml-json-converter` | `yaml-json-converter` | `planned` |
+| 13 | CSV ↔ JSON Converter | `csv-json-converter` | `csv-json-converter` | `planned` |
+| 14 | Cron Expression Parser | `cron-expression-parser` | `cron-expression-parser` | `planned` |
+
+## 9. Proposed Phase 9 — Calculators & Converters
+
+**Phase status:** Planned — pending approval and completion of earlier phases  
+**Candidate count:** 12  
+**Projected cumulative total:** 64
+
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Unit Converter | `unit-converter` | `unit-converter` | `planned` |
+| 2 | Percentage Calculator | `percentage-calculator` | `percentage-calculator` | `planned` |
+| 3 | Loan Calculator | `loan-calculator` | `loan-calculator` | `planned` |
+| 4 | Compound Interest Calculator | `compound-interest-calculator` | `compound-interest-calculator` | `planned` |
+| 5 | BMI Calculator | `bmi-calculator` | `bmi-calculator` | `planned` |
+| 6 | Age Calculator | `age-calculator` | `age-calculator` | `planned` |
+| 7 | Date Difference Calculator | `date-difference-calculator` | `date-difference-calculator` | `planned` |
+| 8 | Time Duration Calculator | `time-duration-calculator` | `time-duration-calculator` | `planned` |
+| 9 | Tip & Bill Split Calculator | `tip-calculator` | `tip-calculator` | `planned` |
+| 10 | Discount & Tax Calculator | `discount-tax-calculator` | `discount-tax-calculator` | `planned` |
+| 11 | Roman Numeral Converter | `roman-numeral-converter` | `roman-numeral-converter` | `planned` |
+| 12 | Number Base Converter | `number-base-converter` | `number-base-converter` | `planned` |
+
+## 10. Proposed Phase 10 — QR & Barcode Tools
+
+**Phase status:** Planned — pending approval and completion of earlier phases  
+**Candidate count:** 10  
+**Projected cumulative total:** 74
+
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Wi-Fi QR Generator | `wifi-qr-generator` | `wifi-qr-generator` | `planned` |
+| 2 | vCard QR Generator | `vcard-qr-generator` | `vcard-qr-generator` | `planned` |
+| 3 | Email QR Generator | `email-qr-generator` | `email-qr-generator` | `planned` |
+| 4 | SMS QR Generator | `sms-qr-generator` | `sms-qr-generator` | `planned` |
+| 5 | Phone QR Generator | `phone-qr-generator` | `phone-qr-generator` | `planned` |
+| 6 | Location QR Generator | `location-qr-generator` | `location-qr-generator` | `planned` |
+| 7 | Event QR Generator | `event-qr-generator` | `event-qr-generator` | `planned` |
+| 8 | Batch QR Generator | `batch-qr-generator` | `batch-qr-generator` | `planned` |
+| 9 | QR Code Scanner | `qr-code-scanner` | `qr-code-scanner` | `planned` |
+| 10 | Barcode Generator | `barcode-generator` | `barcode-generator` | `planned` |
+
+## 11. Proposed Phase 11 — Security & Privacy Tools
+
+**Phase status:** Planned — pending approval, threat modeling and completion of earlier phases  
+**Candidate count:** 8  
+**Projected cumulative total:** 82
+
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Password Strength Checker | `password-strength-checker` | `password-strength-checker` | `planned` |
+| 2 | Passphrase Generator | `passphrase-generator` | `passphrase-generator` | `planned` |
+| 3 | File Hash Verifier | `file-hash-verifier` | `file-hash-verifier` | `planned` |
+| 4 | Text Encryptor | `text-encryptor` | `text-encryptor` | `planned` |
+| 5 | Secure Random Number Generator | `secure-random-number-generator` | `secure-random-number-generator` | `planned` |
+| 6 | Random Picker | `random-picker` | `random-picker` | `planned` |
+| 7 | Sensitive Text Redactor | `sensitive-text-redactor` | `sensitive-text-redactor` | `planned` |
+| 8 | Browser Fingerprint Viewer | `browser-fingerprint-viewer` | `browser-fingerprint-viewer` | `planned` |
+
+## 12. Proposed Phase 12 — AI-Powered Tools
+
+**Phase status:** Planned — each candidate requires a separate model, privacy, quality, license and cost go/no-go review  
+**Candidate count:** 8  
+**Projected cumulative total:** 90
+
+| # | Tool | Proposed ID | Proposed slug | Status |
+|---:|---|---|---|---|
+| 1 | Background Remover | `background-remover` | `background-remover` | `planned` |
+| 2 | OCR Text Extractor | `ocr-text-extractor` | `ocr-text-extractor` | `planned` |
+| 3 | Image Caption Generator | `image-caption-generator` | `image-caption-generator` | `planned` |
+| 4 | Text Summarizer | `text-summarizer` | `text-summarizer` | `planned` |
+| 5 | Grammar Checker | `grammar-checker` | `grammar-checker` | `planned` |
+| 6 | Paraphraser | `paraphraser` | `paraphraser` | `planned` |
+| 7 | Translator | `translator` | `translator` | `planned` |
+| 8 | Image Upscaler | `image-upscaler` | `image-upscaler` | `planned` |
+
+## 13. Deferred or specially gated ideas — not counted
+
+These are **not** part of the 84-candidate count and must not receive public cards.
+
+| Idea | Planning state | Reason |
+|---|---|---|
+| Compress PDF | Deferred pending engine spike | A trustworthy browser implementation must demonstrate meaningful size reduction and acceptable quality loss. |
+| Protect PDF | Deferred pending engine/security review | Standard browser PDF manipulation alone does not provide production encryption. |
+| Unlock/password-bypass PDF | Not proposed | QUICKKIT should not present password bypassing as a feature. Handling a user-supplied password would need a separate security design. |
+| Cryptographic PDF signing | Deferred | Certificate trust and signature validity are separate from placing a visual signature. |
+| Live currency converter | Deferred | Requires a licensed rate source, timestamps, caching, availability and financial-disclaimer policy. |
+| Breach/password exposure lookup | Deferred | Requires a dedicated privacy/security design and approved data source. |
+| TOTP/authenticator secret tools | Deferred | Secret handling creates account-compromise risk and needs a dedicated security review. |
+
+## 14. Tool completion gate
+
+A candidate may move from `planned` to `live` only when all items below are evidenced:
+
+- [ ] Non-duplicate user job approved.
+- [ ] Registry ID, slug, category, icon, keywords and processing/privacy mode finalized.
+- [ ] Dependencies, licenses, bundle impact and third parties reviewed.
+- [ ] Functional implementation complete; no placeholder or simulated result.
+- [ ] Input limits and hostile/malformed-input behavior implemented.
+- [ ] Original page content, steps, FAQs and limitations written.
+- [ ] Unique SEO title and description added.
+- [ ] Unit tests cover core logic and edge cases.
+- [ ] Browser tests cover the successful journey and important failures.
+- [ ] Accessibility, keyboard and responsive behavior verified.
+- [ ] Network/privacy behavior matches the user-facing disclosure.
+- [ ] Desktop/mobile screenshots captured.
+- [ ] This status file updated in the same change.
+
+## 15. Update protocol
+
+1. Change a tool to `in-development` only when its phase and design are approved.
+2. Record replacements rather than silently deleting a candidate; explain the duplicate/quality/privacy reason.
+3. Never reuse a retired ID or slug.
+4. Update counts whenever a status changes.
+5. Link phase evidence from the phase report rather than copying stale pass counts.
+6. Keep planned tools out of public navigation, search, sitemap and category counts.
+
+## 16. Decisions for future expansion
+
+PDF Merger proceeded under the owner's explicit narrow-catalog integration decision; the full registry migration remains separate and does not block owner review of PDF Merger.
+
+- [ ] Personally approve or request changes to PDF Merger before any next tool starts.
+- [ ] Approve the registry architecture and URL model.
+- [ ] Approve the remaining candidate scope and the resulting 90-tool total, with Phase 13 reserved for 100+.
+- [ ] Approve the eight-category taxonomy and remapping of the existing tools.
+- [ ] Approve the remaining Phase 5 PDF list and deferral of Compress/Protect pending technical evidence.
+- [ ] Decide whether account-free favorites may store tool IDs in local storage.
+- [ ] Decide whether to show editorial “Featured” tools while keeping “Popular” hidden until real aggregate data exists.
+- [ ] Decide whether to build the registry foundation before the next tool after PDF Merger approval.
+
+## 17. Change log
+
+| Date | Change |
+|---|---|
+| 1 November 2026 | Initial expansion tracker created. Six implemented tools recorded; 84 candidates marked `planned` pending approval; Phase 5 not started. |
+| 1 November 2026 | Strict one-tool-at-a-time policy adopted. PDF Merger selected as the sole active tool; `PDF_MERGER_PLAN.md` completed. Status remains `planned` with workflow note “research/planning, awaiting approval”; no implementation started. |
+| 1 November 2026 | Owner approved the PDF Merger plan with mandatory browser-only processing, explicit actionable errors/no silent skipping and a polished complete mobile workflow. PDF Merger became the sole active implementation. |
+| 1 November 2026 | Local PDF Merger work was backed up, integrated directly onto pushed baseline `db4e906`, committed at `070bc77` and pushed to `arena/eb17e485-quickkit`/PR #2. No merge into `main` was performed. |
+| 1 November 2026 | Final PDF Merger QA and owner-review handoff completed in `docs/pdf-merger/QA_REPORT.md`. Status set to **implemented — awaiting owner approval**; all other tools remain blocked. |
+| 2 November 2026 | PDF Merger merged into `main` by the owner (via PR #4/#5) and moved to implemented (`live`). Portfolio now counts 7 implemented tools. |
+| 2 November 2026 | PDF to Word Converter implemented at the owner's direction on `arena/dc1f7709-quickkit`: on-device PDF→DOCX with Original Layout + Clean Editable modes, batch queue with ZIP/batch report, optional self-hosted OCR for scanned pages, honest per-file errors (password/corrupt/limits), and conversion notes instead of silent loss. Added `'wasm-unsafe-eval'` to the CSP `script-src` (permits WebAssembly compilation for OCR; does not enable JS eval). Full gates green (129 unit, 253 Chromium e2e, build, audit). Status: **implemented — awaiting owner approval**; do not merge or start another tool until the owner approves. |
+| 2 November 2026 | **PDF to Word V2** built on the same PR #6 branch at the owner's direction, preserving all V1 behaviour: original-PDF preview (lazy pdfjs pages/thumbnails, zoom stepped from effective on-screen zoom, rotate-for-view, fullscreen, keyboard), preview of the actual generated DOCX (`docx-preview`, lazy-loaded), desktop side-by-side compare + mobile tabs, page-range conversion, hyperlink extraction, preserve toggles, OCR languages (eng/hin/guj), custom output filenames, batch dashboard with counts/retry-failed/batch report/clear-completed/batch banner, per-file quality report (source/converted pages, extraction status, images/tables/links kept, OCR usage, honest content-loss verdict), and opt-in browser-local history (IndexedDB, session/24h/7d, DOCX only). Gates: 138 unit, 259 Chromium e2e, 34-page build, 0 audit findings. Still **awaiting owner approval** — not merged, live, deployed or indexed. |
+
+## Phase 9 V2 continuation — 2 November 2026
+
+In progress, not released: see `PHASE_9_V2_CHECKLIST.md` for per-tool status, financial/calendar additions, independent sample calculations, production Chromium results and outstanding work. Full per-feature verification of all 12 remains pending. No merge or deployment.
+
+### Phase 9 V2 populated preview checkpoint
+
+All 12 calculator routes have populated mobile and desktop Chromium screenshots indexed in `docs/phase-9-v2-final-evidence/README.md`; 319 Chromium regression tests, 188 unit tests, lint, typecheck and production build passed on this application code. Feature and cross-browser coverage remain incomplete; see `PHASE_9_V2_CHECKLIST.md`. Not merged or deployed.
+
+---
+
+## Image Tools workstream (separate branch, merged into the shared tree on 2 November 2026)
+
+This section records the Image Tools workstream on `arena/82ce86c2-quickkit` / PR #8.
+It is **append-only**: nothing above (PDF Merger, PDF to Word, Phase 9, the portfolio
+counts and the change log) was edited, re-scored or re-dated by this workstream.
+
+| # | Tool | Route | Status | Branch | Notes |
+|---|---|---|---|---|---|
+| 1 | **Image Resizer** | `/tools/image-resizer` | ✅ **Done — owner approved 1 Nov 2026** (frozen) | `feature/image-resizer` | Full local editor: exact/percentage/longest-side sizing, 26 presets, crop, free-angle rotation, flips, colour adjustments, compare, DPI/print, per-image undo/redo, batch + ZIP, metadata panel. `docs/FEATURE_IMAGE_RESIZER.md`, `docs/QA_IMAGE_RESIZER_AUDIT.md` |
+| 2 | **Image Compressor** | `/tools/image-compressor` | ✅ **Done (v2) — owner approved 1 Nov 2026** (frozen) | `feature/image-compressor` | Quality **and** exact KB/MB target modes, JPEG/PNG/WebP (+AVIF where supported), per-image overrides, split/side-by-side compare, transparency handling, batch + ZIP, Stop/Retry. `docs/FEATURE_IMAGE_COMPRESSOR.md`, `docs/QA_IMAGE_COMPRESSOR_AUDIT.md` |
+| 3 | **Image Cropper** | `/tools/image-cropper` | ✅ **Done — verified, awaiting owner sign-off** | `feature/image-cropper` | New tool: freeform + fixed ratios, 18 social presets, custom width/height, circle and square masks, rotate/flip, 25–400 % zoom with pan and “crop to visible area”, 1:1 crop-pixel export, JPEG/PNG/WebP with quality, per-image batch crops + ZIP, EXIF auto-correction, 50-step undo/redo. `docs/FEATURE_IMAGE_CROPPER.md`, `docs/QA_IMAGE_CROPPER_AUDIT.md` |
+
+Integration notes:
+
+- The three tools are ordinary additive entries in `lib/catalog.ts` (Image Tools category)
+  plus their icon keys (`resize`, `crop`) in `components/tool-icon.tsx`; the Image Tools
+  category therefore lists three tools on `/tools` and `/category/image-tools`.
+- Their CSS is appended to `app/globals.css` under `.resizer-*`, `.compressor-*`,
+  `.cropper-*` and a `.sky` icon tint. No existing rule was edited or removed.
+- Tests added: `tests/image-resize.test.ts`, `tests/image-edits.test.ts`,
+  `tests/image-compress.test.ts`, `tests/image-crop.test.ts`, `tests/zip.test.ts`,
+  `tests/exif.test.ts`, `tests/image-header.test.ts`, plus the browser suites
+  `image-resizer.spec.ts`, `image-resizer-edits.spec.ts`, `image-resizer-audit.spec.ts`,
+  `image-compressor.spec.ts`, `image-compressor-audit.spec.ts` and
+  `image-cropper-audit.spec.ts`.
+- No PDF file, PDF route, PDF component or PDF status above was modified by this workstream.
+
+**Merge record (2 November 2026).** `main` had advanced 36 commits (PRs #4–#7: premium
+redesign, 8 categories, saved tools, QR expansion, PDF to Word, calculator suite) after this
+branch was cut from `35f957b`. The image work was integrated by merging `main` into
+`arena/82ce86c2-quickkit` and resolving 16 conflicting shared files: the new catalogue,
+category metadata and icon map were kept, the three image tool records and icon keys were
+re-added, the `.resizer-*` / `.compressor-*` / `.cropper-*` / `.sky` CSS blocks were appended
+to the redesigned `globals.css`, and the route-count expectations were re-based on the new
+catalogue (22 tools, 40 sitemap routes). The owner-approved components themselves were not
+changed.

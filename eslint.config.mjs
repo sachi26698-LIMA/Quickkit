@@ -8,6 +8,8 @@ export default defineConfig([
     ".next/**",
     "coverage/**",
     "playwright-report/**",
+    "public/ocr/**",
+    "public/pdfjs/**",
     "test-results/**",
   ]),
 ]);

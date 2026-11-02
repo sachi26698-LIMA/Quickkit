@@ -5,6 +5,9 @@ import {
   KeyRound,
   QrCode,
   ImageIcon,
+  Files,
+  FileText,
+  Calculator,
   Scaling,
   Crop,
 } from "lucide-react";
@@ -15,6 +18,9 @@ const icons = {
   key: KeyRound,
   qr: QrCode,
   image: ImageIcon,
+  pdf: Files,
+  word: FileText,
+  calc: Calculator,
   resize: Scaling,
   crop: Crop,
 };

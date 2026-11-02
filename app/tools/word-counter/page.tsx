@@ -3,7 +3,7 @@ import WordCounter from "@/components/tools/word-counter";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Word Counter — live words, characters & reading time",
-  "Count words, characters, sentences and paragraphs as you type. Estimate reading time locally, without uploading your writing.",
+  "Count words, characters, sentences and paragraphs as you type — with speaking time, keyword density and a word-goal tracker. All local, nothing uploaded.",
   "/tools/word-counter",
 );
 export default function Page() {
@@ -14,7 +14,7 @@ export default function Page() {
         steps: [
           "Type or paste text into the editor.",
           "See word, character, sentence and paragraph counts update instantly.",
-          "Copy your text or clear the editor when you are finished.",
+          "Optionally set a word goal, review your most-used words, then copy or download your text.",
         ],
         faqs: [
           {

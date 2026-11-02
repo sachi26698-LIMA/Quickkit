@@ -3,36 +3,78 @@
 /* eslint-disable @next/next/no-img-element */
 import { useHydrated } from "@/lib/use-hydrated";
 import { useRef, useState } from "react";
-import { Download, QrCode } from "lucide-react";
-import { validateQr } from "@/lib/tools/qr";
+import { Copy, Download, FileCode2, QrCode, RotateCcw } from "lucide-react";
+import {
+  contrastRatio,
+  defaultQrOptions,
+  qrByteLength,
+  QR_SIZES,
+  validateQr,
+  validateQrOptions,
+  MAX_QR_BYTES,
+  type QrErrorLevel,
+  type QrOptions,
+} from "@/lib/tools/qr";
+import { downloadText } from "@/lib/tools/download";
+import { EmptyState, WorkspaceHeading } from "./tool-ui";
+
+const LEVEL_HELP: Record<QrErrorLevel, string> = {
+  L: "Low · ~7% damage tolerance, smallest code",
+  M: "Medium · ~15% damage tolerance (recommended)",
+  Q: "Quartile · ~25% damage tolerance",
+  H: "High · ~30% damage tolerance, densest code",
+};
+
 export default function QrGenerator() {
   const ready = useHydrated();
   const [input, setInput] = useState("");
+  const [options, setOptions] = useState<QrOptions>(defaultQrOptions);
   const [image, setImage] = useState("");
+  const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
+  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const version = useRef(0);
+  const bytes = qrByteLength(input);
+  const contrast = contrastRatio(options.foreground, options.background);
+
   function invalidate() {
     version.current++;
     setImage("");
+    setSvg("");
     setError("");
+    setNote("");
     setBusy(false);
   }
+  function updateOptions(next: QrOptions) {
+    invalidate();
+    setOptions(next);
+  }
+
   async function generate() {
     const id = ++version.current;
     setImage("");
+    setSvg("");
     setError("");
+    setNote("");
     try {
       const text = validateQr(input);
+      validateQrOptions(options);
       setBusy(true);
       const QRCode = await import("qrcode");
-      const data = await QRCode.toDataURL(text, {
-        width: 768,
+      const shared = {
         margin: 4,
-        errorCorrectionLevel: "M",
-        color: { dark: "#171b2e", light: "#ffffff" },
-      });
-      if (id === version.current) setImage(data);
+        errorCorrectionLevel: options.errorLevel,
+        color: { dark: options.foreground, light: options.background },
+      };
+      const [data, svgText] = await Promise.all([
+        QRCode.toDataURL(text, { ...shared, width: options.size }),
+        QRCode.toString(text, { ...shared, type: "svg" }),
+      ]);
+      if (id === version.current) {
+        setImage(data);
+        setSvg(svgText);
+      }
     } catch (e) {
       if (id === version.current)
         setError(
@@ -44,20 +86,41 @@ export default function QrGenerator() {
       if (id === version.current) setBusy(false);
     }
   }
+
+  async function copyImage() {
+    try {
+      if (!navigator.clipboard || typeof ClipboardItem === "undefined")
+        throw new Error("unsupported");
+      const blob = await (await fetch(image)).blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob }),
+      ]);
+      setNote("QR image copied — paste it anywhere.");
+    } catch {
+      setNote("Image copy is not available here. Use Download PNG instead.");
+    }
+  }
+
   return (
     <fieldset
       className="workspace"
       disabled={!ready}
       aria-label="Tool workspace"
     >
-      <div className="workspace-heading">
-        <div>
-          <h2>A shortcut worth sharing</h2>
-          <p>Turn text or a link into a ready-to-download QR code.</p>
-        </div>
-        <span className="local-badge">Local processing</span>
+      <WorkspaceHeading
+        title="A shortcut worth sharing"
+        description="Turn text or a link into a printable QR code — generated entirely on your device."
+      />
+      <div className="tool-toolbar">
+        <label htmlFor="qr-input">Text or URL</label>
+        <span
+          className={
+            bytes > MAX_QR_BYTES ? "char-meter near-limit" : "char-meter"
+          }
+        >
+          {bytes.toLocaleString()} / {MAX_QR_BYTES.toLocaleString()} bytes
+        </span>
       </div>
-      <label htmlFor="qr-input">Text or URL</label>
       <textarea
         id="qr-input"
         maxLength={2000}
@@ -72,25 +135,105 @@ export default function QrGenerator() {
       />
       <p id="qr-help" className="help">
         Limit: 2,000 UTF-8 bytes (non-Latin characters use more bytes). Content
-        is encoded as text, never opened or fetched.
+        is encoded as text, never opened, fetched or sent to a server.
       </p>
+
+      <div className="settings-grid qr-settings">
+        <div>
+          <label htmlFor="qr-size">PNG size</label>
+          <select
+            id="qr-size"
+            value={options.size}
+            onChange={(e) =>
+              updateOptions({ ...options, size: Number(e.target.value) })
+            }
+          >
+            {QR_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {size} × {size} px
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="qr-level">Error correction</label>
+          <select
+            id="qr-level"
+            value={options.errorLevel}
+            onChange={(e) =>
+              updateOptions({
+                ...options,
+                errorLevel: e.target.value as QrErrorLevel,
+              })
+            }
+          >
+            {(Object.keys(LEVEL_HELP) as QrErrorLevel[]).map((level) => (
+              <option key={level} value={level}>
+                {LEVEL_HELP[level]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="qr-fg">Code color</label>
+          <div className="color-field">
+            <input
+              id="qr-fg"
+              type="color"
+              value={options.foreground}
+              onChange={(e) =>
+                updateOptions({ ...options, foreground: e.target.value })
+              }
+            />
+            <code>{options.foreground}</code>
+          </div>
+        </div>
+        <div>
+          <label htmlFor="qr-bg">Background</label>
+          <div className="color-field">
+            <input
+              id="qr-bg"
+              type="color"
+              value={options.background}
+              onChange={(e) =>
+                updateOptions({ ...options, background: e.target.value })
+              }
+            />
+            <code>{options.background}</code>
+          </div>
+        </div>
+      </div>
+      <p className="help" role="status">
+        Color contrast {contrast ? contrast.toFixed(1) : "—"}:1
+        {contrast && contrast < 3
+          ? " — too low for reliable scanning."
+          : " — scannable contrast."}{" "}
+        Dark-on-light codes scan most reliably.
+      </p>
+
       <div className="action-row">
         <button className="primary" onClick={generate} disabled={busy}>
-          {busy ? "Generating…" : "Generate QR code"}
+          <QrCode size={16} /> {busy ? "Generating…" : "Generate QR code"}
         </button>
         <button
           className="secondary"
           onClick={() => {
             invalidate();
             setInput("");
+            setOptions(defaultQrOptions);
           }}
         >
-          Reset
+          <RotateCcw size={15} /> Reset
         </button>
       </div>
       {error && (
         <p className="status error" role="alert">
           Error: {error}
+        </p>
+      )}
+      {note && (
+        <p className="status success" role="status">
+          {note}
         </p>
       )}
       <div className="result-panel" aria-busy={busy}>
@@ -105,7 +248,8 @@ export default function QrGenerator() {
             <div>
               <h3>Your code is ready.</h3>
               <p className="help">
-                768 × 768 PNG · medium error correction.
+                {options.size} × {options.size} PNG · error correction{" "}
+                {options.errorLevel}.
                 <br />
                 Test it with your camera before printing or sharing.
               </p>
@@ -117,18 +261,32 @@ export default function QrGenerator() {
                 >
                   <Download size={16} /> Download PNG
                 </a>
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={!svg}
+                  onClick={() =>
+                    downloadText(
+                      svg,
+                      "quickkit-qr-code.svg",
+                      "image/svg+xml;charset=utf-8",
+                    )
+                  }
+                >
+                  <FileCode2 size={15} /> Download SVG
+                </button>
+                <button type="button" className="secondary" onClick={copyImage}>
+                  <Copy size={15} /> Copy image
+                </button>
               </div>
             </div>
           </div>
         ) : (
-          <div className="empty">
-            <QrCode size={36} />
-            <p>
-              {busy
-                ? "Creating your QR code…"
-                : "Your QR preview will appear here."}
-            </p>
-          </div>
+          <EmptyState icon={<QrCode size={36} />}>
+            {busy
+              ? "Creating your QR code…"
+              : "Your QR preview will appear here."}
+          </EmptyState>
         )}
       </div>
       <p className="sr-only" role="status">
