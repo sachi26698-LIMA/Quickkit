@@ -10015,3 +10015,12 @@ select:focus {
   font-size: 11px;
   font-weight: 700;
 }
+/* Conversion previews keep the whole page visible instead of cropping it. */
+.converter-stage .converter-output-image {
+  max-width: 100%;
+  height: auto;
+}
+.converter-result-thumb img {
+  object-fit: contain;
+  background: #fff;
+}

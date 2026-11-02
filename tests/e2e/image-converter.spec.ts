@@ -855,16 +855,23 @@ test.describe("Image & PDF Converter", () => {
     );
     await page.setViewportSize({ width: 1440, height: 1000 });
 
+    // Full-page captures repeat fixed headers mid-document; pin them so the
+    // evidence shows the real page without an overlay across the workspace.
+    const capture = async (name: string) => {
+      await page.addStyleTag({
+        content:
+          ".site-header{position:static!important} .converter-preview{position:static!important}",
+      });
+      await page.screenshot({
+        path: testInfo.outputPath(name),
+        fullPage: true,
+      });
+    };
+
     await page.goto("/category/image-tools");
-    await page.screenshot({
-      path: testInfo.outputPath("category-image-tools.png"),
-      fullPage: true,
-    });
+    await capture("category-image-tools.png");
     await page.goto("/category/pdf-tools");
-    await page.screenshot({
-      path: testInfo.outputPath("category-pdf-tools.png"),
-      fullPage: true,
-    });
+    await capture("category-pdf-tools.png");
 
     await page.goto("/tools/image-converter");
     await upload(page, [
@@ -874,6 +881,7 @@ test.describe("Image & PDF Converter", () => {
         name: "qk-photo.png",
       }),
     ]);
+    await page.locator("#converter-format").selectOption("jpeg");
     await runConversion(page);
     const exampleDir = testInfo.outputPath("examples");
     await mkdir(exampleDir, { recursive: true });
@@ -883,11 +891,8 @@ test.describe("Image & PDF Converter", () => {
         .getByTestId("converter-result")
         .getByRole("button", { name: /^Download / }),
     );
-    await writeFile(`${exampleDir}/image-to-image.png`, imageResult.buffer);
-    await page.screenshot({
-      path: testInfo.outputPath("converter-desktop.png"),
-      fullPage: true,
-    });
+    await writeFile(`${exampleDir}/image-to-image.jpg`, imageResult.buffer);
+    await capture("converter-desktop.png");
 
     await page.getByRole("button", { name: /Images to PDF/ }).click();
     await upload(
@@ -912,10 +917,7 @@ test.describe("Image & PDF Converter", () => {
         .getByRole("button", { name: /^Download / }),
     );
     await writeFile(`${exampleDir}/images-to-pdf.pdf`, pdfExample.buffer);
-    await page.screenshot({
-      path: testInfo.outputPath("converter-images-to-pdf.png"),
-      fullPage: true,
-    });
+    await capture("converter-images-to-pdf.png");
 
     await page.goto("/tools/image-converter");
     await page.getByRole("button", { name: /PDF to image/ }).click();
@@ -931,10 +933,7 @@ test.describe("Image & PDF Converter", () => {
         .getByRole("button", { name: /^Download / }),
     );
     await writeFile(`${exampleDir}/pdf-to-image.png`, pageExample.buffer);
-    await page.screenshot({
-      path: testInfo.outputPath("converter-pdf-to-image.png"),
-      fullPage: true,
-    });
+    await capture("converter-pdf-to-image.png");
   });
 
   test("keyboard and touch layouts work at every target width", async ({
@@ -984,6 +983,9 @@ test.describe("Image & PDF Converter", () => {
       await page.keyboard.press("Enter");
       await expect(mode).toHaveAttribute("aria-pressed", "true");
 
+      await page.addStyleTag({
+        content: ".site-header{position:static!important}",
+      });
       await page.screenshot({
         path: testInfo.outputPath(`image-converter-${width}.png`),
         fullPage: true,
