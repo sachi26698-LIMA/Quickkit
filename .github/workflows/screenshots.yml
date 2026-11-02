@@ -8,6 +8,10 @@ on:
       - ".github/screenshot-trigger"
 permissions:
   contents: write
+concurrency:
+  # A second capture would race the first one's push; queue instead.
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   capture:
     runs-on: ubuntu-latest
@@ -45,5 +49,7 @@ jobs:
             echo "No new screenshots to commit."
           else
             git commit -m "docs(image-converter): add browser screenshots from CI"
+            # The branch may have moved while the suite ran; rebase, then push.
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
             git push
           fi
