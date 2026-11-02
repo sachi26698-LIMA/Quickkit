@@ -538,3 +538,8 @@ touched by this branch. Unit: 27 files / 418 tests; format, lint, typecheck and 
 
 **Still owner-gated.** Merge and deploy remain blocked on explicit owner approval; "PDF to Word"
 remains awaiting approval and was not modified.
+
+Addendum (same day, branch head `c73803e`, CI run `41436170818`): **505 passed, 5 skipped, 2 failed** —
+the same two pre-existing WebKit PDF Merger failures, now with one added browser test covering the
+Fit-to-panel default and zoom unlock. No application code changed after the evidence capture in
+`docs/verification`.
