@@ -1,10 +1,10 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 1 November 2026  
+**Last updated:** 2 November 2026
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** PDF Merger and PDF Splitter were owner-approved on 1 November 2026 after final real-file QA. The owner then authorized PDF Compressor as the third PDF tool and the sole active implementation; **no fourth PDF tool may start until PDF Compressor is completed and reviewed**. Each tool still requires implementation, tests, screenshots/demo and explicit owner approval before it can be marked live/complete.
-**Current active tool:** PDF Compressor — **in development**. PDF Merger and PDF Splitter are now **owner-approved**; that approval is not a deployment or indexing approval, and neither tool has been deployed or indexed by this work. The owner requested a separate `feature/pdf-compressor` branch, but this Arena session is fixed to `arena/fe1f419c-quickkit` and cannot create, switch to or push another branch. PDF Compressor will therefore be isolated in tool-specific commits on `arena/fe1f419c-quickkit` and must not be merged into `main`.
+**Current active tool:** None. PDF Compressor is **implemented — awaiting owner approval**; no fourth PDF tool has been started. PDF Merger and PDF Splitter are **owner-approved**; that approval is not a deployment or indexing approval, and none of the three PDF tools has been deployed or indexed by this work. The owner requested a separate `feature/pdf-compressor` branch, but this Arena session is fixed to `arena/fe1f419c-quickkit` and cannot create, switch to or push another branch. PDF Compressor is therefore isolated in tool-specific commits on `arena/fe1f419c-quickkit` and must not be merged into `main`.
 
 ## 1. Status definitions
 
@@ -25,7 +25,7 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 | Group | Count | Notes |
 | ---------------------------------------------------------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------- |
 | Implemented and owner-approved in repository (`live`) | 8 | Six original tools plus PDF Merger and PDF Splitter. “Live” here means repository-complete under this tracker, not publicly deployed or indexed. |
-| In development                                  |     1 | PDF Compressor, explicitly authorized as the third PDF tool after Merger/Splitter approval. |
+| Implemented — awaiting owner approval           |     1 | PDF Compressor, explicitly authorized as the third PDF tool after Merger/Splitter approval. It is implemented and QA-complete in the repository, but it is not owner-approved, deployed or indexed. |
 | In research/planning                                                   |     0 | No fourth PDF tool or other next tool is authorized until PDF Compressor is completed and reviewed.                             |
 | Remaining proposed Phase 5–12 candidates (`planned`, pending approval) |    82 | The original 84-candidate list minus PDF Merger and PDF Splitter. PDF Compressor was previously a deferred, uncounted idea and is now an owner-authorized additional active tool. |
 | Projected total after Phase 12 | 91 | Only if PDF Compressor and every remaining candidate pass their individual quality gates. |
@@ -37,12 +37,12 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 
 | Work item | Status | Evidence / next step |
 | ---------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current inline catalog       | Implemented for eight repository tools | `lib/catalog.ts`; six previously implemented tools plus PDF Merger and PDF Splitter under the approved narrow integrations. Suitable for the current homepage but not the 90-tool target. |
+| Current inline catalog       | Implemented for nine repository tools | `lib/catalog.ts`; six original tools, owner-approved PDF Merger/PDF Splitter and PDF Compressor awaiting owner approval under approved narrow integrations. Suitable for the current homepage but not the 90-tool target. |
 | Scalable tool registry | **Designed, not implemented** | Proposal in `TOOL_REGISTRY_ARCHITECTURE.md`; this remains a separate future migration and was not bundled into PDF Merger. |
-| Generated tool routes        | **Not started**                        | Current eight routes are maintained individually under `app/tools/*/page.tsx`.                                                                                                            |
+| Generated tool routes        | **Not started**                        | Current nine routes are maintained individually under `app/tools/*/page.tsx`.                                                                                                            |
 | `/tools` directory | **Not started** | Proposed as part of the registry foundation. |
 | Generated category pages | **Not started** | Proposed route: `/tools/category/{categorySlug}`. |
-| Global registry search       | **Partial precursor only**             | Current homepage search/filter works for eight repository tools; ranking, aliases and dedicated directory search are not implemented.                                                     |
+| Global registry search       | **Partial precursor only**             | Current homepage search/filter works for nine repository tools; ranking, aliases and dedicated directory search are not implemented.                                                     |
 | Functional category filters | **Partial precursor only** | Current category buttons work for the existing display categories; canonical category IDs/slugs are not implemented. |
 | Featured tools | **Not started** | Must be labeled “Featured” until real popularity data exists. |
 | Popular tools from real data | **Blocked by design decision** | No approved aggregate usage-data source currently exists; do not fabricate rankings. |
@@ -71,22 +71,28 @@ The proposed IDs below use the existing slug values. During registry migration t
 | `merge-pdf` | PDF Merger   | `/tools/merge-pdf` | PDF Tools        | PDF Tools         | **owner-approved** | Browser-only implementation reached `main` through the owner-requested PR #2 merge at `58a81ed`, then was re-verified post-merge and exercised with multiple genuine Mozilla PDF.js corpus PDFs, reorder/page selection, download and output reopening. The owner approved it on 1 November 2026 after reviewing `docs/pdf-merger/QA_REPORT.md`, including Section 12. Approval does not authorize deployment or indexing. |
 | `split-pdf` | PDF Splitter | `/tools/split-pdf` | PDF Tools        | PDF Tools         | **owner-approved** | Browser-only implementation on fixed session branch `arena/fe1f419c-quickkit` with custom ranges, visual extraction, every-N/per-page modes, named validated PDFs and local ZIP. Final real-file QA found and fixed a source-thumbnail alternative-text and reset-focus defect; permanent regression assertions now cover both. The owner approved it on 1 November 2026 after reviewing `docs/pdf-splitter/QA_REPORT.md`, including Section 12. It has not been merged into `main` by the PDF workstream, deployed or indexed. |
 
+### Implemented PDF tool awaiting owner approval
+
+| ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
+| ----------- | ------------ | ------------------ | ---------------- | ----------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compress-pdf` | PDF Compressor | `/tools/compress-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only batch compressor on `arena/fe1f419c-quickkit` with Low/Medium/High/Maximum presets, custom image quality/resolution, grayscale, best-effort target size, previews/compare, exact savings, validated individual PDFs and stored ZIP. Permanent unit/browser coverage plus a temporary 10-file Mozilla PDF.js corpus Chromium harness passed; see `docs/pdf-compressor/QA_REPORT.md`. It has not been owner-approved, merged into `main`, deployed or indexed. |
+
 ### Current regression evidence
 
-The most recent full run was recorded after final real-file QA and the Splitter accessibility/focus fix:
+The most recent full run was recorded after PDF Compressor implementation and real-file QA:
 
-- Temporary genuine-PDF browser QA harness: **7/7 passed**; it was removed after execution because its corpus lives outside the repository, and the durable regression assertions were folded into the permanent PDF browser specs.
-- Vitest: **131/131 passed**.
-- Chromium Playwright suite: **161/161 passed** in the sandbox browser environment (including Merger 5/5 and Splitter 5/5).
-- Production build: passed with eight repository tool routes and 20 static pages.
-- Targeted format check, ESLint and TypeScript: passed.
+- Temporary genuine-PDF Compressor browser QA harness: **10/10 passed**; it was removed after execution because its Mozilla corpus lives outside the repository. Durable generated-fixture coverage remains in `tests/e2e/pdf-compressor.spec.ts`.
+- Vitest: **153/153 passed**.
+- Chromium Playwright suite: **178/178 passed** in the sandbox browser environment (including Compressor 7/7, Merger 5/5 and Splitter 5/5).
+- Production build: passed with nine repository tool routes and 21 static pages.
+- Format check, ESLint and TypeScript: passed.
 - Production dependency audit: **0 vulnerabilities**.
 
 Firefox/WebKit execution is not claimed for that sandbox run. Any registry migration or later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
 
 ## 5. Proposed Phase 5 — PDF Tools
 
-**Phase status:** PDF Merger and PDF Splitter are **owner-approved**. PDF Compressor was moved from the deferred list by explicit owner instruction and is the sole active Phase 5 implementation. Every other Phase 5 tool remains blocked until PDF Compressor is finished and reviewed.
+**Phase status:** PDF Merger and PDF Splitter are **owner-approved**. PDF Compressor was moved from the deferred list by explicit owner instruction, has been implemented as the third PDF tool and is **awaiting owner approval**. Every other Phase 5 tool remains blocked until the owner reviews PDF Compressor.
 **Candidate count:** 10 original Phase 5 candidates, plus owner-authorized PDF Compressor from the deferred list
 **Projected cumulative total:** 17 if all 11 pass their individual gates
 
@@ -94,7 +100,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 | --: | ------------------------ | ---------------------- | ---------------------- | ----------------------------------------- |
 | 1 | PDF Merger | `merge-pdf` | `merge-pdf` | **owner-approved** |
 |   2 | PDF Splitter (Split PDF) | `split-pdf`            | `split-pdf`            | **owner-approved** |
-| 3 | PDF Compressor (Compress PDF) | `compress-pdf` | `compress-pdf` | **`in-development`** |
+| 3 | PDF Compressor (Compress PDF) | `compress-pdf` | `compress-pdf` | **implemented — awaiting owner approval** |
 | 4 | Organize PDF | `organize-pdf` | `organize-pdf` | `planned` |
 | 5 | Rotate PDF | `rotate-pdf` | `rotate-pdf` | `planned` |
 | 6 | Images to PDF | `images-to-pdf` | `images-to-pdf` | `planned` |
@@ -104,7 +110,7 @@ Firefox/WebKit execution is not claimed for that sandbox run. Any registry migra
 | 10 | Add PDF Watermark | `add-pdf-watermark` | `add-pdf-watermark` | `planned` |
 | 11 | PDF Metadata Editor | `pdf-metadata-editor` | `pdf-metadata-editor` | `planned` |
 
-**Next gate:** Complete PDF Compressor with real-file QA, screenshots/demo and `docs/pdf-compressor/QA_REPORT.md`, then stop for owner review. Do not merge this work into `main`, deploy/index, or begin a fourth PDF tool.
+**Next gate:** Owner review of the PDF Compressor demo, screenshots and `docs/pdf-compressor/QA_REPORT.md`. Do not merge this work into `main`, deploy/index, or begin a fourth PDF tool before that explicit decision.
 
 ## 6. Proposed Phase 6 — Image Tools
 
@@ -249,7 +255,7 @@ These are **not** part of the 84-candidate count and must not receive public car
 
 | Idea | Planning state | Reason |
 | ------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Compress PDF | **Moved to active Phase 5 work on 1 November 2026** | The owner explicitly authorized PDF Compressor after approving PDF Merger and PDF Splitter. It remains gated on a trustworthy browser engine demonstrating meaningful size reduction, valid reopened output and acceptable rendering quality. |
+| Compress PDF | **Implemented in Phase 5 — awaiting owner approval** | The owner explicitly authorized PDF Compressor after approving PDF Merger and PDF Splitter. The browser engine, reopened-output validation and rendering/quality evidence are recorded in `docs/pdf-compressor/QA_REPORT.md`; owner approval is still required before it can be called live/complete. |
 | Protect PDF | Deferred pending engine/security review | Standard browser PDF manipulation alone does not provide production encryption. |
 | Unlock/password-bypass PDF | Not proposed | QUICKKIT should not present password bypassing as a feature. Handling a user-supplied password would need a separate security design. |
 | Cryptographic PDF signing | Deferred | Certificate trust and signature validity are separate from placing a visual signature. |
@@ -289,6 +295,7 @@ A candidate may move from `planned` to `live` only when all items below are evid
 PDF Merger and PDF Splitter proceeded under explicit narrow-catalog integration decisions and are now owner-approved. PDF Compressor proceeds under the owner's later explicit authorization; the full registry migration remains separate.
 
 - [x] Personally approve or request changes to PDF Merger and PDF Splitter before any next tool starts. **Approved by the owner on 1 November 2026.**
+- [ ] Personally approve or request changes to PDF Compressor before any fourth PDF tool starts.
 - [ ] Approve the registry architecture and URL model.
 - [ ] Approve the remaining candidate scope and the resulting 90-tool total, with Phase 13 reserved for 100+.
 - [ ] Approve the eight-category taxonomy and remapping of the existing tools.
@@ -311,3 +318,4 @@ PDF Merger and PDF Splitter proceeded under explicit narrow-catalog integration 
 | 1 November 2026 | PDF Merger post-merge re-verification passed with no Merger defect found. PDF Splitter was implemented on `arena/fe1f419c-quickkit` (requested feature branches are unavailable in this fixed session), with QA in `docs/pdf-splitter/QA_REPORT.md`; both PDF tools now await owner approval and Splitter has not been merged into `main`. |
 | 1 November 2026 | Final real-file QA used genuine Mozilla PDF.js corpus files for both PDF tools. The temporary seven-scenario browser harness passed 7/7 after a genuine Splitter source-thumbnail alternative-text/reset-focus defect was fixed and permanent regression assertions were added. Both PDF tools remain **implemented — awaiting owner approval**; no third PDF tool was started and no merge/deploy/index action was taken. |
 | 1 November 2026 | Owner reviewed the final QA reports and approved PDF Merger and PDF Splitter. Their workflow status is now **owner-approved** without deployment/indexing authorization. The owner authorized PDF Compressor as the third and sole active PDF tool; the requested `feature/pdf-compressor` branch is unavailable in this fixed session, so work remains isolated by commits on `arena/fe1f419c-quickkit` and must not merge into `main`. |
+| 2 November 2026 | PDF Compressor implementation and QA were completed on `arena/fe1f419c-quickkit`, including permanent 153-test Vitest and 178-test Chromium evidence plus a temporary 10-file Mozilla corpus harness. Status is **implemented — awaiting owner approval**; no fourth PDF tool was started and no merge/deploy/index action was taken. |
