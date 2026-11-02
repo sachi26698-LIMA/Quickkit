@@ -3,11 +3,9 @@ import AxeBuilder from "@axe-core/playwright";
 test.use({ timezoneId: "America/New_York" });
 test("working hours, CSV and daylight saving gap", async ({ page }) => {
   await page.goto("/tools/time-converter");
-  const box = page
-    .locator("section")
-    .filter({
-      has: page.getByRole("heading", { name: "Timestamp & working hours" }),
-    });
+  const box = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Timestamp & working hours" }),
+  });
   await box.getByLabel("Start timestamp (local)").fill("2024-03-04T10:00");
   await box.getByLabel("End timestamp (local)").fill("2024-03-06T12:00");
   await expect(box.getByText(/Working time: 0 days, 18 hours/)).toBeVisible();
@@ -28,11 +26,9 @@ test("working-time populated responsive view and accessibility", async ({
   for (const width of [375, 390, 430, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/tools/time-converter");
-    const box = page
-      .locator("section")
-      .filter({
-        has: page.getByRole("heading", { name: "Timestamp & working hours" }),
-      });
+    const box = page.locator("section").filter({
+      has: page.getByRole("heading", { name: "Timestamp & working hours" }),
+    });
     await box.getByLabel("Start timestamp (local)").fill("2024-03-04T10:00");
     await box.getByLabel("End timestamp (local)").fill("2024-03-06T12:00");
     await expect(box.getByText(/18 hours/)).toBeVisible();
