@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { loan } from "@/lib/tools/phase9-loans";
 import { Workspace } from "./phase9-shared";
+import { downloadText } from "@/lib/tools/download";
 const money = (n: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -15,6 +16,8 @@ export default function Loans({ kind }: { kind: string }) {
   const [years, setYears] = useState(false);
   const [extra, setExtra] = useState("");
   const [compare, setCompare] = useState<string[]>([]);
+  const [oneTimeAmount, setOneTimeAmount] = useState("");
+  const [oneTimeMonth, setOneTimeMonth] = useState("");
   let r: ReturnType<typeof loan> | undefined,
     error = "";
   try {
@@ -24,6 +27,9 @@ export default function Loans({ kind }: { kind: string }) {
         Number(rate),
         Number(tenure) * (years ? 12 : 1),
         extra ? Number(extra) : 0,
+        oneTimeAmount || oneTimeMonth
+          ? { month: Number(oneTimeMonth), amount: Number(oneTimeAmount || 0) }
+          : undefined,
       );
   } catch (e) {
     error = e instanceof Error ? e.message : "Invalid input.";
@@ -31,6 +37,21 @@ export default function Loans({ kind }: { kind: string }) {
   const summary = r
     ? `Monthly payment ${money(r.payment)} · Total ${money(r.total)} · Interest ${money(r.interest)}`
     : "";
+  const baseline = r
+    ? loan(Number(principal), Number(rate), Number(tenure) * (years ? 12 : 1))
+    : undefined;
+  const yearly = r
+    ? Array.from({ length: Math.ceil(r.schedule.length / 12) }, (_, i) => {
+        const rows = r!.schedule.slice(i * 12, (i + 1) * 12);
+        return {
+          year: i + 1,
+          payment: rows.reduce((v, row) => v + row.payment, 0),
+          interest: rows.reduce((v, row) => v + row.interest, 0),
+          principal: rows.reduce((v, row) => v + row.principal, 0),
+          balance: rows[rows.length - 1].balance,
+        };
+      })
+    : [];
   return (
     <>
       <Workspace
@@ -42,6 +63,8 @@ export default function Loans({ kind }: { kind: string }) {
           setTenure("");
           setYears(false);
           setExtra("");
+          setOneTimeAmount("");
+          setOneTimeMonth("");
         }}
         detail={
           r && (
@@ -52,6 +75,9 @@ export default function Loans({ kind }: { kind: string }) {
                 Total interest: {money(r.interest)}
                 <br />
                 Paid off in {r.schedule.length} months.
+                <br />
+                Interest saved versus no prepayment:{" "}
+                {money((baseline?.interest ?? r.interest) - r.interest)}.
               </p>
               <div
                 className="loan-bar"
@@ -112,11 +138,44 @@ export default function Loans({ kind }: { kind: string }) {
             onChange={(e) => setExtra(e.target.value)}
           />
         </label>
-        {kind === "loan-calculator" && (
+        <details>
+          <summary>One-time prepayment</summary>
+          <p>
+            Added to the regular payment in the chosen month, after interest. If
+            the loan is already paid off, no extra payment is made.
+          </p>
+          <label>
+            Extra amount (₹)
+            <input
+              type="number"
+              min="0"
+              value={oneTimeAmount}
+              onChange={(e) => setOneTimeAmount(e.target.value)}
+            />
+          </label>
+          <label>
+            Payment month
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={oneTimeMonth}
+              onChange={(e) => setOneTimeMonth(e.target.value)}
+            />
+          </label>
+        </details>
+        {(kind === "loan-calculator" || kind === "emi-calculator") && (
           <button
             className="secondary"
             disabled={!r}
-            onClick={() => setCompare((c) => [...c, summary].slice(-5))}
+            onClick={() =>
+              setCompare((c) =>
+                [
+                  ...c,
+                  `Principal ${money(Number(principal))}, rate ${rate}%, tenure ${tenure} ${years ? "years" : "months"}, extra ${money(Number(extra || 0))}/month: ${summary}`,
+                ].slice(-5),
+              )
+            }
           >
             Add comparison scenario
           </button>
@@ -138,6 +197,62 @@ export default function Loans({ kind }: { kind: string }) {
       {r && (
         <section className="workspace loan-schedule">
           <h2>Amortization schedule</h2>
+          <button
+            className="secondary"
+            type="button"
+            onClick={() =>
+              downloadText(
+                [
+                  "Month,Payment,Principal,Interest,Balance",
+                  ...r.schedule.map((row) =>
+                    [
+                      row.month,
+                      row.payment.toFixed(2),
+                      row.principal.toFixed(2),
+                      row.interest.toFixed(2),
+                      row.balance.toFixed(2),
+                    ].join(","),
+                  ),
+                ].join("\n"),
+                "amortization.csv",
+                "text/csv;charset=utf-8",
+              )
+            }
+          >
+            Download schedule CSV
+          </button>
+          <details>
+            <summary>Yearly repayment summary</summary>
+            <div
+              className="loan-table"
+              tabIndex={0}
+              role="region"
+              aria-label="Yearly repayment summary"
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>Payment</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {yearly.map((row) => (
+                    <tr key={row.year}>
+                      <td>{row.year}</td>
+                      <td>{money(row.payment)}</td>
+                      <td>{money(row.principal)}</td>
+                      <td>{money(row.interest)}</td>
+                      <td>{money(row.balance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
           <p>
             EMI = P × r / (1 − (1 + r)<sup>−n</sup>); r is annual rate ÷ 12. For
             zero interest, payment = P ÷ n.

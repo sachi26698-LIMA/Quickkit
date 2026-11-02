@@ -8,7 +8,7 @@ const cases: {
   {
     slug: "age-calculator",
     fill: async (p) => {
-      await p.getByLabel("Date of birth").fill("2000-02-29");
+      await p.getByLabel("Date of birth", { exact: true }).fill("2000-02-29");
       await p.getByLabel("Age on date").fill("2023-02-28");
     },
     expected: "23 years",

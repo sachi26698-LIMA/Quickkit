@@ -4,10 +4,10 @@ import { bmi, discount, gst, percentage } from "@/lib/tools/calculators";
 
 const format = (n: number) =>
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 }).format(n);
-const money = (n: number) =>
+const money = (n: number, currency = "INR") =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "INR",
+    currency,
     maximumFractionDigits: 2,
   }).format(n);
 export default function Calculator({ kind }: { kind: string }) {
@@ -18,6 +18,10 @@ export default function Calculator({ kind }: { kind: string }) {
   const [toggle, setToggle] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
+  const [targetBmi, setTargetBmi] = useState("");
+  const [currency, setCurrency] = useState("INR");
+  let bmiValue: number | undefined;
+  let targetWeight = "";
   let result = "";
   let detail = "";
   let error = "";
@@ -33,6 +37,16 @@ export default function Calculator({ kind }: { kind: string }) {
       }
       if (kind === "bmi-calculator") {
         const r = bmi(x, y, toggle);
+        bmiValue = r.value;
+        if (targetBmi !== "") {
+          const target = Number(targetBmi);
+          if (!Number.isFinite(target) || target <= 0 || target > 100)
+            throw new Error(
+              "Target BMI must be greater than 0 and at most 100.",
+            );
+          const metres = toggle ? x * 0.0254 : x / 100;
+          targetWeight = `${format(target * metres ** 2 * (toggle ? 1 / 0.45359237 : 1))} ${toggle ? "lb" : "kg"}`;
+        }
         result = `${format(r.value)} · ${r.category}`;
         detail = `Healthy weight range: ${format(r.low)}–${format(r.high)} ${toggle ? "lb" : "kg"}. BMI = kg ÷ m².`;
       }
@@ -42,8 +56,8 @@ export default function Calculator({ kind }: { kind: string }) {
           return Number(v);
         });
         const r = discount(x, rates, extra === "" ? 0 : Number(extra), toggle);
-        result = money(r.total);
-        detail = `Original: ${money(r.original)} · After discounts: ${money(r.discounted)} · Saved: ${money(r.saved)} · Tax: ${money(r.taxAmount)}. Discounts are applied sequentially, then tax.`;
+        result = money(r.total, currency);
+        detail = `Original: ${money(r.original, currency)} · After discounts: ${money(r.discounted, currency)} · Saved: ${money(r.saved, currency)} · Tax: ${money(r.taxAmount, currency)}. Discounts are applied sequentially, then tax.`;
       }
       if (kind === "gst-calculator") {
         const r = gst(x, y, toggle);
@@ -61,6 +75,8 @@ export default function Calculator({ kind }: { kind: string }) {
     setMode("of");
     setToggle(false);
     setNotice("");
+    setTargetBmi("");
+    setCurrency("INR");
   }
   const isPercentage = kind === "percentage-calculator",
     isBmi = kind === "bmi-calculator",
@@ -110,7 +126,7 @@ export default function Calculator({ kind }: { kind: string }) {
             {isBmi
               ? `Height (${toggle ? "in" : "cm"})`
               : isDiscount
-                ? "Price (₹)"
+                ? `Price (${currency})`
                 : kind === "gst-calculator"
                   ? "Amount (₹)"
                   : mode === "of"
@@ -144,6 +160,37 @@ export default function Calculator({ kind }: { kind: string }) {
               placeholder={isDiscount ? "e.g. 10, 5" : "Enter a value"}
             />
           </label>
+          {isBmi && (
+            <details>
+              <summary>Target BMI</summary>
+              <label>
+                Target BMI (optional)
+                <input
+                  type="number"
+                  value={targetBmi}
+                  onChange={(e) => setTargetBmi(e.target.value)}
+                />
+              </label>
+              <p>
+                A mathematical estimate, not a recommended weight or medical
+                goal.
+              </p>
+            </details>
+          )}
+          {isDiscount && (
+            <label>
+              Currency
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+              >
+                <option value="INR">INR (₹)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+            </label>
+          )}
           {isDiscount && (
             <label>
               Tax after discount (%)
@@ -180,6 +227,25 @@ export default function Calculator({ kind }: { kind: string }) {
             <>
               <output>{result}</output>
               <p>{detail}</p>
+              {isBmi && bmiValue !== undefined && (
+                <>
+                  <div
+                    className="bmi-scale"
+                    role="img"
+                    aria-label={`BMI ${format(bmiValue)}; categories underweight below 18.5, healthy 18.5 to 24.9, overweight 25 to 29.9 and obesity 30 or more.`}
+                  >
+                    <span
+                      style={{
+                        left: `${Math.max(0, Math.min(100, (bmiValue / 40) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                  <p>
+                    Scale 0–40 (higher values shown at the edge).{" "}
+                    {targetWeight && `Weight at target BMI: ${targetWeight}.`}
+                  </p>
+                </>
+              )}
               <button
                 type="button"
                 className="secondary"

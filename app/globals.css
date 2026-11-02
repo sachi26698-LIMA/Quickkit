@@ -5177,3 +5177,25 @@ select:focus {
   min-width: 0;
   padding: 8px 2px;
 }
+.bmi-scale {
+  position: relative;
+  height: 14px;
+  border-radius: 8px;
+  margin: 20px 0 8px;
+  background: linear-gradient(
+    to right,
+    #b7a3e8 0% 46.25%,
+    #89cdb6 46.25% 62.5%,
+    #edc884 62.5% 75%,
+    #dc9eaa 75%
+  );
+}
+.bmi-scale span {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  background: #4e287b;
+  transform: translateX(-50%);
+}

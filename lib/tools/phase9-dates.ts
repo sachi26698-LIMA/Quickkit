@@ -38,7 +38,12 @@ export function addMonths(date: Date, months: number) {
     date.getUTCDate(),
   );
 }
-export function dateDifference(start: Date, end: Date, inclusive = false) {
+export function dateDifference(
+  start: Date,
+  end: Date,
+  inclusive = false,
+  holidays: Date[] = [],
+) {
   if (end < start)
     throw new Error("End date must be on or after the start date.");
   const days =
@@ -57,6 +62,17 @@ export function dateDifference(start: Date, end: Date, inclusive = false) {
   for (let i = 0; i < days % 7; i++) {
     const day = (start.getUTCDay() + i) % 7;
     if (day !== 0 && day !== 6) business++;
+  }
+  const uniqueHolidays = new Set(holidays.map((h) => h.getTime()));
+  for (const ms of uniqueHolidays) {
+    const holiday = new Date(ms);
+    if (
+      ms >= start.getTime() &&
+      ms < effectiveEnd.getTime() &&
+      holiday.getUTCDay() !== 0 &&
+      holiday.getUTCDay() !== 6
+    )
+      business--;
   }
   return {
     days,
@@ -81,9 +97,23 @@ export function age(birth: Date, on: Date) {
       birth.getUTCMonth(),
       birth.getUTCDate(),
     );
+  let previous = monthDay(
+    on.getUTCFullYear(),
+    birth.getUTCMonth(),
+    birth.getUTCDate(),
+  );
+  if (previous > on)
+    previous = monthDay(
+      on.getUTCFullYear() - 1,
+      birth.getUTCMonth(),
+      birth.getUTCDate(),
+    );
+  const nextBirthday =
+    birthday.getUTCFullYear() > 9999 ? null : dateString(birthday);
   return {
     ...diff,
-    nextBirthday: dateString(birthday),
+    previousBirthday: previous < birth ? null : dateString(previous),
+    nextBirthday,
     untilBirthday: Math.round((birthday.getTime() - on.getTime()) / DAY),
     weekday: [
       "Sunday",
@@ -101,6 +131,25 @@ export function shiftDays(date: Date, days: number) {
     throw new Error("Enter a whole number of days within ±3,650,000.");
   const result = new Date(date.getTime() + days * DAY);
   if (result.getUTCFullYear() < 1 || result.getUTCFullYear() > 9999)
+    throw new Error("Result must be within years 0001–9999.");
+  return dateString(result);
+}
+
+export function shiftCalendar(
+  date: Date,
+  amount: number,
+  unit: "days" | "weeks" | "months" | "years",
+) {
+  if (!Number.isSafeInteger(amount) || Math.abs(amount) > 100000)
+    throw new Error("Enter a whole duration within ±100,000.");
+  if (unit === "days" || unit === "weeks")
+    return shiftDays(date, amount * (unit === "weeks" ? 7 : 1));
+  const result = addMonths(date, amount * (unit === "years" ? 12 : 1));
+  if (
+    !Number.isFinite(result.getTime()) ||
+    result.getUTCFullYear() < 1 ||
+    result.getUTCFullYear() > 9999
+  )
     throw new Error("Result must be within years 0001–9999.");
   return dateString(result);
 }

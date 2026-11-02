@@ -4,7 +4,7 @@ import {
   age,
   dateDifference,
   parseDate,
-  shiftDays,
+  shiftCalendar,
 } from "@/lib/tools/phase9-dates";
 import { Workspace } from "./phase9-shared";
 export default function Dates({ kind }: { kind: string }) {
@@ -12,6 +12,11 @@ export default function Dates({ kind }: { kind: string }) {
   const [end, setEnd] = useState("");
   const [inclusive, setInclusive] = useState(false);
   const [shift, setShift] = useState("");
+  const [shiftUnit, setShiftUnit] = useState<
+    "days" | "weeks" | "months" | "years"
+  >("days");
+  const [holidays, setHolidays] = useState("");
+  const [secondBirth, setSecondBirth] = useState("");
   const isAge = kind === "age-calculator";
   let result = "",
     error = "",
@@ -23,11 +28,22 @@ export default function Dates({ kind }: { kind: string }) {
       if (isAge) {
         const r = age(s, e);
         result = `${r.years} years, ${r.months} months, ${r.remainder} days`;
-        detail = `Total: ${r.days} days, ${(r.days / 7).toFixed(2)} weeks, ${r.totalMonths} completed months. Born on ${r.weekday}. Next birthday: ${r.nextBirthday} (${r.untilBirthday} days away). February 29 birthdays are observed on February 28 in non-leap years.`;
+        detail = `Total: ${r.days} days, ${(r.days / 7).toFixed(2)} weeks, ${r.totalMonths} completed months, ${r.days * 24} calendar-day hours. Born on ${r.weekday}. Most recent birthday: ${r.previousBirthday ?? "not yet available"}. Next birthday: ${r.nextBirthday ?? "outside supported range"} (${r.untilBirthday} days away). February 29 birthdays are observed on February 28 in non-leap years.`;
+        if (secondBirth) {
+          const other = parseDate(secondBirth);
+          age(other, e);
+          const earlier = s < other ? s : other;
+          const later = s < other ? other : s;
+          const difference = dateDifference(earlier, later);
+          detail += ` Age gap: ${difference.years} years, ${difference.months} months, ${difference.remainder} days (${difference.days} days).`;
+        }
       } else {
-        const r = dateDifference(s, e, inclusive);
+        const holidayDates = holidays.trim()
+          ? holidays.split(/[\n,]+/).map((h) => parseDate(h.trim()))
+          : [];
+        const r = dateDifference(s, e, inclusive, holidayDates);
         result = `${r.years} years, ${r.months} months, ${r.remainder} days`;
-        detail = `${r.days} total days · ${r.weeks.toFixed(2)} total weeks · ${r.business} weekdays (excluding public holidays). Whole months are clamped to the last day of shorter months.`;
+        detail = `${r.days} total days · ${r.weeks.toFixed(2)} total weeks · ${r.business} business days (weekends and supplied holidays excluded). Whole months are clamped to the last day of shorter months.`;
       }
     }
   } catch (e) {
@@ -36,7 +52,7 @@ export default function Dates({ kind }: { kind: string }) {
   let shifted = "";
   try {
     if (start && shift !== "")
-      shifted = shiftDays(parseDate(start), Number(shift));
+      shifted = shiftCalendar(parseDate(start), Number(shift), shiftUnit);
   } catch (e) {
     shifted = e instanceof Error ? e.message : "Invalid days.";
   }
@@ -50,6 +66,9 @@ export default function Dates({ kind }: { kind: string }) {
         setEnd("");
         setShift("");
         setInclusive(false);
+        setShiftUnit("days");
+        setHolidays("");
+        setSecondBirth("");
       }}
     >
       <label>
@@ -68,6 +87,23 @@ export default function Dates({ kind }: { kind: string }) {
           onChange={(e) => setEnd(e.target.value)}
         />
       </label>
+      {isAge && (
+        <details>
+          <summary>Compare another person</summary>
+          <label>
+            Second date of birth
+            <input
+              type="date"
+              value={secondBirth}
+              onChange={(e) => setSecondBirth(e.target.value)}
+            />
+          </label>
+          <p>
+            The age gap is calculated in calendar years, months and days from
+            the earlier birth date.
+          </p>
+        </details>
+      )}
       {!isAge && (
         <>
           <label className="calculator-check">
@@ -79,7 +115,7 @@ export default function Dates({ kind }: { kind: string }) {
             Include end date
           </label>
           <label>
-            Add or subtract days from start (negative to subtract)
+            Add or subtract duration from start (negative to subtract)
             <input
               type="number"
               step="1"
@@ -87,7 +123,38 @@ export default function Dates({ kind }: { kind: string }) {
               onChange={(e) => setShift(e.target.value)}
             />
           </label>
-          {shifted && <p>Shifted date: {shifted}</p>}
+          <label>
+            Duration unit
+            <select
+              value={shiftUnit}
+              onChange={(e) => setShiftUnit(e.target.value as typeof shiftUnit)}
+            >
+              <option value="days">Days</option>
+              <option value="weeks">Weeks</option>
+              <option value="months">Calendar months</option>
+              <option value="years">Calendar years</option>
+            </select>
+          </label>
+          {shifted && (
+            <p>
+              Shifted date: {shifted}. Calendar months and years clamp to the
+              last valid day.
+            </p>
+          )}
+          <details>
+            <summary>Holiday exclusions</summary>
+            <label>
+              Holiday dates (YYYY-MM-DD, comma or line separated)
+              <textarea
+                value={holidays}
+                onChange={(e) => setHolidays(e.target.value)}
+                placeholder="2026-01-26, 2026-08-15"
+              />
+            </label>
+            <p>
+              Only unique weekdays within the selected interval are excluded.
+            </p>
+          </details>
         </>
       )}
     </Workspace>

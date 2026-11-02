@@ -77,6 +77,31 @@ export const units: Record<string, Record<string, number>> = {
   },
   Power: { Watt: 1, Kilowatt: 1000, "Mechanical horsepower": 745.699871582 },
   Frequency: { Hertz: 1, Kilohertz: 1000, Megahertz: 1e6, Gigahertz: 1e9 },
+  Force: {
+    Newton: 1,
+    Kilonewton: 1000,
+    "Pound-force": 4.4482216152605,
+    Dyne: 0.00001,
+  },
+  Torque: {
+    "Newton metre": 1,
+    "Kilonewton metre": 1000,
+    "Pound-foot": 1.3558179483314,
+    "Pound-inch": 0.1129848290276167,
+  },
+  Density: {
+    "Kilogram per cubic metre": 1,
+    "Gram per cubic centimetre": 1000,
+    "Pound per cubic foot": 16.01846337396,
+  },
+  Angle: {
+    Radian: 1,
+    Degree: Math.PI / 180,
+    Gradian: Math.PI / 200,
+    Turn: 2 * Math.PI,
+    "Arc minute": Math.PI / 10800,
+    "Arc second": Math.PI / 648000,
+  },
   "Fuel consumption": {
     "L/100 km": 1,
     "US mpg": 235.214583,

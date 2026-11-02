@@ -2,8 +2,6 @@
 import { useState } from "react";
 import { units, convert, temperature } from "@/lib/tools/phase9-conversion";
 import { Workspace } from "./phase9-shared";
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-US", { maximumSignificantDigits: 10 }).format(n);
 export default function Converters({ kind }: { kind: string }) {
   const isTemp = kind === "temperature-converter",
     isTime = kind === "time-converter";
@@ -19,6 +17,13 @@ export default function Converters({ kind }: { kind: string }) {
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
   const [direction, setDirection] = useState("add");
+  const [precision, setPrecision] = useState(10);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [showComparison, setShowComparison] = useState(false);
+  const [saved, setSaved] = useState<
+    { category: string; from: string; to: string; value: string }[]
+  >([]);
+  const [message, setMessage] = useState("");
   const choices = isTemp
     ? ["Celsius", "Fahrenheit", "Kelvin"]
     : Object.keys(units[category]);
@@ -30,7 +35,7 @@ export default function Converters({ kind }: { kind: string }) {
       const n = isTemp
         ? temperature(Number(value), from, to)
         : convert(Number(value), category, from, to);
-      result = `${fmt(n)} ${to}`;
+      result = `${new Intl.NumberFormat("en-US", { maximumSignificantDigits: precision }).format(n)} ${to}`;
       if (isTime && date) {
         const ms =
           convert(Number(value), "Time", from, "Second") *
@@ -71,6 +76,9 @@ export default function Converters({ kind }: { kind: string }) {
         setSearch("");
         setDate("");
         setDirection("add");
+        setPrecision(10);
+        setCategorySearch("");
+        setShowComparison(false);
       }}
       detail={
         <p>
@@ -87,6 +95,17 @@ export default function Converters({ kind }: { kind: string }) {
     >
       {!isTemp && !isTime && (
         <label>
+          Search categories
+          <input
+            type="search"
+            value={categorySearch}
+            onChange={(e) => setCategorySearch(e.target.value)}
+            placeholder="Filter categories"
+          />
+        </label>
+      )}
+      {!isTemp && !isTime && (
+        <label>
           Category
           <select
             value={category}
@@ -99,9 +118,15 @@ export default function Converters({ kind }: { kind: string }) {
               setSearch("");
             }}
           >
-            {Object.keys(units).map((c) => (
-              <option key={c}>{c}</option>
-            ))}
+            {Object.keys(units)
+              .filter(
+                (c) =>
+                  c === category ||
+                  c.toLowerCase().includes(categorySearch.toLowerCase()),
+              )
+              .map((c) => (
+                <option key={c}>{c}</option>
+              ))}
           </select>
         </label>
       )}
@@ -145,6 +170,129 @@ export default function Converters({ kind }: { kind: string }) {
           {options(to)}
         </select>
       </label>
+      <details>
+        <summary>Advanced conversion settings</summary>
+        <label>
+          Precision (significant digits)
+          <select
+            value={precision}
+            onChange={(e) => setPrecision(Number(e.target.value))}
+          >
+            {[4, 6, 8, 10, 12, 15].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="calculator-check">
+          <input
+            type="checkbox"
+            checked={showComparison}
+            onChange={(e) => setShowComparison(e.target.checked)}
+          />{" "}
+          Show all target units
+        </label>
+        {!isTemp && !isTime && (
+          <p>
+            Decimal data units use powers of 1,000 (kB, MB); binary units use
+            powers of 1,024 (KiB, MiB).
+          </p>
+        )}
+      </details>
+      <button
+        className="secondary"
+        type="button"
+        disabled={!result || !!error}
+        onClick={() => {
+          setSaved((items) =>
+            [{ category, from, to, value }, ...items].slice(0, 20),
+          );
+          setMessage("Conversion saved for this page session.");
+        }}
+      >
+        Save conversion
+      </button>
+      {saved.length > 0 && (
+        <div>
+          <h3>Saved conversions</h3>
+          <ul>
+            {saved.map((item, i) => (
+              <li key={i}>
+                {item.value} {item.from} → {item.to}{" "}
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={() => {
+                    setCategory(item.category);
+                    setFrom(item.from);
+                    setTo(item.to);
+                    setValue(item.value);
+                  }}
+                >
+                  Restore
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => setSaved([])}
+          >
+            Clear saved conversions
+          </button>
+        </div>
+      )}
+      <p role="status">{message}</p>
+      {showComparison && value !== "" && !error && (
+        <div>
+          <h3>Compare units</h3>
+          <ul>
+            {choices.map((unit) => {
+              try {
+                const converted = isTemp
+                  ? temperature(Number(value), from, unit)
+                  : convert(Number(value), category, from, unit);
+                const display = new Intl.NumberFormat("en-US", {
+                  maximumSignificantDigits: precision,
+                }).format(converted);
+                return (
+                  <li key={unit}>
+                    {display} {unit}{" "}
+                    <button
+                      className="secondary"
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(
+                            `${display} ${unit}`,
+                          );
+                          setMessage(`Copied ${unit}.`);
+                        } catch {
+                          setMessage(
+                            "Copy failed. Select the result manually.",
+                          );
+                        }
+                      }}
+                    >
+                      Copy
+                    </button>
+                  </li>
+                );
+              } catch {
+                return <li key={unit}>Unavailable: {unit}</li>;
+              }
+            })}
+          </ul>
+        </div>
+      )}
+      {isTemp && (
+        <p>
+          Reference points: water freezes at 0 °C and boils at 100 °C at
+          standard pressure; absolute zero is −273.15 °C.
+        </p>
+      )}
       {isTime && (
         <>
           <label>

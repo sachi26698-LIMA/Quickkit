@@ -1,10 +1,14 @@
 /** Bounded recursive descent expression parser. No JavaScript evaluation. */
-export function scientific(expression: string, degrees: boolean): number {
+export function scientific(
+  expression: string,
+  degrees: boolean,
+  answer?: number,
+): number {
   if (expression.length > 500)
     throw new Error("Expression is too long (maximum 500 characters).");
   const tokens =
     expression.match(
-      /(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-z]+|[+\-*/^()!]/gi,
+      /(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-z]+|[+\-*/^()!,]/gi,
     ) || [];
   if (
     tokens.join("").toLowerCase() !==
@@ -18,7 +22,12 @@ export function scientific(expression: string, degrees: boolean): number {
   const funcs: Record<string, (n: number) => number> = {
     sin: (n) => Math.sin(angle(n)),
     cos: (n) => Math.cos(angle(n)),
-    tan: (n) => Math.tan(angle(n)),
+    tan: (n) => {
+      const radians = angle(n);
+      if (Math.abs(Math.cos(radians)) < 1e-15)
+        throw new Error("Tangent is undefined at this angle.");
+      return Math.tan(radians);
+    },
     asin: (n) => inverse(Math.asin(n)),
     acos: (n) => inverse(Math.acos(n)),
     atan: (n) => inverse(Math.atan(n)),
@@ -26,6 +35,12 @@ export function scientific(expression: string, degrees: boolean): number {
     ln: Math.log,
     log: Math.log10,
     abs: Math.abs,
+    sinh: Math.sinh,
+    cosh: Math.cosh,
+    tanh: Math.tanh,
+    asinh: Math.asinh,
+    acosh: Math.acosh,
+    atanh: Math.atanh,
   };
   function primary(): number {
     if (++depth > 100) throw new Error("Expression is too deeply nested.");
@@ -41,7 +56,39 @@ export function scientific(expression: string, degrees: boolean): number {
       const word = t.toLowerCase();
       if (word === "pi") return Math.PI;
       if (word === "e") return Math.E;
-      if (funcs[word]) {
+      if (word === "ans") {
+        if (answer === undefined || !Number.isFinite(answer))
+          throw new Error("No previous answer. Evaluate a calculation first.");
+        return answer;
+      }
+      if (word === "ncr" || word === "npr") {
+        if (tokens[pos++] !== "(")
+          throw new Error("Functions require parentheses.");
+        const n = sum();
+        if (tokens[pos++] !== ",")
+          throw new Error("Use two arguments, e.g. nCr(5,2).");
+        const r = sum();
+        if (tokens[pos++] !== ")")
+          throw new Error("Missing closing parenthesis.");
+        if (
+          !Number.isInteger(n) ||
+          !Number.isInteger(r) ||
+          n < 0 ||
+          r < 0 ||
+          r > n ||
+          n > 170
+        )
+          throw new Error("Use integers 0 ≤ r ≤ n ≤ 170.");
+        let out = 1;
+        if (word === "ncr") {
+          const k = Math.min(r, n - r);
+          for (let i = 1; i <= k; i++) out = (out * (n - k + i)) / i;
+        } else {
+          for (let i = 0; i < r; i++) out *= n - i;
+        }
+        return out;
+      }
+      if (Object.hasOwn(funcs, word)) {
         if (tokens[pos++] !== "(")
           throw new Error("Functions require parentheses.");
         const n = sum();

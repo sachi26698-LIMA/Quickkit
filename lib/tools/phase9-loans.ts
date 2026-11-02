@@ -3,6 +3,7 @@ export function loan(
   annualRate: number,
   months: number,
   extra = 0,
+  oneTime?: { month: number; amount: number },
 ) {
   if (
     ![principal, annualRate, months, extra].every(Number.isFinite) ||
@@ -14,7 +15,14 @@ export function loan(
     months < 1 ||
     months > 1200 ||
     extra < 0 ||
-    extra > 1e12
+    extra > 1e12 ||
+    (oneTime !== undefined &&
+      (!Number.isInteger(oneTime.month) ||
+        oneTime.month < 1 ||
+        oneTime.month > months ||
+        !Number.isFinite(oneTime.amount) ||
+        oneTime.amount < 0 ||
+        oneTime.amount > 1e12))
   )
     throw new Error(
       "Enter a positive principal (up to 1 trillion), rate 0–1000%, whole tenure 1–1200 months, and non-negative extra payment.",
@@ -39,7 +47,10 @@ export function loan(
     const actual =
       month === months
         ? balance + interest
-        : Math.min(balance + interest, payment + extra);
+        : Math.min(
+            balance + interest,
+            payment + extra + (oneTime?.month === month ? oneTime.amount : 0),
+          );
     const paidPrincipal = actual - interest;
     balance = Math.max(0, balance - paidPrincipal);
     interestTotal += interest;

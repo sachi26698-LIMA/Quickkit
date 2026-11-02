@@ -107,7 +107,7 @@ export const calculatorInfo: Record<
     faqs: [
       {
         q: "Are holidays excluded from business days?",
-        a: "No. Business days count Monday to Friday only, without public holidays.",
+        a: "Business days count Monday to Friday; add custom holiday dates to exclude them. No holiday calendar is loaded automatically.",
       },
     ],
   },
