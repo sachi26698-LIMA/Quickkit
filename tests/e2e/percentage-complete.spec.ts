@@ -196,8 +196,7 @@ test("populated responsive layout, axe, console and screenshots", async ({
       ),
     ).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    if (width === 375 || width === 1440)
-      await page.evaluate(() => window.scrollTo(0, 0));
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: `docs/percentage-qa/percentage-${width}.png`,
       fullPage: true,
