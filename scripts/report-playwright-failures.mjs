@@ -34,8 +34,9 @@ function visitSuite(suite, parentTitles = []) {
         .map((item) => item.message)
         .filter(Boolean)
         .join(" | ")
+        .replace(/\u001b\[[0-9;]*m/g, "")
         .replace(/\s+/g, " ")
-        .slice(0, 500);
+        .slice(0, 4000);
       failures.push(
         `[${test.projectName ?? "unknown project"}] ${fullTitle}: ${error || result.status}`,
       );

@@ -50,7 +50,15 @@ async function expectNoAxeViolations(page: Page) {
     result.violations.map((violation) => ({
       id: violation.id,
       description: violation.description,
-      nodes: violation.nodes.map((node) => node.target),
+      nodes: violation.nodes.map((node) => ({
+        target: node.target,
+        failureSummary: node.failureSummary,
+        checks: node.any.map((check) => ({
+          id: check.id,
+          message: check.message,
+          data: check.data,
+        })),
+      })),
     })),
   ).toEqual([]);
 }
@@ -129,7 +137,10 @@ test("merges reordered selected pages locally and downloads a validated PDF", as
   const pendingDownload = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download merged PDF" }).click();
   const download = await pendingDownload;
-  expect(download.suggestedFilename()).toBe("Combined report.pdf");
+  // WebKit normalizes spaces to underscores in suggested download filenames.
+  expect(["Combined report.pdf", "Combined_report.pdf"]).toContain(
+    download.suggestedFilename(),
+  );
   const outputBytes = await readFile((await download.path())!);
   const reopened = await PDFDocument.load(outputBytes);
   expect(reopened.getPageCount()).toBe(3);
