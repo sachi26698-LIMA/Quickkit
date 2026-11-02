@@ -454,3 +454,17 @@ CI artifact (`browser-screenshots`) that keeps the 375/390/430/768/1440 captures
 spec so the owner can review the real layout. Full suite: 27 unit files / 414 tests, lint,
 format:check, typecheck and production build pass. Browser results are recorded in the pull request;
 the two pre-existing webkit pdf-merger failures are unchanged and out of scope. Not merged.
+
+### Image & PDF Converter — browser verification result (2 November 2026)
+
+Appended record of the green browser run on `0e19d01` (CI run `41423465939`): **500 passed,
+4 skipped, 2 failed**. Both failures are the pre-existing WebKit PDF Merger tests
+(`Combined_report.pdf` filename and the page-picker contrast audit) that also fail on `main`
+and are out of scope for this workstream; no PDF Merger file was touched. The converter spec
+itself passed every case: empty state + axe, JPG→PNG byte-integrity, transparent PNG→JPG,
+WEBP/AVIF/GIF/BMP/TIFF outputs, quality and resize, batch + ZIP, Images to PDF page count,
+A4 geometry and raster-only check, queue ordering, PDF→PNG page range + ZIP, out-of-range
+rejection, cancellation, corrupt input, mobile Files/Preview switch and the
+375/390/430/768/1440 overflow/keyboard sweep. Format check, lint, typecheck, 414 unit tests
+and the production build all passed on the same commit. The 375/390/430/768/1440 full-page
+captures are in the `browser-screenshots` CI artifact. **Not merged; owner approval pending.**
