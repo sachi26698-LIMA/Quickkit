@@ -83,6 +83,71 @@ async function rasterizePdfPage(page: Page, pdfBytes: Buffer, pageNumber = 1) {
   );
   const pngDataUrl = await page.evaluate(
     async ({ base64, targetPage }) => {
+      const mapPrototype = Map.prototype as Map<unknown, unknown> & {
+        getOrInsertComputed?: (
+          key: unknown,
+          callback: (key: unknown) => unknown,
+        ) => unknown;
+      };
+      if (typeof mapPrototype.getOrInsertComputed !== "function") {
+        Object.defineProperty(mapPrototype, "getOrInsertComputed", {
+          configurable: true,
+          writable: true,
+          value: function <K, V>(
+            this: Map<K, V>,
+            key: K,
+            callback: (key: K) => V,
+          ) {
+            if (this.has(key)) return this.get(key)!;
+            const value = callback(key);
+            this.set(key, value);
+            return value;
+          },
+        });
+      }
+      const mathWithSumPrecise = Math as Math & {
+        sumPrecise?: (values: Iterable<number>) => number;
+      };
+      if (typeof mathWithSumPrecise.sumPrecise !== "function") {
+        Object.defineProperty(Math, "sumPrecise", {
+          configurable: true,
+          writable: true,
+          value: (values: Iterable<number>) => {
+            let total = 0;
+            let compensation = 0;
+            let sawValue = false;
+            let sawPositiveInfinity = false;
+            let sawNegativeInfinity = false;
+            let allNegativeZero = true;
+            for (const value of values) {
+              sawValue = true;
+              if (Number.isNaN(value)) return Number.NaN;
+              if (value === Number.POSITIVE_INFINITY) {
+                sawPositiveInfinity = true;
+                allNegativeZero = false;
+                continue;
+              }
+              if (value === Number.NEGATIVE_INFINITY) {
+                sawNegativeInfinity = true;
+                allNegativeZero = false;
+                continue;
+              }
+              if (!Object.is(value, -0)) allNegativeZero = false;
+              const next = total + value;
+              if (Math.abs(total) >= Math.abs(value))
+                compensation += total - next + value;
+              else compensation += value - next + total;
+              total = next;
+            }
+            if (sawPositiveInfinity && sawNegativeInfinity) return Number.NaN;
+            if (sawPositiveInfinity) return Number.POSITIVE_INFINITY;
+            if (sawNegativeInfinity) return Number.NEGATIVE_INFINITY;
+            if (!sawValue) return 0;
+            if (allNegativeZero) return -0;
+            return total + compensation;
+          },
+        });
+      }
       const moduleUrl = "/__qr_test_pdfjs__/pdf.mjs";
       const pdfjs = await import(moduleUrl);
       pdfjs.GlobalWorkerOptions.workerSrc = "/__qr_test_pdfjs__/pdf.worker.mjs";
