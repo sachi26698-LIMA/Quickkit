@@ -116,6 +116,9 @@ broken file.
   cannot start or crashes, the same encoder retries on the main thread so a conversion is never lost
   to a worker failure. PDF parsing already uses pdf.js's own worker. Canvas-bound decode/draw and PDF
   page rendering happen on the main thread, one file or page at a time, yielding between steps.
+- **Preview fit**: raster previews open in _Fit to panel_ so a tall page is visible in full; moving
+  the zoom slider switches to free zoom (50–300 %) and the stage scrolls instead of cropping. PDF page
+  and exported-page previews are capped to the stage height for the same reason.
 - **Mobile layout**: below 1080 px a Files/Preview switch replaces the single long column. Both
   panels are real, the switch is `aria-pressed`/`aria-controls`, and a finished conversion moves the
   user to the preview. The tab controls are hidden on desktop where both panels are visible.
