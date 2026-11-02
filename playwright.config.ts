@@ -5,7 +5,9 @@ export default defineConfig({
     baseURL: process.env.TEST_BASE_URL || "http://127.0.0.1:3001",
     trace: "retain-on-failure",
   },
-  reporter: "list",
+  // In CI, also emit GitHub annotations so failed tests are identifiable
+  // from the Checks UI/API without downloading log bundles.
+  reporter: process.env.CI ? [["github"], ["list"]] : "list",
   webServer: process.env.TEST_BASE_URL
     ? undefined
     : {
