@@ -3132,3 +3132,425 @@ select:focus {
     min-height: 0;
   }
 }
+
+/* PDF Compressor */
+.pdf-compressor-workspace {
+  overflow: visible;
+}
+.pdf-compressor-workspace .pdf-thumbnail-placeholder {
+  color: #5d5485;
+}
+.pdf-compress-entry.selected-entry {
+  border-color: #b9a9ee;
+  box-shadow: 0 0 0 3px #6657e812;
+}
+.pdf-compress-thumbnail-button {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.pdf-compress-thumbnail-button:focus-visible {
+  outline: 3px solid var(--purple);
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+.pdf-compress-output-name {
+  margin-top: 15px;
+}
+.pdf-compress-output-name .help strong {
+  overflow-wrap: anywhere;
+}
+.pdf-compress-entry-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 15px;
+  padding: 13px;
+  border: 1px solid #cfe7d8;
+  border-radius: 13px;
+  background: #f3fbf6;
+}
+.pdf-compress-entry-result > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.pdf-compress-entry-result span {
+  color: var(--secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.pdf-download-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+}
+.pdf-compress-settings h3,
+.pdf-compress-results h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pdf-compress-custom-badge {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff1df;
+  color: #87530b;
+  font-size: 11px;
+  font-weight: 700;
+}
+.pdf-compress-preset-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.pdf-compress-preset-fieldset legend {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.pdf-compress-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.pdf-compress-preset-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  cursor: pointer;
+}
+.pdf-compress-preset-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 12px;
+  opacity: 0;
+}
+.pdf-compress-preset-card input + span {
+  display: grid;
+  min-height: 146px;
+  align-content: start;
+  gap: 7px;
+  padding: 15px;
+  border: 1px solid #ded9ec;
+  border-radius: 14px;
+  background: #fdfcff;
+  color: #5c517d;
+}
+.pdf-compress-preset-card input + span strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.pdf-compress-preset-card input + span small {
+  color: var(--secondary);
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.55;
+}
+.pdf-compress-preset-card:hover input:not(:disabled) + span {
+  border-color: #c9bcf0;
+  background: #f8f5ff;
+}
+.pdf-compress-preset-card input:checked + span {
+  border-color: var(--purple);
+  background: linear-gradient(150deg, #f2efff, #effaf3);
+  box-shadow: inset 0 0 0 1px var(--purple);
+}
+.pdf-compress-preset-card input:focus-visible + span {
+  outline: 3px solid var(--purple);
+  outline-offset: 3px;
+}
+.pdf-compress-preset-card input:disabled + span {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+.pdf-compress-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.pdf-compress-check-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e4def2;
+  border-radius: 14px;
+  background: #fdfcff;
+  cursor: pointer;
+}
+.pdf-compress-check-card.compact {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.pdf-compress-check-card input {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  margin-top: 2px;
+  accent-color: var(--purple);
+}
+.pdf-compress-check-card span {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.pdf-compress-check-card strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.pdf-compress-check-card small {
+  color: var(--secondary);
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.55;
+}
+.pdf-compress-range-control,
+.pdf-compress-target-control,
+.pdf-compress-zip-name {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e4def2;
+  border-radius: 14px;
+  background: #fdfcff;
+}
+.pdf-compress-range-control > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pdf-compress-range-control output {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eee9ff;
+  color: #5542a8;
+  font-size: 11px;
+  font-weight: 700;
+}
+.pdf-compress-range-control input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--purple);
+}
+.pdf-compress-target-row {
+  display: grid;
+  grid-template-columns: auto minmax(100px, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+}
+.pdf-compress-warning,
+.pdf-compress-excluded {
+  display: flex;
+  gap: 11px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #eadfbd;
+  border-radius: 14px;
+  background: #fffaf0;
+  color: #655226;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.pdf-compress-excluded {
+  border-color: #d9e2f2;
+  background: #f7faff;
+  color: #43536e;
+}
+.pdf-compress-warning ul,
+.pdf-compress-excluded ul {
+  margin: 6px 0 0;
+  padding-left: 19px;
+}
+.pdf-compress-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.pdf-compress-summary-grid .stat-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #e4def2;
+  border-radius: 13px;
+  background: white;
+}
+.pdf-compress-summary-grid .stat-card span {
+  color: var(--secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+.pdf-compress-summary-grid .stat-card strong {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+.pdf-compress-compare,
+.pdf-compress-results {
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid #e3def3;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #ffffff, #fbfaff 58%, #f3fbf7);
+}
+.pdf-compress-compare select {
+  max-width: 320px;
+}
+.pdf-compress-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.pdf-compress-compare-grid figure {
+  min-width: 0;
+  margin: 0;
+}
+.pdf-compress-compare-grid figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 2px 0;
+  font-size: 12px;
+}
+.pdf-compress-compare-grid figcaption span {
+  color: var(--secondary);
+  text-align: right;
+}
+.pdf-compress-result-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pdf-compress-result-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #dbe8df;
+  border-radius: 14px;
+  background: white;
+}
+.pdf-compress-result-list li > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.pdf-compress-result-list strong {
+  overflow-wrap: anywhere;
+}
+.pdf-compress-result-list span {
+  color: var(--secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.pdf-compress-result-list details {
+  margin-top: 6px;
+  color: var(--secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.pdf-compress-result-list details ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.pdf-compress-results h3:focus {
+  outline: 3px solid var(--purple);
+  outline-offset: 4px;
+}
+.pdf-compressor-workspace .progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8f7cf2, #6657e8);
+  transition: width 0.25s ease;
+}
+@media (max-width: 900px) {
+  .pdf-compress-preset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pdf-compress-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .pdf-compress-controls-grid,
+  .pdf-compress-compare-grid {
+    grid-template-columns: 1fr;
+  }
+  .pdf-compress-entry-result,
+  .pdf-compress-result-list li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .pdf-compress-entry-result .toolbar-actions,
+  .pdf-compress-result-list .toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pdf-compress-entry-result .toolbar-button,
+  .pdf-compress-entry-result a,
+  .pdf-compress-result-list .toolbar-button,
+  .pdf-compress-result-list a {
+    justify-content: center;
+  }
+}
+@media (max-width: 640px) {
+  .pdf-compressor-workspace {
+    padding-bottom: 86px;
+  }
+  .pdf-compressor-workspace input[type="password"],
+  .pdf-compressor-workspace input[type="number"],
+  .pdf-compressor-workspace input[type="text"],
+  .pdf-compressor-workspace select {
+    font-size: 16px;
+  }
+  .pdf-compress-compare,
+  .pdf-compress-results {
+    padding: 15px;
+  }
+  .pdf-compress-preset-card input + span {
+    min-height: 126px;
+    padding: 13px;
+  }
+  .pdf-compress-target-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .pdf-compress-target-row label:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 430px) {
+  .pdf-compress-preset-grid,
+  .pdf-compress-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .pdf-compress-preset-card input + span {
+    min-height: 0;
+  }
+  .pdf-compress-entry-result .toolbar-actions,
+  .pdf-compress-result-list .toolbar-actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -96,6 +96,18 @@ export const tools = [
     color: "mint",
     phase: 5,
   },
+  {
+    slug: "compress-pdf",
+    name: "PDF Compressor",
+    category: "PDF Tools",
+    description:
+      "Smaller PDFs, same pages. Batch-compress locally with quality presets, target size and exact savings.",
+    keywords:
+      "pdf compress reduce shrink target size optimize file size batch zip scanned image documents password",
+    icon: "pdfCompress",
+    color: "peach",
+    phase: 5,
+  },
 ] as const;
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();

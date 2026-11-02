@@ -34,7 +34,7 @@ it("keeps sitemap and robots blocked even with an origin but no approval", async
   expect(robots().rules).toEqual({ userAgent: "*", disallow: "/" });
   expect(sitemap()).toEqual([]);
 });
-it("emits the twelve real sitemap routes only after explicit production approval", async () => {
+it("emits the thirteen real sitemap routes only after explicit production approval", async () => {
   vi.stubEnv("SITE_URL", "https://test.example");
   vi.stubEnv("LAUNCH_APPROVED", "true");
   vi.stubEnv("VERCEL_ENV", "production");
@@ -43,7 +43,7 @@ it("emits the twelve real sitemap routes only after explicit production approval
   const { default: sitemap } = await import("../app/sitemap");
   expect(robots().rules).toEqual({ userAgent: "*", allow: "/" });
   const routes = sitemap();
-  expect(routes).toHaveLength(12);
+  expect(routes).toHaveLength(13);
   expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
     true,
   );

@@ -14,6 +14,7 @@ import {
   ImageIcon,
   Files,
   ScissorsLineDashed,
+  Shrink,
   SlidersHorizontal,
 } from "lucide-react";
 import { categories, filterTools, tools, type Category } from "@/lib/catalog";
@@ -26,6 +27,7 @@ const icons = {
   image: ImageIcon,
   pdf: Files,
   pdfSplit: ScissorsLineDashed,
+  pdfCompress: Shrink,
 };
 export default function Catalog() {
   const ready = useHydrated();

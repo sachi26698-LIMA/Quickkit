@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | QUICKKIT",
   },
   description:
-    "Eight useful browser tools for PDFs, text, JSON, passwords, QR codes and images. No account, no uploads, zero hassle.",
+    "Nine useful browser tools for PDFs, text, JSON, passwords, QR codes and images. No account, no uploads, zero hassle.",
   metadataBase: new URL(
     siteOrigin ||
       (process.env.VERCEL_URL

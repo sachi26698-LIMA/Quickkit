@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { filterTools, tools } from "../lib/catalog";
 describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
-    expect(filterTools("", "All tools")).toHaveLength(8));
+    expect(filterTools("", "All tools")).toHaveLength(9));
   it("ignores case and surrounding spaces", () =>
     expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter"));
   it("searches keywords", () =>
@@ -26,7 +26,14 @@ describe("catalog discovery", () => {
     expect(filterTools("", "PDF Tools").map((tool) => tool.slug)).toEqual([
       "merge-pdf",
       "split-pdf",
+      "compress-pdf",
     ]);
+  });
+  it("finds the PDF compressor by size-reduction intent", () => {
+    expect(filterTools("shrink target", "PDF Tools")).toEqual([
+      expect.objectContaining({ slug: "compress-pdf" }),
+    ]);
+    expect(filterTools("compress", "Text")).toHaveLength(0);
   });
   it("handles unknown and long queries", () => {
     expect(filterTools("not here", "All tools")).toHaveLength(0);

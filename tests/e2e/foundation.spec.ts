@@ -1,19 +1,19 @@
 import { test, expect } from "@playwright/test";
 test("search, category filters, clear and empty state", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(9);
   await page.getByRole("searchbox").fill("json");
   await expect(page.locator(".tool-card")).toHaveCount(1);
   await page.getByRole("button", { name: "Text", exact: true }).click();
   await expect(page.getByText("No tools found")).toBeVisible();
   await page.getByRole("button", { name: "Clear search & filters" }).click();
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(9);
   await page.getByRole("searchbox").fill("crypto");
   await page.getByRole("searchbox").press("Escape");
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(9);
   await page.getByRole("searchbox").fill("json");
   await page.getByRole("button", { name: "Clear search", exact: true }).click();
-  await expect(page.locator(".tool-card")).toHaveCount(8);
+  await expect(page.locator(".tool-card")).toHaveCount(9);
 });
 for (const width of [320, 375, 390, 430, 768, 1366, 1440])
   test(`responsive shell ${width}px`, async ({ page }) => {

@@ -7,6 +7,7 @@ import {
   ImageIcon,
   Files,
   ScissorsLineDashed,
+  Shrink,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -17,6 +18,7 @@ const icons = {
   image: ImageIcon,
   pdf: Files,
   pdfSplit: ScissorsLineDashed,
+  pdfCompress: Shrink,
 };
 export default function ToolIcon({
   icon,

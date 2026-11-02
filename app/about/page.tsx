@@ -16,14 +16,14 @@ export default function Page() {
       </h1>
       <p>
         QUICKKIT is a small collection of browser utilities for the tasks that
-        interrupt your day: combining and splitting PDFs, counting words, fixing
-        text case, checking JSON, making a password, sharing a QR code and
-        lightening an image.
+        interrupt your day: combining, splitting and compressing PDFs, counting
+        words, fixing text case, checking JSON, making a password, sharing a QR
+        code and lightening an image.
       </p>
       <h2>Simple on purpose</h2>
       <p>
         No account, setup wizard or installation stands between you and these
-        eight tools. Each workspace focuses on one job, with clear inputs,
+        nine tools. Each workspace focuses on one job, with clear inputs,
         results and instructions.
       </p>
       <h2>Local where it matters</h2>
@@ -42,7 +42,7 @@ export default function Page() {
       </p>
       <h2>Free, without the detours</h2>
       <p>
-        All eight current tools are free to use. There are no ads, paid plans or
+        All nine current tools are free to use. There are no ads, paid plans or
         payment forms in this release. Future monetization, if introduced, will
         need a separate privacy and usability review.
       </p>

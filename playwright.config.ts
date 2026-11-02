@@ -20,13 +20,13 @@ export default defineConfig({
       name: "firefox",
       use: { browserName: "firefox" },
       testMatch:
-        /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts/,
+        /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts/,
     },
     {
       name: "webkit",
       use: { browserName: "webkit" },
       testMatch:
-        /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts/,
+        /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts/,
     },
   ],
 });
