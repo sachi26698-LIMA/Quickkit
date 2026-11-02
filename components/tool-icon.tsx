@@ -10,6 +10,7 @@ import {
   Calculator,
   Scaling,
   Crop,
+  ArrowRightLeft,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -23,6 +24,7 @@ const icons = {
   calc: Calculator,
   resize: Scaling,
   crop: Crop,
+  convert: ArrowRightLeft,
 };
 export default function ToolIcon({
   icon,

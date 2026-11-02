@@ -634,7 +634,6 @@ function lzwDecodeTiff(
     codeSize = 9;
   };
   reset();
-  const nextCode = () => clearCode + 2 + (table.length - 258);
   let previous: Uint8Array | null = null;
 
   const readCode = (): number => {

@@ -147,6 +147,8 @@ export type InputFormat = ConvertFormat | "pdf";
 export const INPUT_ACCEPT =
   "image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp,image/tiff,.jpg,.jpeg,.png,.webp,.avif,.gif,.bmp,.tiff,.tif,application/pdf,.pdf";
 
+export const INPUT_ACCEPT_PDF = "application/pdf,.pdf";
+
 export function inputFormatFromName(
   name: string,
   mime: string,

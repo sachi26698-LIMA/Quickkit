@@ -195,6 +195,18 @@ export const tools = [
     phase: 3,
   },
   {
+    slug: "image-converter",
+    name: "Image & PDF Converter",
+    category: "Image Tools",
+    description:
+      "Change image formats, turn photos into a PDF, and export PDF pages as JPG, PNG or WEBP — all on your device.",
+    keywords:
+      "convert conversion format jpg jpeg png webp avif gif bmp tiff pdf images to pdf pdf to image export dpi page range batch zip transparency",
+    icon: "convert",
+    color: "purple",
+    phase: 3,
+  },
+  {
     slug: "merge-pdf",
     name: "PDF Merger",
     category: "PDF Tools",

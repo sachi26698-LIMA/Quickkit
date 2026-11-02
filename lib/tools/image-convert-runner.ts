@@ -34,7 +34,12 @@ import {
   type InputKind,
   type Placement,
 } from "@/lib/tools/image-convert";
-import { encodeSpecial } from "@/lib/tools/image-encode-client";
+import {
+  encodeSpecial,
+  resetImageEncoder,
+} from "@/lib/tools/image-encode-client";
+
+export { resetImageEncoder };
 import { createZip, type ZipEntry } from "@/lib/tools/zip";
 
 /* --------------------------------- types --------------------------------- */

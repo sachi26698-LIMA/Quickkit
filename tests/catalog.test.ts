@@ -40,6 +40,9 @@ describe("catalog discovery", () => {
     expect(filterTools("kb target", "All tools")[0].slug).toBe(
       "image-compressor",
     );
+    expect(filterTools("pdf to image", "Image Tools")).toEqual([
+      expect.objectContaining({ slug: "image-converter" }),
+    ]);
   });
   it("uses unique stable slugs", () =>
     expect(new Set(tools.map((t) => t.slug)).size).toBe(tools.length));
@@ -58,7 +61,7 @@ describe("catalog discovery", () => {
   });
   it("groups tools by category, with future categories empty", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
-    expect(toolsByCategory("Image Tools")).toHaveLength(3);
+    expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);
