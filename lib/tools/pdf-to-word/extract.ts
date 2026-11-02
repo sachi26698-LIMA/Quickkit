@@ -1,6 +1,11 @@
 import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 import { recognizeCanvas } from "./ocr";
-import type { ExtractedPage, PdfImageItem, PdfTextItem } from "./types";
+import type {
+  ExtractedPage,
+  OcrLanguage,
+  PdfImageItem,
+  PdfTextItem,
+} from "./types";
 import { PDF_TO_WORD_LIMITS, PdfToWordError } from "./types";
 
 /**
@@ -386,19 +391,77 @@ export interface ExtractStats {
   ocrFailedPages: number;
   imagesExtracted: number;
   imagesSkipped: number;
+  /** Link annotations whose text was matched and preserved. */
+  linksExtracted: number;
 }
 
 export interface ExtractOptions {
   /** Run OCR on pages without a text layer. */
   ocr: boolean;
+  /** OCR language pack to use when OCR runs. */
+  ocrLanguage?: OcrLanguage;
+  /** 1-based pages to convert; null/undefined converts every page. */
+  pages?: Set<number> | null;
+  /** Extract embedded images (default true). */
+  includeImages?: boolean;
+  /** Preserve external hyperlink annotations (default true). */
+  includeLinks?: boolean;
   onProgress?: (pagesDone: number, totalPages: number) => void;
   signal?: AbortSignal;
+}
+
+/** Map external link annotations onto the text items they cover. */
+async function applyLinks(
+  page: PDFPageProxy,
+  viewport: ReturnType<PDFPageProxy["getViewport"]>,
+  items: PdfTextItem[],
+): Promise<number> {
+  let annotations;
+  try {
+    annotations = await page.getAnnotations({ intent: "display" });
+  } catch {
+    return 0;
+  }
+  let matched = 0;
+  for (const annot of annotations) {
+    if (annot.subtype !== "Link" || typeof annot.url !== "string") continue;
+    const url = annot.url.trim();
+    if (!/^(https?:|mailto:)/i.test(url)) continue;
+    // Map the annotation's user-space rect into top-left display points
+    // with the viewport transform (pdfjs types don't expose the helper).
+    const [ta, tb, tc, td, te, tf] = viewport.transform;
+    const mapPoint = (x: number, y: number): [number, number] => [
+      ta * x + tc * y + te,
+      tb * x + td * y + tf,
+    ];
+    const c1 = mapPoint(annot.rect[0], annot.rect[1]);
+    const c2 = mapPoint(annot.rect[2], annot.rect[3]);
+    const left = Math.min(c1[0], c2[0]);
+    const right = Math.max(c1[0], c2[0]);
+    const top = Math.min(c1[1], c2[1]);
+    const bottom = Math.max(c1[1], c2[1]);
+    let hit = false;
+    for (const item of items) {
+      const cx = item.x + item.width / 2;
+      const cy = item.y + item.fontSize / 2;
+      if (cx >= left && cx <= right && cy >= top && cy <= bottom) {
+        item.link = url;
+        hit = true;
+      }
+    }
+    if (hit) matched++;
+  }
+  return matched;
 }
 
 export async function extractPdf(
   bytes: Uint8Array,
   options: ExtractOptions,
-): Promise<{ pages: ExtractedPage[]; stats: ExtractStats }> {
+): Promise<{
+  pages: ExtractedPage[];
+  stats: ExtractStats;
+  totalPages: number;
+}> {
   if (!hasPdfMagic(bytes)) {
     throw new PdfToWordError(
       "not-a-pdf",
@@ -406,6 +469,7 @@ export async function extractPdf(
     );
   }
   const { doc, pdfjs, destroy } = await openPdf(bytes);
+  const totalPages = doc.numPages;
   const stats: ExtractStats = {
     textPages: 0,
     ocrPages: 0,
@@ -413,6 +477,7 @@ export async function extractPdf(
     ocrFailedPages: 0,
     imagesExtracted: 0,
     imagesSkipped: 0,
+    linksExtracted: 0,
   };
   const pages: ExtractedPage[] = [];
   try {
@@ -422,7 +487,19 @@ export async function extractPdf(
         `This PDF has ${doc.numPages} pages. The limit is ${PDF_TO_WORD_LIMITS.maxPagesPerFile} pages per file.`,
       );
     }
-    for (let pageNo = 1; pageNo <= doc.numPages; pageNo++) {
+    const selectedPages = options.pages
+      ? [...options.pages]
+          .filter((n) => n <= doc.numPages)
+          .sort((a, b) => a - b)
+      : Array.from({ length: doc.numPages }, (_, i) => i + 1);
+    if (selectedPages.length === 0) {
+      throw new PdfToWordError(
+        "invalid-range",
+        `The selected page range includes no pages in this ${doc.numPages}-page file.`,
+      );
+    }
+    let selectedDone = 0;
+    for (const pageNo of selectedPages) {
       if (options.signal?.aborted) {
         throw new PdfToWordError("cancelled", "Conversion was cancelled.");
       }
@@ -457,11 +534,14 @@ export async function extractPdf(
           });
         }
 
-        const { images, skipped } = await extractImages(
-          page,
-          pdfjs,
-          viewport.transform as Matrix,
-        );
+        if (options.includeLinks !== false) {
+          stats.linksExtracted += await applyLinks(page, viewport, items);
+        }
+
+        const { images, skipped } =
+          options.includeImages === false
+            ? { images: [] as PdfImageItem[], skipped: 0 }
+            : await extractImages(page, pdfjs, viewport.transform as Matrix);
         stats.imagesExtracted += images.length;
         stats.imagesSkipped += skipped;
 
@@ -470,7 +550,12 @@ export async function extractPdf(
           if (options.ocr) {
             try {
               const { canvas, scale } = await renderPageForOcr(page);
-              const ocrItems = await recognizeCanvas(canvas, scale);
+              const ocrItems = await recognizeCanvas(
+                canvas,
+                scale,
+                undefined,
+                options.ocrLanguage ?? "eng",
+              );
               if (ocrItems.length > 0) {
                 items.push(...ocrItems);
                 fromOcr = true;
@@ -500,6 +585,7 @@ export async function extractPdf(
         }
 
         pages.push({
+          pageNumber: pageNo,
           widthPt,
           heightPt,
           items,
@@ -510,7 +596,8 @@ export async function extractPdf(
       } finally {
         page.cleanup();
       }
-      options.onProgress?.(pageNo, doc.numPages);
+      selectedDone++;
+      options.onProgress?.(selectedDone, selectedPages.length);
     }
   } finally {
     await destroy();
@@ -529,5 +616,5 @@ export async function extractPdf(
         : "No extractable text was found. If this is a scanned PDF, enable OCR and try again.",
     );
   }
-  return { pages, stats };
+  return { pages, stats, totalPages };
 }

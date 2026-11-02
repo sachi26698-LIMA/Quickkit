@@ -2,6 +2,7 @@ import {
   AlignmentType,
   BorderStyle,
   Document,
+  ExternalHyperlink,
   HeadingLevel,
   ImageRun,
   LevelFormat,
@@ -35,18 +36,22 @@ const PX_PER_PT = 96 / 72;
 
 const pt = (points: number) => Math.max(0, Math.round(points * TWIPS_PER_PT));
 
-function toRuns(runs: ModelRun[], fontSizePt?: number): TextRun[] {
-  return runs.map(
-    (run) =>
-      new TextRun({
-        text: run.text,
-        bold: run.bold,
-        italics: run.italic,
-        ...(fontSizePt
-          ? { size: Math.max(8, Math.round(fontSizePt * 2)) }
-          : {}),
-      }),
-  );
+function toRuns(
+  runs: ModelRun[],
+  fontSizePt?: number,
+): (TextRun | ExternalHyperlink)[] {
+  return runs.map((run) => {
+    const textRun = new TextRun({
+      text: run.text,
+      bold: run.bold,
+      italics: run.italic,
+      ...(fontSizePt ? { size: Math.max(8, Math.round(fontSizePt * 2)) } : {}),
+      ...(run.link ? { style: "Hyperlink" } : {}),
+    });
+    return run.link
+      ? new ExternalHyperlink({ link: run.link, children: [textRun] })
+      : textRun;
+  });
 }
 
 const ALIGN = {

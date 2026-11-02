@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { hasPdfMagic } from "@/lib/tools/pdf-to-word/extract";
 import {
+  intersectRange,
+  parsePageRange,
+} from "@/lib/tools/pdf-to-word/page-range";
+import { outputNameFor } from "@/lib/tools/pdf-to-word/filename";
+import {
   groupLines,
   structureDocument,
   structurePage,
@@ -28,6 +33,7 @@ const TINY_PNG = new Uint8Array(
 
 function samplePage(): ExtractedPage {
   return {
+    pageNumber: 1,
     widthPt: 612,
     heightPt: 792,
     charCount: 500,
@@ -107,6 +113,7 @@ describe("structurePage", () => {
 
   it("dehyphenates when the hyphen ends a separate run", () => {
     const hyphenPage = structurePage({
+      pageNumber: 1,
       widthPt: 612,
       heightPt: 792,
       charCount: 80,
@@ -156,6 +163,7 @@ describe("structurePage", () => {
 describe("structureDocument", () => {
   it("removes running footers repeated across pages", () => {
     const makePage = (body: string): ExtractedPage => ({
+      pageNumber: 1,
       widthPt: 612,
       heightPt: 792,
       charCount: 100,
@@ -225,6 +233,7 @@ describe("buildDocx", () => {
 
   it("refuses to build a document from no content", async () => {
     const empty: ExtractedPage = {
+      pageNumber: 1,
       widthPt: 612,
       heightPt: 792,
       charCount: 0,
@@ -239,5 +248,138 @@ describe("buildDocx", () => {
     await expect(buildDocx(pages, "clean", "empty.pdf")).rejects.toBeInstanceOf(
       PdfToWordError,
     );
+  });
+});
+
+describe("parsePageRange", () => {
+  it("parses singles, ranges and lists", () => {
+    expect(parsePageRange("")).toBeNull();
+    expect(parsePageRange("  ")).toBeNull();
+    expect([...parsePageRange("2")!]).toEqual([2]);
+    expect([...parsePageRange("1-3, 5, 8-9")!]).toEqual([1, 2, 3, 5, 8, 9]);
+  });
+
+  it("rejects garbage with a clear invalid-range error", () => {
+    for (const bad of ["abc", "3-1", "0", "1-", ",,", "1-2000"]) {
+      expect(() => parsePageRange(bad)).toThrowError(
+        expect.objectContaining({ kind: "invalid-range" }),
+      );
+    }
+  });
+
+  it("intersects with the real page count", () => {
+    expect(intersectRange(parsePageRange("2-9"), 4)).toEqual({
+      pages: [2, 3, 4],
+      outsideCount: 5,
+    });
+    expect(intersectRange(null, 3)).toEqual({
+      pages: [1, 2, 3],
+      outsideCount: 0,
+    });
+  });
+});
+
+describe("outputNameFor", () => {
+  it("applies patterns and sanitizes", () => {
+    expect(outputNameFor("{name}", "Report.pdf", "clean")).toBe("Report.docx");
+    expect(outputNameFor("{name}-{mode}", "My File.PDF", "layout")).toBe(
+      "My File-layout.docx",
+    );
+    expect(outputNameFor("", "a/b:c.pdf", "clean")).toBe("a-b-c.docx");
+    expect(outputNameFor("{name}.docx", "x.pdf", "clean")).toBe("x.docx");
+    expect(outputNameFor("final", "x.pdf", "clean")).toBe("final.docx");
+  });
+});
+
+describe("structure options", () => {
+  it("can disable table detection (rows stay paragraphs)", () => {
+    const page = structurePage(samplePage(), {
+      detectTables: false,
+      detectHeadingsLists: true,
+      keepRunningHeadersFooters: false,
+    });
+    expect(page.blocks.some((b) => b.kind === "table")).toBe(false);
+    const text = page.blocks
+      .map((b) =>
+        b.kind === "paragraph" ? b.runs.map((r) => r.text).join("") : "",
+      )
+      .join(" ");
+    expect(text).toContain("Asha");
+  });
+
+  it("can disable heading/list detection", () => {
+    const page = structurePage(samplePage(), {
+      detectTables: true,
+      detectHeadingsLists: false,
+      keepRunningHeadersFooters: false,
+    });
+    expect(page.blocks.some((b) => b.kind === "heading")).toBe(false);
+    expect(page.blocks.some((b) => b.kind === "list")).toBe(false);
+  });
+
+  it("preserves source page numbers (page-range selections)", () => {
+    const { pages } = structureDocument([
+      { ...samplePage(), pageNumber: 2 },
+      { ...samplePage(), pageNumber: 5 },
+    ]);
+    expect(pages.map((p) => p.pageNumber)).toEqual([2, 5]);
+  });
+
+  it("keeps running headers/footers when asked", () => {
+    const makePage = (n: number): ExtractedPage => ({
+      pageNumber: n,
+      widthPt: 612,
+      heightPt: 792,
+      charCount: 100,
+      fromOcr: false,
+      items: [
+        item(`Body text for page ${n} with enough words.`, 72, 120, 300),
+        item("QUICKKIT Internal", 72, 740, 120),
+      ],
+      images: [],
+    });
+    const kept = structureDocument([makePage(1), makePage(2), makePage(3)], {
+      detectTables: true,
+      detectHeadingsLists: true,
+      keepRunningHeadersFooters: true,
+    });
+    expect(kept.removedRunningLines).toBe(0);
+    const text = kept.pages
+      .flatMap((p) => p.blocks)
+      .map((b) =>
+        b.kind === "paragraph" ? b.runs.map((r) => r.text).join("") : "",
+      )
+      .join(" ");
+    expect(text).toContain("QUICKKIT Internal");
+  });
+});
+
+describe("hyperlinks", () => {
+  it("emits real Word hyperlinks for linked runs", async () => {
+    const linked: ExtractedPage = {
+      pageNumber: 1,
+      widthPt: 612,
+      heightPt: 792,
+      charCount: 40,
+      fromOcr: false,
+      items: [
+        item("Visit", 72, 120, 32),
+        {
+          ...item("our site", 110, 120, 55),
+          link: "https://example.com/docs",
+        },
+        item("today please.", 172, 120, 90),
+      ],
+      images: [],
+    };
+    const { pages } = structureDocument([linked]);
+    const blob = await buildDocx(pages, "clean", "links.pdf");
+    const zip = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+    const xml = strFromU8(zip["word/document.xml"]);
+    expect(xml).toContain("<w:hyperlink");
+    expect(xml).toContain("our site");
+    const rels = strFromU8(zip["word/_rels/document.xml.rels"]);
+    expect(rels).toContain("https://example.com/docs");
+    expect(rels).toContain("relationships/hyperlink");
   });
 });

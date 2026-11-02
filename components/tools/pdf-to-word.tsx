@@ -292,13 +292,18 @@ export default function PdfToWord() {
         resultUrl: url,
         resultName: resultNameFor(entry.file.name),
         report: {
-          pages: structured.length,
+          sourcePages: entry.pageCount ?? structured.length,
+          convertedPages: structured.length,
+          pageSelection: null,
           textPages: stats.textPages,
           ocrPages: stats.ocrPages,
           scannedPagesSkipped: stats.scannedPagesSkipped,
           imagesExtracted: stats.imagesExtracted,
           imagesSkipped: stats.imagesSkipped,
           tablesDetected,
+          linksExtracted: stats.linksExtracted,
+          removedRunningLines,
+          multiColumnPages,
           warnings,
         },
       });
@@ -373,7 +378,7 @@ export default function PdfToWord() {
         reportLines.push(
           `✓ ${entry.file.name} -> ${name}` +
             (r
-              ? ` (${r.pages} pages, ${r.tablesDetected} tables, ${r.imagesExtracted} images${r.ocrPages ? `, ${r.ocrPages} OCR pages` : ""})`
+              ? ` (${r.convertedPages} of ${r.sourcePages} pages, ${r.tablesDetected} tables, ${r.imagesExtracted} images${r.ocrPages ? `, ${r.ocrPages} OCR pages` : ""})`
               : ""),
         );
         for (const warning of r?.warnings ?? []) {

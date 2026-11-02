@@ -32,6 +32,7 @@ export type PdfToWordErrorKind =
   | "ocr-unavailable"
   | "ocr-failed"
   | "cancelled"
+  | "invalid-range"
   | "conversion-failed";
 
 export class PdfToWordError extends Error {
@@ -56,6 +57,8 @@ export interface PdfTextItem {
   fontSize: number;
   bold: boolean;
   italic: boolean;
+  /** External hyperlink target when a link annotation covers this item. */
+  link?: string;
 }
 
 /** One embedded raster image extracted from a page. */
@@ -72,6 +75,8 @@ export interface PdfImageItem {
 }
 
 export interface ExtractedPage {
+  /** 1-based page number in the source PDF. */
+  pageNumber: number;
   widthPt: number;
   heightPt: number;
   items: PdfTextItem[];
@@ -88,6 +93,8 @@ export interface TextRun {
   text: string;
   bold: boolean;
   italic: boolean;
+  /** External hyperlink target preserved from a PDF link annotation. */
+  link?: string;
 }
 
 export type BlockAlign = "left" | "center" | "right" | "justify";
@@ -136,6 +143,8 @@ export type Block =
     };
 
 export interface StructuredPage {
+  /** 1-based page number in the source PDF. */
+  pageNumber: number;
   widthPt: number;
   heightPt: number;
   blocks: Block[];
@@ -144,14 +153,50 @@ export interface StructuredPage {
   fromOcr: boolean;
 }
 
+/** How the structuring heuristics should treat optional content classes. */
+export interface StructureOptions {
+  /** Detect table-shaped line groups and emit real Word tables. */
+  detectTables: boolean;
+  /** Promote large/bold lines to headings and markers to real lists. */
+  detectHeadingsLists: boolean;
+  /** Keep repeated running headers/footers instead of removing them. */
+  keepRunningHeadersFooters: boolean;
+}
+
+export const DEFAULT_STRUCTURE_OPTIONS: StructureOptions = {
+  detectTables: true,
+  detectHeadingsLists: true,
+  keepRunningHeadersFooters: false,
+};
+
+/** OCR languages shipped on-device (data files self-hosted under /ocr). */
+export type OcrLanguage = "eng" | "hin" | "guj";
+
+export const OCR_LANGUAGES: { value: OcrLanguage; label: string }[] = [
+  { value: "eng", label: "English" },
+  { value: "hin", label: "Hindi (हिन्दी)" },
+  { value: "guj", label: "Gujarati (ગુજરાતી)" },
+];
+
 /** Honest per-file account of what the conversion did and could not do. */
 export interface ConversionReport {
-  pages: number;
+  /** Pages in the source PDF. */
+  sourcePages: number;
+  /** Pages actually converted (after any page-range selection). */
+  convertedPages: number;
+  /** Human description of the page selection, e.g. "1–3, 5" or null = all. */
+  pageSelection: string | null;
   textPages: number;
   ocrPages: number;
   scannedPagesSkipped: number;
   imagesExtracted: number;
   imagesSkipped: number;
   tablesDetected: number;
+  /** External hyperlinks preserved as clickable Word links. */
+  linksExtracted: number;
+  /** Running header/footer lines removed across the document. */
+  removedRunningLines: number;
+  /** Pages where a multi-column layout made reading order approximate. */
+  multiColumnPages: number;
   warnings: string[];
 }

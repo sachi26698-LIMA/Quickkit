@@ -1,4 +1,4 @@
-import type { PdfTextItem } from "./types";
+import type { OcrLanguage, PdfTextItem } from "./types";
 import { PdfToWordError } from "./types";
 
 /**
@@ -35,7 +35,10 @@ interface TessModule {
   ) => Promise<TessWorker>;
 }
 
-let workerPromise: Promise<TessWorker> | null = null;
+let workerState: {
+  language: OcrLanguage;
+  promise: Promise<TessWorker>;
+} | null = null;
 let progressListener: ((fraction: number) => void) | null = null;
 
 const WORKER_INIT_TIMEOUT_MS = 90_000;
@@ -62,9 +65,14 @@ function withTimeout<T>(
   });
 }
 
-async function getWorker(): Promise<TessWorker> {
-  if (!workerPromise) {
-    workerPromise = (async () => {
+async function getWorker(language: OcrLanguage): Promise<TessWorker> {
+  if (workerState && workerState.language !== language) {
+    const stale = workerState.promise;
+    workerState = null;
+    void stale.then((w) => w.terminate()).catch(() => undefined);
+  }
+  if (!workerState) {
+    const promise = (async () => {
       let tess: TessModule;
       try {
         tess = (await import("tesseract.js")) as unknown as TessModule;
@@ -76,7 +84,7 @@ async function getWorker(): Promise<TessWorker> {
       }
       try {
         return await withTimeout(
-          tess.createWorker("eng", undefined, {
+          tess.createWorker(language, undefined, {
             // Same-origin worker script: load it directly instead of the
             // default Blob-URL wrapper (which our CSP rightly blocks).
             workerBlobURL: false,
@@ -106,11 +114,12 @@ async function getWorker(): Promise<TessWorker> {
         );
       }
     })();
-    workerPromise.catch(() => {
-      workerPromise = null;
+    promise.catch(() => {
+      if (workerState?.promise === promise) workerState = null;
     });
+    workerState = { language, promise };
   }
-  return workerPromise;
+  return workerState.promise;
 }
 
 function linesFrom(data: OcrResultData): OcrLine[] {
@@ -132,8 +141,9 @@ export async function recognizeCanvas(
   canvas: HTMLCanvasElement,
   scale: number,
   onProgress?: (fraction: number) => void,
+  language: OcrLanguage = "eng",
 ): Promise<PdfTextItem[]> {
-  const worker = await getWorker();
+  const worker = await getWorker(language);
   progressListener = onProgress ?? null;
   let data: OcrResultData;
   try {
@@ -199,9 +209,9 @@ export async function recognizeCanvas(
 
 /** Release the OCR worker (call when a batch finishes). */
 export async function terminateOcr(): Promise<void> {
-  if (!workerPromise) return;
-  const pending = workerPromise;
-  workerPromise = null;
+  if (!workerState) return;
+  const pending = workerState.promise;
+  workerState = null;
   try {
     const worker = await pending;
     await worker.terminate();

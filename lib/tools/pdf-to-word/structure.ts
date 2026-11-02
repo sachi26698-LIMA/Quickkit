@@ -3,9 +3,11 @@ import type {
   BlockAlign,
   ExtractedPage,
   PdfTextItem,
+  StructureOptions,
   StructuredPage,
   TextRun,
 } from "./types";
+import { DEFAULT_STRUCTURE_OPTIONS } from "./types";
 
 /**
  * Pure structuring: positioned text fragments -> document blocks
@@ -45,10 +47,20 @@ function runsForItems(items: PdfTextItem[]): TextRun[] {
       if (needsSpace) prefix = " ";
     }
     const last = runs[runs.length - 1];
-    if (last && last.bold === item.bold && last.italic === item.italic) {
+    if (
+      last &&
+      last.bold === item.bold &&
+      last.italic === item.italic &&
+      last.link === item.link
+    ) {
       last.text += prefix + text;
     } else {
-      runs.push({ text: prefix + text, bold: item.bold, italic: item.italic });
+      runs.push({
+        text: prefix + text,
+        bold: item.bold,
+        italic: item.italic,
+        ...(item.link ? { link: item.link } : {}),
+      });
     }
     prev = item;
   }
@@ -228,7 +240,12 @@ type ClassifiedLine =
   | { type: "heading"; level: 1 | 2 | 3; line: Line }
   | { type: "bullet" | "numbered" | "text"; line: Line };
 
-function classifyLine(line: Line, bodySize: number): ClassifiedLine {
+function classifyLine(
+  line: Line,
+  bodySize: number,
+  detectHeadingsLists: boolean,
+): ClassifiedLine {
+  if (!detectHeadingsLists) return { type: "text", line };
   const ratio = line.fontSize / bodySize;
   if (line.text.length <= 140) {
     if (ratio >= 1.85) return { type: "heading", level: 1, line };
@@ -245,9 +262,12 @@ function structureRegion(
   lines: Line[],
   region: ColumnRegion,
   bodySize: number,
+  options: StructureOptions,
 ): Block[] {
   const blocks: Block[] = [];
-  const classified = lines.map((l) => classifyLine(l, bodySize));
+  const classified = lines.map((l) =>
+    classifyLine(l, bodySize, options.detectHeadingsLists),
+  );
   let prevBottom = lines.length ? lines[0].y : 0;
 
   const spaceBefore = (line: Line) =>
@@ -259,7 +279,7 @@ function structureRegion(
     const line = entry.line;
 
     // --- tables: >=3 consecutive aligned multi-cell lines ---
-    if (entry.type === "text") {
+    if (entry.type === "text" && options.detectTables) {
       const candidateLines: Line[] = [];
       let j = i;
       while (j < classified.length && classified[j].type === "text") {
@@ -450,7 +470,10 @@ function structureRegion(
   return blocks;
 }
 
-export function structurePage(page: ExtractedPage): StructuredPage {
+export function structurePage(
+  page: ExtractedPage,
+  options: StructureOptions = DEFAULT_STRUCTURE_OPTIONS,
+): StructuredPage {
   const lines = groupLines(page.items);
   const bodySize = medianBodyFontSize(lines);
   const regions = detectColumns(lines, page.widthPt);
@@ -464,7 +487,7 @@ export function structurePage(page: ExtractedPage): StructuredPage {
           return center >= region.left && center < region.right;
         })
       : lines;
-    blocks.push(...structureRegion(regionLines, region, bodySize));
+    blocks.push(...structureRegion(regionLines, region, bodySize, options));
   }
 
   // Interleave images by vertical position within the block flow.
@@ -478,6 +501,7 @@ export function structurePage(page: ExtractedPage): StructuredPage {
   }
 
   return {
+    pageNumber: page.pageNumber,
     widthPt: page.widthPt,
     heightPt: page.heightPt,
     blocks,
@@ -491,12 +515,16 @@ export function structurePage(page: ExtractedPage): StructuredPage {
  * first-or-last text line repeated in the top/bottom margin of at least
  * three pages is dropped and counted.
  */
-export function structureDocument(pages: ExtractedPage[]): {
+export function structureDocument(
+  pages: ExtractedPage[],
+  options: StructureOptions = DEFAULT_STRUCTURE_OPTIONS,
+): {
   pages: StructuredPage[];
   removedRunningLines: number;
 } {
-  const structured = pages.map(structurePage);
-  if (pages.length < 3) return { pages: structured, removedRunningLines: 0 };
+  const structured = pages.map((page) => structurePage(page, options));
+  if (pages.length < 3 || options.keepRunningHeadersFooters)
+    return { pages: structured, removedRunningLines: 0 };
 
   const tally = new Map<string, number>();
   const edgeText = (page: StructuredPage, edge: "top" | "bottom") => {
