@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Archive,
@@ -11,12 +11,13 @@ import {
   Play,
   RefreshCw,
   ScanText,
+  SlidersHorizontal,
   Trash2,
   Upload,
   X,
 } from "lucide-react";
 import { zipSync } from "fflate";
-import { downloadBlob, formatBytes } from "@/lib/tools/download";
+import { downloadBlob, downloadText, formatBytes } from "@/lib/tools/download";
 import { useHydrated } from "@/lib/use-hydrated";
 import {
   extractPdf,
@@ -25,16 +26,39 @@ import {
   type InspectResult,
 } from "@/lib/tools/pdf-to-word/extract";
 import { terminateOcr } from "@/lib/tools/pdf-to-word/ocr";
+import {
+  intersectRange,
+  parsePageRange,
+} from "@/lib/tools/pdf-to-word/page-range";
+import {
+  DEFAULT_FILENAME_PATTERN,
+  outputNameFor,
+} from "@/lib/tools/pdf-to-word/filename";
+import {
+  addHistoryItem,
+  clearHistory,
+  loadHistory,
+  loadRetentionPreference,
+  MAX_HISTORY_ITEMS,
+  removeHistoryItem,
+  saveRetentionPreference,
+  type HistoryItem,
+  type HistoryRetention,
+} from "@/lib/tools/pdf-to-word/history";
 import { structureDocument } from "@/lib/tools/pdf-to-word/structure";
 import { buildDocx } from "@/lib/tools/pdf-to-word/render-docx";
 import {
+  OCR_LANGUAGES,
   PDF_TO_WORD_LIMITS,
   PdfToWordError,
   type ConversionMode,
   type ConversionReport,
+  type OcrLanguage,
 } from "@/lib/tools/pdf-to-word/types";
 import { WorkspaceHeading } from "../tool-ui";
 import PreviewDialog, { type PreviewView } from "./preview-dialog";
+import QualityReport from "./quality-report";
+import HistoryPanel from "./history-panel";
 
 type EntryStatus = "inspecting" | "ready" | "converting" | "done" | "failed";
 
@@ -76,8 +100,8 @@ const MODE_COPY: Record<
   },
 };
 
-function resultNameFor(fileName: string): string {
-  return `${fileName.replace(/\.pdf$/i, "")}.docx`;
+function modeLabel(mode: ConversionMode | null): string {
+  return mode === "layout" ? "Original Layout" : "Clean Editable";
 }
 
 export default function PdfToWord() {
@@ -85,11 +109,29 @@ export default function PdfToWord() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [mode, setMode] = useState<ConversionMode>("clean");
   const [useOcr, setUseOcr] = useState(false);
+  const [ocrLanguage, setOcrLanguage] = useState<OcrLanguage>("eng");
+  const [pageRangeInput, setPageRangeInput] = useState("");
+  const [preserveImages, setPreserveImages] = useState(true);
+  const [preserveTables, setPreserveTables] = useState(true);
+  const [preserveHeadingsLists, setPreserveHeadingsLists] = useState(true);
+  const [keepHeadersFooters, setKeepHeadersFooters] = useState(false);
+  const [preserveLinks, setPreserveLinks] = useState(true);
+  const [filenamePattern, setFilenamePattern] = useState(
+    DEFAULT_FILENAME_PATTERN,
+  );
+  const [confirmRemoveId, setConfirmRemoveId] = useState<number | null>(null);
+  const [batchSummary, setBatchSummary] = useState<{
+    done: number;
+    failed: number;
+  } | null>(null);
+  const [retention, setRetention] = useState<HistoryRetention>("session");
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [running, setRunning] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [batchNotice, setBatchNotice] = useState<string | null>(null);
   const [preview, setPreview] = useState<{
-    id: number;
+    id?: number;
+    item?: HistoryItem;
     view: PreviewView;
   } | null>(null);
   const [announcement, setAnnouncement] = useState("");
@@ -139,6 +181,65 @@ export default function PdfToWord() {
       ? 0
       : (finishedConvertible + (converting?.progress ?? 0)) /
         convertible.length;
+
+  const rangeState = useMemo((): {
+    set: Set<number> | null;
+    error: string | null;
+  } => {
+    try {
+      return { set: parsePageRange(pageRangeInput), error: null };
+    } catch (error) {
+      return {
+        set: null,
+        error:
+          error instanceof PdfToWordError
+            ? error.message
+            : "That page range is not valid.",
+      };
+    }
+  }, [pageRangeInput]);
+
+  const advancedSummaryParts: string[] = [];
+  if (rangeState.set)
+    advancedSummaryParts.push(`Pages ${pageRangeInput.trim()}`);
+  if (!preserveImages) advancedSummaryParts.push("Images off");
+  if (!preserveTables) advancedSummaryParts.push("Tables off");
+  if (!preserveHeadingsLists) advancedSummaryParts.push("Headings/lists off");
+  if (!preserveLinks) advancedSummaryParts.push("Links off");
+  if (keepHeadersFooters) advancedSummaryParts.push("Headers/footers kept");
+  if (
+    filenamePattern.trim() &&
+    filenamePattern.trim() !== DEFAULT_FILENAME_PATTERN
+  )
+    advancedSummaryParts.push("Custom filename");
+
+  // Load the stored-history preference + items once hydrated.
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    void (async () => {
+      const preference = loadRetentionPreference();
+      const items = await loadHistory(preference);
+      if (!cancelled) {
+        setRetention(preference);
+        setHistoryItems(items);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
+
+  async function changeRetention(next: HistoryRetention) {
+    setRetention(next);
+    saveRetentionPreference(next);
+    if (next === "session") {
+      await clearHistory();
+      setHistoryItems([]);
+    } else {
+      setHistoryItems(await loadHistory(next));
+    }
+  }
 
   async function inspectEntry(entry: Entry) {
     try {
@@ -220,6 +321,7 @@ export default function PdfToWord() {
     }
     if (notes.length) setBatchNotice(notes.join(" "));
     else setBatchNotice(null);
+    setBatchSummary(null);
     setEntries((current) => [...current, ...newEntries]);
     for (const entry of newEntries) {
       if (entry.status === "inspecting") await inspectEntry(entry);
@@ -278,6 +380,17 @@ export default function PdfToWord() {
     }
     setEntries([]);
     setBatchNotice(null);
+    setBatchSummary(null);
+    setPreview(null);
+    setConfirmRemoveId(null);
+  }
+
+  function clearCompleted() {
+    for (const entry of entriesRef.current) {
+      if (entry.status === "done" && entry.resultUrl)
+        URL.revokeObjectURL(entry.resultUrl);
+    }
+    setEntries((current) => current.filter((e) => e.status !== "done"));
   }
 
   async function convertEntry(
@@ -287,15 +400,38 @@ export default function PdfToWord() {
     patchEntry(entry.id, { status: "converting", progress: 0, error: null });
     setAnnouncement(`Converting ${entry.file.name}`);
     try {
+      if (rangeState.error) {
+        throw new PdfToWordError("invalid-range", rangeState.error);
+      }
+      const { pages: selectedPages, outsideCount } = intersectRange(
+        rangeState.set,
+        entry.pageCount ?? 0,
+      );
+      if (rangeState.set && selectedPages.length === 0) {
+        throw new PdfToWordError(
+          "invalid-range",
+          `The page range "${pageRangeInput.trim()}" includes no pages in this ${entry.pageCount}-page file.`,
+        );
+      }
       const bytes = new Uint8Array(await entry.file.arrayBuffer());
-      const { pages, stats } = await extractPdf(bytes, {
+      const { pages, stats, totalPages } = await extractPdf(bytes, {
         ocr: useOcr,
+        ocrLanguage,
+        pages: rangeState.set ? new Set(selectedPages) : null,
+        includeImages: preserveImages,
+        includeLinks: preserveLinks,
         signal,
         onProgress: (done, total) =>
           patchEntry(entry.id, { progress: done / total }),
       });
-      const { pages: structured, removedRunningLines } =
-        structureDocument(pages);
+      const { pages: structured, removedRunningLines } = structureDocument(
+        pages,
+        {
+          detectTables: preserveTables,
+          detectHeadingsLists: preserveHeadingsLists,
+          keepRunningHeadersFooters: keepHeadersFooters,
+        },
+      );
       if (signal.aborted)
         throw new PdfToWordError("cancelled", "Conversion was cancelled.");
 
@@ -331,9 +467,24 @@ export default function PdfToWord() {
         warnings.push(
           "Layout mode approximates positions and spacing — give the result a quick visual check.",
         );
+      if (outsideCount > 0)
+        warnings.push(
+          `The page range mentions ${outsideCount} page(s) beyond this file's ${totalPages} pages — those were ignored.`,
+        );
+      if (!preserveImages)
+        warnings.push("Images were excluded by your settings.");
+      if (!preserveTables)
+        warnings.push(
+          "Table detection was off — table-like content appears as plain text.",
+        );
+      if (!preserveHeadingsLists)
+        warnings.push(
+          "Heading/list detection was off — everything was converted as body text.",
+        );
 
       const blob = await buildDocx(structured, mode, entry.file.name);
       const url = URL.createObjectURL(blob);
+      const resultName = outputNameFor(filenamePattern, entry.file.name, mode);
       const tablesDetected = structured.reduce(
         (n, p) => n + p.blocks.filter((b) => b.kind === "table").length,
         0,
@@ -343,12 +494,12 @@ export default function PdfToWord() {
         progress: 1,
         resultBlob: blob,
         resultUrl: url,
-        resultName: resultNameFor(entry.file.name),
+        resultName,
         resultMode: mode,
         report: {
-          sourcePages: entry.pageCount ?? structured.length,
+          sourcePages: totalPages,
           convertedPages: structured.length,
-          pageSelection: null,
+          pageSelection: rangeState.set ? pageRangeInput.trim() : null,
           textPages: stats.textPages,
           ocrPages: stats.ocrPages,
           scannedPagesSkipped: stats.scannedPagesSkipped,
@@ -362,6 +513,20 @@ export default function PdfToWord() {
         },
       });
       setAnnouncement(`Converted ${entry.file.name}`);
+      if (retention !== "session") {
+        void addHistoryItem(retention, {
+          sourceName: entry.file.name,
+          resultName,
+          mode,
+          summary: `${structured.length} page(s) · ${tablesDetected} table(s) · ${stats.imagesExtracted} image(s)`,
+          blob,
+        }).then((stored) => {
+          if (stored)
+            setHistoryItems((current) =>
+              [stored, ...current].slice(0, MAX_HISTORY_ITEMS),
+            );
+        });
+      }
       return "done";
     } catch (error) {
       if (error instanceof PdfToWordError && error.kind === "cancelled") {
@@ -383,6 +548,7 @@ export default function PdfToWord() {
 
   async function runQueue(ids: number[]) {
     if (running || ids.length === 0) return;
+    setBatchSummary(null);
     const controller = new AbortController();
     abortRef.current = controller;
     setRunning(true);
@@ -402,53 +568,81 @@ export default function PdfToWord() {
       setRunning(false);
       abortRef.current = null;
       if (useOcr) void terminateOcr();
+      setBatchSummary({ done, failed });
       setAnnouncement(`Batch finished. ${done} converted, ${failed} failed.`);
     }
   }
 
-  async function downloadZip() {
-    const done = entriesRef.current.filter(
-      (e) => e.status === "done" && e.resultBlob && e.resultName,
-    );
-    if (done.length === 0) return;
-    const files: Record<string, Uint8Array> = {};
+  /** Unique in-ZIP filename per completed entry (deduplicated). */
+  function zipNameMap(): Map<number, string> {
+    const map = new Map<number, string>();
     const usedNames = new Set<string>();
-    const reportLines: string[] = [
+    for (const entry of entriesRef.current) {
+      if (entry.status !== "done" || !entry.resultName) continue;
+      let name = entry.resultName;
+      let counter = 2;
+      while (usedNames.has(name.toLowerCase())) {
+        name = entry.resultName.replace(/\.docx$/i, ` (${counter++}).docx`);
+      }
+      usedNames.add(name.toLowerCase());
+      map.set(entry.id, name);
+    }
+    return map;
+  }
+
+  function buildBatchReportText(names: Map<number, string>): string {
+    const all = entriesRef.current;
+    const lines: string[] = [
       "QUICKKIT — PDF to Word batch report",
-      `Mode: ${mode === "layout" ? "Original Layout" : "Clean Editable"}`,
-      `Converted: ${done.length}  Failed: ${entriesRef.current.filter((e) => e.status === "failed").length}`,
+      `Converted: ${all.filter((e) => e.status === "done").length}  Failed: ${all.filter((e) => e.status === "failed").length}`,
       "",
     ];
-    for (const entry of entriesRef.current) {
-      if (entry.status === "done" && entry.resultBlob && entry.resultName) {
-        let name = entry.resultName;
-        let counter = 2;
-        while (usedNames.has(name.toLowerCase())) {
-          name = entry.resultName.replace(/\.docx$/i, ` (${counter++}).docx`);
-        }
-        usedNames.add(name.toLowerCase());
-        files[name] = new Uint8Array(await entry.resultBlob.arrayBuffer());
+    for (const entry of all) {
+      if (entry.status === "done" && entry.report) {
         const r = entry.report;
-        reportLines.push(
-          `✓ ${entry.file.name} -> ${name}` +
-            (r
-              ? ` (${r.convertedPages} of ${r.sourcePages} pages, ${r.tablesDetected} tables, ${r.imagesExtracted} images${r.ocrPages ? `, ${r.ocrPages} OCR pages` : ""})`
-              : ""),
+        const name = names.get(entry.id) ?? entry.resultName ?? "document.docx";
+        lines.push(
+          `✓ ${entry.file.name} -> ${name} (${modeLabel(entry.resultMode)})`,
         );
-        for (const warning of r?.warnings ?? []) {
-          reportLines.push(`    note: ${warning}`);
-        }
+        lines.push(
+          `    ${r.convertedPages} of ${r.sourcePages} pages · ${r.tablesDetected} table(s) · ${r.imagesExtracted} image(s) · ${r.linksExtracted} link(s)${r.ocrPages ? ` · ${r.ocrPages} OCR page(s)` : ""}${r.scannedPagesSkipped ? ` · ${r.scannedPagesSkipped} scanned page(s) skipped` : ""}`,
+        );
+        for (const warning of r.warnings) lines.push(`    note: ${warning}`);
       } else if (entry.status === "failed") {
-        reportLines.push(`✗ ${entry.file.name} — ${entry.error ?? "failed"}`);
+        lines.push(`✗ ${entry.file.name} — ${entry.error ?? "failed"}`);
+      }
+    }
+    lines.push(
+      "",
+      "Generated locally by QUICKKIT. Layout in Word files is approximated; see notes above.",
+    );
+    return lines.join("\n") + "\n";
+  }
+
+  async function downloadZip() {
+    const names = zipNameMap();
+    if (names.size === 0) return;
+    const files: Record<string, Uint8Array> = {};
+    for (const entry of entriesRef.current) {
+      const name = names.get(entry.id);
+      if (name && entry.resultBlob) {
+        files[name] = new Uint8Array(await entry.resultBlob.arrayBuffer());
       }
     }
     files["batch-report.txt"] = new TextEncoder().encode(
-      reportLines.join("\n") + "\n",
+      buildBatchReportText(names),
     );
     const zipped = zipSync(files, { level: 0 });
     downloadBlob(
       new Blob([zipped as BlobPart], { type: "application/zip" }),
       "quickkit-word-documents.zip",
+    );
+  }
+
+  function downloadReport() {
+    downloadText(
+      buildBatchReportText(zipNameMap()),
+      "quickkit-batch-report.txt",
     );
   }
 
@@ -517,20 +711,133 @@ export default function PdfToWord() {
         ))}
       </div>
 
-      <label className="check-label p2w-ocr-toggle">
-        <input
-          type="checkbox"
-          checked={useOcr}
-          disabled={running}
-          onChange={(e) => setUseOcr(e.target.checked)}
-        />
-        <ScanText size={16} aria-hidden="true" />
-        Use OCR for scanned pages
-        <span className="help">
-          Reads text from page images when a PDF has no text layer. Slower,
-          still fully on-device.
-        </span>
-      </label>
+      <div className="p2w-ocr-row">
+        <label className="check-label p2w-ocr-toggle">
+          <input
+            type="checkbox"
+            checked={useOcr}
+            disabled={running}
+            onChange={(e) => setUseOcr(e.target.checked)}
+          />
+          <ScanText size={16} aria-hidden="true" />
+          Use OCR for scanned pages
+          <span className="help">
+            Reads text from page images when a PDF has no text layer. Slower,
+            still fully on-device.
+          </span>
+        </label>
+        {useOcr && (
+          <label className="p2w-ocr-lang">
+            OCR language
+            <select
+              value={ocrLanguage}
+              disabled={running}
+              onChange={(e) => setOcrLanguage(e.target.value as OcrLanguage)}
+            >
+              {OCR_LANGUAGES.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+
+      <details className="p2w-advanced">
+        <summary>
+          <SlidersHorizontal size={14} aria-hidden="true" /> Advanced settings
+          {advancedSummaryParts.length > 0 && (
+            <span className="p2w-advanced-summary">
+              {advancedSummaryParts.join(" · ")}
+            </span>
+          )}
+        </summary>
+        <div className="p2w-advanced-grid">
+          <label className="p2w-field">
+            Pages to convert
+            <input
+              type="text"
+              value={pageRangeInput}
+              disabled={running}
+              placeholder="All pages"
+              inputMode="numeric"
+              aria-describedby="p2w-range-help"
+              onChange={(e) => setPageRangeInput(e.target.value)}
+            />
+            <span id="p2w-range-help" className="help">
+              Leave empty for all pages, or use ranges like 1-3, 5, 8-10.
+            </span>
+            {rangeState.error && (
+              <span className="p2w-error" role="alert">
+                {rangeState.error}
+              </span>
+            )}
+          </label>
+          <label className="p2w-field">
+            Output filename
+            <input
+              type="text"
+              value={filenamePattern}
+              disabled={running}
+              placeholder="{name}"
+              onChange={(e) => setFilenamePattern(e.target.value)}
+            />
+            <span className="help">
+              {"{name}"} = original name, {"{mode}"} = clean/layout. Example:{" "}
+              {outputNameFor(filenamePattern, "Annual Report.pdf", mode)}
+            </span>
+          </label>
+          <fieldset className="p2w-preserve">
+            <legend>Preserve in the Word file</legend>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={preserveImages}
+                disabled={running}
+                onChange={(e) => setPreserveImages(e.target.checked)}
+              />
+              Images
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={preserveTables}
+                disabled={running}
+                onChange={(e) => setPreserveTables(e.target.checked)}
+              />
+              Tables (detect &amp; rebuild)
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={preserveHeadingsLists}
+                disabled={running}
+                onChange={(e) => setPreserveHeadingsLists(e.target.checked)}
+              />
+              Headings &amp; lists
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={preserveLinks}
+                disabled={running}
+                onChange={(e) => setPreserveLinks(e.target.checked)}
+              />
+              Hyperlinks (where present)
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={keepHeadersFooters}
+                disabled={running}
+                onChange={(e) => setKeepHeadersFooters(e.target.checked)}
+              />
+              Keep repeating headers/footers
+            </label>
+          </fieldset>
+        </div>
+      </details>
 
       <div
         className={`dropzone p2w-dropzone${dragging ? " dragging" : ""}`}
@@ -588,7 +895,7 @@ export default function PdfToWord() {
             <span>
               {entries.length} file(s) · {formatBytes(totalBytes)} total
               {running || attempted
-                ? ` · ${doneEntries.length} converted, ${failedCount} failed`
+                ? ` · ${doneEntries.length} completed · ${failedCount} failed · ${entries.length - doneEntries.length - failedCount} pending`
                 : ""}
             </span>
             <div className="p2w-batch-actions">
@@ -597,7 +904,7 @@ export default function PdfToWord() {
                   <button
                     type="button"
                     className="primary"
-                    disabled={readyCount === 0}
+                    disabled={readyCount === 0 || rangeState.error !== null}
                     onClick={() =>
                       void runQueue(
                         entriesRef.current
@@ -609,13 +916,47 @@ export default function PdfToWord() {
                     <Play size={15} aria-hidden="true" /> Convert{" "}
                     {readyCount > 0 ? `${readyCount} file(s)` : ""}
                   </button>
-                  {doneEntries.length > 1 && (
+                  {failedCount > 0 && (
+                    <button
+                      type="button"
+                      className="toolbar-button"
+                      onClick={() =>
+                        void runQueue(
+                          entriesRef.current
+                            .filter((e) => e.status === "failed")
+                            .map((e) => e.id),
+                        )
+                      }
+                    >
+                      <RefreshCw size={15} aria-hidden="true" /> Retry failed (
+                      {failedCount})
+                    </button>
+                  )}
+                  {doneEntries.length >= 1 && (
                     <button
                       type="button"
                       className="toolbar-button"
                       onClick={() => void downloadZip()}
                     >
                       <Archive size={15} aria-hidden="true" /> Download ZIP
+                    </button>
+                  )}
+                  {attempted && (
+                    <button
+                      type="button"
+                      className="toolbar-button"
+                      onClick={downloadReport}
+                    >
+                      <FileText size={15} aria-hidden="true" /> Batch report
+                    </button>
+                  )}
+                  {doneEntries.length > 0 && (
+                    <button
+                      type="button"
+                      className="toolbar-button"
+                      onClick={clearCompleted}
+                    >
+                      <Check size={15} aria-hidden="true" /> Clear completed
                     </button>
                   )}
                   <button
@@ -653,6 +994,41 @@ export default function PdfToWord() {
             </div>
           )}
 
+          {batchSummary && !running && (
+            <div
+              className={`p2w-banner ${batchSummary.failed > 0 ? "warn" : "ok"}`}
+              role="status"
+            >
+              {batchSummary.failed > 0 ? (
+                <AlertTriangle size={15} aria-hidden="true" />
+              ) : (
+                <Check size={15} aria-hidden="true" />
+              )}
+              <span>
+                Batch finished — {batchSummary.done} converted,{" "}
+                {batchSummary.failed} failed. Download each Word file below
+                {batchSummary.done > 0 ? ", or grab the ZIP." : "."}
+              </span>
+              {batchSummary.done > 0 && (
+                <button
+                  type="button"
+                  className="toolbar-button"
+                  onClick={() => void downloadZip()}
+                >
+                  <Archive size={14} aria-hidden="true" /> Download ZIP
+                </button>
+              )}
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Dismiss batch summary"
+                onClick={() => setBatchSummary(null)}
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+          )}
+
           <ul className="p2w-list">
             {entries.map((entry) => (
               <li key={entry.id} className="p2w-row">
@@ -669,11 +1045,14 @@ export default function PdfToWord() {
                     {formatBytes(entry.file.size)}
                     {entry.pageCount !== null &&
                       ` · ${entry.pageCount} page(s)`}
-                    {entry.kind === "scanned" && " · Scanned (image-only)"}
-                    {entry.kind === "mixed" && " · Some scanned pages"}
-                    {entry.report &&
-                      ` · ${entry.report.tablesDetected} table(s), ${entry.report.imagesExtracted} image(s)`}
+                    {entry.kind !== null && ` · ${kindLabel(entry.kind)}`}
+                    {entry.status === "done" &&
+                      entry.resultBlob &&
+                      ` → ${entry.resultName} · ${formatBytes(entry.resultBlob.size)} · ${modeLabel(entry.resultMode)}`}
                   </span>
+                  {entry.status === "inspecting" && (
+                    <span className="p2w-skeleton-line" aria-hidden="true" />
+                  )}
                   {entry.status === "converting" && (
                     <div className="progress-track p2w-file-progress">
                       <div
@@ -689,16 +1068,13 @@ export default function PdfToWord() {
                       {entry.error}
                     </p>
                   )}
-                  {entry.report && entry.report.warnings.length > 0 && (
+                  {entry.report && (
                     <details className="p2w-notes">
-                      <summary>
-                        Conversion notes ({entry.report.warnings.length})
-                      </summary>
-                      <ul>
-                        {entry.report.warnings.map((warning) => (
-                          <li key={warning}>{warning}</li>
-                        ))}
-                      </ul>
+                      <summary>Quality report</summary>
+                      <QualityReport
+                        report={entry.report}
+                        mode={entry.resultMode}
+                      />
                     </details>
                   )}
                 </div>
@@ -746,15 +1122,44 @@ export default function PdfToWord() {
                       <RefreshCw size={16} aria-hidden="true" />
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className="icon-button"
-                    aria-label={`Remove ${entry.file.name}`}
-                    disabled={entry.status === "converting"}
-                    onClick={() => removeEntry(entry.id)}
-                  >
-                    <X size={16} aria-hidden="true" />
-                  </button>
+                  {confirmRemoveId === entry.id ? (
+                    <>
+                      <button
+                        type="button"
+                        className="icon-button p2w-confirm-yes"
+                        aria-label={`Confirm remove ${entry.file.name}`}
+                        title="Remove while the batch is running?"
+                        onClick={() => {
+                          setConfirmRemoveId(null);
+                          removeEntry(entry.id);
+                        }}
+                      >
+                        <Check size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        aria-label={`Keep ${entry.file.name}`}
+                        onClick={() => setConfirmRemoveId(null)}
+                      >
+                        <X size={16} aria-hidden="true" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={`Remove ${entry.file.name}`}
+                      disabled={entry.status === "converting"}
+                      onClick={() =>
+                        running
+                          ? setConfirmRemoveId(entry.id)
+                          : removeEntry(entry.id)
+                      }
+                    >
+                      <X size={16} aria-hidden="true" />
+                    </button>
+                  )}
                 </span>
               </li>
             ))}
@@ -770,16 +1175,43 @@ export default function PdfToWord() {
                 <Download size={15} aria-hidden="true" /> Download{" "}
                 {doneEntries[0].resultName}
               </a>
+              <button
+                type="button"
+                className="toolbar-button"
+                onClick={() =>
+                  setPreview({ id: doneEntries[0].id, view: "docx" })
+                }
+              >
+                <Eye size={15} aria-hidden="true" /> Preview result
+              </button>
             </div>
           )}
         </>
       )}
 
+      <HistoryPanel
+        items={historyItems}
+        retention={retention}
+        onRetentionChange={(next) => void changeRetention(next)}
+        onPreview={(item) => setPreview({ item, view: "docx" })}
+        onRemove={(item) => {
+          setHistoryItems((current) =>
+            current.filter((entry) => entry.id !== item.id),
+          );
+          void removeHistoryItem(item.id);
+        }}
+        onClearAll={() => {
+          setHistoryItems([]);
+          void clearHistory();
+        }}
+      />
+
       <p className="help">
         Converted files are genuine Word documents that open in Microsoft Word,
         LibreOffice and Google Docs. Layout is approximated — fonts are
-        substituted and complex vector graphics cannot be carried over. Your
-        original PDFs are never modified.
+        substituted and complex vector graphics cannot be carried over. Use the
+        preview to compare the original PDF with the converted Word file before
+        you rely on it. Your original PDFs are never modified or stored.
       </p>
 
       {previewEntry && preview && (
@@ -802,6 +1234,21 @@ export default function PdfToWord() {
             setPreview(null);
           }}
           onReplace={(file) => replaceEntryFile(previewEntry.id, file)}
+        />
+      )}
+      {preview?.item && (
+        <PreviewDialog
+          target={{
+            file: null,
+            sourceName: preview.item.sourceName,
+            sourceMeta: `Converted ${new Date(preview.item.createdAt).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · ${preview.item.summary}`,
+            resultBlob: preview.item.blob,
+            resultUrl: null,
+            resultName: preview.item.resultName,
+            resultMeta: `${preview.item.resultName} · ${formatBytes(preview.item.size)} · ${modeLabel(preview.item.mode)}`,
+          }}
+          initialView="docx"
+          onClose={() => setPreview(null)}
         />
       )}
 
