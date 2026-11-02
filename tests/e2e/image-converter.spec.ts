@@ -99,7 +99,7 @@ async function makePdf(pages: number): Promise<Upload> {
     });
     page.drawText(`Page ${index + 1}`, {
       x: 60,
-      y: 420,
+      y: 610,
       size: 54,
       font,
       color: rgb(1, 1, 1),
@@ -127,7 +127,7 @@ async function makeRotatedPdf(): Promise<Upload> {
   });
   first.drawText("Rotated", {
     x: 60,
-    y: 420,
+    y: 610,
     size: 54,
     font,
     color: rgb(1, 1, 1),
@@ -143,7 +143,7 @@ async function makeRotatedPdf(): Promise<Upload> {
   });
   second.drawText("Upright", {
     x: 60,
-    y: 420,
+    y: 610,
     size: 54,
     font,
     color: rgb(1, 1, 1),
