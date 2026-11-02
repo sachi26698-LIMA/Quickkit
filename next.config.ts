@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
 const config: NextConfig = {
+  allowedDevOrigins: ["*.e2b.app"],
   poweredByHeader: false,
   async headers() {
     return [
