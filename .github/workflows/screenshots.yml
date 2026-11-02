@@ -1,6 +1,11 @@
 name: Capture UI screenshots
 on:
   workflow_dispatch:
+  # workflow_dispatch is only registered from the default branch, so a marker
+  # file gives this feature branch a way to request a capture run.
+  push:
+    paths:
+      - ".github/screenshot-trigger"
 permissions:
   contents: write
 jobs:
