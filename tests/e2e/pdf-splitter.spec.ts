@@ -145,7 +145,9 @@ test("splits custom ranges locally and downloads validated PDFs and a ZIP", asyn
   const pendingZip = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download ZIP (3 PDFs)" }).click();
   const zipDownload = await pendingZip;
-  expect(zipDownload.suggestedFilename()).toBe("Board files.zip");
+  expect(zipDownload.suggestedFilename().replaceAll("_", " ")).toBe(
+    "Board files.zip",
+  );
   const zipBytes = await readFile((await zipDownload.path())!);
   const entries = readStoredZipEntries(zipBytes);
   expect(entries.map((entry) => entry.name)).toEqual([

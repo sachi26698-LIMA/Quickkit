@@ -409,7 +409,10 @@ test("cancels a large batch and leaves unfinished PDFs ready to retry", async ({
     page.getByRole("button", { name: "Compress 3 PDFs" }),
   ).toBeEnabled({ timeout: 60_000 });
 
-  await page.getByLabel(/Target size per PDF/).check();
+  const targetToggle = page.getByLabel(/Target size per PDF/);
+  await targetToggle.focus();
+  await page.keyboard.press("Space");
+  await expect(targetToggle).toBeChecked();
   await page.getByLabel("Target", { exact: true }).fill("1");
   await page.getByLabel("Target unit").selectOption("KiB");
   await page.getByRole("button", { name: "Compress 3 PDFs" }).click();

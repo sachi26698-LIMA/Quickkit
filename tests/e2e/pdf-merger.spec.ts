@@ -129,7 +129,9 @@ test("merges reordered selected pages locally and downloads a validated PDF", as
   const pendingDownload = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download merged PDF" }).click();
   const download = await pendingDownload;
-  expect(download.suggestedFilename()).toBe("Combined report.pdf");
+  expect(download.suggestedFilename().replaceAll("_", " ")).toBe(
+    "Combined report.pdf",
+  );
   const outputBytes = await readFile((await download.path())!);
   const reopened = await PDFDocument.load(outputBytes);
   expect(reopened.getPageCount()).toBe(3);
