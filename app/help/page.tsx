@@ -100,7 +100,7 @@ export default function HelpPage() {
         <section id="faq" className="faq-section" aria-labelledby="faq-title">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">GOOD TO KNOW</span>
+              <span className="eyebrow">Good to know</span>
               <h2 id="faq-title">Frequently asked questions</h2>
             </div>
           </div>

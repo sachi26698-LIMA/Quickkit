@@ -13,7 +13,7 @@ const toolLinks = [
   "Developer Tools",
   "Calculators",
 ] as const;
-const moreLinks = ["Security & Privacy", "AI Tools", "Calculators"] as const;
+const moreLinks = ["Security & Privacy", "AI Tools"] as const;
 
 export default function Footer() {
   return (
@@ -76,17 +76,11 @@ export default function Footer() {
               {name}
             </Link>
           ))}
-          <Link href="/help#faq">FAQ</Link>
           <Link href="/sitemap">Sitemap</Link>
         </div>
       </div>
       <div className="container footer-bottom">
         <span>© {new Date().getFullYear()} QUICKKIT. All rights reserved.</span>
-        <span className="footer-legal-links">
-          <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/terms">Terms of Use</Link>
-          <Link href="/cookies">Cookie Policy</Link>
-        </span>
         <span className="footer-built">
           Built with <Heart size={12} fill="currentColor" aria-hidden="true" />
           <span className="sr-only">love</span> for a simpler digital life.

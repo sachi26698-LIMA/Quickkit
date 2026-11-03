@@ -11,7 +11,7 @@ export const metadata = pageMetadata(
 export default function Page() {
   return (
     <article className="container prose legal">
-      <span className="eyebrow">SMALL FILES, PLAIN LANGUAGE</span>
+      <span className="eyebrow">Small files, plain language</span>
       <h1>Cookie Policy</h1>
       <p className="legal-updated">
         Last updated: 1 November 2026. This page describes the current QUICKKIT

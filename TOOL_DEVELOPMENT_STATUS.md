@@ -1,6 +1,6 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 2 November 2026  
+**Last updated:** 3 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
@@ -574,3 +574,21 @@ imported by application code (it remains present transitively through `node-html
 promises), `TOOL_REGISTRY_ARCHITECTURE.md`, `PDF_MERGER_PLAN.md`, `MULTIPLE_TOOLS_ROADMAP.md`,
 `RELEASE_CHECKLIST.md` with its `docs/RELEASE_CHECKLIST.md` pointer, all feature docs under `docs/`
 and every screenshot under `docs/verification` and `docs/phase-*`.
+
+## Site-wide brand update (3 November 2026, PR #13 — awaiting owner approval)
+
+The plum/rose/coral brand palette (Deep Plum `#3B1B4F`, Rose Pink `#D6598F`,
+Coral `#FF6B6B`, Midnight `#1A0F2E`, Soft Blush `#F4D7D4`) is implemented
+centrally in `app/globals.css :root` on branch `arena/cdece415-quickkit`,
+with legacy token names kept as aliases so all pages and tool workspaces
+follow from one place. Homepage benefits were consolidated into the single
+Why-QUICKKIT section (the old trust strip's inaccurate "100+ Tools" claim
+and the duplicated privacy banner were removed), footer links deduplicated,
+and heading/spacing scales tightened. Integrated with the Phase-5–9 tool
+expansion from PR #12 by merging `main` in and sweeping the new tools'
+violet accents onto the same tokens. No tool logic changed. Known remaining
+items: binary favicons still carry the old violet (SVG favicon updated);
+two pre-existing PDF Merger WebKit e2e failures in CI (also red on `main`)
+await their own follow-up PR. Do not treat the brand update as live until
+the owner approves and merges PR #13.
+

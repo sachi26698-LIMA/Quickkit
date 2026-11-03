@@ -11,7 +11,7 @@ export const metadata = pageMetadata(
 export default function Page() {
   return (
     <article className="container prose legal">
-      <span className="eyebrow">THE FINE PRINT, IN PLAIN LANGUAGE</span>
+      <span className="eyebrow">The fine print, in plain language</span>
       <h1>Terms of Use</h1>
       <p className="legal-updated">
         Last updated: 1 November 2026. These terms describe the current free

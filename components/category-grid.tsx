@@ -64,8 +64,8 @@ export default function CategoryGrid() {
             <p>{meta.blurb}</p>
             <span className="category-count">
               {comingSoon
-                ? "COMING SOON"
-                : `${count} ${count === 1 ? "TOOL" : "TOOLS"}`}
+                ? "Coming soon"
+                : `${count} ${count === 1 ? "tool" : "tools"}`}
             </span>
           </Link>
         );

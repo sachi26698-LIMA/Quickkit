@@ -41,7 +41,7 @@ export default function ToolShell({
       <header className="tool-title">
         <ToolIcon icon={tool.icon} color={tool.color} />
         <span className="eyebrow">
-          {toolCategories.join(" · ")} · FREE BROWSER TOOL
+          {toolCategories.join(" · ")} · Free browser tool
         </span>
         <h1>{tool.name}</h1>
         <p>{tool.description}</p>
@@ -67,7 +67,7 @@ export default function ToolShell({
       </p>
       <div className="tool-guidance">
         <section>
-          <span className="eyebrow">A QUICK WALKTHROUGH</span>
+          <span className="eyebrow">A quick walkthrough</span>
           <h2>How to use it</h2>
           <ol>
             {content.steps.map((step) => (
@@ -76,7 +76,7 @@ export default function ToolShell({
           </ol>
         </section>
         <section>
-          <span className="eyebrow">GOOD TO KNOW</span>
+          <span className="eyebrow">Good to know</span>
           <h2>A few useful answers</h2>
           {content.faqs.map(({ q, a }) => (
             <details key={q}>
