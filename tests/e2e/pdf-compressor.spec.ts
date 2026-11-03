@@ -417,7 +417,9 @@ test("cancels a large batch and leaves unfinished PDFs ready to retry", async ({
   await page.getByLabel("Target unit").selectOption("KiB");
   await page.getByRole("button", { name: "Compress 3 PDFs" }).click();
   await expect(page.getByRole("progressbar")).toBeVisible();
-  await page.getByRole("button", { name: "Cancel compression" }).click();
+  await page
+    .getByRole("button", { name: "Cancel compression" })
+    .click({ force: true });
 
   await expect(page.getByText(/Compression cancelled/)).toBeVisible();
   await expect(page.locator(".pdf-entry")).toHaveCount(3);

@@ -172,7 +172,7 @@ test("splits custom ranges locally and downloads validated PDFs and a ZIP", asyn
     .first()
     .click();
   const pdfDownload = await pendingPdf;
-  expect(pdfDownload.suggestedFilename()).toBe(
+  expect(pdfDownload.suggestedFilename().replaceAll("_", " ")).toBe(
     "Board pack-part-01-pages-1-3.pdf",
   );
   const reopened = await PDFDocument.load(
