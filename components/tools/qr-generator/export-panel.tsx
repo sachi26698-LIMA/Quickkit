@@ -29,12 +29,22 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
     payloadResult,
   } = studio;
   const verified = Boolean(output?.verification?.ok);
-  const blocked = output !== null && !verified;
-  const ready = Boolean(output) && verified;
+  // The preview panel already promises "export is blocked" when its own safety
+  // audit fails — a zero quiet zone, for instance, decodes here but not in the
+  // field — so the download row has to honour the same verdict, not only the
+  // decode result. Otherwise the badge and the buttons disagree.
+  const safetyBlocked = output?.safety?.level === "blocked";
+  const blocked = (output !== null && !verified) || safetyBlocked;
+  const ready = Boolean(output) && verified && !safetyBlocked;
   const bytes = output?.png?.length ?? 0;
 
   const name = (ext: "png" | "svg" | "pdf", size?: number, suffix?: string) =>
     qrFilename({ label, typeId, ext, size, suffix });
+
+  const lockReason =
+    blocked && safetyBlocked
+      ? "Blocked by the safety audit under the preview"
+      : "Blocked until this exact code has been decoded";
 
   return (
     <div className="qr-download" id="qr-export">
@@ -56,11 +66,7 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
           className="primary qr-format"
           onClick={() => void studio.exportPng()}
           disabled={!ready}
-          title={
-            ready
-              ? `Save the verified ${design.size} px PNG`
-              : "Blocked until this exact code has been decoded"
-          }
+          title={ready ? `Save the verified ${design.size} px PNG` : lockReason}
         >
           <ImageIcon size={15} aria-hidden="true" />
           <strong>PNG</strong>
@@ -72,8 +78,12 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
           type="button"
           className="secondary qr-format"
           onClick={() => void studio.exportPng(2048)}
-          disabled={!payloadResult.ok || studio.busy !== null}
-          title="Re-renders at 2048 px and re-verifies before saving"
+          disabled={!payloadResult.ok || safetyBlocked || studio.busy !== null}
+          title={
+            safetyBlocked
+              ? lockReason
+              : "Re-renders at 2048 px and re-verifies before saving"
+          }
         >
           <Maximize2 size={15} aria-hidden="true" />
           <strong>High-res PNG</strong>
@@ -84,11 +94,7 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
           className="secondary qr-format"
           onClick={() => void studio.exportSvg()}
           disabled={!ready}
-          title={
-            ready
-              ? "Save the SVG vector file"
-              : "Blocked until this exact code has been decoded"
-          }
+          title={ready ? "Save the SVG vector file" : lockReason}
         >
           <FileText size={15} aria-hidden="true" />
           <strong>SVG</strong>
@@ -99,11 +105,7 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
           className="secondary qr-format"
           onClick={() => void studio.exportPdf()}
           disabled={!ready}
-          title={
-            ready
-              ? "Save the printable PDF page"
-              : "Blocked until this exact code has been decoded"
-          }
+          title={ready ? "Save the printable PDF page" : lockReason}
         >
           <Printer size={15} aria-hidden="true" />
           <strong>PDF</strong>
@@ -121,7 +123,13 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
 
       {blocked ? (
         <p className="qr-blocked" role="alert">
-          Downloads stay locked while the decode check fails.{" "}
+          {safetyBlocked && verified
+            ? `Downloads stay locked while the safety audit blocks this code: ${
+                output?.safety?.findings.find(
+                  (finding) => finding.level === "blocked",
+                )?.message ?? "the styling is too risky to hand out."
+              } `
+            : "Downloads stay locked while the decode check fails. "}
           {output?.verification?.message}
         </p>
       ) : null}

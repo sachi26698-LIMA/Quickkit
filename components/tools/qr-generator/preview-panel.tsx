@@ -127,7 +127,9 @@ export default function PreviewPanel({ studio }: { studio: QrStudio }) {
             <p>
               {broken
                 ? "The outline is a placeholder: nothing is claimed to be scannable until a real code has been rendered and decoded."
-                : `Fill the ${def.label.toLowerCase()} fields and a live ${design.size}×${design.size} px code is drawn here, then decoded by a second reader.`}
+                : `Fill in the ${def.label} ${
+                    (def.fields?.length ?? 1) > 1 ? "fields" : "field"
+                  } and a live ${design.size}×${design.size} px code appears here, then a second reader checks it.`}
             </p>
             <div className="qr-empty-actions">
               <button

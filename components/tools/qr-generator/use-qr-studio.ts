@@ -431,7 +431,20 @@ export function useQrStudio() {
     const template = templateById(id);
     if (!template) return;
     setTemplateId(id);
-    setDesignState((current) => ({ ...current, ...template.design }));
+    // A template has to land on its own design, not a blend of the last two:
+    // keys a template leaves out (invert, transparency, dot scale, corner
+    // radius) used to survive from whichever template was applied before, so
+    // "Clear Badge" over "Inverted Noir" produced a code that could not be
+    // verified at all. Start from the shipped defaults and let the template
+    // overwrite them. The uploaded logo and the chosen export size stay the
+    // user's — a template is a look, not a workflow reset.
+    setDesignState((current) => {
+      const next: QrDesign = { ...defaultDesign(), ...template.design };
+      next.logo = current.logo;
+      if (template.design.size === undefined) next.size = current.size;
+      if (template.design.margin === undefined) next.margin = current.margin;
+      return next;
+    });
   }, []);
 
   const applyPreset = useCallback((preset: QrPreset) => {

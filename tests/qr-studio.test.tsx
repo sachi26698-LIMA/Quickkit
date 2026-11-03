@@ -41,6 +41,19 @@ async function settle() {
   });
 }
 
+/** Some designs decode with warnings instead of a clean pass — both are fine. */
+async function settleOrWarn() {
+  await waitFor(
+    () =>
+      expect(
+        screen.getByText(
+          /Verified by an independent decoder|Decoded — with notes below/,
+        ),
+      ).toBeInTheDocument(),
+    { timeout: TEST_TIMEOUT },
+  );
+}
+
 function typeUrl(value: string) {
   fireEvent.change(screen.getByLabelText(/Web address/), {
     target: { value },
@@ -205,6 +218,25 @@ describe("qr studio — styling can never pass silently", () => {
     TEST_TIMEOUT,
   );
 
+  it("keeps a pristine form quiet and validates from the first real keystroke", () => {
+    render(<QrGenerator />);
+    const fields = within(document.getElementById("qr-content") as HTMLElement);
+    expect(fields.queryByRole("alert")).not.toBeInTheDocument();
+    // Whitespace is not content, so this stays a "nothing yet" state.
+    fireEvent.change(screen.getByLabelText(/Web address/), {
+      target: { value: "   " },
+    });
+    expect(fields.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Web address/), {
+      target: { value: "not a url" },
+    });
+    expect(fields.getByRole("alert")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Web address/), {
+      target: { value: "" },
+    });
+    expect(fields.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it(
     "applies a premium template and keeps the code decodable",
     async () => {
@@ -218,6 +250,59 @@ describe("qr studio — styling can never pass silently", () => {
       expect(
         card("qr-export").getByRole("button", { name: /^PNG/ }),
       ).toBeEnabled();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "replaces the whole look when a template is applied, instead of blending two",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      typeUrl("https://example.com/template-swap");
+      await settle();
+      openDesignTab("Templates");
+      fireEvent.click(screen.getByRole("button", { name: /Inverted Noir/ }));
+      await settleOrWarn();
+      expect(
+        (screen.getByLabelText(/^Invert/) as HTMLInputElement).checked,
+      ).toBe(true);
+      // "Clear Badge" says nothing about inversion, so applying it used to keep
+      // the previous template's inverted field — an unverifiable hybrid.
+      fireEvent.click(screen.getByRole("button", { name: /Clear Badge/ }));
+      await settleOrWarn();
+      expect(
+        (screen.getByLabelText(/^Invert/) as HTMLInputElement).checked,
+      ).toBe(false);
+      expect(screen.queryByText(BLOCKED)).not.toBeInTheDocument();
+      expect(
+        card("qr-export").getByRole("button", { name: /^PNG/ }),
+      ).toBeEnabled();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "keeps the download row locked while the safety audit blocks the code",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      typeUrl("https://example.com/quiet-zone");
+      await settle();
+      const margin = document.getElementById("qr-margin") as HTMLInputElement;
+      fireEvent.change(margin, { target: { value: "0" } });
+      expect(margin.value).toBe("0");
+      await waitFor(
+        () => expect(screen.getByText(BLOCKED)).toBeInTheDocument(),
+        { timeout: TEST_TIMEOUT },
+      );
+      // The preview already says the code is not scannable; the buttons cannot
+      // disagree with it.
+      for (const name of [/^PNG/, /^High-res PNG/, /^SVG/, /^PDF/])
+        expect(card("qr-export").getByRole("button", { name })).toBeDisabled();
+      expect(card("qr-export").getByRole("alert")).toHaveTextContent(
+        /safety audit/i,
+      );
     },
     TEST_TIMEOUT,
   );

@@ -132,7 +132,10 @@ export default function ContentPanel({ studio }: { studio: QrStudio }) {
       <QrFieldGrid
         typeId={typeId}
         values={values}
-        error={formError}
+        // A pristine form gets guidance, not red text: `hasContent` is the same
+        // flag the status machine uses to tell "empty" from "invalid", so the
+        // field errors and the preview verdict never disagree about the state.
+        error={hasContent ? formError : null}
         onChange={studio.setValue}
       />
 

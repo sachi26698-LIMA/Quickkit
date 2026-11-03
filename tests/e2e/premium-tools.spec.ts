@@ -220,6 +220,31 @@ test("QR premium: sizes decode, SVG downloads, styling and low contrast are chec
   ).toBeVisible();
 });
 
+test("QR workspace tabs swap panels instead of stacking them", async ({
+  page,
+}) => {
+  await page.goto("/tools/qr-generator");
+  await expect(page.getByRole("tab", { name: /Create QR/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  // Every panel carries `hidden` while inactive, but only a real `display:
+  // none` keeps it off the page — an author `display: grid` on the container
+  // used to beat the browser's [hidden] rule and stack all four workspaces.
+  await expect(page.locator("#qr-panel-bulk")).toBeHidden();
+  await page.getByRole("tab", { name: /^Bulk/ }).click();
+  await expect(page.locator("#qr-panel-bulk")).toBeVisible();
+  await expect(page.locator("#qr-panel-create")).toBeHidden();
+  await page.getByRole("tab", { name: /^History/ }).click();
+  await expect(page.locator("#qr-panel-history")).toBeVisible();
+  await expect(page.locator("#qr-panel-create")).toBeHidden();
+  await page.getByRole("tab", { name: /Presets/ }).click();
+  await expect(page.locator("#qr-panel-presets")).toBeVisible();
+  await expect(page.locator("#qr-panel-bulk")).toBeHidden();
+  await page.getByRole("tab", { name: /Create QR/ }).click();
+  await expect(page.locator("#qr-panel-create")).toBeVisible();
+});
+
 test("QR bulk: CSV rows are validated, rendered and zipped", async ({
   page,
 }) => {

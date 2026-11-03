@@ -98,6 +98,13 @@
     "suspects": []
   },
   {
+    "shot": "desktop-1440-18-download-row",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
     "shot": "desktop-1440-15-history",
     "viewport": "1440×900",
     "documentOverflowPx": 0,
@@ -114,6 +121,34 @@
   {
     "shot": "desktop-1440-17-bulk",
     "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1280-01-empty",
+    "viewport": "1280×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1280-02-studio",
+    "viewport": "1280×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1280-13-advanced",
+    "viewport": "1280×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1280-16-presets",
+    "viewport": "1280×900",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
@@ -175,66 +210,60 @@
     "suspects": []
   },
   {
-    "shot": "mobile-375-01-empty",
-    "viewport": "375×812",
+    "shot": "mobile-430-01-empty",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-02-preview",
-    "viewport": "375×812",
+    "shot": "mobile-430-02-preview",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-03-content",
-    "viewport": "375×812",
+    "shot": "mobile-430-03-content",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-04-design",
-    "viewport": "375×812",
+    "shot": "mobile-430-04-design",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-05-advanced",
-    "viewport": "375×812",
+    "shot": "mobile-430-05-advanced",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-06-download",
-    "viewport": "375×812",
+    "shot": "mobile-430-06-download",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-07-history",
-    "viewport": "375×812",
+    "shot": "mobile-430-07-history",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-375-08-bulk",
-    "viewport": "375×812",
+    "shot": "mobile-430-08-bulk",
+    "viewport": "430×932",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
-    "suspects": [
-      "table.qr-bulk-rows→600",
-      "thead.→600",
-      "tr.→600",
-      "th.→407",
-      "th.→452"
-    ]
+    "suspects": []
   },
   {
     "shot": "mobile-390-01-empty",
@@ -290,74 +319,62 @@
     "viewport": "390×844",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
-    "suspects": [
-      "table.qr-bulk-rows→600",
-      "thead.→600",
-      "tr.→600",
-      "th.→407",
-      "th.→452"
-    ]
+    "suspects": []
   },
   {
-    "shot": "mobile-430-01-empty",
-    "viewport": "430×932",
+    "shot": "mobile-375-01-empty",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-02-preview",
-    "viewport": "430×932",
+    "shot": "mobile-375-02-preview",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-03-content",
-    "viewport": "430×932",
+    "shot": "mobile-375-03-content",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-04-design",
-    "viewport": "430×932",
+    "shot": "mobile-375-04-design",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-05-advanced",
-    "viewport": "430×932",
+    "shot": "mobile-375-05-advanced",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-06-download",
-    "viewport": "430×932",
+    "shot": "mobile-375-06-download",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-07-history",
-    "viewport": "430×932",
+    "shot": "mobile-375-07-history",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
     "suspects": []
   },
   {
-    "shot": "mobile-430-08-bulk",
-    "viewport": "430×932",
+    "shot": "mobile-375-08-bulk",
+    "viewport": "375×812",
     "documentOverflowPx": 0,
     "studioOverflowPx": 0,
-    "suspects": [
-      "table.qr-bulk-rows→600",
-      "thead.→600",
-      "tr.→600",
-      "th.→452",
-      "th.→600"
-    ]
+    "suspects": []
   }
 ]

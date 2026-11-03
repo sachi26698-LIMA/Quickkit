@@ -10399,6 +10399,76 @@ select:focus {
   line-height: 1.7;
   max-width: 34ch;
 }
+/* The placeholder artwork is drawn with classes rather than presentation
+   attributes: without these rules every shape falls back to SVG's default
+   black fill and the empty state reads as a solid block. */
+.qr-empty-art {
+  display: block;
+  margin: 0 auto;
+}
+.qr-empty-frame {
+  fill: #fff;
+  stroke: #e0d4f7;
+  stroke-width: 1;
+}
+.qr-empty-eye rect {
+  fill: #f5efff;
+  stroke: #ab8ff1;
+  stroke-width: 1.4;
+}
+.qr-empty-eye-inner rect {
+  fill: #bda6f6;
+}
+.qr-empty-module rect {
+  fill: #dccdf8;
+}
+.qr-empty-actions {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  margin-top: 2px;
+}
+.qr-empty-hint {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--secondary);
+  max-width: 30ch;
+  overflow-wrap: anywhere;
+}
+.qr-empty-hint code {
+  font-size: 10.5px;
+}
+/* Preset name field: lives inside a flex row, so it needs an explicit floor. */
+.qr-input {
+  min-width: 0;
+  width: 100%;
+}
+/* The studio's flash line carries a dismiss button, so it needs room for it;
+   `.status` itself is a shared site class and is left alone. */
+.qr-studio > .status {
+  position: relative;
+  padding-right: 44px;
+}
+.qr-flash-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.72;
+}
+.qr-flash-close:hover {
+  opacity: 1;
+  border-color: currentColor;
+  background: rgb(255 255 255 / 0.55);
+}
 .qr-verdict {
   display: flex;
   align-items: flex-start;
@@ -11818,6 +11888,15 @@ details.qr-acc {
   display: grid;
   gap: 14px;
 }
+/* The workspace tabs toggle their panels with the `hidden` attribute, but an
+   author-level `display: grid` beats the browser's `[hidden] { display: none }`
+   rule, so every panel stayed stacked on the page — "Bulk" looked like extra
+   cards under the editor instead of a separate tab. Scope is the two panel
+   containers only, so no other tool's markup is affected. */
+.qr-layout[hidden],
+.qr-panel-solo[hidden] {
+  display: none;
+}
 
 /* Content: the compact type picker --------------------------------------- */
 .qr-type-picker {
@@ -12062,6 +12141,12 @@ details.qr-acc {
   font-size: 10.5px;
   opacity: 0.8;
   line-height: 1.4;
+}
+.qr-format:disabled {
+  opacity: 0.5;
+  filter: saturate(0.55);
+  box-shadow: none;
+  cursor: not-allowed;
 }
 .qr-format.secondary {
   background: #fdfcff;
