@@ -154,35 +154,31 @@ test("QR premium: sizes decode, SVG downloads, low contrast is blocked", async (
   await expect(page.locator(".status.error")).toContainText("contrast");
 });
 
-test("image premium: drop-to-load and capped resize produce a real download", async ({
+test("image premium: input and drop both load, and compression downloads a real file", async ({
   page,
 }) => {
   await page.goto("/tools/image-compressor");
   const fixture = await pngFixture(page);
-  // Load via the input (drop uses the same accept path), then cap at 800px.
-  await page
-    .getByLabel("Choose an image", { exact: true })
-    .setInputFiles(fixture);
-  await expect(page.getByAltText("Original image preview")).toBeVisible();
-  await expect(page.locator(".meta-chips")).toContainText("1600 × 900");
-  await page.getByLabel("Max size").selectOption("800");
+  // Load through the picker; the drop zone feeds the same validation path.
+  await page.getByLabel("Add images", { exact: true }).setInputFiles(fixture);
+  await expect(page.locator(".compressor-item")).toHaveCount(1);
+  await expect(page.locator(".compressor-stats")).toContainText("1600 × 900");
   await page
     .getByLabel("Output format", { exact: true })
     .selectOption("image/png");
   await page
-    .getByRole("button", { name: "Compress image", exact: true })
+    .getByRole("button", { name: "Compress 1 image", exact: true })
     .click();
-  await expect(page.getByAltText("Compressed image preview")).toBeVisible();
-  await expect(
-    page.getByText("800 × 450 pixels · resized", { exact: false }),
-  ).toBeVisible();
+  await expect(page.locator(".compressor-status-done")).toHaveCount(1);
+  // Dimensions stay identical unless a target-size run decides to downscale.
+  await expect(page.locator(".compressor-stats")).toContainText("unchanged");
   const pending = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download image", exact: true }).click();
+  await page.locator(".compressor-download").click();
   const download = await pending;
   const data = await readFile((await download.path())!);
-  expect(PNG.sync.read(data).width).toBe(800);
+  expect(PNG.sync.read(data).width).toBe(1600);
 
-  // Real drag-and-drop onto the dropzone loads the file too.
+  // Real drag-and-drop onto the drop zone loads the file too.
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await page.evaluate(async () => {
     const c = document.createElement("canvas");
@@ -197,7 +193,7 @@ test("image premium: drop-to-load and capped resize produce a real download", as
     const file = new File([blob], "dropped.png", { type: "image/png" });
     const transfer = new DataTransfer();
     transfer.items.add(file);
-    document.querySelector(".dropzone")!.dispatchEvent(
+    document.querySelector(".compressor-drop")!.dispatchEvent(
       new DragEvent("drop", {
         bubbles: true,
         cancelable: true,
@@ -205,8 +201,8 @@ test("image premium: drop-to-load and capped resize produce a real download", as
       }),
     );
   });
-  await expect(page.getByAltText("Original image preview")).toBeVisible();
-  await expect(page.locator(".meta-chips")).toContainText("dropped.png");
+  await expect(page.locator(".compressor-item")).toHaveCount(1);
+  await expect(page.locator(".compressor-item")).toContainText("dropped.png");
 });
 
 // Phase 3: accessibility must hold in interactive states, not only on first paint.
@@ -250,12 +246,12 @@ test("interactive states stay WCAG 2.2 AA clean (axe)", async ({ page }) => {
 
   await page.goto("/tools/image-compressor");
   await page
-    .getByLabel("Choose an image", { exact: true })
+    .getByLabel("Add images", { exact: true })
     .setInputFiles(await pngFixture(page, 320, 240));
   await page
-    .getByRole("button", { name: "Compress image", exact: true })
+    .getByRole("button", { name: "Compress 1 image", exact: true })
     .click();
-  await expect(page.getByAltText("Compressed image preview")).toBeVisible();
+  await expect(page.locator(".compressor-status-done")).toHaveCount(1);
   await expectClean("image compressed state");
 });
 

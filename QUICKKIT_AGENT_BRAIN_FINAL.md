@@ -739,3 +739,116 @@ This FINAL Brain supersedes the earlier master. The original earlier Brain and u
 - GitHub connector remained unsupported, so used the official GitHub CLI device/browser authorization flow approved by the owner. Credentials were held in a restricted temporary configuration outside the persisted workspace, never printed or committed.
 - Published audited code commit `5b8725e` atomically to `main` and `fix/launch-audit` without force. Both remote hashes matched the local audited commit. Repository was already PUBLIC; visibility was not changed.
 - Publication records updated in README/checklist. Remote CI is checked separately; pushing does not claim CI completion, a successful website deployment, resolved legal/security gates, or indexing approval. No Vercel project/domain/deployment was created by this Git publication.
+
+## Complete QC audit, hero illustration & implementation status — 2026-11-02
+
+This section records the ACTUAL current codebase, verified by direct inspection and test runs on 2026-11-02. Where it conflicts with earlier planning/status sections, this section wins. Everything below was executed/measured, not assumed.
+
+### Current architecture (as built)
+- Next.js ^16.4.3 (App Router), React ^19.3.1, strict TypeScript, Node 22.x (engines + `.nvmrc` + CI aligned), npm with `package-lock.json` only.
+- Plain CSS design system in `app/globals.css` (CSS variables, no Tailwind), self-hosted Geist Variable font, `lucide-react` ^1.66 icons. No CSS framework, no framer-motion/three.
+- Fully local-first: NO backend, NO database, NO API routes, NO analytics, NO cookies for tracking. All tool processing happens in the browser. The only client persistence is `localStorage` key `quickkit:saved-tools` (Saved/favourite tools).
+- Production deps: next, react, react-dom, lucide-react, qrcode, @cantoo/pdf-lib, pdfjs-dist (assets copied by `prepare:pdfjs` in predev/prebuild), html-entities. `npm audit --omit=dev` = 0 vulnerabilities (2026-11-02); 15 moderate findings exist in dev-only tooling.
+- Indexing is gated by `lib/launch.ts`: sitemap.xml/robots stay blocking until `SITE_URL` + `LAUNCH_APPROVED=true` in a production environment. Site currently ships `noindex` by design.
+
+### Route map (25 sitemap routes, all verified 200)
+- `/` homepage; `/tools` explorer (search + category chips, `?q=`/`?category=` deep links); 7 tool pages under `/tools/<slug>`; 8 category pages `/category/<slug>`; `/saved`; `/about`; `/contact`; `/help` (+`#faq`); `/privacy`; `/terms`; `/cookies`; `/sitemap` (HTML sitemap page coexists with `app/sitemap.ts` → `/sitemap.xml`).
+
+### Tools & categories (`lib/catalog.ts` is the source of truth)
+- 7 live tools: Word Counter, Case Converter (Text & Writing); JSON Formatter (Developer Tools); Password Generator (Security & Privacy); QR Code Generator (QR & Barcode); Image Compressor (Image Tools); PDF Merger (PDF Tools, Web-Worker based via `lib/tools/pdf/`).
+- 8 categories with slugs/tints in `categoryMeta`. Calculators and AI Tools are intentionally EMPTY with honest "Coming soon" pages — never fake tools. Category display titles are the TypeScript `Category` values; "All tools" is the unfiltered state.
+- Adding a tool: catalog entry (name, slug, description, category, keywords, icon key) → `components/tools/<name>.tsx` workspace + `lib/tools/` logic → `app/tools/<slug>/page.tsx` → unit tests in `tests/` + e2e coverage (`tests/e2e/quality.spec.ts` route list auto-audits axe/overflow/links once the route is added there).
+
+### Design system (actual tokens, `app/globals.css` :root)
+- `--purple #6C35E8`, `--purple-deep #4B19B8`, `--purple-vivid #8A5CF6`, `--lavender #EDE3FF`, `--lavender-soft #F6F1FF`, `--background #FAF8FF`, `--ink #17152B`, `--ink-soft #4B4763`, `--secondary #706B83`, `--border #E7E0F5`, purple-tinted shadows, strictly light theme (`color-scheme: light`).
+- Contrast rule learned the hard way: `--secondary` (#706B83) is AA only on white/#FAF8FF; on lavender/pastel tints use `--ink-soft`. Category tint chips/text pairs in globals.css were hand-checked ≥4.5:1 (text) / ≥3:1 (white icons).
+- Brand mark: white lightning bolt (Lucide `Zap`, filled) on purple gradient rounded square (`components/brand.tsx`); favicon/apple-icon/OG image use the same bolt.
+
+### CSS & responsive rules (actual)
+- Breakpoints: 1080 / 860 (nav collapses, hero stacks) / 600 / 479 / 359. Sticky glass header; `scroll-padding-top: 96px`; `.home { overflow-x: clip }` is a safety net ONLY — real overflow is treated as a bug and tested to zero (see audits). Never hide a bug with overflow restrictions.
+- Motion: CSS keyframes + tiny client islands (pointer parallax, IntersectionObserver reveals/count-up). All motion respects `prefers-reduced-motion`; reveals are no-JS safe (content visible until JS proves below-fold). Shared keyframes `spin-slow`/`floaty` live beside the hero block and are also used by the CTA — do not delete them when editing hero CSS.
+
+### Hero illustration — hard rules (owner-directed, verified 2026-11-02)
+- Asset: AI-generated glossy 3D render recreated from the owner's reference mockup (tilted laptop + QUICKKIT dashboard + flowing ribbons + 6 floating tiles: red PDF top, green calculator mid-left, violet code bottom-left, blue image top-right, white QR mid-right, white "Tt" bottom-right). Master PNG (1200×896) is preserved OUTSIDE the repo; the repo ships `public/hero-illustration.webp` (1200w) + `public/hero-illustration-sm.webp` (800w), converted with sharp (never upscale).
+- NEVER mask, fade, blur, crop, blend (`mix-blend-mode`), or reduce the opacity of this image, and never place overlays/shapes over it. These were tried and explicitly rejected by the owner ("the photo was unnecessarily hidden").
+- Boundary lesson: the photo's own background is ~#F1EFFC. A saturated decorative gradient blob behind it (`.home` first radial, formerly `#e3d5ff99` at 88% 2%) outlined the photo as a visible rectangle/"band". Root-cause fix = soften the BACKDROP blob (`#e9dfff59`), never touch the photo. If the asset is ever replaced, retune that blob to the new asset's edge color.
+- Keep the photo INSIDE the container grid at every width (an earlier ±12px mobile bleed was removed — content must not extend outside its container).
+
+### Config & integrations
+- `lib/site.ts` holds ALL demo configuration: `contactEmail` (demo `hello@quickkit.in` — NOT a verified inbox; owner must replace), `contactFormEndpoint` (empty = honest mailto-compose fallback; set to a real endpoint to enable POST), and 6 demo social URLs (owner to replace with real profiles). Lucide 1.66 has NO brand icons — social glyphs are hand-drawn in `components/social-icons.tsx`.
+- Honesty rules (non-negotiable): claim local processing only for tools that genuinely run locally (all 7 do); never invent cookies/analytics; the contact form never fakes delivery. The "100+ Tools" benefit copy is OWNER-DIRECTED marketing copy while 7 tools are live — flagged to the owner; revisit before public launch.
+
+### Testing & verification (how to run, current results)
+- Gates: `npm run format` (or format:check), `npm run lint`, `npm run typecheck`, `npm test` (vitest), `npm run build`, `npm run test:e2e` (Playwright; config auto-starts the prod server on :3001 unless `TEST_BASE_URL` is set; CI runs chromium+firefox+webkit projects).
+- 2026-11-02 results: format/lint/typecheck clean; unit 117/117; production build green (33 routes); e2e 238/238 (Chromium, local sandbox config); axe WCAG 2.2 AA = 0 violations on all 20 audited routes; custom responsive sweep 21 routes × widths 320/360/390/430/768/1024/1280/1440/1920 = 189 checks, 0 overflow/console/page/network issues.
+- Sandbox note: Playwright browser downloads are blocked here; use @sparticuz/chromium's binary with the real NSS libs extracted from its bundled `al2023.tar.br` (`LD_LIBRARY_PATH` to the extracted lib dir; binary lands at /tmp/chromium). NEVER run e2e/screenshots in parallel with `npm run build` — sequence is build → restart `next start` → curl-verify CSS 200 → test.
+- Lint forbids setState-in-effect: use `useSyncExternalStore` (see `lib/use-favorites.ts`, `lib/use-hydrated.ts`) or the derived-state-during-render pattern (see header route-change reset).
+- axe + scroll-reveal: audits must scroll/settle reveals first (implemented in quality.spec) or mid-fade frames false-positive on contrast.
+
+### Decisions log (newest first)
+- 2026-11-02: Hero uses the photographic 3D asset (recreated from the owner's reference file) replacing the CSS-3D laptop; backdrop blob softened; mobile art bleed removed; full QC audit passed (see results above). Phase 2 site (8 categories, /tools explorer, Saved tools, Company/Legal pages, 5-column footer) was merged to `main` via PR #4 earlier.
+- Homepage contains NO Featured/All-Tools sections by design (owner-directed): discovery flows through `/tools`, category pages, search, and Saved.
+- Sitemap route count is 25 (10 static + 8 categories + 7 tools); `tests/launch.test.ts` asserts this — update it when routes change.
+
+### Future development instructions
+- Activate Calculators/AI Tools only with real, working tools; flip the coming-soon state via catalog entries (pages already exist).
+- Before public launch: real social URLs + verified contact inbox/endpoint in `lib/site.ts`; reconsider "100+ Tools" copy; set `SITE_URL` + `LAUNCH_APPROVED=true`; run the full gate battery + full e2e on all three engines in CI.
+- Preserve: light theme, honesty rules, local-first processing, no-new-dependency bias, and the format/lint/typecheck/unit/e2e gates on every change.
+
+---
+
+## Addendum — 2026-11-02: PDF to Word Converter (8th tool) — IMPLEMENTED, AWAITING OWNER APPROVAL
+
+**Status:** Built on branch `arena/dc1f7709-quickkit` from `main` `c2a592a`; PR opened for owner review. **Do not merge without explicit owner approval.** Sitemap route count is now **26** (10 static + 8 categories + 8 tools); unit 129/129, Chromium e2e 253/253, build 34 pages, prod audit 0 vulnerabilities (2026-11-02 run). Owner-merged PDF Merger is counted as implemented — portfolio: **7 live + 1 awaiting approval**.
+
+### Architecture (all on-device, $0/request)
+`PDF bytes → ExtractedPage[] → StructuredPage[] → DOCX → ZIP`
+- `lib/tools/pdf-to-word/types.ts` — limits (50 files, 25 MB/file, 250 MB/batch, 300 pages/file), `PdfToWordError` taxonomy (not-a-pdf, password-protected, corrupted, empty, *-too-*, ocr-unavailable, ocr-failed, conversion-failed, cancelled), pipeline model types. Coordinates: PDF points, top-left origin after extraction.
+- `extract.ts` — pdfjs (same-origin assets via `prepare:pdfjs`), text items with viewport-transform geometry (font size from transform, bold/italic via `page.commonObjs` defensive lookup), image extraction by walking the operator list with CTM tracking (unit-square → page rect), 1bpp/RGB/RGBA/bitmap → PNG. Scanned detection: <20 non-space chars/page. Inspection samples first 3 pages.
+- `structure.ts` (pure, unit-tested) — line grouping → median body size → heading tiers, list grouping + continuations, paragraph merging + dehyphenation, table detection (≥3 rows/≥2 cols via >14 pt gaps), 2-column gutter handling, image interleaving, running header/footer removal across ≥3 pages.
+- `render-docx.ts` — `docx` package. **Clean Editable**: one flowing section, real Heading styles/lists/tables. **Original Layout**: one section per PDF page at original size (pt×20 twips), geometry-approximated indents/spacing/sizes. Neither mode claims pixel-perfect output; limitations surface as per-file "Conversion notes" + a batch report inside the ZIP.
+- `ocr.ts` — tesseract.js v7, **self-hosted** under `/ocr` by `scripts/copy-ocr-assets.mjs` (`prepare:ocr` in predev/prebuild; `/public/ocr/` gitignored + eslint-ignored). Lazy dynamic import, only when the user enables OCR; English data only. Never a CDN.
+
+### Hard-won integration facts (do not rediscover)
+1. Tesseract spawns its worker through a **Blob URL by default** (`workerBlobURL: true`) → blocked by CSP. Fix: `workerBlobURL: false` with same-origin `workerPath` — **no `worker-src`/blob CSP relaxation needed**.
+2. WebAssembly compilation needs **`'wasm-unsafe-eval'`** in `script-src` (added to `next.config.ts`, site-wide because CSP is per-document and SPA navigation keeps the entry document's policy). This permits WASM only — JS `eval` remains blocked.
+3. A dead OCR worker can leave `createWorker`/`recognize` pending forever → both are wrapped in timeouts (90 s init / 180 s per page) that surface `ocr-unavailable`/`ocr-failed` and terminate the wedged worker. Never remove these guards.
+4. pdfjs `getTextContent()` styles carry **no reliable bold/italic**; font flags come from `page.commonObjs.get(fontName)` (may throw — guard it). Whitespace "gap" items exist — skip whitespace-only items and let x-gaps imply spaces.
+5. The new `react-hooks/refs` lint rule forbids assigning `ref.current` during render — sync refs inside `useEffect`.
+6. When asserting DOCX text, join `<w:t>` contents per paragraph (runs concatenate without spaces, as Word renders). Tag-stripping with spaces invents false word breaks (e.g. "fulfil ment").
+
+### Honesty rules carried by this tool
+- Output is always a freshly generated OOXML file — never a renamed PDF (tests assert ZIP `PK` magic + `word/document.xml`).
+- Scanned pages without OCR produce an image-carrying DOCX **with an explicit note**, or an honest failure when there is nothing readable at all.
+- Catalog/FAQ copy says layout is approximated and names what cannot carry over (fonts substituted, vector graphics, form fields).
+
+### Remaining / future
+- Owner to review the PR and the desktop/mobile screenshots, then approve or request changes. Deployment note: `/public/ocr` adds ~54 MB of static files at build time, but browsers only download the worker + one WASM core + English data (~17 MB) **when a user enables OCR**.
+- The deferred **PDF Translator** remains plan-only (architecture delivered in chat 2026-11-02); its extraction layer can reuse this tool's pdfjs scaffolding when approved.
+
+## Addendum — 2026-11-02: PDF to Word **V2** (same PR #6 branch) — IMPLEMENTED, AWAITING OWNER APPROVAL
+
+V2 was built in stages on top of V1 without changing its pipeline (extraction → pure structure model → `docx`): **S1 engine** (page ranges, hyperlink extraction, preserve toggles, OCR languages, expanded `ConversionReport`), **S2 preview system**, **S3 settings/dashboard/quality/history**, **S4 tests + a11y**, **S5 docs**. One commit per stage on `arena/dc1f7709-quickkit`; PR #6 remains open and unmerged.
+
+### Architecture decisions worth remembering
+- `lib/tools/pdf-to-word/preview-pdf.ts` is a *separate* interactive pdfjs handle (open once, render on demand, cancellable main render, **serialized independent thumbnail chain** so thumbs never cancel the visible page, explicit `destroy()`). It deliberately does not reuse the merger's one-shot `pdf-preview.ts`.
+- The DOCX preview renders the **actual generated Blob** via lazily-imported `docx-preview` (new dependency). It is never a re-render of the PDF; on render failure it says so and offers the download. Page counts come from rendered `<section>`s (flowing Clean docs reflow — a footnote in the dialog says Word may paginate differently).
+- Compare mode keeps both panes mounted around one shared page number; zooms are independent. **Zoom stepping is relative to the effective on-screen zoom** (panes report it), otherwise "+" from fit-width visually shrinks on wide screens. Below 900px Compare collapses to Original/Word tabs.
+- History is **opt-in** (default = session only = nothing stored). Retention 24h/7d persists *converted DOCX blobs only* in IndexedDB (20-item cap, 10MB/item cap, expiry sweep on load). Original PDFs are never stored anywhere.
+- OCR languages eng/hin/guj: worker is keyed by language and recreated on switch; `scripts/copy-ocr-assets.mjs` now copies 3 traineddata files (browser still downloads only the selected one, only when OCR is enabled).
+- Quality reports never show an accuracy percentage — only verifiable counts plus an explicit "some content may be missing" / "no known content loss (layout still approximated)" verdict.
+
+### Hard-won implementation facts (V2)
+1. This repo's ESLint `react-hooks/set-state-in-effect` + `react-hooks/refs` rules reject naive viewer code: reset-on-prop-change must use **derived state during render**, and refs may not be passed into render-called helper functions — `ZoomControls` had to become a real component with a getter callback.
+2. pdfjs `PageViewport` typings lack `convertToViewportRectangle`; annotation rects are mapped by applying `viewport.transform` manually.
+3. A modal's keyboard handling must live on `window`, not the dialog div: when a focused toolbar button becomes disabled (e.g. Next on the last page) focus falls to `<body>` and div-level `onKeyDown` never fires.
+4. The QUICKKIT palette tokens are `--ink/--purple/--border/--lavender*`; V2 CSS initially referenced invented names (`--text`, `--primary`, `--line`...) which silently degraded. They are now aliased in one `:root` block. **Always check `var()` names against the `:root` definitions.**
+5. Never run `next build` while `next start` is alive on the same `.next` (chunk/manifest mismatch → CSS served as 404 `text/plain`), and never put stop/build/start in one parallel tool block — they race. Sequence: stop → build → start → verify a CSS chunk returns `text/css` → test.
+
+### V2 verification evidence (2 Nov 2026)
+- Unit **138/138**; full Chromium Playwright **259/259** (tool spec: 11 tests incl. axe inside the open preview dialog); build 34/34 static pages; `npm audit --omit=dev` **0 vulnerabilities**; format/lint/typecheck clean. Firefox/WebKit remain CI-only claims.
+- Independent Puppeteer probes: preview system 14/14, settings/dashboard/history 17/17, V1 regression 38/40 (2 expectations obsoleted by V2 copy moving counts into the quality report). Screenshots: `~/quickkit-screenshots/pdf-to-word-v2/` (workspace, settings, PDF preview, DOCX preview, compare, quality report, mobile workspace, mobile preview).
+
+### Remaining / future
+- Owner to review PR #6 (now containing V1+V2) and approve or request changes. Do not merge, mark live, or start the next tool before that.
+- Known honest limitations (documented in-UI): no pixel-perfect layout, multi-column reading order approximated, vector graphics/form fields not carried over, DOCX flowing pagination may differ in Word, OCR quality varies.

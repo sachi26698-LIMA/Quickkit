@@ -52,69 +52,69 @@ test("QR validates input, produces decodable PNG and resets", async ({
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(page.getByAltText("Generated QR code preview")).toHaveCount(0);
 });
-test("image validates empty, unsupported, oversized and corrupt inputs", async ({
+test("image compressor validates unsupported, oversized and corrupt inputs", async ({
   page,
 }) => {
   await page.goto("/tools/image-compressor");
-  await page
-    .getByRole("button", { name: "Compress image", exact: true })
-    .click();
-  await expect(page.locator(".status.error")).toContainText("Choose an image");
-  for (const file of [
-    { name: "test.txt", mimeType: "text/plain", buffer: Buffer.from("test") },
-    {
-      name: "large.png",
-      mimeType: "image/png",
-      buffer: Buffer.alloc(16 * 1024 * 1024),
-    },
-  ]) {
-    await page
-      .getByLabel("Choose an image", { exact: true })
-      .setInputFiles(file);
-    await expect(page.locator(".status.error")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Compress images/ }),
+  ).toBeDisabled();
+  for (const [file, expected] of [
+    [
+      { name: "test.txt", mimeType: "text/plain", buffer: Buffer.from("test") },
+      /JPEG, PNG, WebP or AVIF/,
+    ],
+    [
+      {
+        name: "large.png",
+        mimeType: "image/png",
+        buffer: Buffer.alloc(16 * 1024 * 1024),
+      },
+      /smaller than 15 MB/,
+    ],
+    [
+      {
+        name: "bad.png",
+        mimeType: "image/png",
+        buffer: Buffer.from("broken"),
+      },
+      /could not be decoded|JPEG, PNG/,
+    ],
+  ] as const) {
+    await page.getByLabel("Add images").setInputFiles(file);
+    await expect(page.locator(".compressor-alert")).toContainText(expected);
+    await expect(page.locator(".compressor-item")).toHaveCount(0);
   }
-  await page.getByLabel("Choose an image", { exact: true }).setInputFiles({
-    name: "bad.png",
-    mimeType: "image/png",
-    buffer: Buffer.from("broken"),
-  });
-  await expect(page.locator(".status.error")).toContainText("decoded");
-  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
 });
+
 test("image compression downloads real WebP, JPEG and PNG without resizing", async ({
   page,
 }) => {
   await page.goto("/tools/image-compressor");
-  await page
-    .getByLabel("Choose an image", { exact: true })
-    .setInputFiles(await pngFixture(page));
+  await page.getByLabel("Add images").setInputFiles(await pngFixture(page));
+  await expect(page.locator(".compressor-item")).toHaveCount(1);
   for (const [format, extension] of [
     ["image/webp", "webp"],
     ["image/jpeg", "jpg"],
     ["image/png", "png"],
   ]) {
-    await page
-      .getByLabel("Output format", { exact: true })
-      .selectOption(format);
-    await page
-      .getByRole("button", { name: "Compress image", exact: true })
-      .click();
-    await expect(page.getByAltText("Compressed image preview")).toBeVisible();
-    await expect(
-      page.getByText("640 × 480 pixels · unchanged", { exact: false }),
-    ).toBeVisible();
+    await page.getByLabel("Output format").selectOption(format);
+    await page.getByRole("button", { name: /Compress 1 image/ }).click();
+    await expect(page.locator(".compressor-status-done")).toHaveCount(1);
+    await expect(page.locator(".compressor-stats")).toContainText(
+      "640 × 480 px · unchanged",
+    );
     const pending = page.waitForEvent("download");
-    await page
-      .getByRole("link", { name: "Download image", exact: true })
-      .click();
+    await page.locator(".compressor-download").click();
     const download = await pending;
     expect(download.suggestedFilename()).toBe(
-      `quickkit-compressed.${extension}`,
+      `source-compressed-640x480.${extension}`,
     );
     const data = await readFile((await download.path())!);
     expect(data.length).toBeGreaterThan(100);
     const pixel = await page
-      .getByAltText("Compressed image preview")
+      .getByAltText("Compressed preview of source.png")
+      .last()
       .evaluate(async (el) => {
         const image = el as HTMLImageElement;
         await image.decode();
@@ -132,8 +132,8 @@ test("image compression downloads real WebP, JPEG and PNG without resizing", asy
       expect(data.subarray(8, 12).toString()).toBe("WEBP");
   }
   await page.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
-  await expect(page.getByAltText("Compressed image preview")).toHaveCount(0);
+  await expect(page.locator(".compressor-item")).toHaveCount(0);
+  await expect(page.getByAltText(/preview of source.png/)).toHaveCount(0);
 });
 
 test("JPEG and WebP inputs pass preflight and preserve pixel dimensions", async ({
@@ -150,23 +150,22 @@ test("JPEG and WebP inputs pass preflight and preserve pixel dimensions", async 
       ctx.fillRect(0, 0, 320, 240);
       return c.toDataURL(type).split(",")[1];
     }, mimeType);
-    await page.getByLabel("Choose an image", { exact: true }).setInputFiles({
+    await page.getByLabel("Add images").setInputFiles({
       name: mimeType === "image/jpeg" ? "sample.jpg" : "sample.webp",
       mimeType,
       buffer: Buffer.from(bytes, "base64"),
     });
-    await expect(page.getByAltText("Original image preview")).toBeVisible();
-    await page
-      .getByRole("button", { name: "Compress image", exact: true })
-      .click();
-    await expect(page.getByAltText("Compressed image preview")).toBeVisible();
-    await expect(
-      page.getByText("320 × 240 pixels · unchanged", { exact: false }),
-    ).toBeVisible();
+    await expect(page.locator(".compressor-item")).toHaveCount(1);
+    await page.getByRole("button", { name: /Compress 1 image/ }).click();
+    await expect(page.locator(".compressor-status-done")).toBeVisible();
+    await expect(page.locator(".compressor-stats")).toContainText(
+      "320 × 240 px · unchanged",
+    );
+    await page.getByRole("button", { name: "Reset", exact: true }).click();
   }
 });
 
-test("oversized decoded dimensions are rejected before original preview allocation", async ({
+test("oversized decoded dimensions are rejected before preview allocation", async ({
   page,
 }) => {
   await page.goto("/tools/image-compressor");
@@ -175,13 +174,15 @@ test("oversized decoded dimensions are rejected before original preview allocati
   bytes.write("IHDR", 12);
   bytes.writeUInt32BE(100000, 16);
   bytes.writeUInt32BE(100000, 20);
-  await page.getByLabel("Choose an image", { exact: true }).setInputFiles({
+  await page.getByLabel("Add images").setInputFiles({
     name: "too-many-pixels.png",
     mimeType: "image/png",
     buffer: bytes,
   });
-  await expect(page.locator(".status.error")).toContainText("24 megapixels");
-  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
+  await expect(page.locator(".compressor-alert")).toContainText(
+    "24 megapixels",
+  );
+  await expect(page.locator(".compressor-item")).toHaveCount(0);
 });
 
 test("image reset releases all object URLs and discards a pending encode", async ({
@@ -212,19 +213,13 @@ test("image reset releases all object URLs and discards a pending encode", async
     };
   });
   await page.goto("/tools/image-compressor");
-  await page
-    .getByLabel("Choose an image", { exact: true })
-    .setInputFiles(await pngFixture(page));
-  await expect(page.getByAltText("Original image preview")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Compress image", exact: true })
-    .click();
+  await page.getByLabel("Add images").setInputFiles(await pngFixture(page));
+  await expect(page.locator(".compressor-item")).toHaveCount(1);
+  await page.getByRole("button", { name: /Compress 1 image/ }).click();
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await page.waitForTimeout(250);
-  await expect(
-    page.getByRole("link", { name: "Download image", exact: true }),
-  ).toHaveCount(0);
-  await expect(page.getByAltText("Original image preview")).toHaveCount(0);
+  await expect(page.locator(".compressor-download")).toHaveCount(0);
+  await expect(page.locator(".compressor-item")).toHaveCount(0);
   expect(
     await page.evaluate(
       () =>
