@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-export const alt = "QUICKKIT — Handy tools. Zero hassle.";
+export const alt = "QUICKKIT — Small tasks. Quick solutions.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export default function Image() {
@@ -8,12 +8,12 @@ export default function Image() {
       style={{
         width: "100%",
         height: "100%",
-        background: "#FAF8FF",
+        background: "#FDF7F5",
         display: "flex",
         flexDirection: "column",
         padding: 80,
         fontFamily: "sans-serif",
-        color: "#17152B",
+        color: "#1A0F2E",
       }}
     >
       <div
@@ -30,7 +30,7 @@ export default function Image() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#6C35E8",
+            background: "#3B1B4F",
             borderRadius: 14,
             width: 52,
             height: 52,
@@ -40,7 +40,7 @@ export default function Image() {
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
         </span>
-        QUICK<span style={{ color: "#6C35E8", marginLeft: -14 }}>KIT</span>
+        QUICK<span style={{ color: "#B93A73", marginLeft: -14 }}>KIT</span>
       </div>
       <div
         style={{
@@ -53,10 +53,10 @@ export default function Image() {
         }}
       >
         <span>Small tasks.</span>
-        <span style={{ color: "#6C35E8" }}>Quick solutions.</span>
+        <span style={{ color: "#B93A73" }}>Quick solutions.</span>
       </div>
-      <div style={{ fontSize: 27, color: "#62697e", marginTop: 34 }}>
-        Seven browser tools. No sign-up. Zero hassle.
+      <div style={{ fontSize: 27, color: "#6A5570", marginTop: 34 }}>
+        Eight browser tools. No sign-up. Zero hassle.
       </div>
     </div>,
     size,
