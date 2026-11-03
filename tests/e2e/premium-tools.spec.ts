@@ -4,6 +4,20 @@ import { PNG } from "pngjs";
 import jsQR from "jsqr";
 import { readFile } from "node:fs/promises";
 
+/**
+ * The studio folds groups away (Advanced Settings, Design & Customize), and a
+ * closed `<details>` is invisible to a real browser. Open a fold only when it
+ * is shut.
+ */
+async function openFold(page: Page, id: string) {
+  const fold = page.locator(`#${id}`);
+  const closed = await fold.evaluate(
+    (node) => !(node as HTMLDetailsElement).open,
+  );
+  if (closed) await fold.locator("> summary").click();
+  await expect(fold).toHaveJSProperty("open", true);
+}
+
 async function pngFixture(page: Page, width = 1600, height = 900) {
   const base64 = await page.evaluate(
     ([w, h]) => {
@@ -122,36 +136,111 @@ test("password premium: strength meter, history and hide toggle", async ({
   await expect(page.locator(".password-output")).toHaveClass(/masked/);
 });
 
-test("QR premium: sizes decode, SVG downloads, low contrast is blocked", async ({
+test("QR premium: sizes decode, SVG downloads, styling and low contrast are checked", async ({
   page,
 }) => {
   await page.goto("/tools/qr-generator");
-  await page.getByLabel("Text or URL").fill("https://example.com/premium");
-  await page.getByLabel("PNG size").selectOption("256");
+  const text = "https://example.com/premium";
+  await page.getByLabel(/Web address/).fill(text);
+  await expect(
+    page.getByText("Verified by an independent decoder"),
+  ).toBeVisible();
+
+  await openFold(page, "qr-advanced");
   await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
+    .getByRole("group", { name: "Preset export sizes" })
+    .getByRole("button", { name: "256 px" })
     .click();
-  await expect(page.getByAltText("Generated QR code preview")).toBeVisible();
   const pending = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download PNG", exact: true }).click();
-  const download = await pending;
-  const png = PNG.sync.read(await readFile((await download.path())!));
+  await page
+    .locator("#qr-export")
+    .getByRole("button", { name: /^PNG/ })
+    .click();
+  const png = PNG.sync.read(await readFile((await (await pending).path())!));
   expect(png.width).toBe(256);
   expect(
     jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data,
-  ).toBe("https://example.com/premium");
+  ).toBe(text);
 
   const svgPending = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download SVG" }).click();
+  await page
+    .locator("#qr-export")
+    .getByRole("button", { name: /^SVG/ })
+    .click();
   const svgDownload = await svgPending;
-  expect(svgDownload.suggestedFilename()).toBe("quickkit-qr-code.svg");
+  expect(svgDownload.suggestedFilename()).toMatch(/\.svg$/);
   expect(await readFile((await svgDownload.path())!, "utf8")).toContain("<svg");
 
-  await page.getByLabel("Code color").fill("#eeeeee");
+  // The high-resolution path is a genuinely larger raster, still decodable.
+  const hiPending = page.waitForEvent("download");
   await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
+    .locator("#qr-export")
+    .getByRole("button", { name: /^High-res PNG/ })
     .click();
-  await expect(page.locator(".status.error")).toContainText("contrast");
+  const hiDownload = await hiPending;
+  const hi = PNG.sync.read(await readFile((await hiDownload.path())!));
+  expect(hi.width).toBe(2048);
+  expect(jsQR(new Uint8ClampedArray(hi.data), hi.width, hi.height)?.data).toBe(
+    text,
+  );
+
+  // The PDF is a real PDF document with a trailer, not a renamed image.
+  const pdfPending = page.waitForEvent("download");
+  await page
+    .locator("#qr-export")
+    .getByRole("button", { name: /^PDF/ })
+    .click();
+  const pdfDownload = await pdfPending;
+  expect(pdfDownload.suggestedFilename()).toMatch(/\.pdf$/);
+  const pdf = await readFile((await pdfDownload.path())!);
+  expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+  expect(pdf.subarray(-7).toString()).toContain("%%EOF");
+
+  // A premium template must survive the decoder check, or export is blocked.
+  await openFold(page, "qr-design");
+  await page.locator("#qr-design-tab-templates").click();
+  await page.getByRole("button", { name: /Midnight Grape/ }).click();
+  await expect(
+    page.getByText(/Verified by an independent decoder/),
+  ).toBeVisible();
+
+  // Near-invisible ink is refused, then repaired by "Make it safe". The colour
+  // inputs live in the Colours panel, which is the only design tab mounted.
+  await page.locator("#qr-design-tab-colours").click();
+  await page.locator("#qr-fg-base").fill("#eeeeee");
+  await expect(
+    page.getByText("Not scannable — export is blocked"),
+  ).toBeVisible();
+  await expect(
+    page.locator("#qr-export").getByRole("button", { name: /^PNG/ }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Make it safe" }).click();
+  await expect(
+    page.getByText("Verified by an independent decoder"),
+  ).toBeVisible();
+});
+
+test("QR bulk: CSV rows are validated, rendered and zipped", async ({
+  page,
+}) => {
+  await page.goto("/tools/qr-generator");
+  await page.getByRole("tab", { name: /Bulk \(CSV\)/ }).click();
+  await page
+    .getByRole("button", { name: "Load the sample file", exact: true })
+    .click();
+  await expect(page.getByText("Column mapping")).toBeVisible();
+  await page.getByRole("button", { name: /Generate \d+ codes/ }).click();
+  // The run summary chip, not the help text that also says "rendered".
+  const summary = page.locator(".qr-bulk-summary");
+  await expect(summary).toContainText(/rendered/, { timeout: 60_000 });
+  await expect(summary).toContainText(/0 failed/);
+  const pending = page.waitForEvent("download");
+  await page.getByRole("button", { name: /Download ZIP/ }).click();
+  const download = await pending;
+  expect(download.suggestedFilename()).toMatch(/\.zip$/);
+  const buffer = await readFile((await download.path())!);
+  expect(buffer.length).toBeGreaterThan(1000);
+  expect(buffer.subarray(0, 2).toString()).toBe("PK");
 });
 
 test("image premium: input and drop both load, and compression downloads a real file", async ({
@@ -237,11 +326,10 @@ test("interactive states stay WCAG 2.2 AA clean (axe)", async ({ page }) => {
   await expectClean("password generated + history");
 
   await page.goto("/tools/qr-generator");
-  await page.getByLabel("Text or URL").fill("https://example.com/a11y");
-  await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
-    .click();
-  await expect(page.getByAltText("Generated QR code preview")).toBeVisible();
+  await page.getByLabel(/Web address/).fill("https://example.com/a11y");
+  await expect(
+    page.getByText("Verified by an independent decoder"),
+  ).toBeVisible();
   await expectClean("qr result state");
 
   await page.goto("/tools/image-compressor");

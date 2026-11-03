@@ -1,0 +1,363 @@
+[
+  {
+    "shot": "desktop-1440-01-empty",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-02-studio",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-03-preview-card",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-04-content-card",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-05-design-colours",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-06-design-pattern",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-07-design-corners",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-08-design-logo",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-09-design-templates",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-10-logo-applied",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-11-logo-preview",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-12-template-applied",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-13-advanced",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-14-download-more",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-15-history",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-16-presets",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "desktop-1440-17-bulk",
+    "viewport": "1440×900",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-01-empty",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-02-preview",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-03-content",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-04-design",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-05-advanced",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-06-download",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-07-history",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "tablet-768-08-bulk",
+    "viewport": "768×1024",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-01-empty",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-02-preview",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-03-content",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-04-design",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-05-advanced",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-06-download",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-07-history",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-375-08-bulk",
+    "viewport": "375×812",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": [
+      "table.qr-bulk-rows→600",
+      "thead.→600",
+      "tr.→600",
+      "th.→407",
+      "th.→452"
+    ]
+  },
+  {
+    "shot": "mobile-390-01-empty",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-02-preview",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-03-content",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-04-design",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-05-advanced",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-06-download",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-07-history",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-390-08-bulk",
+    "viewport": "390×844",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": [
+      "table.qr-bulk-rows→600",
+      "thead.→600",
+      "tr.→600",
+      "th.→407",
+      "th.→452"
+    ]
+  },
+  {
+    "shot": "mobile-430-01-empty",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-02-preview",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-03-content",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-04-design",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-05-advanced",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-06-download",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-07-history",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": []
+  },
+  {
+    "shot": "mobile-430-08-bulk",
+    "viewport": "430×932",
+    "documentOverflowPx": 0,
+    "studioOverflowPx": 0,
+    "suspects": [
+      "table.qr-bulk-rows→600",
+      "thead.→600",
+      "tr.→600",
+      "th.→452",
+      "th.→600"
+    ]
+  }
+]

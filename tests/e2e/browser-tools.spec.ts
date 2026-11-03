@@ -21,36 +21,46 @@ async function pngFixture(page: Page) {
     buffer: Buffer.from(base64, "base64"),
   };
 }
-test("QR validates input, produces decodable PNG and resets", async ({
+test("QR generator verifies its own export and names the downloaded file", async ({
   page,
 }) => {
   await page.goto("/tools/qr-generator");
+  const text =
+    "https://example.com/hello?text=\u0928\u092e\u0938\u094d\u0924\u0947";
+  // The studio normalises the address through `new URL()`, so the query is
+  // percent-encoded in the symbol. The payload view and the decoded PNG must
+  // both agree on that exact string.
+  const encoded = new URL(text).toString();
+  await expect(page.getByRole("tab", { name: /Create QR/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(page.getByText("Waiting for valid content")).toBeVisible();
+  await expect(
+    page.locator("#qr-export").getByRole("button", { name: /^PNG/ }),
+  ).toBeDisabled();
+  await page.getByLabel(/Web address/).fill(text);
+  await expect(
+    page.getByText("Verified by an independent decoder"),
+  ).toBeVisible();
   await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
+    .getByRole("button", { name: "Show the exact encoded content" })
     .click();
-  await expect(page.locator(".status.error")).toContainText("Enter text");
-  await page.getByLabel("Text or URL").fill("😀".repeat(501));
-  await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
-    .click();
-  await expect(page.locator(".status.error")).toContainText("2,000");
-  const text = "https://example.com/hello?text=नमस्ते";
-  await page.getByLabel("Text or URL").fill(text);
-  await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
-    .click();
-  await expect(page.getByAltText("Generated QR code preview")).toBeVisible();
+  await expect(page.locator("#qr-payload-view pre")).toHaveText(encoded);
   const pending = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download PNG", exact: true }).click();
+  await page
+    .locator("#qr-export")
+    .getByRole("button", { name: /^PNG/ })
+    .click();
   const download = await pending;
-  expect(download.suggestedFilename()).toBe("quickkit-qr-code.png");
+  expect(download.suggestedFilename()).toMatch(
+    /^quickkit-qr-url-.*768px\.png$/,
+  );
   const png = PNG.sync.read(await readFile((await download.path())!));
   expect(png.width).toBe(768);
   expect(
     jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data,
-  ).toBe(text);
-  await page.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(page.getByAltText("Generated QR code preview")).toHaveCount(0);
+  ).toBe(encoded);
 });
 test("image compressor validates unsupported, oversized and corrupt inputs", async ({
   page,
