@@ -64,7 +64,7 @@ export default async function CategoryPage({
         {list.length ? (
           <div className="tool-grid category-tools">
             {list.map((tool) => (
-              <ToolCard key={tool.slug} tool={tool} />
+              <ToolCard key={tool.slug} tool={tool} category={meta.name} />
             ))}
           </div>
         ) : (

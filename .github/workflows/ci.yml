@@ -31,3 +31,12 @@ jobs:
           name: browser-failure-traces
           path: test-results/
           retention-days: 7
+      # The converter spec writes real desktop/mobile screenshots; keep them
+      # available even on a green run so the owner can review the result.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-screenshots
+          path: test-results/**/*.png
+          if-no-files-found: ignore
+          retention-days: 7

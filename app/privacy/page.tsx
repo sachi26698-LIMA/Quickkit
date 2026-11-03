@@ -11,7 +11,7 @@ export const metadata = pageMetadata(
 export default function Page() {
   return (
     <article className="container prose legal">
-      <span className="eyebrow">YOUR WORK STAYS YOURS</span>
+      <span className="eyebrow">Your work stays yours</span>
       <h1>Privacy Policy</h1>
       <p className="legal-updated">
         Last updated: 1 November 2026. This policy describes the current

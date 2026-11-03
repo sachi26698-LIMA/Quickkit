@@ -76,7 +76,7 @@ export default function Page() {
         >
           <div className="section-heading">
             <div>
-              <span className="eyebrow">WHAT’S INSIDE</span>
+              <span className="eyebrow">What’s inside</span>
               <h2 id="about-cats-title">One toolkit, eight categories</h2>
               <p>Organized the way you think about the task.</p>
             </div>
@@ -112,7 +112,7 @@ export default function Page() {
         >
           <div className="section-heading">
             <div>
-              <span className="eyebrow">HOW WE WORK</span>
+              <span className="eyebrow">How we work</span>
               <h2 id="about-principles-title">The QUICKKIT principles</h2>
             </div>
           </div>

@@ -8,13 +8,20 @@ import FavoriteButton from "@/components/favorite-button";
  * Tool card with a stretched link (the title link covers the card) so the
  * save button stays a sibling — never nested interactive elements.
  */
-export default function ToolCard({ tool }: { tool: Tool }) {
+export default function ToolCard({
+  tool,
+  category,
+}: {
+  tool: Tool;
+  /** Label for the listing the card appears in; defaults to the primary category. */
+  category?: string;
+}) {
   return (
     <article className="tool-card">
       <div className="card-top">
         <ToolIcon icon={tool.icon} color={tool.color} />
         <span className="card-top-right">
-          <span className="category-label">{tool.category}</span>
+          <span className="category-label">{category ?? tool.category}</span>
           <FavoriteButton slug={tool.slug} name={tool.name} />
         </span>
       </div>
