@@ -54,11 +54,12 @@ export default function Page() {
         <div className="prose about-intro">
           <h2>Our mission</h2>
           <p>
-            Combining PDFs before a deadline. Counting words in an application.
-            Turning a link into a QR code for a classroom poster. These tiny
-            jobs shouldn’t need expensive software, a sign-up flow, or uploading
-            your files to a stranger’s server. QUICKKIT exists so they don’t:
-            open a tool, get your result, get on with your day.
+            Combining, splitting or compressing PDFs before a deadline. Counting
+            words in an application. Turning a link into a QR code for a
+            classroom poster. These tiny jobs shouldn’t need expensive software,
+            a sign-up flow, or uploading your files to a stranger’s server.
+            QUICKKIT exists so they don’t: open a tool, get your result, get on
+            with your day.
           </p>
           <h2>How QUICKKIT helps</h2>
           <p>

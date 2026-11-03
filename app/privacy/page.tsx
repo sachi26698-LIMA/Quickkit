@@ -41,24 +41,23 @@ export default function Page() {
       <h2>2. How the tools process your data — locally</h2>
       <p>
         Every current QUICKKIT tool processes your input on your device, in your
-        browser: the PDF Merger (in a dedicated browser worker, with local
-        canvas previews), Word Counter, Case Converter, JSON Formatter, Password
-        Generator, QR Code Generator and Image Compressor. Your PDFs, text,
-        JSON, passwords, QR content and images are not uploaded to a server,
-        stored in a database or written to application logs. Inputs live in the
-        page’s memory; refreshing or leaving the tool clears them (your browser
-        may separately retain form state or history).
+        browser. The PDF tools use dedicated browser workers and local canvas
+        previews where a preview is shown. Your PDFs, text, JSON, passwords, QR
+        content and images are not uploaded to a server, stored in a database or
+        written to application logs. Inputs live in the page’s memory;
+        refreshing or leaving the tool clears them (your browser may separately
+        retain form state or history).
       </p>
 
       <h2>3. File privacy, clipboard and downloads</h2>
       <p>
         File pickers give the page access only to files you choose. A PDF open
         password is held only in current-page/worker memory and cleared when the
-        file is removed, the queue resets or the merge completes. Copying uses
-        your device clipboard, which other apps, extensions or synced clipboard
-        services may access. Downloads are saved by your browser under its own
-        settings, and local preview URLs are revoked when replaced or when the
-        workspace closes.
+        file is removed, the workspace resets or the PDF operation completes.
+        Copying uses your device clipboard, which other apps, extensions or
+        synced clipboard services may access. Downloads are saved by your
+        browser under its own settings, and local preview URLs are revoked when
+        replaced or when the workspace closes.
       </p>
 
       <h2>4. Ordinary website requests and hosting</h2>

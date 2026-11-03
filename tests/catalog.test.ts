@@ -28,6 +28,24 @@ describe("catalog discovery", () => {
     ]);
     expect(filterTools("pdf", "Text & Writing")).toHaveLength(0);
   });
+  it("finds the PDF splitter by extraction intent and category", () => {
+    expect(filterTools("extract separate", "PDF Tools")).toEqual([
+      expect.objectContaining({ slug: "split-pdf" }),
+    ]);
+    expect(filterTools("", "PDF Tools").map((tool) => tool.slug)).toEqual([
+      "image-converter",
+      "merge-pdf",
+      "split-pdf",
+      "compress-pdf",
+      "pdf-to-word",
+    ]);
+  });
+  it("finds the PDF compressor by size-reduction intent", () => {
+    expect(filterTools("shrink target", "PDF Tools")).toEqual([
+      expect.objectContaining({ slug: "compress-pdf" }),
+    ]);
+    expect(filterTools("compress", "Text & Writing")).toHaveLength(0);
+  });
   it("handles unknown and long queries", () => {
     expect(filterTools("not here", "All tools")).toHaveLength(0);
     expect(filterTools("x".repeat(100000), "All tools")).toHaveLength(0);
@@ -64,7 +82,7 @@ describe("catalog discovery", () => {
   it("groups tools by category, with future categories empty", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
-    expect(toolsByCategory("PDF Tools")).toHaveLength(3);
+    expect(toolsByCategory("PDF Tools")).toHaveLength(5);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);
@@ -84,6 +102,8 @@ describe("catalog discovery", () => {
     expect(filterTools("", "PDF Tools").map((t) => t.slug)).toEqual([
       "image-converter",
       "merge-pdf",
+      "split-pdf",
+      "compress-pdf",
       "pdf-to-word",
     ]);
   });

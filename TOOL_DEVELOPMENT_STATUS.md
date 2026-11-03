@@ -4,7 +4,7 @@
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed.
+**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
 
 ## Percentage Calculator focused verification
 
@@ -75,13 +75,15 @@ The proposed IDs below use the existing slug values. During registry migration t
 | `password-generator` | Password Generator | `/tools/password-generator` | Security         | Security & Privacy Tools | `live`          | Implemented with cryptographically secure generation; included in existing tests.                       |
 | `qr-generator`       | QR Code Generator  | `/tools/qr-generator`       | Image & QR       | QR & Barcode Tools       | `live`          | Implemented locally in the browser; included in existing tests.                                         |
 | `image-compressor`   | Image Compressor   | `/tools/image-compressor`   | Image & QR       | Image Tools              | `live`          | Implemented with bounded canvas processing; included in existing tests.                                 |
-| `merge-pdf`          | PDF Merger         | `/tools/merge-pdf`          | PDF Tools        | PDF Tools                | `live`          | Browser-only merger with page selection, previews and password unlock; merged into `main` by the owner. |
+| `merge-pdf`          | PDF Merger         | `/tools/merge-pdf`          | PDF Tools        | PDF Tools                | `live`          | Browser-only merger with page selection, previews and password unlock; owner-approved on 1 November 2026 after final real-file QA. |
+| `split-pdf`          | PDF Splitter       | `/tools/split-pdf`          | PDF Tools        | PDF Tools                | `live`          | Browser-only splitter with custom ranges, visual extraction, every-N/per-page modes, named validated outputs and local ZIP; owner-approved on 1 November 2026 after final real-file QA. |
 
 ### Implemented — awaiting owner approval
 
 | ID            | Tool                  | Current URL          | Current category | Proposed category | Workflow status                           | Verification state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------------- | --------------------- | -------------------- | ---------------- | ----------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pdf-to-word` | PDF to Word Converter | `/tools/pdf-to-word` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR in English/Hindi/Gujarati). Two modes, page ranges, preserve toggles (images/tables/headings+lists/hyperlinks/headers+footers), custom output filenames, live original-PDF preview + real generated-DOCX preview (`docx-preview`) with side-by-side compare, batch dashboard (retry failed, ZIP, batch report, clear completed), per-file quality reports (no accuracy percentages), opt-in browser-local history (IndexedDB; converted DOCX only). Implemented on `arena/dc1f7709-quickkit` for owner review. Not owner-approved, live, deployed or indexed. |
+| `compress-pdf` | PDF Compressor | `/tools/compress-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only batch compressor with Low/Medium/High/Maximum presets, custom image quality/resolution, optional grayscale, best-effort target size, previews/comparison, exact savings, validated individual/ZIP downloads, cancellation and retry. QA evidence is in `docs/pdf-compressor/QA_REPORT.md`. Not owner-approved, deployed or indexed. |
 
 ### Current regression evidence
 
@@ -97,24 +99,25 @@ Firefox/WebKit execution is not claimed for that sandbox run; the Playwright con
 
 ## 5. Proposed Phase 5 — PDF Tools
 
-**Phase status:** One tool is at owner review — **PDF Merger is implemented — awaiting owner approval. Every other Phase 5 tool is blocked until the owner personally approves PDF Merger.**
-**Candidate count:** 10  
-**Projected cumulative total:** 16
+**Phase status:** PDF Merger and PDF Splitter are **owner-approved**. PDF Compressor was moved from the deferred list by explicit owner instruction, has been implemented as the third dedicated PDF-operations tool in this workstream and is **awaiting owner approval**. Every other Phase 5 tool remains blocked until the owner reviews PDF Compressor.
+**Candidate count:** 10 original Phase 5 candidates, plus owner-authorized PDF Compressor from the deferred list.
+**Projected cumulative total:** 17
 
-|   # | Tool                 | Proposed ID            | Proposed slug          | Status                                    |
-| --: | -------------------- | ---------------------- | ---------------------- | ----------------------------------------- |
-|   1 | PDF Merger           | `merge-pdf`            | `merge-pdf`            | **implemented — awaiting owner approval** |
-|   2 | Split PDF            | `split-pdf`            | `split-pdf`            | `planned`                                 |
-|   3 | Organize PDF         | `organize-pdf`         | `organize-pdf`         | `planned`                                 |
-|   4 | Rotate PDF           | `rotate-pdf`           | `rotate-pdf`           | `planned`                                 |
-|   5 | Images to PDF        | `images-to-pdf`        | `images-to-pdf`        | `planned`                                 |
-|   6 | PDF to Images        | `pdf-to-images`        | `pdf-to-images`        | `planned`                                 |
-|   7 | Extract PDF Text     | `extract-pdf-text`     | `extract-pdf-text`     | `planned`                                 |
-|   8 | Add PDF Page Numbers | `add-pdf-page-numbers` | `add-pdf-page-numbers` | `planned`                                 |
-|   9 | Add PDF Watermark    | `add-pdf-watermark`    | `add-pdf-watermark`    | `planned`                                 |
-|  10 | PDF Metadata Editor  | `pdf-metadata-editor`  | `pdf-metadata-editor`  | `planned`                                 |
+|   # | Tool                          | Proposed ID            | Proposed slug          | Status                                    |
+| --: | ----------------------------- | ---------------------- | ---------------------- | ----------------------------------------- |
+|   1 | PDF Merger                    | `merge-pdf`            | `merge-pdf`            | **owner-approved**                        |
+|   2 | PDF Splitter (Split PDF)      | `split-pdf`            | `split-pdf`            | **owner-approved**                        |
+|   3 | PDF Compressor (Compress PDF) | `compress-pdf`         | `compress-pdf`         | **implemented — awaiting owner approval** |
+|   4 | Organize PDF                  | `organize-pdf`         | `organize-pdf`         | `planned`                                 |
+|   5 | Rotate PDF                    | `rotate-pdf`           | `rotate-pdf`           | `planned`                                 |
+|   6 | Images to PDF                 | `images-to-pdf`        | `images-to-pdf`        | `planned`                                 |
+|   7 | PDF to Images                 | `pdf-to-images`        | `pdf-to-images`        | `planned`                                 |
+|   8 | Extract PDF Text              | `extract-pdf-text`     | `extract-pdf-text`     | `planned`                                 |
+|   9 | Add PDF Page Numbers          | `add-pdf-page-numbers` | `add-pdf-page-numbers` | `planned`                                 |
+|  10 | Add PDF Watermark             | `add-pdf-watermark`    | `add-pdf-watermark`    | `planned`                                 |
+|  11 | PDF Metadata Editor           | `pdf-metadata-editor`  | `pdf-metadata-editor`  | `planned`                                 |
 
-**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool until the owner personally approves PDF Merger.
+**Next gate:** Owner review of the PDF Compressor demo, screenshots and `docs/pdf-compressor/QA_REPORT.md`. Do not deploy/index it or begin another Phase 5 PDF tool before that explicit decision.
 
 ## 6. Proposed Phase 6 — Image Tools
 
@@ -591,4 +594,18 @@ items: binary favicons still carry the old violet (SVG favicon updated);
 two pre-existing PDF Merger WebKit e2e failures in CI (also red on `main`)
 await their own follow-up PR. Do not treat the brand update as live until
 the owner approves and merges PR #13.
+
+## PDF Splitter and PDF Compressor integration (PR #11, 3 November 2026)
+
+PR #11 integrates the browser-local PDF Splitter and PDF Compressor from
+`arena/fe1f419c-quickkit` with the current `main` catalog, shell and brand
+system. PDF Merger and PDF Splitter were owner-approved on 1 November 2026.
+PDF Compressor remains **implemented — awaiting owner approval**; merging the
+integration PR does not by itself mark it live/complete, deployed or indexed.
+Detailed evidence remains in `docs/pdf-splitter/QA_REPORT.md` and
+`docs/pdf-compressor/QA_REPORT.md`. After this integration the catalog has 25
+tools, including five PDF Tools entries when the dual-category Image & PDF
+Converter is counted in that category. Any older PDF-specific count or row in
+this historical tracker that omits these tools is superseded by this note and
+the updated Sections 4–5 above.
 
