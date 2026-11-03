@@ -24,7 +24,7 @@ export default function ToolShell({
       </nav>
       <header className="tool-title">
         <ToolIcon icon={tool.icon} color={tool.color} />
-        <span className="eyebrow">{tool.category} · FREE BROWSER TOOL</span>
+        <span className="eyebrow">{tool.category} · Free browser tool</span>
         <h1>{tool.name}</h1>
         <p>{tool.description}</p>
       </header>

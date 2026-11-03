@@ -97,7 +97,7 @@ button:disabled {
   cursor: not-allowed;
 }
 ::selection {
-  background: #ded6ff;
+  background: var(--blush-soft);
 }
 .container {
   width: min(1180px, calc(100% - 64px));
@@ -432,16 +432,16 @@ button:disabled {
   text-decoration: underline;
 }
 .eyebrow {
-  font-size: 10px;
-  letter-spacing: 1.4px;
+  font-size: 11.5px;
+  letter-spacing: 0.5px;
   font-weight: 650;
-  color: var(--purple);
+  color: var(--rose-deep);
 }
 h1 {
-  font-size: clamp(38px, 4.6vw, 62px);
-  letter-spacing: -2.5px;
-  line-height: 1.07;
-  margin: 23px 0 20px;
+  font-size: clamp(36px, 4.2vw, 54px);
+  letter-spacing: -2px;
+  line-height: 1.08;
+  margin: 20px 0 18px;
   font-weight: 760;
 }
 h1 span {
@@ -472,7 +472,7 @@ h2 {
     radial-gradient(ellipse 52% 30% at 104% 58%, #efe6ff80, transparent 70%);
 }
 .home-section {
-  margin-top: 78px;
+  margin-top: 64px;
   scroll-margin-top: 96px;
 }
 .section-heading {
@@ -518,14 +518,14 @@ h2 {
   grid-template-columns: 1.04fr 0.96fr;
   align-items: center;
   gap: 44px;
-  padding: 58px 0 52px;
+  padding: 44px 0 40px;
 }
 .hero-label {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
-  letter-spacing: 1.3px;
+  font-size: 11.5px;
+  letter-spacing: 0.4px;
   font-weight: 650;
   color: var(--purple-deep);
   background: #fff;
@@ -794,53 +794,6 @@ h2 {
 }
 
 /* ---------- Trust strip ---------- */
-.trust-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px 30px;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 24px 30px;
-  box-shadow: var(--shadow);
-}
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.trust-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-  background: var(--lavender-soft);
-  color: var(--purple);
-  flex-shrink: 0;
-}
-.trust-item strong {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 650;
-  letter-spacing: -0.2px;
-}
-.trust-item p {
-  margin: 2px 0 0;
-  font-size: 11.5px;
-  color: var(--secondary);
-  line-height: 1.5;
-}
-.trust-icon {
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.trust-item:hover .trust-icon {
-  transform: translateY(-3px) rotate(-5deg) scale(1.06);
-  box-shadow: 0 10px 22px rgb(59 27 79 / 0.28);
-}
-
 /* ---------- Categories ---------- */
 .category-grid {
   display: grid;
@@ -1114,7 +1067,7 @@ h2 {
   border-radius: 50%;
   border: 1px solid var(--border);
   background: #fff;
-  color: #b3a6cf;
+  color: #b99a9b;
   display: grid;
   place-items: center;
   box-shadow: 0 4px 12px rgb(59 27 79 / 0.08);
@@ -1228,7 +1181,7 @@ h2 {
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, #f1e9ff, #e3d4ff);
+  background: linear-gradient(145deg, #f1e9ff, var(--blush));
   color: var(--purple-deep);
 }
 .why-card {
@@ -1300,7 +1253,7 @@ h2 {
 .cta-banner {
   position: relative;
   overflow: hidden;
-  margin-top: 78px;
+  margin-top: 64px;
   margin-bottom: 84px;
   padding: 62px 32px;
   border-radius: 26px;
@@ -1552,7 +1505,7 @@ h2 {
   max-width: 730px;
 }
 .page-hero h1 {
-  font-size: clamp(34px, 4.2vw, 52px);
+  font-size: clamp(32px, 3.8vw, 46px);
   letter-spacing: -2px;
   margin: 16px 0 13px;
 }
@@ -1571,7 +1524,7 @@ h2 {
 .coming-soon,
 .saved-empty {
   background: #fff;
-  border: 1.5px dashed #d9cbf5;
+  border: 1.5px dashed var(--border-strong);
   border-radius: 22px;
   padding: 54px 24px;
   box-shadow: var(--shadow);
@@ -2105,13 +2058,13 @@ a.contact-card:hover {
     padding: 34px 0 34px;
   }
   .hero-label {
-    font-size: 9px;
-    letter-spacing: 1px;
+    font-size: 10.5px;
+    letter-spacing: 0.3px;
   }
   .hero h1 {
-    font-size: clamp(37px, 11vw, 52px);
-    letter-spacing: -1.9px;
-    margin: 20px 0 16px;
+    font-size: clamp(34px, 10vw, 44px);
+    letter-spacing: -1.6px;
+    margin: 18px 0 14px;
   }
   .hero-description {
     font-size: 14.5px;
@@ -2472,7 +2425,7 @@ textarea::placeholder {
   font-size: 26px;
   letter-spacing: -0.8px;
   font-weight: 650;
-  color: #6b55aa;
+  color: #6d3a63;
   overflow-wrap: anywhere;
 }
 .stat span {
@@ -2606,10 +2559,10 @@ details p {
   width: 21px;
 }
 .related-card > svg {
-  color: #8674a7;
+  color: #95798a;
 }
 .related-card:hover {
-  border-color: #cfc0e9;
+  border-color: var(--border-strong);
   transform: translateY(-2px);
 }
 .action-row {
@@ -2747,7 +2700,7 @@ details p {
 }
 .file-input::file-selector-button {
   background: white;
-  color: #65539b;
+  color: #6d3a63;
   border: 1px solid #dcd4ea;
   border-radius: 8px;
   padding: 10px 13px;
@@ -3039,7 +2992,7 @@ noscript .status {
 }
 .toolbar-button:hover {
   background: var(--blush-soft);
-  border-color: #cfc2f2;
+  border-color: var(--border-strong);
 }
 .char-meter {
   font-size: 10px;
@@ -3383,7 +3336,7 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="url"]:focus,
 select:focus {
-  border-color: #b6a8e9;
+  border-color: var(--border-strong);
   box-shadow: 0 0 0 3px rgb(59 27 79 / 0.08);
   outline: none;
 }
@@ -3442,7 +3395,7 @@ select:focus {
   width: 100%;
 }
 .pdf-merger-workspace input[type="password"]:focus {
-  border-color: #b6a8e9;
+  border-color: var(--border-strong);
   box-shadow: 0 0 0 3px rgb(59 27 79 / 0.08);
   outline: none;
 }
@@ -3488,7 +3441,7 @@ select:focus {
   text-align: center;
 }
 .pdf-steps span.current {
-  border-color: #c7bcf6;
+  border-color: var(--border-strong);
   background: var(--blush-soft);
   color: var(--plum);
 }
@@ -3502,7 +3455,7 @@ select:focus {
   padding: 26px;
 }
 .pdf-dropzone:focus-within {
-  border-color: #b6a8e9;
+  border-color: var(--border-strong);
   box-shadow: 0 0 0 3px rgb(59 27 79 / 0.08);
 }
 .pdf-dropzone .pdf-file-input {
@@ -3635,7 +3588,7 @@ select:focus {
   border: 1px solid #ddd6f1;
   border-radius: 12px;
   background: var(--background);
-  color: #6657b8;
+  color: #6d3a63;
   cursor: grab;
   touch-action: none;
 }
@@ -3667,11 +3620,11 @@ select:focus {
   border: 1px solid #e3def2;
   border-radius: 10px;
   background: white;
-  color: #66558f;
+  color: var(--ink-soft);
 }
 .pdf-reorder-buttons button:hover:not(:disabled) {
   background: #f3efff;
-  border-color: #c9bcf0;
+  border-color: var(--border-strong);
 }
 .pdf-thumbnail {
   position: relative;
@@ -3702,7 +3655,7 @@ select:focus {
   justify-content: center;
   gap: 9px;
   padding: 16px;
-  color: #7c739f;
+  color: #8a7183;
   font-size: 11px;
   line-height: 1.5;
   text-align: center;
@@ -3743,7 +3696,7 @@ select:focus {
   border: 1px solid #e2dcf2;
   border-radius: 999px;
   background: var(--background);
-  color: #66558f;
+  color: var(--ink-soft);
   font-size: 10px;
   font-weight: 600;
   line-height: 1.45;
@@ -3863,7 +3816,7 @@ select:focus {
 .pdf-selection-summary {
   align-items: center;
   margin-top: 12px;
-  color: #51456f;
+  color: var(--ink-soft);
   font-size: 12px;
   font-weight: 600;
 }
@@ -3916,7 +3869,7 @@ select:focus {
 .pdf-page-tile.selected {
   border-color: var(--purple);
   background: #f2efff;
-  color: #5542a8;
+  color: var(--plum);
   box-shadow: inset 0 0 0 1px var(--purple);
 }
 .pdf-output-panel {
@@ -4130,7 +4083,7 @@ select:focus {
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 12px 30px #3a287824;
-    color: #51456f;
+    color: var(--ink-soft);
     font-size: 11px;
     font-weight: 650;
     backdrop-filter: blur(10px);
@@ -4180,11 +4133,11 @@ select:focus {
     box-shadow 0.18s;
 }
 .p2w-mode-card:hover {
-  border-color: #bda9f2;
+  border-color: var(--border-strong);
 }
 .p2w-mode-card:has(input:checked) {
   border-color: var(--purple);
-  background: #f3eeff;
+  background: var(--blush-soft);
   box-shadow: 0 0 0 3px rgb(59 27 79 / 0.12);
 }
 .p2w-mode-card:has(input:focus-visible) {
@@ -4333,15 +4286,15 @@ select:focus {
   border-radius: 99px;
   padding: 3px 10px;
   background: var(--blush-soft);
-  color: #5b4a9e;
+  color: var(--plum);
   white-space: nowrap;
 }
 .p2w-chip-ready {
-  background: #eef2ff;
-  color: #3355aa;
+  background: #f9d3e4;
+  color: #a92f64;
 }
 .p2w-chip-busy {
-  background: #f3eeff;
+  background: var(--blush-soft);
   color: var(--purple);
 }
 .p2w-chip-done {
@@ -4450,7 +4403,7 @@ select:focus {
   gap: 5px;
   border: 0;
   background: transparent;
-  color: #5b4a9e;
+  color: var(--plum);
   font-size: 12.5px;
   font-weight: 600;
   padding: 6px 12px;
@@ -4505,13 +4458,13 @@ select:focus {
   border: 1px solid var(--line-strong);
   border-radius: 9px;
   background: #fff;
-  color: #4c2e9e;
+  color: var(--plum);
   cursor: pointer;
   text-decoration: none;
 }
 .p2wv-tbtn:hover:not(:disabled) {
-  border-color: #bda9f2;
-  background: #f3eeff;
+  border-color: var(--border-strong);
+  background: var(--blush-soft);
 }
 .p2wv-tbtn:disabled {
   opacity: 0.45;
@@ -4569,9 +4522,8 @@ select:focus {
   z-index: 2;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #4c2e9e;
+  letter-spacing: 0.02em;
+  color: var(--plum);
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid var(--line-strong);
   border-radius: 99px;
@@ -4613,7 +4565,7 @@ select:focus {
   background: #fff;
 }
 .p2wv-thumb:hover {
-  border-color: #bda9f2;
+  border-color: var(--border-strong);
 }
 .p2wv-thumb.active {
   border-color: var(--purple);
@@ -4631,7 +4583,7 @@ select:focus {
   text-align: center;
   font-size: 11px;
   font-weight: 600;
-  color: #5b4a9e;
+  color: var(--plum);
   margin-top: 3px;
 }
 .p2wv-stage {
@@ -4660,7 +4612,7 @@ select:focus {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  border: 4px solid #c9b8f2;
+  border: 4px solid var(--border-strong);
   border-top-color: var(--purple);
   animation: p2wv-spin 0.9s linear infinite;
 }
