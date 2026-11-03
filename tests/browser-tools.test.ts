@@ -1,12 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { validateQr } from "../lib/tools/qr";
+import { buildPayload } from "../lib/tools/qr/payload";
+import { MAX_QR_PAYLOAD_BYTES, utf8Length } from "../lib/tools/qr/capacity";
 import { validateImage, formatBytes } from "../lib/tools/image";
 describe("QR input", () => {
-  it("accepts plain text and opaque URL-like content", () =>
-    expect(validateQr("https://example.com")).toBe("https://example.com"));
-  it("rejects empty content", () => expect(() => validateQr("  ")).toThrow());
-  it("counts UTF-8 bytes", () =>
-    expect(() => validateQr("😀".repeat(501))).toThrow("2,000"));
+  it("normalises a bare web address and passes text through untouched", () => {
+    expect(buildPayload("url", { url: "example.com/pricing?src=qr" })).toBe(
+      "https://example.com/pricing?src=qr",
+    );
+    expect(buildPayload("text", { text: "Hello 😀" })).toBe("Hello 😀");
+  });
+  it("rejects empty content", () =>
+    expect(() => buildPayload("text", { text: "   " })).toThrow());
+  it("counts UTF-8 bytes and refuses oversized payloads", () => {
+    expect(utf8Length("abc")).toBe(3);
+    expect(MAX_QR_PAYLOAD_BYTES).toBe(2500);
+    expect(() => buildPayload("text", { text: "a".repeat(2501) })).toThrow(
+      "2,500",
+    );
+  });
 });
 describe("image validation", () => {
   it("accepts supported formats", () => {

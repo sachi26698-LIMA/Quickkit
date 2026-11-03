@@ -8,11 +8,18 @@ import {
   passwordStrength,
 } from "../lib/tools/password";
 import {
+  MIN_CONTRAST,
   contrastRatio,
-  defaultQrOptions,
-  qrByteLength,
-  validateQrOptions,
-} from "../lib/tools/qr";
+  effectiveContrast,
+} from "../lib/tools/qr/colour";
+import { clampDesign, defaultDesign } from "../lib/tools/qr/style";
+import { analyzeScannability, safeFixDesign } from "../lib/tools/qr/safety";
+import { utf8Length } from "../lib/tools/qr/capacity";
+import {
+  LOGO_SCALE_MAX,
+  QR_SIZE_MAX,
+  QR_SIZE_MIN,
+} from "../lib/tools/qr/types";
 import { fitWithin } from "../lib/tools/image";
 import { formatBytes, formatDuration } from "../lib/tools/download";
 
@@ -146,26 +153,97 @@ describe("password strength", () => {
 
 describe("premium QR guards", () => {
   it("measures UTF-8 bytes", () => {
-    expect(qrByteLength("abc")).toBe(3);
-    expect(qrByteLength("😀")).toBe(4);
-    expect(qrByteLength("")).toBe(0);
+    expect(utf8Length("abc")).toBe(3);
+    expect(utf8Length("😀")).toBe(4);
+    expect(utf8Length("")).toBe(0);
   });
   it("computes WCAG contrast", () => {
     expect(contrastRatio("#000000", "#ffffff")).toBeCloseTo(21, 0);
     expect(contrastRatio("#ffffff", "#ffffff")).toBeCloseTo(1, 5);
     expect(contrastRatio("not-a-color", "#fff")).toBe(0);
   });
-  it("accepts defaults, rejects low contrast and invalid color", () => {
-    expect(() => validateQrOptions(defaultQrOptions)).not.toThrow();
-    expect(() =>
-      validateQrOptions({ ...defaultQrOptions, foreground: "#eeeeee" }),
-    ).toThrow("contrast");
-    expect(() =>
-      validateQrOptions({ ...defaultQrOptions, foreground: "purple" }),
-    ).toThrow();
-    expect(() => validateQrOptions({ ...defaultQrOptions, size: 999 })).toThrow(
+  it("keeps a valid design untouched and reports no adjustments", () => {
+    const { design, adjustments } = clampDesign(defaultDesign());
+    expect(adjustments).toEqual([]);
+    expect(design).toEqual(defaultDesign());
+  });
+  it("clamps out-of-range size, margin and logo values", () => {
+    const base = defaultDesign();
+    const { design, adjustments } = clampDesign({
+      ...base,
+      size: 99999,
+      margin: -3,
+      dotScale: 2,
+      cornerRadius: 9,
+      logo: { ...base.logo, scale: 4, offsetX: 9 },
+    });
+    expect(design.size).toBe(QR_SIZE_MAX);
+    expect(design.margin).toBe(0);
+    expect(design.dotScale).toBeLessThanOrEqual(1);
+    expect(design.cornerRadius).toBeLessThanOrEqual(0.5);
+    expect(design.logo.scale).toBe(LOGO_SCALE_MAX);
+    expect(Math.abs(design.logo.offsetX)).toBeLessThanOrEqual(0.34);
+    const fields = adjustments.map((entry) => entry.field);
+    for (const field of [
       "size",
+      "margin",
+      "dotScale",
+      "cornerRadius",
+      "logo.scale",
+    ])
+      expect(fields).toContain(field);
+    expect(clampDesign({ ...base, size: 1 }).design.size).toBe(QR_SIZE_MIN);
+  });
+  it("treats an unknown style or colour as invalid input, not a crash", () => {
+    const base = defaultDesign();
+    const { design } = clampDesign({
+      ...base,
+      dotStyle: "sparkles" as never,
+      eyeStyle: "star" as never,
+      errorLevel: "Z" as never,
+      fg: { kind: "solid", base: "purple", accent: "purple", angle: 0 },
+    });
+    expect(design.dotStyle).toBe(base.dotStyle);
+    expect(design.eyeStyle).toBe(base.eyeStyle);
+    expect(design.errorLevel).toBe(base.errorLevel);
+    expect(design.fg.base).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+  it("flags invisible styling and fixes it, and forces EC for a logo", () => {
+    const base = defaultDesign();
+    const washed = {
+      ...base,
+      fg: {
+        kind: "solid" as const,
+        base: "#eeeeee",
+        accent: "#eeeeee",
+        angle: 0,
+      },
+    };
+    expect(effectiveContrast(washed.fg, washed.bg)).toBeLessThan(1.4);
+    const report = analyzeScannability(washed, null, { hasLogo: false });
+    expect(report.level).toBe("blocked");
+    expect(
+      report.findings.some((entry) => entry.field === "fg" && entry.fix),
+    ).toBe(true);
+    expect(
+      effectiveContrast(
+        safeFixDesign(washed, report).fg,
+        safeFixDesign(washed, report).bg,
+      ),
+    ).toBeGreaterThanOrEqual(MIN_CONTRAST);
+    const logoAtLevelL = clampDesign(
+      { ...base, errorLevel: "L" },
+      { hasLogo: true },
     );
+    expect(logoAtLevelL.design.errorLevel).toBe("Q");
+    const bigLogo = clampDesign(
+      { ...base, errorLevel: "M", logo: { ...base.logo, scale: 0.25 } },
+      { hasLogo: true },
+    );
+    expect(bigLogo.design.errorLevel).toBe("H");
+    expect(
+      bigLogo.adjustments.some((entry) => entry.field === "errorLevel"),
+    ).toBe(true);
   });
 });
 
