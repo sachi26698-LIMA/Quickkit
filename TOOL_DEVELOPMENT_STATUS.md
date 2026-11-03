@@ -1,10 +1,10 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 2 November 2026  
+**Last updated:** 3 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed.
+**Current active work:** Website-wide brand update (plum/rose/coral palette) + homepage polish on `arena/cdece415-quickkit` — **implemented, awaiting owner approval; do not merge without it.** No new tool is in progress. PDF to Word Converter (V1+V2) was approved by the owner and merged into `main` via PR #6 (merge commit `771a54b`, 2 November 2026) after a pre-merge CI fix for WebKit IndexedDB (history now stores ArrayBuffer, not Blob); it is counted as implemented. No tool has been publicly deployed or indexed by this roadmap work.
 
 ## 1. Status definitions
 
@@ -24,11 +24,11 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 
 | Group | Count | Notes |
 |---|---:|---|
-| Implemented in repository (`live`) | 7 | Tools listed in Section 4 (now including PDF Merger, merged by the owner). |
-| Implemented — awaiting owner approval | 1 | PDF to Word Converter; implemented and QA-complete for review, but not owner-approved, live, deployed or indexed. |
-| In research/planning | 0 | No next tool may enter research/planning as active work until the owner approves PDF to Word. (A PDF Translator architecture plan was delivered in chat on 2 November 2026; it remains unimplemented and unapproved.) |
+| Implemented in repository (`live`) | 8 | Tools listed in Section 4 (including PDF Merger and PDF to Word, both merged by the owner). |
+| Implemented — awaiting owner approval | 0 | PDF to Word was approved and merged (PR #6). The brand/homepage update on `arena/cdece415-quickkit` is a site-wide change (not a tool) awaiting owner review. |
+| In research/planning | 0 | No next tool is active; the one-tool-at-a-time rule still applies to whatever the owner picks next. (A PDF Translator architecture plan was delivered in chat on 2 November 2026; it remains unimplemented and unapproved.) |
 | Remaining proposed Phase 5–12 candidates (`planned`, pending approval) | 83 | The original 84-candidate list minus PDF Merger (implemented). PDF to Word is an owner-directed addition beyond that list. |
-| Projected total after Phase 12 | 91 | Only if every candidate passes its individual quality gate (7 implemented + PDF to Word if approved + 83 remaining). |
+| Projected total after Phase 12 | 91 | Only if every candidate passes its individual quality gate (8 implemented + 83 remaining). |
 | Additional tools needed to exceed 100 | 11+ | Reserved for evidence-led Phase 13; candidates not selected yet. |
 
 > Reaching exactly 100 from the current six would require 94 net-new tools. Exceeding 100 requires at least 95 net-new tools. The requested Phases 5–12 contain 84, so the honest projected total is 90—not 100+.
@@ -37,7 +37,7 @@ Additional labels such as **research/planning**, **pending approval**, **impleme
 
 | Work item | Status | Evidence / next step |
 |---|---|---|
-| Current inline catalog | Implemented for eight repository tools | `lib/catalog.ts`; seven implemented tools plus PDF to Word under the approved narrow integration. Suitable for the current homepage but not the 90-tool target. |
+| Current inline catalog | Implemented for eight repository tools | `lib/catalog.ts`; eight implemented tools. Suitable for the current homepage but not the 90-tool target. |
 | Scalable tool registry | **Designed, not implemented** | Proposal in `TOOL_REGISTRY_ARCHITECTURE.md`; this remains a separate future migration and was not bundled into PDF Merger. |
 | Generated tool routes | **Not started** | Current eight routes are maintained individually under `app/tools/*/page.tsx`. |
 | `/tools` directory | Implemented (Phase 2) | Explorer with search and category filters lives at `/tools`; registry-driven generation is still future work. |
@@ -69,17 +69,18 @@ The proposed IDs below use the existing slug values. During registry migration t
 
 | ID | Tool | Current URL | Current category | Proposed category | Workflow status | Verification state |
 |---|---|---|---|---|---|---|
-| `pdf-to-word` | PDF to Word Converter | `/tools/pdf-to-word` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR in English/Hindi/Gujarati). Two modes, page ranges, preserve toggles (images/tables/headings+lists/hyperlinks/headers+footers), custom output filenames, live original-PDF preview + real generated-DOCX preview (`docx-preview`) with side-by-side compare, batch dashboard (retry failed, ZIP, batch report, clear completed), per-file quality reports (no accuracy percentages), opt-in browser-local history (IndexedDB; converted DOCX only). Implemented on `arena/dc1f7709-quickkit` for owner review. Not owner-approved, live, deployed or indexed. |
+| `pdf-to-word` | PDF to Word Converter | `/tools/pdf-to-word` | PDF Tools | PDF Tools | **implemented** (merged to `main` via PR #6, `771a54b`) | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR in English/Hindi/Gujarati). Two modes, page ranges, preserve toggles (images/tables/headings+lists/hyperlinks/headers+footers), custom output filenames, live original-PDF preview + real generated-DOCX preview (`docx-preview`) with side-by-side compare, batch dashboard (retry failed, ZIP, batch report, clear completed), per-file quality reports (no accuracy percentages), opt-in browser-local history (IndexedDB; converted DOCX only). V1+V2 merged 2 November 2026. Not publicly deployed or indexed by this roadmap work. |
 
 ### Current regression evidence
 
-The most recent full run, recorded for the PDF to Word V2 owner review on 2 November 2026, is:
+The most recent full run, recorded for the brand/homepage update on 3 November 2026, is:
 
 - Vitest: **138/138 passed** (including DOCX generation/structure tests that unzip and verify the OOXML output, page-range/filename parsers, preserve-option structuring, and real DOCX hyperlink relationships).
-- Chromium Playwright suite: **259/259 passed** in the sandbox browser environment — the tool's own spec has 11 tests (inspection honesty, clean/layout conversion, on-device OCR, ZIP, live PDF+DOCX preview with compare/zoom/keyboard + axe inside the dialog, page-range conversion, hyperlink round-trip, batch dashboard actions, IndexedDB history across reload, mobile tabbed preview) plus site-wide axe/overflow sweeps at 9 widths.
+- Chromium Playwright suite: **259/259 passed** in the sandbox browser environment (all 8 tool specs, axe sweeps incl. inside the PDF-to-Word preview dialog, overflow sweeps at 9 widths). At PR #6 merge time, the PDF to Word spec also passed on Firefox and WebKit in CI.
 - Production build: passed with eight repository tool routes and 34 static pages.
 - Format check, ESLint and TypeScript: passed.
 - Production dependency audit: **0 vulnerabilities**.
+- Brand-update responsive check: zero horizontal overflow at 360/390/430/768/1280/1440 across home, tools, category, saved and tool pages (screenshots in `~/quickkit-screenshots/brand-v2/`).
 
 Firefox/WebKit execution is not claimed for that sandbox run; the Playwright config covers the PDF tool specs there in CI (the OCR test is Chromium-only). Any later code change requires a fresh full run; these numbers must not be copied forward as evidence for new work.
 
@@ -307,3 +308,5 @@ PDF Merger proceeded under the owner's explicit narrow-catalog integration decis
 | 2 November 2026 | PDF Merger merged into `main` by the owner (via PR #4/#5) and moved to implemented (`live`). Portfolio now counts 7 implemented tools. |
 | 2 November 2026 | PDF to Word Converter implemented at the owner's direction on `arena/dc1f7709-quickkit`: on-device PDF→DOCX with Original Layout + Clean Editable modes, batch queue with ZIP/batch report, optional self-hosted OCR for scanned pages, honest per-file errors (password/corrupt/limits), and conversion notes instead of silent loss. Added `'wasm-unsafe-eval'` to the CSP `script-src` (permits WebAssembly compilation for OCR; does not enable JS eval). Full gates green (129 unit, 253 Chromium e2e, build, audit). Status: **implemented — awaiting owner approval**; do not merge or start another tool until the owner approves. |
 | 2 November 2026 | **PDF to Word V2** built on the same PR #6 branch at the owner's direction, preserving all V1 behaviour: original-PDF preview (lazy pdfjs pages/thumbnails, zoom stepped from effective on-screen zoom, rotate-for-view, fullscreen, keyboard), preview of the actual generated DOCX (`docx-preview`, lazy-loaded), desktop side-by-side compare + mobile tabs, page-range conversion, hyperlink extraction, preserve toggles, OCR languages (eng/hin/guj), custom output filenames, batch dashboard with counts/retry-failed/batch report/clear-completed/batch banner, per-file quality report (source/converted pages, extraction status, images/tables/links kept, OCR usage, honest content-loss verdict), and opt-in browser-local history (IndexedDB, session/24h/7d, DOCX only). Gates: 138 unit, 259 Chromium e2e, 34-page build, 0 audit findings. Still **awaiting owner approval** — not merged, live, deployed or indexed. |
+| 2 November 2026 | Owner approved and merged PR #6 (`771a54b`). Pre-merge CI caught a real WebKit bug (Blob storage in IndexedDB) — fixed by storing history DOCX as ArrayBuffer (`c2929c3`); Playwright `github` reporter added for CI failure visibility. Outstanding pre-existing issue: GitHub `verify` CI is red on `main` due to two PDF Merger WebKit tests (download filename space→underscore expectation; WebKit-only axe contrast on the page-picker button) — present before PR #6, untouched by it, needs its own follow-up PR. |
+| 3 November 2026 | **Website-wide brand update + homepage polish** on `arena/cdece415-quickkit` (awaiting owner approval, unmerged): centralized plum/rose/coral tokens in `globals.css` (legacy token names aliased; text-safe deepened derivatives verified ≥ AA), recolored category tints/tool accents/CTA/favicon/OG image, removed the fake “100+ Tools” trust strip and the duplicated privacy banner (Why QUICKKIT is the single benefits section), deduped footer links, sentence-case labels, tightened hero/section spacing and heading sizes. No tool logic changed; hero illustration untouched. Gates: 138 unit, 259 Chromium e2e, 34-page build, 0 audit findings; zero overflow at 360–1440px. Known remaining items: binary favicons (`favicon.ico`, `apple-icon.png`) still carry the old violet (regenerate on request); hero illustration asset remains purple-toned by design (preserved asset); semantic success/warning greens/ambers intentionally retained for status comprehension. |
