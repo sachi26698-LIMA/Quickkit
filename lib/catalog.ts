@@ -220,6 +220,29 @@ export const tools = [
     phase: 5,
   },
   {
+    slug: "split-pdf",
+    name: "PDF Splitter",
+    category: "PDF Tools",
+    description:
+      "One PDF, the right pieces. Split ranges, extract pages, and download named PDFs or a ZIP locally.",
+    keywords: "pdf split extract separate ranges pages zip documents password",
+    icon: "pdfSplit",
+    color: "mint",
+    phase: 5,
+  },
+  {
+    slug: "compress-pdf",
+    name: "PDF Compressor",
+    category: "PDF Tools",
+    description:
+      "Smaller PDFs, same pages. Batch-compress locally with quality presets, target size and exact savings.",
+    keywords:
+      "pdf compress reduce shrink target size optimize file size batch zip scanned image documents password",
+    icon: "pdfCompress",
+    color: "peach",
+    phase: 5,
+  },
+  {
     slug: "pdf-to-word",
     name: "PDF to Word",
     category: "PDF Tools",

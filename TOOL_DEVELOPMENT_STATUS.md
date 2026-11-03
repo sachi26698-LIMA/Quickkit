@@ -1,10 +1,10 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 2 November 2026  
+**Last updated:** 3 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed.
+**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
 
 ## Percentage Calculator focused verification
 
@@ -75,18 +75,20 @@ The proposed IDs below use the existing slug values. During registry migration t
 | `password-generator` | Password Generator | `/tools/password-generator` | Security         | Security & Privacy Tools | `live`          | Implemented with cryptographically secure generation; included in existing tests.                       |
 | `qr-generator`       | QR Code Generator  | `/tools/qr-generator`       | Image & QR       | QR & Barcode Tools       | `live`          | Implemented locally in the browser; included in existing tests.                                         |
 | `image-compressor`   | Image Compressor   | `/tools/image-compressor`   | Image & QR       | Image Tools              | `live`          | Implemented with bounded canvas processing; included in existing tests.                                 |
-| `merge-pdf`          | PDF Merger         | `/tools/merge-pdf`          | PDF Tools        | PDF Tools                | `live`          | Browser-only merger with page selection, previews and password unlock; merged into `main` by the owner. |
+| `merge-pdf`          | PDF Merger         | `/tools/merge-pdf`          | PDF Tools        | PDF Tools                | `live`          | Browser-only merger with page selection, previews and password unlock; owner-approved on 1 November 2026 after final real-file QA. |
+| `split-pdf`          | PDF Splitter       | `/tools/split-pdf`          | PDF Tools        | PDF Tools                | `live`          | Browser-only splitter with custom ranges, visual extraction, every-N/per-page modes, named validated outputs and local ZIP; owner-approved on 1 November 2026 after final real-file QA. |
 
 ### Implemented — awaiting owner approval
 
-| ID             | Tool                                               | Current URL           | Current category | Proposed category  | Workflow status                                                                              | Verification state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| -------------- | -------------------------------------------------- | --------------------- | ---------------- | ------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pdf-to-word`  | PDF to Word Converter                              | `/tools/pdf-to-word`  | PDF Tools        | PDF Tools          | **implemented — awaiting owner approval**                                                    | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR in English/Hindi/Gujarati). Two modes, page ranges, preserve toggles (images/tables/headings+lists/hyperlinks/headers+footers), custom output filenames, live original-PDF preview + real generated-DOCX preview (`docx-preview`) with side-by-side compare, batch dashboard (retry failed, ZIP, batch report, clear completed), per-file quality reports (no accuracy percentages), opt-in browser-local history (IndexedDB; converted DOCX only). Implemented on `arena/dc1f7709-quickkit` for owner review. Not owner-approved, live, deployed or indexed.                                                                                                                                                                                                                                                                                     |
+| ID            | Tool                  | Current URL          | Current category | Proposed category | Workflow status                           | Verification state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | -------------------- | ---------------- | ----------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pdf-to-word` | PDF to Word Converter | `/tools/pdf-to-word` | PDF Tools        | PDF Tools         | **implemented — awaiting owner approval** | 100% on-device conversion (PDF.js extraction → structure model → `docx` OOXML; optional self-hosted tesseract.js OCR in English/Hindi/Gujarati). Two modes, page ranges, preserve toggles (images/tables/headings+lists/hyperlinks/headers+footers), custom output filenames, live original-PDF preview + real generated-DOCX preview (`docx-preview`) with side-by-side compare, batch dashboard (retry failed, ZIP, batch report, clear completed), per-file quality reports (no accuracy percentages), opt-in browser-local history (IndexedDB; converted DOCX only). Implemented on `arena/dc1f7709-quickkit` for owner review. Not owner-approved, live, deployed or indexed. |
+| `compress-pdf` | PDF Compressor | `/tools/compress-pdf` | PDF Tools | PDF Tools | **implemented — awaiting owner approval** | Browser-only batch compressor with Low/Medium/High/Maximum presets, custom image quality/resolution, optional grayscale, best-effort target size, previews/comparison, exact savings, validated individual/ZIP downloads, cancellation and retry. QA evidence is in `docs/pdf-compressor/QA_REPORT.md`. Not owner-approved, deployed or indexed. |
 | `qr-generator` | QR Code Generator — **QR Code Studio** UI redesign | `/tools/qr-generator` | Image & QR       | QR & Barcode Tools | **redesign implemented — awaiting owner approval** (the tool itself is already `live` above) | Owner-supplied reference image implemented, not described: desktop two-column workspace (Content card + Design & Customize card with Colours/Pattern/Corners/Logo/Templates tabs on the left; Preview card with the live code, stage tools, independent-decoder verdict, Size/Correction/Contrast chips, computed metadata line and the Download block on the right), Create / Bulk (CSV) / History / Presets workspace tabs, Advanced Settings as a collapsed fold carrying a truthful summary chip, preview-first single column on phones, and the Bulk CSV, local History and Presets panels rebuilt as real tabs. `lib/tools/qr/**` (encoding, styling, decoding, exports, bulk, storage) is untouched — every prior feature remains reachable and was re-verified in a real browser. Implemented on `arena/8be11fd2-quickkit`; evidence and reference comparison in `docs/qr-studio/QA_REPORT.md` + 54 screenshots + a 30-check
-interactive browser harness run against both `next dev` and `next start`. Seven defects found in that
+interactive browser harness run against both `next dev` and `next start`. Eight defects found in that
 pass are fixed with regression tests (export gating vs. the safety audit, template blending, inactive
 tab panels still laid out, black empty-state artwork from over-eager CSS pruning, unstyled disabled
-export tiles and flash button, card-head a11y, 375 px head overflow), plus a site-wide dev-CSP change
+export tiles and flash button, validation on an untouched field, card-head a11y, 375 px head overflow), plus a site-wide dev-CSP change
 so the dev preview hydrates. Not merged, not deployed, not owner-approved. |
 
 ### Current regression evidence
@@ -103,24 +105,25 @@ Firefox/WebKit execution is not claimed for that sandbox run; the Playwright con
 
 ## 5. Proposed Phase 5 — PDF Tools
 
-**Phase status:** One tool is at owner review — **PDF Merger is implemented — awaiting owner approval. Every other Phase 5 tool is blocked until the owner personally approves PDF Merger.**
-**Candidate count:** 10  
-**Projected cumulative total:** 16
+**Phase status:** PDF Merger and PDF Splitter are **owner-approved**. PDF Compressor was moved from the deferred list by explicit owner instruction, has been implemented as the third dedicated PDF-operations tool in this workstream and is **awaiting owner approval**. Every other Phase 5 tool remains blocked until the owner reviews PDF Compressor.
+**Candidate count:** 10 original Phase 5 candidates, plus owner-authorized PDF Compressor from the deferred list.
+**Projected cumulative total:** 17
 
-|   # | Tool                 | Proposed ID            | Proposed slug          | Status                                    |
-| --: | -------------------- | ---------------------- | ---------------------- | ----------------------------------------- |
-|   1 | PDF Merger           | `merge-pdf`            | `merge-pdf`            | **implemented — awaiting owner approval** |
-|   2 | Split PDF            | `split-pdf`            | `split-pdf`            | `planned`                                 |
-|   3 | Organize PDF         | `organize-pdf`         | `organize-pdf`         | `planned`                                 |
-|   4 | Rotate PDF           | `rotate-pdf`           | `rotate-pdf`           | `planned`                                 |
-|   5 | Images to PDF        | `images-to-pdf`        | `images-to-pdf`        | `planned`                                 |
-|   6 | PDF to Images        | `pdf-to-images`        | `pdf-to-images`        | `planned`                                 |
-|   7 | Extract PDF Text     | `extract-pdf-text`     | `extract-pdf-text`     | `planned`                                 |
-|   8 | Add PDF Page Numbers | `add-pdf-page-numbers` | `add-pdf-page-numbers` | `planned`                                 |
-|   9 | Add PDF Watermark    | `add-pdf-watermark`    | `add-pdf-watermark`    | `planned`                                 |
-|  10 | PDF Metadata Editor  | `pdf-metadata-editor`  | `pdf-metadata-editor`  | `planned`                                 |
+|   # | Tool                          | Proposed ID            | Proposed slug          | Status                                    |
+| --: | ----------------------------- | ---------------------- | ---------------------- | ----------------------------------------- |
+|   1 | PDF Merger                    | `merge-pdf`            | `merge-pdf`            | **owner-approved**                        |
+|   2 | PDF Splitter (Split PDF)      | `split-pdf`            | `split-pdf`            | **owner-approved**                        |
+|   3 | PDF Compressor (Compress PDF) | `compress-pdf`         | `compress-pdf`         | **implemented — awaiting owner approval** |
+|   4 | Organize PDF                  | `organize-pdf`         | `organize-pdf`         | `planned`                                 |
+|   5 | Rotate PDF                    | `rotate-pdf`           | `rotate-pdf`           | `planned`                                 |
+|   6 | Images to PDF                 | `images-to-pdf`        | `images-to-pdf`        | `planned`                                 |
+|   7 | PDF to Images                 | `pdf-to-images`        | `pdf-to-images`        | `planned`                                 |
+|   8 | Extract PDF Text              | `extract-pdf-text`     | `extract-pdf-text`     | `planned`                                 |
+|   9 | Add PDF Page Numbers          | `add-pdf-page-numbers` | `add-pdf-page-numbers` | `planned`                                 |
+|  10 | Add PDF Watermark             | `add-pdf-watermark`    | `add-pdf-watermark`    | `planned`                                 |
+|  11 | PDF Metadata Editor           | `pdf-metadata-editor`  | `pdf-metadata-editor`  | `planned`                                 |
 
-**Next gate:** Owner review of the preview, screenshots and `docs/pdf-merger/QA_REPORT.md`. Keep PDF Merger at **implemented — awaiting owner approval** and stop; do not begin Split PDF or any other tool until the owner personally approves PDF Merger.
+**Next gate:** Owner review of the PDF Compressor demo, screenshots and `docs/pdf-compressor/QA_REPORT.md`. Do not deploy/index it or begin another Phase 5 PDF tool before that explicit decision.
 
 ## 6. Proposed Phase 6 — Image Tools
 
@@ -559,6 +562,61 @@ tests (filename normalisation, page-picker contrast) that also fail on `main` at
 `examples/` PDF and page image, fit-to-panel preview captures, and one added browser test for the
 fit/zoom behaviour. Merge and deploy remain blocked on explicit owner approval.
 
+## Repository cleanup (2 November 2026)
+
+Housekeeping only — no tool code, route, limit, catalogue entry or test was changed, and nothing
+above this line was edited, re-scored or re-dated.
+
+**Removed as finished-phase material** (content remains in Git history): `PHASE_9_CALCULATOR_PLAN.md`,
+`PHASE_9_FEATURE_CHECKLIST.md`, `PHASE_9_V2_CHECKLIST.md` and `PERCENTAGE_CALCULATOR_QA.md`. Phase 9
+shipped; these files still described the calculators as "Testing / In Progress" and duplicated what
+this status file records. Their evidence folders under `docs/phase-9-*` are untouched.
+
+**Removed the screenshot-trigger marker** (`.github/screenshot-trigger`) and its `push` path trigger in
+`.github/workflows/screenshots.yml`. It existed only because `workflow_dispatch` is not registered
+from a feature branch; with the workflow on the default branch it can be started manually, so the
+marker is no longer needed and no longer commits evidence to `main` on unrelated pushes.
+
+**Removed an unused direct dependency**: `html-entities` was declared in `package.json` but never
+imported by application code (it remains present transitively through `node-html-better-parser`).
+
+**Deliberately kept** and still authoritative: `TOOL_DEVELOPMENT_STATUS.md`,
+`QUICKKIT_AGENT_BRAIN_FINAL.md` (the superseded `QUICKKIT_AGENT_BRAIN.md` is preserved as the README
+promises), `TOOL_REGISTRY_ARCHITECTURE.md`, `PDF_MERGER_PLAN.md`, `MULTIPLE_TOOLS_ROADMAP.md`,
+`RELEASE_CHECKLIST.md` with its `docs/RELEASE_CHECKLIST.md` pointer, all feature docs under `docs/`
+and every screenshot under `docs/verification` and `docs/phase-*`.
+
+## Site-wide brand update (3 November 2026, PR #13 — awaiting owner approval)
+
+The plum/rose/coral brand palette (Deep Plum `#3B1B4F`, Rose Pink `#D6598F`,
+Coral `#FF6B6B`, Midnight `#1A0F2E`, Soft Blush `#F4D7D4`) is implemented
+centrally in `app/globals.css :root` on branch `arena/cdece415-quickkit`,
+with legacy token names kept as aliases so all pages and tool workspaces
+follow from one place. Homepage benefits were consolidated into the single
+Why-QUICKKIT section (the old trust strip's inaccurate "100+ Tools" claim
+and the duplicated privacy banner were removed), footer links deduplicated,
+and heading/spacing scales tightened. Integrated with the Phase-5–9 tool
+expansion from PR #12 by merging `main` in and sweeping the new tools'
+violet accents onto the same tokens. No tool logic changed. Known remaining
+items: binary favicons still carry the old violet (SVG favicon updated);
+two pre-existing PDF Merger WebKit e2e failures in CI (also red on `main`)
+await their own follow-up PR. Do not treat the brand update as live until
+the owner approves and merges PR #13.
+
+## PDF Splitter and PDF Compressor integration (PR #11, 3 November 2026)
+
+PR #11 integrates the browser-local PDF Splitter and PDF Compressor from
+`arena/fe1f419c-quickkit` with the current `main` catalog, shell and brand
+system. PDF Merger and PDF Splitter were owner-approved on 1 November 2026.
+PDF Compressor remains **implemented — awaiting owner approval**; merging the
+integration PR does not by itself mark it live/complete, deployed or indexed.
+Detailed evidence remains in `docs/pdf-splitter/QA_REPORT.md` and
+`docs/pdf-compressor/QA_REPORT.md`. After this integration the catalog has 25
+tools, including five PDF Tools entries when the dual-category Image & PDF
+Converter is counted in that category. Any older PDF-specific count or row in
+this historical tracker that omits these tools is superseded by this note and
+the updated Sections 4–5 above.
+
 ---
 
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
@@ -578,12 +636,12 @@ scene/raster/SVG/PNG/PDF rendering, decoding, safety, bulk, storage, share — i
 unchanged by this pass, which is why the encode/decode guarantees carried over.
 
 **Verification.** `tsc`, ESLint and Prettier clean; `npm run test` **555 passed /
-33 files** with `tests/qr-studio.test.tsx` rewritten for the new DOM contract (20
-tests, including the two regressions below); `npm run build` clean with the route prerendered
+33 files** with `tests/qr-studio.test.tsx` rewritten for the new DOM contract (21
+tests, including the regressions below); `npm run build` clean with the route prerendered
 static; Playwright (Chromium, against the production build) **259 passed / 0 failed**, now
 including real downloads of the 256 px PNG, the 2,048 px high-res PNG, the SVG, the PDF, the bulk
 ZIP and a workspace tab-swap test, each download checked by content (jsQR decode, `<svg`,
-`%PDF-`/`%%EOF`, `PK`); **30/30 checks passed, 0 console and page errors** and **30/30 checks passed, 0 console and page errors** on a 30-check interactive browser
+`%PDF-`/`%%EOF`, `PK`); **30/30 checks passed with 0 console and page errors on both `next dev` and `next start`**, on a 30-check interactive browser
 harness that drives every control (each export decoded back to the exact payload, all 12 content
 types filled, tabs/accordions/keyboard, error and loading states, overflow at six widths, zero
 console/page errors); 54 real-browser screenshots at 1440 × 900, 1280 × 900, 768 × 1024,

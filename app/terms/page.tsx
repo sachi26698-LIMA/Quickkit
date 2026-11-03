@@ -11,7 +11,7 @@ export const metadata = pageMetadata(
 export default function Page() {
   return (
     <article className="container prose legal">
-      <span className="eyebrow">THE FINE PRINT, IN PLAIN LANGUAGE</span>
+      <span className="eyebrow">The fine print, in plain language</span>
       <h1>Terms of Use</h1>
       <p className="legal-updated">
         Last updated: 1 November 2026. These terms describe the current free
@@ -75,9 +75,11 @@ export default function Page() {
         Outputs are provided as a convenience and can have limitations: word and
         reading-time figures are estimates; case conversion doesn’t replace
         language review; JSON parsing may round very large numbers; image
-        encoding can change quality, metadata and transparency; PDF merging can
-        flatten forms and does not preserve original bookmarks, attachments,
-        layers, tagged structure, scripts or digital-signature validity. Verify
+        encoding can change quality, metadata and transparency; PDF merging and
+        splitting can flatten forms and do not preserve original bookmarks,
+        attachments, layers, tagged structure, scripts or digital-signature
+        validity; PDF compression can reduce embedded-image quality or
+        resolution and may not preserve every advanced PDF feature. Verify
         important results independently and keep your originals.
       </p>
 

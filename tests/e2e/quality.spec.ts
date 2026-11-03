@@ -21,6 +21,8 @@ const routes = [
   "/tools/image-cropper",
   "/tools/image-converter",
   "/tools/merge-pdf",
+  "/tools/split-pdf",
+  "/tools/compress-pdf",
   "/tools/pdf-to-word",
   "/about",
   "/privacy",

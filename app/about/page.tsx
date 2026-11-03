@@ -54,11 +54,12 @@ export default function Page() {
         <div className="prose about-intro">
           <h2>Our mission</h2>
           <p>
-            Combining PDFs before a deadline. Counting words in an application.
-            Turning a link into a QR code for a classroom poster. These tiny
-            jobs shouldn’t need expensive software, a sign-up flow, or uploading
-            your files to a stranger’s server. QUICKKIT exists so they don’t:
-            open a tool, get your result, get on with your day.
+            Combining, splitting or compressing PDFs before a deadline. Counting
+            words in an application. Turning a link into a QR code for a
+            classroom poster. These tiny jobs shouldn’t need expensive software,
+            a sign-up flow, or uploading your files to a stranger’s server.
+            QUICKKIT exists so they don’t: open a tool, get your result, get on
+            with your day.
           </p>
           <h2>How QUICKKIT helps</h2>
           <p>
@@ -76,7 +77,7 @@ export default function Page() {
         >
           <div className="section-heading">
             <div>
-              <span className="eyebrow">WHAT’S INSIDE</span>
+              <span className="eyebrow">What’s inside</span>
               <h2 id="about-cats-title">One toolkit, eight categories</h2>
               <p>Organized the way you think about the task.</p>
             </div>
@@ -112,7 +113,7 @@ export default function Page() {
         >
           <div className="section-heading">
             <div>
-              <span className="eyebrow">HOW WE WORK</span>
+              <span className="eyebrow">How we work</span>
               <h2 id="about-principles-title">The QUICKKIT principles</h2>
             </div>
           </div>

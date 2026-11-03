@@ -43,8 +43,8 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   const { default: sitemap } = await import("../app/sitemap");
   expect(robots().rules).toEqual({ userAgent: "*", allow: "/" });
   const routes = sitemap();
-  // 10 static pages + 8 category pages + 23 tool pages.
-  expect(routes).toHaveLength(41);
+  // 10 static pages + 8 category pages + 25 tool pages.
+  expect(routes).toHaveLength(43);
   expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
     true,
   );
