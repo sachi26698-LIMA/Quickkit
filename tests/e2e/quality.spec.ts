@@ -149,10 +149,18 @@ test("no tool input is transmitted by interactions", async ({ page }) => {
     if (r.method() !== "GET") requests.push(r.url());
     expect(r.url()).not.toContain("secret-test-payload");
   });
-  await page.getByLabel("Text or URL").fill("secret-test-payload");
   await page
-    .getByRole("button", { name: "Generate QR code", exact: true })
+    .getByLabel(/Web address/)
+    .fill("https://secret-test-payload.example");
+  await expect(
+    page.getByRole("img", { name: /Live QR code preview/ }),
+  ).toBeVisible();
+  // Typing alone re-renders, and exporting stays inside the page.
+  const pending = page.waitForEvent("download");
+  await page
+    .locator("#qr-export")
+    .getByRole("button", { name: /^PNG/ })
     .click();
-  await expect(page.getByAltText("Generated QR code preview")).toBeVisible();
+  await pending;
   expect(requests).toEqual([]);
 });

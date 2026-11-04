@@ -152,8 +152,9 @@ export const tools = [
     name: "QR Code Generator",
     category: "QR & Barcode",
     description:
-      "Turn a link or a little text into a scannable QR code. Ready to share.",
-    keywords: "url scan png download",
+      "Make a QR code for a link, Wi-Fi, a contact or an event — styled, logo-ready and checked by a real decoder before you download.",
+    keywords:
+      "url link text wifi vcard contact email phone sms whatsapp location map calendar event ical social app store logo design template bulk csv zip png svg pdf scan qrcode offline free",
     icon: "qr",
     color: "mint",
     phase: 2,
