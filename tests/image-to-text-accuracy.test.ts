@@ -19,7 +19,6 @@
  */
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { PNG } from "pngjs";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -37,8 +36,13 @@ import { detectLanguages } from "@/lib/tools/image-to-text/language";
 import type { OcrPage } from "@/lib/tools/image-to-text/types";
 
 const require = createRequire(import.meta.url);
-const { execFileSync } =
-  require("node:child_process") as typeof import("node:child_process");
+// jpeg-js ships CommonJS only; require() avoids ESM interop differences.
+const { decode: decodeJpeg } = require("jpeg-js") as {
+  decode: (
+    bytes: Buffer,
+    options?: { useTArray?: boolean; formatAsRGBA?: boolean },
+  ) => { data: Uint8Array; width: number; height: number };
+};
 // tesseract.js is CommonJS; require() keeps the worker bootstrap happy in Node.
 const { createWorker } = require("tesseract.js") as {
   createWorker: (
@@ -107,16 +111,37 @@ interface Recognition {
   page: OcrPage;
 }
 
-/** Any fixture -> PNG bytes, so JPEG sources are measured too (not skipped). */
+/**
+ * Any fixture -> PNG bytes, so JPEG sources are measured too (not skipped).
+ *
+ * Decoding happens in pure JavaScript rather than by shelling out to an image
+ * converter: the CI runner has no ImageMagick, and a suite that needs an
+ * undeclared system binary fails there while passing locally (which is exactly
+ * what happened). jpeg-js is a dev dependency, so this works anywhere Node runs.
+ */
 async function pngBytes(file: string): Promise<Buffer> {
   const source = path.join(FIXTURES, file);
   if (file.endsWith(".png")) return readFile(source);
-  const target = path.join(
-    os.tmpdir(),
-    `qk-${file.replace(/[^a-z0-9.]/giu, "_")}.png`,
-  );
-  execFileSync("convert", [source, `png:${target}`]);
-  return readFile(target);
+  const jpeg = decodeJpeg(await readFile(source), {
+    useTArray: true,
+    formatAsRGBA: true,
+  });
+  return encodePng({
+    data: Buffer.from(jpeg.data),
+    width: jpeg.width,
+    height: jpeg.height,
+  });
+}
+
+/** RGBA pixels -> PNG bytes (fixtures are always 8-bit, so no colour juggling). */
+function encodePng(image: {
+  data: Buffer;
+  width: number;
+  height: number;
+}): Buffer {
+  const png = new PNG({ width: image.width, height: image.height });
+  png.data = image.data;
+  return PNG.sync.write(png);
 }
 
 function toPixelBuffer(png: PNG): PixelBuffer {
