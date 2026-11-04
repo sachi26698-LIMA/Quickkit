@@ -327,3 +327,43 @@ In progress, not released: see `PHASE_9_V2_CHECKLIST.md` for per-tool status, fi
 ### Phase 9 V2 populated preview checkpoint
 
 All 12 calculator routes have populated mobile and desktop Chromium screenshots indexed in `docs/phase-9-v2-final-evidence/README.md`; 319 Chromium regression tests, 188 unit tests, lint, typecheck and production build passed on this application code. Feature and cross-browser coverage remain incomplete; see `PHASE_9_V2_CHECKLIST.md`. Not merged or deployed.
+
+### Advanced Calculators V2 — audit on `arena/b46b2680-quickkit`
+
+**Status: In progress; currency conversion blocked.** `PHASE_9_ADVANCED_V2_AUDIT.md` records the 12-tool feature matrix, risks, tests and outstanding work. Live currency conversion has no approved/configured rate source accessible to this environment; the owner approved deferring it while other work continues; no rates are fabricated. BMI adult-category age gating is an identified high-priority safety gap. No code changes or new test runs are claimed for this audit; no merge or deployment.
+
+### BMI safety batch
+
+Adult BMI interpretation is gated on explicit age-group selection; unknown/under-20 inputs receive only numerical BMI and pediatric guidance. Targeted unit and Chromium tests passed; remaining BMI features and comprehensive verification remain open in `PHASE_9_ADVANCED_V2_AUDIT.md`.
+
+### Advanced V2 financial and converter batch
+
+Testing: profit/margin/markup, loan-to-value and maximum affordable loan estimates, acceleration/milliseconds, Rankine, a temperature category and searchable/filterable calculator catalog added. See `PHASE_9_ADVANCED_V2_AUDIT.md` for test evidence, corrections and remaining gaps. Live currency conversion remains **BLOCKED — awaiting an approved live exchange-rate provider**. No push, merge or deployment.
+
+### Advanced V2 time-zone batch
+
+Testing: local IANA meeting planner supports multiple zones, explicit DST overlap selection, gap rejection, 12/24-hour display and CSV. Targeted unit and Chromium tests passed; see `PHASE_9_ADVANCED_V2_AUDIT.md` for supported range and outstanding verification. Currency conversion remains blocked pending an approved live provider.
+
+### Advanced V2 current regression checkpoint
+
+On `arena/b46b2680-quickkit`, production build, formatting, lint, typecheck, 196 unit tests and 325 Chromium E2E tests passed. Feature work remains **In Progress** across the calculators; see the current per-tool checklist in `PHASE_9_V2_CHECKLIST.md`. The approved currency deferral remains **Blocked — awaiting an approved live exchange-rate provider**. No push, merge or deployment.
+
+### Discount calculator focused continuation
+
+In progress: strict discount inputs and numeric guards, session-history controls and focused unit/Chromium testing. Details and limitations: `docs/phase-9-discount-qa/README.md`. The overall 12-calculator upgrade remains incomplete; no push, merge or deployment.
+
+### Accelerated Phase 9 batch 1
+
+Testing: Discount PDF export, Percentage advanced PDF export and BMI multiple-person comparison with per-person age gating added. Targeted unit and Chromium evidence, including an initial selector failure and successful correction, is in `PHASE_9_V2_CHECKLIST.md`. Batch and overall project remain incomplete; currency conversion stays blocked. No push, merge or deployment.
+
+### Accelerated Phase 9 batch 2
+
+Testing: multi-item GST PDF, optional age zodiac, and complete date-result CSV added. Focused unit/browser checks passed; see `PHASE_9_V2_CHECKLIST.md` for limitations and remaining checks. Currency conversion remains blocked. No push, merge or deployment.
+
+### Accelerated Phase 9 batch 3
+
+Testing: monthly EMI/loan PDF schedules, scientific expression-history CSV and conversion comparison CSV; converter session-snapshot precision/settings restore and favorites added. Six focused Chromium tests passed. See `PHASE_9_V2_CHECKLIST.md` for omissions and limitations. Currency conversion remains blocked; no push, merge or deployment.
+
+### Accelerated V2 regression checkpoint
+
+In progress, not accepted or deployed: 202 unit tests, 339 Chromium tests, lint, formatting, typecheck and production build passed. See `PHASE_9_ACCELERATED_REPORT.md` for all 12 tool statuses and remaining limitations. Currency conversion is blocked pending an approved live provider. No push, merge or deployment.

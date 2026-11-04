@@ -62,6 +62,7 @@ test("BMI target and discount currency", async ({ page }) => {
   await page.goto("/tools/bmi-calculator");
   await page.getByLabel("Height (cm)").fill("170");
   await page.getByLabel("Weight (kg)", { exact: true }).fill("65");
+  await page.getByLabel("Age group").selectOption("adult");
   await page.getByText("Target BMI", { exact: true }).click();
   await page.getByLabel("Target BMI (optional)").fill("22");
   await expect(page.getByText(/Weight at target BMI: 63.58 kg/)).toBeVisible();
@@ -105,8 +106,10 @@ for (const slug of [
         await page.getByText("Compare another person").click();
       if (["loan-calculator", "emi-calculator"].includes(slug))
         await page.getByText("One-time prepayment").click();
-      if (slug === "bmi-calculator")
+      if (slug === "bmi-calculator") {
+        await page.getByLabel("Age group").selectOption("adult");
         await page.getByText("Target BMI", { exact: true }).click();
+      }
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,

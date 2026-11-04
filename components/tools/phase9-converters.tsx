@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { units, convert, temperature } from "@/lib/tools/phase9-conversion";
 import { Workspace } from "./phase9-shared";
+import { downloadText } from "@/lib/tools/download";
+import { csvCell } from "@/lib/tools/phase9-v2-advanced";
 export default function Converters({ kind }: { kind: string }) {
   const isTemp = kind === "temperature-converter",
     isTime = kind === "time-converter";
@@ -23,18 +25,31 @@ export default function Converters({ kind }: { kind: string }) {
   const [otherTemp, setOtherTemp] = useState("");
   const [otherUnit, setOtherUnit] = useState("Celsius");
   const [saved, setSaved] = useState<
-    { category: string; from: string; to: string; value: string }[]
+    {
+      category: string;
+      from: string;
+      to: string;
+      value: string;
+      precision: number;
+      otherTemp: string;
+      otherUnit: string;
+      date: string;
+      direction: string;
+      showComparison: boolean;
+      favorite: boolean;
+    }[]
   >([]);
   const [message, setMessage] = useState("");
-  const choices = isTemp
-    ? ["Celsius", "Fahrenheit", "Kelvin"]
+  const tempCategory = isTemp || (!isTime && category === "Temperature");
+  const choices = tempCategory
+    ? ["Celsius", "Fahrenheit", "Kelvin", "Rankine"]
     : Object.keys(units[category]);
   let result = "",
     error = "",
     shifted = "";
   try {
     if (value !== "") {
-      const n = isTemp
+      const n = tempCategory
         ? temperature(Number(value), from, to)
         : convert(Number(value), category, from, to);
       result = `${new Intl.NumberFormat("en-US", { maximumSignificantDigits: precision }).format(n)} ${to}`;
@@ -98,8 +113,8 @@ export default function Converters({ kind }: { kind: string }) {
       }}
       detail={
         <p>
-          {isTemp
-            ? "Convert via Kelvin: K = °C + 273.15; °F = °C × 9/5 + 32. Values below absolute zero are invalid."
+          {tempCategory
+            ? "Convert via Kelvin: K = °C + 273.15; °F = °C × 9/5 + 32; °R = K × 9/5. Values below absolute zero are invalid."
             : isTime
               ? "A month is exactly 30 days and a year is exactly 365 days; these are duration approximations, not calendar months or years."
               : category === "Fuel consumption"
@@ -127,14 +142,17 @@ export default function Converters({ kind }: { kind: string }) {
             value={category}
             onChange={(e) => {
               const c = e.target.value;
-              const u = Object.keys(units[c]);
+              const u =
+                c === "Temperature"
+                  ? ["Celsius", "Fahrenheit", "Kelvin", "Rankine"]
+                  : Object.keys(units[c]);
               setCategory(c);
               setFrom(u[0]);
               setTo(u[1]);
               setSearch("");
             }}
           >
-            {Object.keys(units)
+            {[...Object.keys(units), "Temperature"]
               .filter(
                 (c) =>
                   c === category ||
@@ -236,6 +254,7 @@ export default function Converters({ kind }: { kind: string }) {
               <option>Celsius</option>
               <option>Fahrenheit</option>
               <option>Kelvin</option>
+              <option>Rankine</option>
             </select>
           </label>
           {tempError && <p className="calculator-error">{tempError}</p>}
@@ -248,7 +267,22 @@ export default function Converters({ kind }: { kind: string }) {
         disabled={!result || !!error}
         onClick={() => {
           setSaved((items) =>
-            [{ category, from, to, value }, ...items].slice(0, 20),
+            [
+              {
+                category,
+                from,
+                to,
+                value,
+                precision,
+                otherTemp,
+                otherUnit,
+                date,
+                direction,
+                showComparison,
+                favorite: false,
+              },
+              ...items,
+            ].slice(0, 20),
           );
           setMessage("Conversion saved for this page session.");
         }}
@@ -263,6 +297,29 @@ export default function Converters({ kind }: { kind: string }) {
               <li key={i}>
                 {item.value} {item.from} → {item.to}{" "}
                 <button
+                  type="button"
+                  className="secondary"
+                  aria-pressed={item.favorite}
+                  onClick={() =>
+                    setSaved((items) =>
+                      items.map((v, j) =>
+                        j === i ? { ...v, favorite: !v.favorite } : v,
+                      ),
+                    )
+                  }
+                >
+                  {item.favorite ? "Unfavorite" : "Favorite"} conversion {i + 1}
+                </button>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() =>
+                    setSaved((items) => items.filter((_, j) => j !== i))
+                  }
+                >
+                  Delete conversion {i + 1}
+                </button>
+                <button
                   className="secondary"
                   type="button"
                   onClick={() => {
@@ -270,6 +327,12 @@ export default function Converters({ kind }: { kind: string }) {
                     setFrom(item.from);
                     setTo(item.to);
                     setValue(item.value);
+                    setPrecision(item.precision);
+                    setOtherTemp(item.otherTemp);
+                    setOtherUnit(item.otherUnit);
+                    setDate(item.date);
+                    setDirection(item.direction);
+                    setShowComparison(item.showComparison);
                   }}
                 >
                   Restore
@@ -290,10 +353,36 @@ export default function Converters({ kind }: { kind: string }) {
       {showComparison && value !== "" && !error && (
         <div>
           <h3>Compare units</h3>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              const rows: (string | number)[][] = [
+                ["Input value", "From", "To", "Result"],
+              ];
+              for (const unit of choices) {
+                try {
+                  const n = tempCategory
+                    ? temperature(Number(value), from, unit)
+                    : convert(Number(value), category, from, unit);
+                  rows.push([value, from, unit, n]);
+                } catch {
+                  rows.push([value, from, unit, "Unavailable"]);
+                }
+              }
+              downloadText(
+                rows.map((row) => row.map(csvCell).join(",")).join("\r\n"),
+                "conversion-comparison.csv",
+                "text/csv;charset=utf-8",
+              );
+            }}
+          >
+            Download comparison CSV
+          </button>
           <ul>
             {choices.map((unit) => {
               try {
-                const converted = isTemp
+                const converted = tempCategory
                   ? temperature(Number(value), from, unit)
                   : convert(Number(value), category, from, unit);
                 const display = new Intl.NumberFormat("en-US", {

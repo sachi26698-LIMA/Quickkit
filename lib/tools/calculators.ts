@@ -114,17 +114,23 @@ export function discount(
       "Enter a non-negative price and tax, and discounts between 0 and 100%.",
     );
   const multiplier = rates.reduce((v, r) => v * (1 - r / 100), 1);
+  if (multiplier === 0 && rates.every((rate) => rate < 100))
+    throw new Error(
+      "Discount multiplier is too small to represent accurately.",
+    );
   if (reverse && multiplier === 0)
     throw new Error("A 100% discount cannot be reversed.");
   const original = reverse ? price / multiplier : price;
   const discounted = original * multiplier;
-  return {
-    original,
-    discounted,
-    saved: original - discounted,
-    taxAmount: (discounted * tax) / 100,
-    total: discounted * (1 + tax / 100),
-  };
+  const saved = original - discounted;
+  const taxAmount = (discounted * tax) / 100;
+  const total = discounted + taxAmount;
+  if (
+    ![original, discounted, saved, taxAmount, total].every(Number.isFinite) ||
+    (original !== 0 && multiplier !== 0 && discounted === 0)
+  )
+    throw new Error("Result is outside the supported numeric range.");
+  return { original, discounted, saved, taxAmount, total };
 }
 export function gst(amount: number, rate: number, inclusive: boolean) {
   if (

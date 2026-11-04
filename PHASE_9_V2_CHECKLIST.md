@@ -50,3 +50,44 @@ Status: **In Progress**. The V1 routes and prior commits are preserved. This is 
 1. Implement remaining requirements by tool in the list above, including broader converter features, remaining financial boundaries and working-time holidays/breaks/overnight shifts. Add restore/copy/export to the shared foundation without breaking the existing no-persistent-storage promise.
 2. Expand tests for every new mode, boundary, error, keyboard and action; verify formulas and factor sources independently. Check screenshot layouts manually with populated values.
 3. Rebuild; rerun lint, typecheck, all unit and full browser regression, V2 tests, accessibility and all requested screenshots; run Firefox/WebKit in a suitable environment. Update tracker honestly. Do not merge or deploy without approval.
+
+## Advanced Calculators V2 continuation — 4 November 2026
+
+**Overall: In Progress.** Currency conversion is **Blocked — awaiting an approved live exchange-rate provider**; the owner approved deferring it, not hardcoding rates. Detailed original audit and per-batch evidence: `PHASE_9_ADVANCED_V2_AUDIT.md`. All statuses below refer to the expanded current requirements, not merely whether an existing route works.
+
+| Calculator | Status | Remaining work |
+|---|---|---|
+| Percentage | Testing | Shared delete/favorite/confirmed-clear and formula-copy; broader advanced-control verification. |
+| BMI | In Progress | Adult interpretation now requires age-group confirmation; multi-person comparison, history chart, unit-conversion workflow and broader validation remain. |
+| Discount | In Progress | Profit/margin/markup added; history and advanced controls need broader verification. |
+| GST | In Progress | Invoice PDF export, comprehensive rounding/edge review and shared history features remain. |
+| Age | In Progress | Optional zodiac, shared history enhancements and calendar-edge tests remain. |
+| Date difference | In Progress | Complete result export and shared history enhancements, multi-month visualization and edge tests remain. |
+| EMI | In Progress | Schedule PDF and full financial boundary testing remain. |
+| Loan | In Progress | LTV and maximum affordable principal added; extensive assumptions/boundary testing and shared history features remain. |
+| Scientific | In Progress | Dedicated fraction representation and formula-copy, parser fuzz/domain and keyboard coverage remain. |
+| Unit | In Progress | Acceleration and temperature category added; favorites/recent and complete factor tests remain; currency **Blocked**. |
+| Temperature | In Progress | Rankine added; broader rounding/boundary and shared history tests remain. |
+| Time | In Progress | Local IANA meeting planner added with gap/overlap selection; working-time holiday/break/overnight support, history and broader DST tests remain. |
+
+Latest application-code gates: production build, lint, typecheck, formatting and 196 unit tests passed. Complete production Chromium suite passed **325/325**, including representative axe and existing tools. This does not establish every feature, formula or accessibility scenario is covered. Firefox/WebKit and manual screen-reader review were not rerun; prior CI had two PDF merger WebKit failures. Initial targeted runs exposed an accidentally unscoped test selector and a category heading-order violation, both fixed before the successful full run. No push, merge or deployment.
+
+### Discount calculator focused continuation
+
+**Testing, not complete.** Added strict discount-list parsing, numeric underflow/overflow guards, session-history favorites, individual deletion and confirmed clear. `docs/phase-9-discount-qa/README.md` contains independent examples, current results, six responsive screenshots and remaining gaps. This does not verify or complete the other calculators. Currency conversion remains blocked pending an approved live-rate provider.
+
+### Accelerated batch 1 — Discount, Percentage, BMI
+
+**Testing, not complete:** Discount basic result and advanced Percentage steps now have browser-local PDF export using the existing PDF dependency; BMI supports two to five independent people and does not assign adult categories to minors or unknown ages. Targeted Chromium: discount PDF and two discount verification tests passed; percentage advanced PDF and BMI comparison passed; existing percentage suite 4/4 passed. The first combined run had one BMI test failure due to an ambiguous text locator; fixed, and all three targeted BMI/comparison tests passed. PDF unit tests 2/2 passed, including pagination; content text extraction, exhaustive inputs, persistent history and complete accessibility remain pending. Currency conversion remains **Blocked — awaiting an approved live-rate provider**.
+
+### Accelerated batch 2 — GST, Age, Date Difference
+
+**Testing, not complete:** GST multi-item estimate PDF now includes per-item tax details, chosen supply basis and rounding disclaimer; item names must be basic ASCII that fits the page (CSV supports other names). Age has an optional, entertainment-only conventional zodiac display and restores the preference. Both date tools export a CSV including dates, result and breakdown. Targeted unit groups: 14 passed; three production Chromium tests passed for PDF/unsupported-name behavior, leap-day zodiac/restore and holiday-aware date CSV. The final wording-only PDF error clarification has not been separately browser-retested. Further rounding, international PDF text, accessibility, edge and full regression work remains.
+
+### Accelerated batch 3 — EMI, Loan, Scientific, Unit, Temperature, Time
+
+**Testing, not complete:** EMI/Loan monthly amortization schedules now export a paginated PDF with assumptions and extra payments; variable-rate schedules retain CSV export. Scientific expression history exports CSV. Unit/Temperature/Time conversion comparisons export CSV; session-saved conversions restore precision/advanced settings and support favorites and individual deletion. Six focused production Chromium tests passed, one for each route; typecheck, lint and build passed. The PDF generator's upper bound supports the full 1,200-payment monthly schedule, but a maximum-length schedule has not been exercised end-to-end. Currency conversion remains **Blocked — awaiting an approved live-rate provider**. Complete independent formula, keyboard, browser and accessibility coverage and remaining requested features are still pending.
+
+### Accelerated regression checkpoint
+
+**Phase 9 remains In Progress.** Current application code: formatting, lint, typecheck, production build, **202 unit tests** and **339 Chromium tests** passed. See `PHASE_9_ACCELERATED_REPORT.md` for per-calculator increment/remaining work, test limitations and prior failures. Firefox/WebKit, complete manual accessibility, exhaustive formulas and feature-level acceptance remain pending. Currency conversion remains blocked pending an approved live provider.

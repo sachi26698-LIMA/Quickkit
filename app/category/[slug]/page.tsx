@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight, Clock } from "lucide-react";
 import CategoryIcon from "@/components/category-icon";
 import ToolCard from "@/components/tool-card";
+import CalculatorCategoryGrid from "@/components/calculator-category-grid";
 import { categoryMeta, metaBySlug, toolsByCategory } from "@/lib/catalog";
 import { pageMetadata } from "@/lib/seo";
 
@@ -61,7 +62,9 @@ export default async function CategoryPage({
           </span>
         </header>
 
-        {list.length ? (
+        {list.length && meta.slug === "calculators" ? (
+          <CalculatorCategoryGrid tools={list} />
+        ) : list.length ? (
           <div className="tool-grid category-tools">
             {list.map((tool) => (
               <ToolCard key={tool.slug} tool={tool} />

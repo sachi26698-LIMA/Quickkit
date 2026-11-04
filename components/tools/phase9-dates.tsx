@@ -8,6 +8,7 @@ import {
 } from "@/lib/tools/phase9-dates";
 import { Workspace } from "./phase9-shared";
 import CalendarView from "./phase9-calendar-view";
+import { zodiac } from "@/lib/tools/phase9-zodiac";
 export default function Dates({ kind }: { kind: string }) {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -18,6 +19,7 @@ export default function Dates({ kind }: { kind: string }) {
   >("days");
   const [holidays, setHolidays] = useState("");
   const [secondBirth, setSecondBirth] = useState("");
+  const [showZodiac, setShowZodiac] = useState(false);
   const isAge = kind === "age-calculator";
   let result = "",
     error = "",
@@ -38,6 +40,8 @@ export default function Dates({ kind }: { kind: string }) {
         } catch {
           detail += " Next decade milestone is outside the supported calendar.";
         }
+        if (showZodiac)
+          detail += ` Zodiac by conventional date range: ${zodiac(start)} (entertainment only).`;
         if (secondBirth) {
           const other = parseDate(secondBirth);
           age(other, e);
@@ -76,6 +80,7 @@ export default function Dates({ kind }: { kind: string }) {
         shiftUnit,
         holidays,
         secondBirth,
+        showZodiac,
       })}
       restore={(value) => {
         const s = JSON.parse(value);
@@ -86,8 +91,18 @@ export default function Dates({ kind }: { kind: string }) {
         setShiftUnit(s.shiftUnit);
         setHolidays(s.holidays);
         setSecondBirth(s.secondBirth);
+        setShowZodiac(s.showZodiac);
       }}
       detail={<p>{detail}</p>}
+      resultExport={{
+        filename: isAge ? "age-calculation.csv" : "date-difference.csv",
+        rows: [
+          ["Start date", start],
+          [isAge ? "Age on date" : "End date", end],
+          ["Result", result],
+          ["Breakdown", detail],
+        ],
+      }}
       error={error}
       reset={() => {
         setStart("");
@@ -97,6 +112,7 @@ export default function Dates({ kind }: { kind: string }) {
         setShiftUnit("days");
         setHolidays("");
         setSecondBirth("");
+        setShowZodiac(false);
       }}
     >
       <label>
@@ -115,6 +131,16 @@ export default function Dates({ kind }: { kind: string }) {
           onChange={(e) => setEnd(e.target.value)}
         />
       </label>
+      {isAge && (
+        <label className="calculator-check">
+          <input
+            type="checkbox"
+            checked={showZodiac}
+            onChange={(e) => setShowZodiac(e.target.checked)}
+          />{" "}
+          Show zodiac date range (entertainment only)
+        </label>
+      )}
       {isAge && (
         <details>
           <summary>Compare another person</summary>

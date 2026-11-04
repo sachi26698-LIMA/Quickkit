@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { scientific } from "@/lib/tools/phase9-scientific";
 import { Workspace } from "./phase9-shared";
+import { downloadText } from "@/lib/tools/download";
+import { csvCell } from "@/lib/tools/phase9-v2-advanced";
 
 type Entry = {
   expression: string;
@@ -239,6 +241,28 @@ export default function Scientific() {
         <section className="workspace calculator-history">
           <div className="calculator-actions">
             <h2>Expression history</h2>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() =>
+                downloadText(
+                  [
+                    ["Expression", "Answer", "Angle mode"],
+                    ...history.map((entry) => [
+                      entry.expression,
+                      entry.answer,
+                      entry.degrees ? "degrees" : "radians",
+                    ]),
+                  ]
+                    .map((row) => row.map(csvCell).join(","))
+                    .join("\r\n"),
+                  "scientific-history.csv",
+                  "text/csv;charset=utf-8",
+                )
+              }
+            >
+              Download expression history CSV
+            </button>
             <button className="secondary" onClick={() => setHistory([])}>
               Clear expression history
             </button>
