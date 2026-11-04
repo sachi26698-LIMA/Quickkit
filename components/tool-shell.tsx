@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { ChevronRight, ShieldCheck, ArrowUpRight } from "lucide-react";
-import { tools } from "@/lib/catalog";
+import {
+  categoryMeta,
+  relatedTools,
+  toolCategoriesOf,
+  tools,
+} from "@/lib/catalog";
 import ToolIcon from "./tool-icon";
 export type ToolContent = { steps: string[]; faqs: { q: string; a: string }[] };
 export default function ToolShell({
@@ -13,6 +18,13 @@ export default function ToolShell({
   content: ToolContent;
 }) {
   const tool = tools.find((t) => t.slug === slug)!;
+  const toolCategories = toolCategoriesOf(tool);
+  const primaryCategory =
+    categoryMeta.find((c) => c.name === toolCategories[0]) ?? categoryMeta[0];
+  const categories = toolCategories
+    .map((name) => categoryMeta.find((c) => c.name === name))
+    .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta));
+  const related = relatedTools(tool);
   return (
     <div className="container tool-page">
       <nav className="breadcrumbs" aria-label="Breadcrumb">
@@ -20,14 +32,34 @@ export default function ToolShell({
         <ChevronRight size={13} />
         <Link href="/tools">Tools</Link>
         <ChevronRight size={13} />
+        <Link href={`/category/${primaryCategory.slug}`}>
+          {primaryCategory.name}
+        </Link>
+        <ChevronRight size={13} />
         <span>{tool.name}</span>
       </nav>
       <header className="tool-title">
         <ToolIcon icon={tool.icon} color={tool.color} />
-        <span className="eyebrow">{tool.category} · FREE BROWSER TOOL</span>
+        <span className="eyebrow">
+          {toolCategories.join(" · ")} · Free browser tool
+        </span>
         <h1>{tool.name}</h1>
         <p>{tool.description}</p>
       </header>
+      {categories.length > 1 ? (
+        <nav className="tool-categories" aria-label="Tool categories">
+          <span>Filed under</span>
+          {categories.map((meta) => (
+            <Link
+              key={meta.slug}
+              className="tool-category-chip"
+              href={`/category/${meta.slug}`}
+            >
+              {meta.name}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       {children}
       <p className="privacy-inline">
         <ShieldCheck size={17} /> Processed on your device. Tool inputs are not
@@ -35,7 +67,7 @@ export default function ToolShell({
       </p>
       <div className="tool-guidance">
         <section>
-          <span className="eyebrow">A QUICK WALKTHROUGH</span>
+          <span className="eyebrow">A quick walkthrough</span>
           <h2>How to use it</h2>
           <ol>
             {content.steps.map((step) => (
@@ -44,7 +76,7 @@ export default function ToolShell({
           </ol>
         </section>
         <section>
-          <span className="eyebrow">GOOD TO KNOW</span>
+          <span className="eyebrow">Good to know</span>
           <h2>A few useful answers</h2>
           {content.faqs.map(({ q, a }) => (
             <details key={q}>
@@ -62,28 +94,20 @@ export default function ToolShell({
           </Link>
         </div>
         <div className="related-grid">
-          {tools
-            .filter(
-              (t) =>
-                t.slug !== slug &&
-                (tool.category !== "Calculators" ||
-                  t.category === "Calculators"),
-            )
-            .slice(0, 3)
-            .map((t) => (
-              <Link
-                className="related-card"
-                key={t.slug}
-                href={`/tools/${t.slug}`}
-              >
-                <ToolIcon icon={t.icon} color={t.color} />
-                <span>
-                  <strong>{t.name}</strong>
-                  <small>{t.category}</small>
-                </span>
-                <ArrowUpRight size={17} />
-              </Link>
-            ))}
+          {related.map((t) => (
+            <Link
+              className="related-card"
+              key={t.slug}
+              href={`/tools/${t.slug}`}
+            >
+              <ToolIcon icon={t.icon} color={t.color} />
+              <span>
+                <strong>{t.name}</strong>
+                <small>{t.category}</small>
+              </span>
+              <ArrowUpRight size={17} />
+            </Link>
+          ))}
         </div>
       </section>
     </div>

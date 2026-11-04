@@ -4,6 +4,15 @@ import { useMemo, useSyncExternalStore } from "react";
 export const FAVORITES_KEY = "quickkit:saved-tools";
 const EVENT = "quickkit:saved-tools-changed";
 
+/**
+ * Slugs that were renamed when the combined converter was split into separate
+ * tools. Applied on read so a card saved before the split still resolves, and
+ * written back so storage converges on the current slug.
+ */
+export const SLUG_MIGRATIONS: Record<string, string> = {
+  "image-converter": "image-to-image",
+};
+
 function readRaw(): string {
   try {
     return window.localStorage.getItem(FAVORITES_KEY) ?? "[]";
@@ -24,9 +33,12 @@ function subscribe(onChange: () => void) {
 function parse(raw: string): string[] {
   try {
     const value: unknown = JSON.parse(raw);
-    return Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === "string")
-      : [];
+    if (!Array.isArray(value)) return [];
+    const migrated = value
+      .filter((v): v is string => typeof v === "string")
+      .map((slug) => SLUG_MIGRATIONS[slug] ?? slug);
+    // De-duplicate: a user may have saved both the old and the new slug.
+    return [...new Set(migrated)];
   } catch {
     return [];
   }

@@ -35,9 +35,11 @@ Evidence: `docs/FINAL_QUALITY_AUDIT.md`, `docs/verification/launch-audit-*`.
 - [ ] Supply actual operator legal name/business form, operating jurisdiction and target markets/audience.
 - [ ] Supply a real monitored privacy/legal contact and any legally required business/registration/address details.
 - [ ] Confirm hosting features and request/security log practices, retention, access, regions and subprocessors.
-- [ ] Finalize Privacy/Terms and rights-request procedures with suitable legal review. Remove draft notices only after completion.
+- [ ] Fill `ownerDetails` in `lib/site.ts` (entity, jurisdiction, address/registration if required, privacy/security/copyright/business inboxes, minimum age) and replace the demo contact address and social URLs.
+- [ ] Finalize all twelve legal/information pages (`/terms`, `/privacy`, `/cookies`, `/disclaimer`, `/about`, `/contact`, `/faq`, `/copyright`, `/accessibility`, `/security`, `/file-handling`, `/intellectual-property`) with suitable legal review. Remove the draft notices and bump `LEGAL_LAST_UPDATED` only after completion. The pages themselves are implemented — see [`docs/LEGAL_PAGES.md`](docs/LEGAL_PAGES.md) and [`docs/LEGAL_PAGES_CHECKLIST.md`](docs/LEGAL_PAGES_CHECKLIST.md).
 - [ ] Decide source-code licensing before making the repository public. Package stays private/UNLICENSED meanwhile; third-party licences still apply.
-- [ ] No ads, payments, subscriptions or analytics until separate business/privacy/provider decisions and consent review.
+- [ ] No ads, payments, subscriptions or analytics until separate business/privacy/provider decisions and consent review. If any is added, update `/privacy` and `/cookies` in the same change and implement a genuine opt-in first.
+- [ ] Run `node scripts/check-site-links.mjs <preview-url>` and `npm run test:e2e` on the candidate build; both must be clean before approval.
 
 Exact fields and source pages: [`docs/OWNER_INPUTS.md`](docs/OWNER_INPUTS.md). No legal/business information has been invented.
 
@@ -92,7 +94,7 @@ git status --short --branch
 5. `vercel.json`, `.nvmrc`, package engines and CI describe these settings. `.vercel/` and credentials are ignored. No tool API keys or secrets are needed.
 6. Keep **`LAUNCH_APPROVED=false`** for every environment. Leave `SITE_URL` unset until you choose/verify the actual origin. Do not add arbitrary `VERCEL_ENV`/`VERCEL_URL`; Vercel supplies them.
 7. Create a **preview** from the feature branch before production approval. With `main` as the production branch, pushing/merging `main` can create an unindexed production deployment; do not equate that with approval to launch. Review automatic deployment behavior first.
-8. Use only the deployment URL actually returned by Vercel. Inspect real build logs and fix any errors. Verify HTTPS, all ten pages, search, every tool, download/copy, metadata, icons, privacy/terms, mobile UI and console.
+8. Use only the deployment URL actually returned by Vercel. Inspect real build logs and fix any errors. Verify HTTPS, every static page, search, every tool, download/copy, metadata, icons, all twelve legal/information pages, mobile UI and console.
 9. Verify `X-Robots-Tag: noindex`, noindex metadata, `Disallow: /` and empty sitemap on that preview. Use deployment protection when appropriate: **noindex is not access control**. Do not upload confidential test data to a public page URL.
 
 ## 6. Domain and indexing — blocked by default

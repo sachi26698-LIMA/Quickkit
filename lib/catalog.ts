@@ -26,9 +26,9 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "PDF Tools",
     slug: "pdf-tools",
-    blurb: "Merge, split, compress and manage PDF files.",
+    blurb: "Merge, split, convert and manage PDF files.",
     description:
-      "Everything you need to work with PDFs — combine documents and organize pages right in your browser, with nothing uploaded.",
+      "Everything you need to work with PDFs — combine documents, export pages as images and turn photos into a PDF, all in your browser with nothing uploaded.",
     tint: "tint-pdf",
     icon: "pdf",
   },
@@ -152,8 +152,9 @@ export const tools = [
     name: "QR Code Generator",
     category: "QR & Barcode",
     description:
-      "Turn a link or a little text into a scannable QR code. Ready to share.",
-    keywords: "url scan png download",
+      "Make a QR code for a link, Wi-Fi, a contact or an event — styled, logo-ready and checked by a real decoder before you download.",
+    keywords:
+      "url link text wifi vcard contact email phone sms whatsapp location map calendar event ical social app store logo design template bulk csv zip png svg pdf scan qrcode offline free",
     icon: "qr",
     color: "mint",
     phase: 2,
@@ -163,11 +164,84 @@ export const tools = [
     name: "Image Compressor",
     category: "Image Tools",
     description:
-      "Less file size, more possibilities. Compress images right in your browser.",
-    keywords: "photo picture jpeg webp optimize resize",
+      "Less file size, more possibilities. Compress to a quality level or an exact KB target, in batches.",
+    keywords:
+      "photo picture jpeg jpg webp png avif compress optimise optimize quality size kb mb batch zip transparency",
     icon: "image",
     color: "peach",
-    phase: 2,
+    phase: 3,
+  },
+  {
+    slug: "image-resizer",
+    name: "Image Resizer",
+    category: "Image Tools",
+    description:
+      "Make every image fit. Resize by pixels or percentage, crop to social presets and export in batches.",
+    keywords:
+      "resize dimensions scale aspect ratio percentage instagram story facebook post linkedin banner youtube thumbnail webp jpeg png batch zip banner",
+    icon: "resize",
+    color: "sky",
+    phase: 3,
+  },
+  {
+    slug: "image-cropper",
+    name: "Image Cropper",
+    category: "Image Tools",
+    description:
+      "Frame it your way. Crop to any ratio, social preset, circle or square, and export exactly the pixels you need.",
+    keywords:
+      "crop cut trim frame aspect ratio instagram instagram story youtube thumbnail facebook post square circle round avatar rotate flip zoom pan batch zip exif transparent",
+    icon: "crop",
+    color: "mint",
+    phase: 3,
+  },
+  {
+    slug: "image-to-image",
+    name: "Image to Image Converter",
+    category: "Image Tools",
+    description:
+      "Convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF in batch, with quality-first compression, target file sizes, resizing and a real before/after preview.",
+    keywords:
+      "convert conversion format jpg jpeg png webp avif gif bmp tiff heic heif batch zip quality target kb mb lossless lossy transparency background resize aspect ratio crop rotate flip straighten exif orientation metadata prefix suffix",
+    icon: "convert",
+    color: "blue",
+    phase: 3,
+  },
+  {
+    slug: "images-to-pdf",
+    name: "Images to PDF Converter",
+    category: "PDF Tools",
+    description:
+      "Turn your pictures into one PDF, one image per page. Drag to order pages, rotate them, pick A4, A3, A5, Letter or a custom size, set margins and fit, and download a real PDF.",
+    keywords:
+      "images to pdf pictures photos to pdf jpg png webp to pdf create build make pdf page order drag drop reorder rotate remove a4 a3 a5 letter custom size portrait landscape margin contain cover fill background quality dpi title filename preview page count",
+    icon: "imagesToPdf",
+    color: "purple",
+    phase: 3,
+  },
+  {
+    slug: "pdf-to-image",
+    name: "PDF to Image Converter",
+    category: "PDF Tools",
+    description:
+      "Export PDF pages as JPG, PNG or WEBP images. Choose every page or a custom range, set the resolution up to 300 DPI, preview the real rendered pages, and download single pages or one ZIP.",
+    keywords:
+      "pdf to image pdf to jpg pdf to png pdf to webp convert pdf pages export render extract pages as pictures screenshots dpi resolution quality page range background thumbnail preview zip download batch",
+    icon: "pdfToImage",
+    color: "blue",
+    phase: 3,
+  },
+  {
+    slug: "pdf-studio",
+    name: "PDF Studio",
+    category: "PDF Tools",
+    description:
+      "Merge PDFs, extract or split page ranges, delete, rotate and reorder individual pages, and compress the result — with live thumbnails and page counts, all processed on your device.",
+    keywords:
+      "pdf studio merge combine join pdf split extract pages delete remove rotate reorder drag drop page order compress shrink organize arrange thumbnails page count batch multiple pdfs",
+    icon: "pdfStudio",
+    color: "purple",
+    phase: 3,
   },
   {
     slug: "merge-pdf",
@@ -178,6 +252,29 @@ export const tools = [
     keywords: "pdf merge combine join pages bookmarks password documents",
     icon: "pdf",
     color: "purple",
+    phase: 5,
+  },
+  {
+    slug: "split-pdf",
+    name: "PDF Splitter",
+    category: "PDF Tools",
+    description:
+      "One PDF, the right pieces. Split ranges, extract pages, and download named PDFs or a ZIP locally.",
+    keywords: "pdf split extract separate ranges pages zip documents password",
+    icon: "pdfSplit",
+    color: "mint",
+    phase: 5,
+  },
+  {
+    slug: "compress-pdf",
+    name: "PDF Compressor",
+    category: "PDF Tools",
+    description:
+      "Smaller PDFs, same pages. Batch-compress locally with quality presets, target size and exact savings.",
+    keywords:
+      "pdf compress reduce shrink target size optimize file size batch zip scanned image documents password",
+    icon: "pdfCompress",
+    color: "peach",
     phase: 5,
   },
   {
@@ -321,16 +418,56 @@ export const tools = [
 ] as const;
 
 export type Tool = (typeof tools)[number];
+
+/**
+ * A tool can belong to more than one category (the Image & PDF Converter is
+ * both an image tool and a PDF tool) without duplicating its route or record.
+ */
+export function toolCategoriesOf(tool: Tool): ToolCategory[] {
+  return "categories" in tool && Array.isArray(tool.categories)
+    ? [...(tool.categories as readonly ToolCategory[])]
+    : [tool.category as ToolCategory];
+}
+
 export const toolBySlug = (slug: string): Tool | undefined =>
   tools.find((t) => t.slug === slug);
+
 export const toolsByCategory = (category: ToolCategory) =>
-  tools.filter((t) => t.category === category);
+  tools.filter((tool) => toolCategoriesOf(tool).includes(category));
+
+/**
+ * Related tools for a detail page: round-robin across the tool's categories so
+ * a tool listed in two categories surfaces neighbours from both, then fill
+ * with the rest of the catalogue.
+ */
+export function relatedTools(tool: Tool, limit = 3): Tool[] {
+  const categories = toolCategoriesOf(tool);
+  const pool = tools.filter((candidate) => candidate.slug !== tool.slug);
+  const buckets = categories.map((name) =>
+    pool.filter((candidate) => toolCategoriesOf(candidate).includes(name)),
+  );
+  const ordered: Tool[] = [];
+  for (let index = 0; ; index += 1) {
+    let found = false;
+    for (const bucket of buckets) {
+      const next = bucket[index];
+      if (!next) continue;
+      found = true;
+      if (!ordered.includes(next)) ordered.push(next);
+    }
+    if (!found) break;
+  }
+  for (const candidate of pool)
+    if (!ordered.includes(candidate)) ordered.push(candidate);
+  return ordered.slice(0, limit);
+}
 
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();
   return tools.filter(
     (tool) =>
-      (category === "All tools" || tool.category === category) &&
+      (category === "All tools" ||
+        toolCategoriesOf(tool).includes(category as ToolCategory)) &&
       `${tool.name} ${tool.description} ${tool.keywords}`
         .toLocaleLowerCase()
         .includes(search),

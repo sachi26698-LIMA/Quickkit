@@ -10,7 +10,6 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import BenefitsStrip from "@/components/benefits-strip";
 import CategoryGrid from "@/components/category-grid";
 import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
@@ -20,7 +19,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Free browser tools for everyday tasks",
-  "Merge PDFs, count words, convert text, format JSON, create passwords, generate QR codes and compress images locally in your browser.",
+  "Free browser tools that run entirely on your device: merge, split and compress PDFs, convert PDF to Word, compress images, generate QR codes, format JSON and more.",
   "/",
 );
 
@@ -61,7 +60,7 @@ export default function Home() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-copy">
             <div className="hero-label">
-              <Sparkles size={13} aria-hidden="true" /> YOUR ALL-IN-ONE TOOLKIT
+              <Sparkles size={13} aria-hidden="true" /> Your all-in-one toolkit
             </div>
             <h1 id="hero-title">
               Small tasks.
@@ -69,9 +68,8 @@ export default function Home() {
               <span>Quick solutions.</span>
             </h1>
             <p className="hero-description">
-              Free, easy and privacy-friendly tools for your everyday digital
-              needs — no sign-up, nothing to install, and everything runs right
-              in your browser.
+              Free tools for everyday tasks — no sign-up, nothing to install,
+              and everything runs in your browser.
             </p>
             <HeroSearch />
             <div className="popular-row">
@@ -112,10 +110,6 @@ export default function Home() {
           <HeroArt />
         </section>
 
-        <Reveal>
-          <BenefitsStrip />
-        </Reveal>
-
         <section
           id="categories"
           className="home-section"
@@ -124,7 +118,7 @@ export default function Home() {
           <Reveal>
             <div className="section-heading">
               <div>
-                <span className="eyebrow">BROWSE THE TOOLKIT</span>
+                <span className="eyebrow">Browse the toolkit</span>
                 <h2 id="categories-title">Explore by Category</h2>
                 <p>
                   Find the right tool for your task, all organized in one place.
@@ -142,12 +136,15 @@ export default function Home() {
           <Reveal>
             <div className="section-heading">
               <div>
-                <span className="eyebrow">THE QUICKKIT WAY</span>
+                <span className="eyebrow">The QUICKKIT way</span>
                 <h2 id="why-title">Why QUICKKIT?</h2>
                 <p>
                   A simpler, safer and faster way to get things done online.
                 </p>
               </div>
+              <Link href="/privacy" className="section-link">
+                Our privacy approach <ArrowRight size={15} aria-hidden="true" />
+              </Link>
             </div>
             <div className="why-grid">
               {reasons.map(({ Icon, title, text }) => (
@@ -159,22 +156,6 @@ export default function Home() {
                   <p>{text}</p>
                 </div>
               ))}
-            </div>
-            <div className="privacy-band">
-              <span className="privacy-band-icon">
-                <ShieldCheck size={27} aria-hidden="true" />
-              </span>
-              <div>
-                <strong>Your files. Your text. Your business.</strong>
-                <p>
-                  PDFs, text, passwords, QR content and images are processed on
-                  your device. No tool-input uploads, accounts or tracking
-                  analytics.
-                </p>
-              </div>
-              <Link href="/privacy" className="text-link">
-                Our privacy approach <ArrowRight size={16} aria-hidden="true" />
-              </Link>
             </div>
           </Reveal>
         </section>
@@ -193,9 +174,8 @@ export default function Home() {
             />
             <h2 id="cta-title">Your Digital Life, Made Simpler.</h2>
             <p>
-              Everything you need to create, convert, calculate and manage your
-              digital tasks — all in one beautiful place. Fast, free and
-              privacy-friendly.
+              Create, convert and manage everyday files in one place — fast,
+              free and privacy-friendly.
             </p>
             <Link className="cta-button" href="/tools">
               Explore Your Toolkit <ArrowRight size={17} aria-hidden="true" />

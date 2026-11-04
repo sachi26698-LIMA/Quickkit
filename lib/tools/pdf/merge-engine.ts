@@ -31,6 +31,7 @@ import {
   type PdfInspection,
   type PdfInspectionFeatures,
 } from "./merge-pdf-logic";
+import { PDF_SPLIT_LIMITS } from "./split-pdf-logic";
 
 const LOAD_OPTIONS = {
   capNumbers: true,
@@ -1643,5 +1644,411 @@ export async function mergePdfBytes(
     removedActions: graph.removedActions,
     removedDestinations: graph.removedDestinations,
     removedLinkAnnotations: graph.removedLinkAnnotations,
+  };
+}
+
+export interface PdfSplitSegmentInput {
+  pageIndices: number[];
+  title: string;
+}
+
+export interface PdfSplitOptions {
+  now?: Date;
+  onProgress?: (progress: PdfMergeProgress) => void;
+  yieldControl?: () => Promise<void>;
+}
+
+export interface PdfSplitOutputBytes {
+  bytes: Uint8Array;
+  pageCount: number;
+}
+
+export interface PdfSplitResult {
+  notices: string[];
+  outputs: PdfSplitOutputBytes[];
+  removedActions: number;
+  removedDestinations: number;
+  removedLinkAnnotations: number;
+  totalBytes: number;
+}
+
+function splitFeatureNotices(
+  features: PdfInspectionFeatures,
+  encrypted: boolean,
+): string[] {
+  const notices: string[] = [];
+  if (features.hasForm) {
+    notices.push(
+      "Interactive form fields were flattened to static page content in the split PDFs.",
+    );
+  }
+  if (features.hasOutlines) {
+    notices.push(
+      "The original document outline is not copied into split PDFs; page content is preserved without a misleading shared bookmark tree.",
+    );
+  }
+  if (features.hasAttachments) {
+    notices.push(
+      "Embedded file attachments are not copied into split PDFs. Download or extract them from the original PDF if you need them.",
+    );
+  }
+  if (features.hasLayers) {
+    notices.push(
+      "Optional-content layers may not behave interactively in split PDFs; review pages that rely on layer toggles.",
+    );
+  }
+  if (features.hasTags) {
+    notices.push(
+      "Tagged-PDF accessibility structure is not guaranteed after splitting; check the output if tagged reading order matters.",
+    );
+  }
+  if (features.hasJavaScript) {
+    notices.push(
+      "Document JavaScript and unsupported script-based actions are not carried into split PDFs.",
+    );
+  }
+  if (features.hasSignatureField && !features.hasSignedSignature) {
+    notices.push(
+      "Unsigned signature fields were treated like other form fields and flattened where they appear.",
+    );
+  }
+  if (encrypted) {
+    notices.push(
+      "The source open password is not re-applied; split PDFs are unencrypted.",
+    );
+  }
+  return notices;
+}
+
+function rewriteMergeWordingForSplit(error: unknown): never {
+  if (error instanceof PdfMergeError) {
+    throw new PdfMergeError(
+      error.code,
+      error.message
+        .replace(/the merge was stopped/gi, "the split was stopped")
+        .replace(/then merge that copy/gi, "then split that copy")
+        .replace(/not in this merge/gi, "not in this output")
+        .replace(/merged PDF/gi, "split PDF"),
+      error.entryId,
+    );
+  }
+  throw error;
+}
+
+/**
+ * Splits one already-selected source into independently sanitized and
+ * reopen-validated outputs. This shares the Merger's reviewed page-copying
+ * and object-pruning internals instead of introducing a second copy path.
+ */
+export async function splitPdfBytes(
+  sourceBytes: Uint8Array,
+  sourceName: string,
+  segments: PdfSplitSegmentInput[],
+  options: PdfSplitOptions & { password?: string } = {},
+): Promise<PdfSplitResult> {
+  if (sourceBytes.byteLength > PDF_SPLIT_LIMITS.maxSourceBytes) {
+    throw new PdfMergeError(
+      "file_too_large",
+      `“${sourceName}” is above the ${Math.round(PDF_SPLIT_LIMITS.maxSourceBytes / (1024 * 1024))} MiB local Splitter limit. Split or compress it in a PDF editor first.`,
+    );
+  }
+  if (segments.length === 0) {
+    throw new PdfMergeError(
+      "invalid_selection",
+      "Choose at least one output range before splitting.",
+    );
+  }
+  if (segments.length > PDF_SPLIT_LIMITS.maxOutputFiles) {
+    throw new PdfMergeError(
+      "too_many_files",
+      `This plan would create ${segments.length.toLocaleString()} PDFs. Create no more than ${PDF_SPLIT_LIMITS.maxOutputFiles} PDFs in one local run.`,
+    );
+  }
+  const totalOutputPages = segments.reduce(
+    (total, segment) => total + segment.pageIndices.length,
+    0,
+  );
+  if (totalOutputPages > PDF_SPLIT_LIMITS.maxOutputPages) {
+    throw new PdfMergeError(
+      "too_many_pages",
+      `This plan would write ${totalOutputPages.toLocaleString()} output pages. Reduce overlapping ranges so the total is no more than ${PDF_SPLIT_LIMITS.maxOutputPages.toLocaleString()} pages.`,
+    );
+  }
+  for (const [index, segment] of segments.entries()) {
+    if (segment.pageIndices.length === 0) {
+      throw new PdfMergeError(
+        "invalid_selection",
+        `Output ${index + 1} has no pages. Add at least one page to every output.`,
+      );
+    }
+    if (new Set(segment.pageIndices).size !== segment.pageIndices.length) {
+      const duplicate = segment.pageIndices.find(
+        (page, pageIndex) => segment.pageIndices.indexOf(page) !== pageIndex,
+      )!;
+      throw new PdfMergeError(
+        "duplicate_page_selection",
+        `Page ${duplicate + 1} appears more than once inside Output ${index + 1}. Remove the duplicate inside that output.`,
+      );
+    }
+  }
+
+  const progress = options.onProgress ?? (() => undefined);
+  const yieldControl = options.yieldControl ?? defaultYield;
+  progress({
+    current: 1,
+    fileName: sourceName,
+    message: `Reading ${sourceName}`,
+    stage: "inspecting",
+    total: 1,
+  });
+  await yieldControl();
+
+  const { doc: sourceDoc, encrypted } = await loadPdf(
+    sourceBytes,
+    options.password,
+    "split-source",
+  ).catch(rewriteMergeWordingForSplit);
+  let sourcePageCount: number;
+  try {
+    sourcePageCount = sourceDoc.getPageCount();
+  } catch {
+    throw corruptError("split-source");
+  }
+  if (sourcePageCount < 1) throw corruptError("split-source");
+  if (sourcePageCount > PDF_SPLIT_LIMITS.maxSourcePages) {
+    throw new PdfMergeError(
+      "too_many_pages",
+      `“${sourceName}” has ${sourcePageCount.toLocaleString()} pages, above the ${PDF_SPLIT_LIMITS.maxSourcePages.toLocaleString()}-page local Splitter limit. Split it into smaller PDFs in an editor first.`,
+      "split-source",
+    );
+  }
+  for (const [segmentIndex, segment] of segments.entries()) {
+    for (const pageIndex of segment.pageIndices) {
+      if (
+        !Number.isInteger(pageIndex) ||
+        pageIndex < 0 ||
+        pageIndex >= sourcePageCount
+      ) {
+        throw new PdfMergeError(
+          "invalid_page_range",
+          `Page ${pageIndex + 1} in Output ${segmentIndex + 1} is outside “${sourceName}” (pages 1–${sourcePageCount}). Update the split plan and try again.`,
+          "split-source",
+        );
+      }
+    }
+  }
+
+  const features = inspectPdfFeatures(sourceDoc);
+  if (features.hasXFA) {
+    throw new PdfMergeError(
+      "unsupported_xfa",
+      `“${sourceName}” is a dynamic XFA form, which cannot be split safely in the browser. Print or export it to a standard PDF, then split that copy.`,
+      "split-source",
+    );
+  }
+  if (features.hasSignedSignature) {
+    throw new PdfMergeError(
+      "signed_pdf",
+      `“${sourceName}” appears to be digitally signed. Splitting is blocked so the signature is not silently invalidated. Split an unsigned copy only if you have permission to create one.`,
+      "split-source",
+    );
+  }
+
+  const notices = new Set(splitFeatureNotices(features, encrypted));
+  const pageWidgets = widgetAnnotations(sourceDoc);
+  const sourceForm = existingForm(sourceDoc);
+  let formFields: PDFField[] = [];
+  try {
+    formFields = sourceForm?.getFields() ?? [];
+  } catch {
+    throw new PdfMergeError(
+      "unsupported_form",
+      `The form structure in “${sourceName}” could not be read safely. Flatten or repair it in a PDF editor, then try splitting again.`,
+      "split-source",
+    );
+  }
+  if (formFields.length > 0 || pageWidgets.length > 0) {
+    if (!sourceForm) {
+      throw new PdfMergeError(
+        "unsupported_form",
+        `“${sourceName}” contains form widgets without a readable form dictionary. Flatten or repair it in a PDF editor, then try splitting again.`,
+        "split-source",
+      );
+    }
+    progress({
+      current: 1,
+      fileName: sourceName,
+      message: `Flattening form fields in ${sourceName}`,
+      stage: "preparing",
+      total: 1,
+    });
+    await yieldControl();
+    try {
+      prepareAndFlattenForm(
+        sourceDoc,
+        sourceForm,
+        formFields,
+        "split-source",
+        sourceName,
+      );
+    } catch (error) {
+      rewriteMergeWordingForSplit(error);
+    }
+  }
+  await sourceDoc.flush();
+
+  const outputs: PdfSplitOutputBytes[] = [];
+  let copiedPages = 0;
+  let totalBytes = 0;
+  let removedActions = 0;
+  let removedDestinations = 0;
+  let removedLinkAnnotations = 0;
+  const now = options.now ?? new Date();
+
+  for (const [segmentIndex, segment] of segments.entries()) {
+    const output = await PDFDocument.create({ updateMetadata: false });
+    const selectedPageRefs: PDFRef[] = [];
+    const copier = PDFObjectCopier.for(sourceDoc.context, output.context);
+
+    for (const pageIndex of segment.pageIndices) {
+      let copiedObject: PDFObject;
+      try {
+        copiedObject = copier.copy(sourceDoc.getPage(pageIndex).ref);
+      } catch {
+        throw new PdfMergeError(
+          "unsupported_pdf_structure",
+          `Page ${pageIndex + 1} could not be copied into Output ${segmentIndex + 1} safely. Export the source PDF again from a reader or editor, then retry.`,
+          "split-source",
+        );
+      }
+      if (!(copiedObject instanceof PDFRef)) {
+        throw new PdfMergeError(
+          "unsupported_pdf_structure",
+          `Page ${pageIndex + 1} could not be copied into Output ${segmentIndex + 1} safely. Export the source PDF again from a reader or editor, then retry.`,
+          "split-source",
+        );
+      }
+      const copiedNode = output.context.lookup(copiedObject);
+      if (!(copiedNode instanceof PDFPageLeaf)) {
+        throw new PdfMergeError(
+          "unsupported_pdf_structure",
+          `Page ${pageIndex + 1} did not copy as a page into Output ${segmentIndex + 1}. Export the source PDF again from a reader or editor, then retry.`,
+          "split-source",
+        );
+      }
+      output.addPage(PDFPage.of(copiedNode, copiedObject, output));
+      selectedPageRefs.push(copiedObject);
+      copiedPages += 1;
+      progress({
+        current: copiedPages,
+        fileName: sourceName,
+        message: `Copying page ${pageIndex + 1} into output ${segmentIndex + 1} of ${segments.length}`,
+        stage: "copying",
+        total: totalOutputPages,
+      });
+      await yieldControl();
+    }
+
+    const cleanTitle = sanitizePdfTitle(segment.title, "Split PDF");
+    output.setTitle(cleanTitle, { showInWindowTitleBar: true });
+    output.setCreator("QUICKKIT PDF Splitter");
+    output.setProducer("QUICKKIT PDF Splitter");
+    output.setCreationDate(now);
+    output.setModificationDate(now);
+
+    progress({
+      current: segmentIndex + 1,
+      fileName: sourceName,
+      message: `Checking links and removing unselected data from output ${segmentIndex + 1}`,
+      stage: "finalizing",
+      total: segments.length,
+    });
+    await yieldControl();
+    let graph: ReturnType<typeof sanitizeAndPruneMergedDocument>;
+    try {
+      graph = sanitizeAndPruneMergedDocument(output, selectedPageRefs);
+    } catch (error) {
+      rewriteMergeWordingForSplit(error);
+    }
+    removedActions += graph.removedActions;
+    removedDestinations += graph.removedDestinations;
+    removedLinkAnnotations += graph.removedLinkAnnotations;
+
+    const expectedGeometry = pageGeometry(output);
+    progress({
+      current: segmentIndex + 1,
+      fileName: sourceName,
+      message: `Writing output ${segmentIndex + 1} of ${segments.length}`,
+      stage: "saving",
+      total: segments.length,
+    });
+    await yieldControl();
+    let bytes: Uint8Array;
+    try {
+      bytes = await output.save({
+        objectsPerTick: 50,
+        updateFieldAppearances: false,
+        useObjectStreams: true,
+      });
+    } catch {
+      throw new PdfMergeError(
+        "output_validation_failed",
+        `Output ${segmentIndex + 1} could not be written. Try fewer pages per output, or export the source PDF again.`,
+        "split-source",
+      );
+    }
+
+    totalBytes += bytes.byteLength;
+    if (totalBytes > PDF_SPLIT_LIMITS.maxGeneratedPdfBytes) {
+      throw new PdfMergeError(
+        "total_too_large",
+        `The generated split PDFs exceeded the ${Math.round(PDF_SPLIT_LIMITS.maxGeneratedPdfBytes / (1024 * 1024))} MiB local safety limit while creating Output ${segmentIndex + 1}. Split fewer pages at a time or reduce overlapping ranges.`,
+        "split-source",
+      );
+    }
+
+    progress({
+      current: segmentIndex + 1,
+      fileName: sourceName,
+      message: `Reopening and validating output ${segmentIndex + 1} of ${segments.length}`,
+      stage: "validating",
+      total: segments.length,
+    });
+    await yieldControl();
+    try {
+      await validateMergedPdfBytes(bytes, expectedGeometry, [], cleanTitle);
+    } catch {
+      throw new PdfMergeError(
+        "output_validation_failed",
+        `Output ${segmentIndex + 1} could not be reopened and validated, so it was not offered for download. Try that range separately or export the source PDF again.`,
+        "split-source",
+      );
+    }
+    outputs.push({ bytes, pageCount: expectedGeometry.length });
+  }
+
+  if (removedDestinations > 0) {
+    notices.add(
+      `${removedDestinations} internal destination${removedDestinations === 1 ? "" : "s"} pointed to pages outside an output and were removed rather than left broken.`,
+    );
+  }
+  if (removedActions > 0) {
+    notices.add(
+      "Unsupported or script-based actions were removed; ordinary web links and safe internal page links were kept where possible.",
+    );
+  }
+  if (removedLinkAnnotations > 0) {
+    notices.add(
+      `${removedLinkAnnotations} link area${removedLinkAnnotations === 1 ? "" : "s"} had no valid destination inside the same output and were removed.`,
+    );
+  }
+
+  return {
+    notices: [...notices],
+    outputs,
+    removedActions,
+    removedDestinations,
+    removedLinkAnnotations,
+    totalBytes,
   };
 }

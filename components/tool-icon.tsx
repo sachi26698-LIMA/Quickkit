@@ -6,8 +6,16 @@ import {
   QrCode,
   ImageIcon,
   Files,
+  ScissorsLineDashed,
+  Shrink,
   FileText,
   Calculator,
+  Scaling,
+  Crop,
+  ArrowRightLeft,
+  FileImage,
+  ImageDown,
+  Layers,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -17,8 +25,16 @@ const icons = {
   qr: QrCode,
   image: ImageIcon,
   pdf: Files,
+  pdfSplit: ScissorsLineDashed,
+  pdfCompress: Shrink,
   word: FileText,
   calc: Calculator,
+  resize: Scaling,
+  crop: Crop,
+  convert: ArrowRightLeft,
+  imagesToPdf: FileImage,
+  pdfToImage: ImageDown,
+  pdfStudio: Layers,
 };
 export default function ToolIcon({
   icon,

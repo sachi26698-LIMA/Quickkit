@@ -1,132 +1,380 @@
 import Link from "next/link";
-import { contactEmail } from "@/lib/site";
+import LegalPageShell, {
+  OwnerPlaceholder,
+} from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
+import {
+  LEGAL_LAST_UPDATED,
+  LEGAL_LAST_UPDATED_ISO,
+  legalPageByHref,
+} from "@/lib/legal";
+import ContactLink from "@/components/contact-link";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Privacy Policy — how QUICKKIT handles data",
-  "Understand local tool processing, clipboard and downloads, hosting requests, saved-tools storage and the absence of analytics and tracking cookies.",
+  legalPageByHref("/privacy")!.description,
   "/privacy",
 );
 
-export default function Page() {
+export default function PrivacyPage() {
+  const legalName = ownerDetail("legalName");
+  const jurisdiction = ownerDetail("jurisdiction");
+
   return (
-    <article className="container prose legal">
-      <span className="eyebrow">YOUR WORK STAYS YOURS</span>
-      <h1>Privacy Policy</h1>
-      <p className="legal-updated">
-        Last updated: 1 November 2026. This policy describes the current
-        QUICKKIT implementation in plain language. It is not a promise of
-        absolute privacy or security — no website can honestly make one.
-      </p>
-      <div className="legal-notice">
-        <strong>A quick note from the team</strong>
-        <p>
-          QUICKKIT is in active development. Before a full public launch the
-          operator will confirm its legal identity, jurisdiction and
-          hosting/log-retention details, and this page should receive a
-          professional legal review.
-        </p>
-      </div>
+    <LegalPageShell
+      href="/privacy"
+      title="Privacy Policy"
+      intro="QUICKKIT is built so that the data you put into a tool stays in your browser. This page explains exactly what that means, where it stops being true, and what you can do about it."
+      lastUpdated={LEGAL_LAST_UPDATED}
+      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+    >
+      <h2 id="summary">1. The short version</h2>
+      <ul>
+        <li>No account, no login, no profile, no email sign-up.</li>
+        <li>
+          No analytics, no advertising network, no third-party tracker, no
+          session-recording script.
+        </li>
+        <li>
+          Your files and text are processed by code running in your own browser.
+          They are not uploaded to a QUICKKIT server — the application has no
+          server endpoint that accepts them.
+        </li>
+        <li>
+          A few preferences (saved tools, QR presets, optional conversion
+          history) are stored in your browser and never leave it.
+        </li>
+        <li>
+          Like every website, loading the pages involves ordinary HTTP requests
+          to a hosting provider. That is described in{" "}
+          <a href="#hosting">section 9</a>.
+        </li>
+      </ul>
 
-      <h2>1. Information we collect</h2>
+      <h2 id="what-we-collect">2. Information we collect</h2>
       <p>
-        Very little, by design. We do not operate user accounts, and tool inputs
-        are never sent to us (see §2). The information that exists at all is:
-        (a) ordinary technical data in website requests handled by our hosting
-        provider (§4), (b) a saved-tools list stored only in your own browser if
-        you use the Save feature (§5), and (c) anything you voluntarily send us
-        by email (§8).
+        We do not ask for, and the application does not collect, your name,
+        email address, phone number, postal address, payment details, date of
+        birth or location. There is no form on the site that submits to a
+        QUICKKIT server.
       </p>
+      <p>What exists, in total, is:</p>
+      <ul>
+        <li>
+          <strong>Technical data in ordinary web requests</strong> handled by
+          the hosting provider when your browser fetches a page, script, font or
+          image. This can include your IP address, user agent, the URL requested
+          and a timestamp. See <a href="#hosting">section 9</a>.
+        </li>
+        <li>
+          <strong>Browser-local preferences</strong> you choose to create —
+          saved tools, QR design presets, recent QR generations and optional
+          local conversion history. See <a href="#storage">section 6</a>.
+        </li>
+        <li>
+          <strong>Anything you voluntarily send us</strong> in an email or
+          through the contact form. See <a href="#retention">section 10</a>.
+        </li>
+      </ul>
 
-      <h2>2. How the tools process your data — locally</h2>
+      <h2 id="accounts">3. Accounts and registration</h2>
       <p>
-        Every current QUICKKIT tool processes your input on your device, in your
-        browser: the PDF Merger (in a dedicated browser worker, with local
-        canvas previews), Word Counter, Case Converter, JSON Formatter, Password
-        Generator, QR Code Generator and Image Compressor. Your PDFs, text,
-        JSON, passwords, QR content and images are not uploaded to a server,
-        stored in a database or written to application logs. Inputs live in the
-        page’s memory; refreshing or leaving the tool clears them (your browser
-        may separately retain form state or history).
-      </p>
-
-      <h2>3. File privacy, clipboard and downloads</h2>
-      <p>
-        File pickers give the page access only to files you choose. A PDF open
-        password is held only in current-page/worker memory and cleared when the
-        file is removed, the queue resets or the merge completes. Copying uses
-        your device clipboard, which other apps, extensions or synced clipboard
-        services may access. Downloads are saved by your browser under its own
-        settings, and local preview URLs are revoked when replaced or when the
-        workspace closes.
-      </p>
-
-      <h2>4. Ordinary website requests and hosting</h2>
-      <p>
-        Like any website, your browser requests pages, scripts, fonts and icons
-        from our hosting provider; those requests can include your IP address,
-        browser information, requested URLs and timestamps. The QUICKKIT
-        application itself does not implement request-log storage. Provider
-        processing and retention depend on the deployment and will be confirmed
-        by the operator. Please don’t put sensitive text into page URLs (for
-        example, tools you open via search links).
-      </p>
-
-      <h2>5. Data stored on your device</h2>
-      <p>
-        If you save tools with the heart icon, their names are stored in your
-        browser’s local storage under <code>quickkit:saved-tools</code>. This
-        never leaves your device and contains no tool inputs or personal
-        information. Clearing your browser data removes it. Details are in our{" "}
-        <Link href="/cookies">Cookie Policy</Link>.
+        QUICKKIT has no account system. Registration is not required, offered or
+        planned for the current release. Because there is no account, we hold no
+        profile to correct, export or delete, and no password of yours to
+        protect — the only passwords you will see in QUICKKIT are ones you
+        generate or type into a local PDF prompt, and neither leaves the tab.
       </p>
 
-      <h2>6. Third-party services</h2>
+      <h2 id="local-processing">4. How browser-local processing works</h2>
       <p>
-        Tool processing uses no third-party services: no remote PDF, QR,
-        image-compression or AI APIs receive your inputs, and there is no
-        analytics SDK, advertising network, account system or payment provider
-        in this release. Fonts and application code are bundled with the site.
-        Outbound links (for example, social profiles in the footer) lead to
-        third-party sites with their own privacy practices, which apply once you
-        visit them.
+        When you choose a file, your browser grants the page access to that file
+        only. The JavaScript already loaded into the page then reads the bytes
+        into memory and does the work there: parsing and rebuilding PDFs,
+        decoding and re-encoding images on a canvas, generating a QR matrix,
+        extracting text, or evaluating a calculator formula.
+      </p>
+      <p>
+        Some operations run in dedicated Web Workers — a separate thread inside
+        the same browser tab — so a large PDF merge or image batch does not
+        freeze the interface. A worker is still your browser on your device; it
+        is not a remote server.
+      </p>
+      <p>
+        This is why the tools work offline once the page has loaded, and why
+        there is no upload progress bar in most workspaces: there is no upload.
+        It is also why refreshing the page clears a workspace — the inputs only
+        ever existed in the tab&rsquo;s memory.
       </p>
 
-      <h2>7. Security</h2>
+      <h2 id="uploads">5. Do files leave my device?</h2>
       <p>
-        Local processing removes whole categories of risk — there is no server
-        copy of your files to breach. The site is served with strict transport
-        and content-security headers. Still, your device and browser are part of
-        the picture: avoid entering highly sensitive data on devices or browsers
-        you do not trust, and keep originals of important files.
+        For the tools in this release, no file you select is transmitted to
+        QUICKKIT or to a third party as part of processing. This is not a policy
+        promise bolted on top of a server pipeline; it is how the software is
+        built. The page has no upload endpoint to send to, and the Content
+        Security Policy served with every page restricts network connections to
+        the site&rsquo;s own origin ( <code>connect-src &apos;self&apos;</code>
+        ), so a future accidental call to an external API would be blocked by
+        the browser.
+      </p>
+      <p>
+        Two honest qualifications. First, the hosting provider still sees the
+        ordinary requests for the page and its assets (section 9) — that is
+        metadata about the visit, not the content of your files. Second, if the
+        operator later configures an email-sending endpoint for the contact
+        form, the text you type into that form would be transmitted; the form
+        states on screen which behaviour is active.
+      </p>
+      <p>
+        A full tool-by-tool account of what happens to each file type is in the{" "}
+        <Link href="/file-handling">File Handling Policy</Link>. If you ever
+        find a QUICKKIT tool that contradicts this page, please report it — see{" "}
+        <Link href="/security">Security Policy</Link>.
       </p>
 
-      <h2>8. Your rights and choices</h2>
+      <h2 id="storage">6. Cookies and local browser storage</h2>
       <p>
-        Because tool inputs never reach us, there is generally nothing for us to
-        access, correct or delete. You control inputs with each tool’s
-        Reset/Clear actions, your clipboard and downloads on your device, and
-        the saved-tools list in your browser. If you email us, we will use your
-        message only to respond, and you may ask us to delete the
-        correspondence. Depending on your jurisdiction you may have additional
-        rights; the operator will confirm formal procedures before public
-        launch.
+        QUICKKIT sets no cookies at all — not for analytics, not for advertising
+        and not even a session cookie, because there is no session to maintain.
+        The site does use your browser&rsquo;s own storage for preferences that
+        you create by using a feature:
+      </p>
+      <ul>
+        <li>
+          <code>quickkit:saved-tools</code> — the slugs of tools you hearted, so
+          the Saved page can list them.
+        </li>
+        <li>
+          <code>qk:qr-presets:v1</code>, <code>qk:qr-history:v1</code>,{" "}
+          <code>qk:qr-history-mode:v1</code> — QR design presets and recent
+          generations, if you use those panels. Sensitive QR fields such as a
+          Wi-Fi password are never written.
+        </li>
+        <li>
+          <code>qk:i2i-retention</code> and <code>qk:p2w-retention</code> — the
+          retention choice for the optional conversion histories.
+        </li>
+        <li>
+          IndexedDB stores <code>quickkit-image-to-image</code> and{" "}
+          <code>quickkit-pdf-to-word</code>, used only if you opt in to keeping
+          converted outputs so they can be re-downloaded.
+        </li>
+      </ul>
+      <p>
+        All of it is readable only by this site in your browser, and all of it
+        can be erased from your browser&rsquo;s site-data settings. The{" "}
+        <Link href="/cookies">Cookie Policy</Link> lists every key, its purpose
+        and its lifetime.
       </p>
 
-      <h2>9. Contact</h2>
+      <h2 id="analytics">7. Analytics and tracking</h2>
       <p>
-        Privacy questions: <a href={`mailto:${contactEmail}`}>{contactEmail}</a>{" "}
-        or the <Link href="/contact">contact page</Link>.
+        There are none. This release loads no Google Analytics, no advertising
+        pixel, no heatmap or session-recording tool, no A/B testing SDK and no
+        social embed that could track you — the social links in the footer are
+        plain links that only contact the destination if you click them.
+      </p>
+      <p>
+        Correspondingly, there is no cookie-consent banner, because there is
+        nothing non-essential to consent to. If analytics were ever added, it
+        would require a genuine consent mechanism and an update to this page and
+        the <Link href="/cookies">Cookie Policy</Link> before any script loaded.
       </p>
 
-      <h2>10. Updates to this policy</h2>
+      <h2 id="third-party">8. Third-party integrations</h2>
       <p>
-        If processing practices change — for example, if a future tool ever
-        needs a server — we will update this page first, explain the change, and
-        reassess consent requirements. See also our{" "}
-        <Link href="/terms">Terms of Use</Link> and{" "}
-        <Link href="/cookies">Cookie Policy</Link>.
+        Processing uses no remote third-party service. The libraries that
+        perform PDF parsing and writing, document generation, image encoding, QR
+        encoding/decoding and on-device OCR are bundled into the site and served
+        from the same origin; fonts are self-hosted, not fetched from a font
+        CDN. Their names and licences are listed in the{" "}
+        <Link href="/intellectual-property#open-source">
+          Intellectual Property Policy
+        </Link>
+        .
       </p>
-    </article>
+      <p>
+        Outbound links — social profiles and any external references — leave the
+        site when clicked. From that moment the destination&rsquo;s own privacy
+        policy governs. QUICKKIT does not embed their scripts, so nothing is
+        shared with them simply by loading a QUICKKIT page.
+      </p>
+
+      <h2 id="hosting">9. Hosting and server requests</h2>
+      <p>
+        Serving a website requires a server. Your browser requests each page and
+        its assets from the hosting provider, and those requests necessarily
+        reveal your IP address, requested URL, user agent and timestamp to that
+        provider.
+      </p>
+      <p>
+        The QUICKKIT application itself does not implement application-level
+        request logging, visitor counters or error tracking. Provider-side
+        logging, retention periods, subprocessors and hosting region depend on
+        the deployment configuration and are set by the operator&rsquo;s hosting
+        account, so we are not going to state a retention period we cannot
+        verify.
+      </p>
+      <p className="legal-owner-line">
+        Hosting provider, region, log retention and subprocessors:{" "}
+        {legalName ? (
+          "to be confirmed from the production deployment configuration."
+        ) : (
+          <OwnerPlaceholder what="hosting provider, region and log-retention details" />
+        )}
+      </p>
+      <p>
+        One practical consequence: avoid putting sensitive text into a URL. Tool
+        pages accept a search query in the address bar, and the QR Code
+        Generator can encode a configuration into the URL fragment (after the
+        <code>#</code>, which browsers do not send to a server). Anything before
+        the <code>#</code> is a normal request and may be logged by the hosting
+        provider.
+      </p>
+
+      <h2 id="retention">10. Data retention and deletion</h2>
+      <ul>
+        <li>
+          <strong>Tool inputs:</strong> held in page memory only, for as long as
+          the tab holds them. Closing the tab, refreshing or resetting the
+          workspace deletes them. There is nothing for us to delete on your
+          behalf because we never had a copy.
+        </li>
+        <li>
+          <strong>Browser preferences:</strong> retained until you remove them —
+          un-heart a tool, delete a preset, set retention to
+          &ldquo;session&rdquo;, or clear site data in your browser.
+        </li>
+        <li>
+          <strong>Optional conversion history:</strong> off by default. If you
+          enable it, a retention window you choose (24 hours or 7 days) applies
+          and older entries are pruned automatically. Choosing
+          &ldquo;session&rdquo; stores nothing at all.
+        </li>
+        <li>
+          <strong>Email you send us:</strong> kept only as long as needed to
+          answer you and to keep a record of the request, then deleted. Ask us
+          to delete the correspondence at any time and we will.
+        </li>
+        <li>
+          <strong>Hosting logs:</strong> see section 9 — governed by the
+          provider&rsquo;s configuration.
+        </li>
+      </ul>
+
+      <h2 id="security">11. Security measures</h2>
+      <p>
+        Local processing removes an entire category of risk: there is no store
+        of user files to breach. On top of that, the site is served over HTTPS
+        with a Content Security Policy, HSTS, <code>nosniff</code>, a
+        restrictive Referrer-Policy and a Permissions-Policy that disables
+        camera, microphone and geolocation use by the page. Dependencies are
+        reviewed and pinned. The details, and the honest limits of each measure,
+        are in the <Link href="/security">Security Policy</Link>.
+      </p>
+      <p>
+        No website can promise absolute security. Your device, browser,
+        extensions and operating system are part of the chain. Keep the original
+        of anything important.
+      </p>
+
+      <h2 id="children">12. Children&rsquo;s privacy</h2>
+      <p>
+        QUICKKIT is a general-purpose utility site, not a service directed at
+        children, and it collects no personal information from anyone — so it
+        does not knowingly collect personal information from children. It has no
+        chat, no profile, no comment feature and no way for a child to be
+        contacted through the site.{" "}
+        {ownerDetail("minimumAge") ? (
+          <>
+            The operator&rsquo;s stated minimum age for independent use is{" "}
+            <strong>{ownerDetail("minimumAge")}</strong>.
+          </>
+        ) : (
+          <>
+            The owner still needs to decide and publish a minimum age for
+            independent use: <OwnerPlaceholder what="intended minimum age" />
+          </>
+        )}{" "}
+        If you are a parent or guardian with a concern, contact us and we will
+        respond.
+      </p>
+
+      <h2 id="rights">13. Your privacy rights</h2>
+      <p>
+        Depending on where you live, you may have rights to access, correct,
+        delete, restrict or object to processing of your personal data, to data
+        portability, to withdraw consent, and to complain to a supervisory
+        authority. We respect those rights regardless of where you are.
+      </p>
+      <p>
+        In practice, the most useful thing to know is this:{" "}
+        <strong>QUICKKIT holds almost no personal data about you.</strong> We
+        cannot export or delete tool inputs we never received. What we can do:
+      </p>
+      <ul>
+        <li>
+          explain, on request, exactly what the software does with your input
+          (this page and the{" "}
+          <Link href="/file-handling">File Handling Policy</Link> are written to
+          answer that in advance);
+        </li>
+        <li>
+          confirm whether any email you sent us is still held, and delete it on
+          request;
+        </li>
+        <li>
+          tell you what a browser-side deletion path is for any local storage
+          entry, and point you to it.
+        </li>
+      </ul>
+      <p>
+        Send a request through the <Link href="/contact">contact page</Link>{" "}
+        with the subject line &ldquo;Privacy request&rdquo;, or email{" "}
+        <ContactLink channel="privacy" subject="Privacy request" />. We will
+        acknowledge it and respond within the period required by applicable law.
+        We will not charge you for a reasonable request, and we will not treat a
+        request as consent to anything.
+      </p>
+      <p className="legal-review-flag">
+        <strong>Needs legal review before publication.</strong> Formal
+        request-handling procedure, identity verification (where applicable),
+        statutory response deadlines and any representative or
+        data-protection-officer appointment are legal determinations for the
+        operator&rsquo;s jurisdiction. The list of rights above is generic and
+        must be tailored. No compliance claim (GDPR, UK GDPR, CCPA/CPRA, DPDP
+        Act or otherwise) is made on this page.
+      </p>
+
+      <h2 id="contact">14. Contact and policy updates</h2>
+      <p>
+        Privacy questions and requests go through the{" "}
+        <Link href="/contact">contact page</Link>, or email{" "}
+        <ContactLink channel="privacy" subject="Privacy request" /> — the same
+        route also handles general enquiries while a dedicated privacy inbox has
+        not been supplied.
+      </p>
+      <p>
+        We will update this page before changing how data is handled — for
+        example if a future tool ever needs a server-side API, we will describe
+        it here, name the provider, and reassess consent requirements first. The
+        revision date at the top of the page always matches the current text.
+        Related documents: <Link href="/cookies">Cookie Policy</Link>,{" "}
+        <Link href="/file-handling">File Handling Policy</Link>,{" "}
+        <Link href="/security">Security Policy</Link>,{" "}
+        <Link href="/terms">Terms and Conditions</Link>.
+      </p>
+      <p>
+        Data controller / operator:{" "}
+        {legalName ? (
+          <strong>{legalName}</strong>
+        ) : (
+          <OwnerPlaceholder what="the operator's legal entity name and contact address" />
+        )}
+        {jurisdiction ? <> · Jurisdiction: {jurisdiction}</> : null}
+      </p>
+    </LegalPageShell>
   );
 }
