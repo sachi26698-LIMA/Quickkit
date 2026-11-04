@@ -1,5 +1,6 @@
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
 import { constants } from "node:fs";
+import { promisify } from "node:util";
 import {
   access,
   mkdtemp,
@@ -21,16 +22,44 @@ import { processPdf } from "./process-pdf";
 import { prepareDocx } from "./docx";
 import { type Settings } from "./settings";
 
+const execFileAsync = promisify(execFile);
+const nativeEnv = (home: string, temp: string) => ({
+  NODE_ENV: "production" as const,
+  PATH: "/usr/bin:/bin",
+  HOME: home,
+  TMPDIR: temp,
+  LANG: "C.UTF-8",
+  LC_ALL: "C.UTF-8",
+  SAL_USE_VCLPLUGIN: "svp",
+});
 export const enginePath = () =>
   process.env.WORD_TO_PDF_SOFFICE || "/usr/bin/libreoffice";
 export async function engineAvailable() {
   if (process.env.WORD_TO_PDF_ENABLED !== "true") return false;
   if (workerConfigured()) return privateWorkerAvailable();
+  let directory: string | undefined;
   try {
     await access(enginePath(), constants.X_OK);
-    return true;
+    directory = await mkdtemp(join(tmpdir(), "quickkit-word-health-"));
+    const { stdout } = await execFileAsync(
+      enginePath(),
+      [
+        `-env:UserInstallation=${pathToFileURL(join(directory, "profile")).href}`,
+        "--headless",
+        "--version",
+      ],
+      {
+        cwd: directory,
+        env: nativeEnv(directory, directory),
+        timeout: 5000,
+        maxBuffer: 4096,
+      },
+    );
+    return /^LibreOffice\s+[0-9]/.test(stdout.trim());
   } catch {
     return false;
+  } finally {
+    if (directory) await rm(directory, { recursive: true, force: true });
   }
 }
 // One process-local slot. Refuse, rather than buffering an unbounded request queue.
@@ -107,15 +136,7 @@ export async function convert(
           detached: true,
           stdio: "ignore",
           cwd: dir,
-          env: {
-            NODE_ENV: "production",
-            PATH: "/usr/bin:/bin",
-            HOME: join(dir, "home"),
-            TMPDIR: dir,
-            LANG: "C.UTF-8",
-            LC_ALL: "C.UTF-8",
-            SAL_USE_VCLPLUGIN: "svp",
-          },
+          env: nativeEnv(join(dir, "home"), dir),
         },
       );
       let killed = false;

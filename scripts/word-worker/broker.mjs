@@ -13,11 +13,18 @@ export function createBroker({
   dockerHost = process.env.DOCKER_HOST,
   run = exec,
   launch = spawn,
+  deadlineMs = limits.deadlineMs,
 }) {
   if (!/^[A-Za-z0-9_-]{32,128}$/.test(token || ""))
     throw new Error(
       "Set a random 32-128 character URL-safe WORD_WORKER_TOKEN.",
     );
+  if (
+    !Number.isInteger(deadlineMs) ||
+    deadlineMs < 1 ||
+    deadlineMs > limits.deadlineMs
+  )
+    throw new Error("Invalid job deadline");
   jobArgs(image, `quickkit-word-${randomUUID()}`, "{}");
   if (dockerHost && !/^unix:\/\/\/[A-Za-z0-9_./-]+$/.test(dockerHost))
     throw new Error("Only a local Unix Docker socket is supported.");
@@ -130,7 +137,7 @@ export function createBroker({
         }
         timer = setTimeout(
           () => stop(new Error("Native deadline exceeded")),
-          limits.deadlineMs,
+          deadlineMs,
         );
         child.on("error", () => stop(new Error("Container runtime failed")));
         child.stdin.on("error", () =>

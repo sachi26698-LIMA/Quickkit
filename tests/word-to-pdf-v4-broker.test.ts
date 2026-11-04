@@ -85,11 +85,9 @@ describe("private broker admission and daemon cleanup (mocked runtime)", () => {
     expect(run).not.toHaveBeenCalled();
   });
   it("executes a real version probe policy rather than assuming an image exists", async () => {
-    const run = vi
-      .fn()
-      .mockImplementation(async (_file, args) => ({
-        stdout: args[0] === "start" ? "LibreOffice 24.2.0" : "",
-      }));
+    const run = vi.fn().mockImplementation(async (_file, args) => ({
+      stdout: args[0] === "start" ? "LibreOffice 24.2.0" : "",
+    }));
     const url = await start({ run });
     const response = await fetch(`${url}/health`, { headers });
     expect(response.status).toBe(200);
@@ -206,6 +204,50 @@ describe("private broker admission and daemon cleanup (mocked runtime)", () => {
       expect(run.mock.calls.some((c) => c[1][0] === "rm")).toBe(true),
     );
     expect(child.kill).toHaveBeenCalledWith("SIGKILL");
+  });
+  it("enforces the deadline with daemon removal, not CLI kill alone", async () => {
+    const child = fakeChild(true),
+      run = vi.fn().mockResolvedValue({ stdout: "" }),
+      launch = vi
+        .fn()
+        .mockReturnValue(child as unknown as ChildProcessWithoutNullStreams);
+    const url = await start({ run, launch, deadlineMs: 20 });
+    expect(
+      (await fetch(`${url}/convert`, { method: "POST", headers, body: input }))
+        .status,
+    ).toBe(503);
+    expect(child.kill).toHaveBeenCalledWith("SIGKILL");
+    expect(run.mock.calls.some((c) => c[1][0] === "rm")).toBe(true);
+  });
+  it("cancellation during confirmed create never starts document parsing", async () => {
+    let complete: () => void = () => {};
+    const created = new Promise<void>((resolve) => {
+      complete = resolve;
+    });
+    const run = vi.fn().mockImplementation(async (_file, args) => {
+      if (args[0] === "create") await created;
+      return { stdout: "" };
+    });
+    const launch = vi.fn(),
+      url = await start({ run, launch }),
+      controller = new AbortController();
+    const pending = fetch(`${url}/convert`, {
+      method: "POST",
+      headers,
+      body: input,
+      signal: controller.signal,
+    }).catch(() => undefined);
+    await vi.waitFor(() =>
+      expect(run.mock.calls.some((c) => c[1][0] === "create")).toBe(true),
+    );
+    controller.abort();
+    await pending;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    complete();
+    await vi.waitFor(() =>
+      expect(run.mock.calls.some((c) => c[1][0] === "rm")).toBe(true),
+    );
+    expect(launch).not.toHaveBeenCalled();
   });
   it("quarantines on unconfirmed cleanup, never serving a PDF success", async () => {
     const run = vi.fn().mockImplementation(async (_file, args) => {

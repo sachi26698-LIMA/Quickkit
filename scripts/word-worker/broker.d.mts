@@ -5,6 +5,7 @@ export function createBroker(config: {
   image: string;
   docker?: string;
   dockerHost?: string;
+  deadlineMs?: number;
   run?: (
     file: string,
     args: string[],

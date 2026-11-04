@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { Document, Packer, Paragraph } from "docx";
 import { PDFDocument } from "@cantoo/pdf-lib";
-import { convert } from "../lib/tools/word-to-pdf/engine";
+import { convert, engineAvailable } from "../lib/tools/word-to-pdf/engine";
 import { defaults } from "../lib/tools/word-to-pdf/settings";
 
 let dir: string, previous: string | undefined;
@@ -91,6 +91,17 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
       expect(environment.secret).toBeUndefined();
       expect(environment.lang).toBe("C.UTF-8");
       expect(environment.home).toContain("quickkit-word-");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+  it("does not equate executable access with actual LibreOffice identity", async () => {
+    await executable();
+    vi.stubEnv("WORD_TO_PDF_ENABLED", "true");
+    vi.stubEnv("WORD_TO_PDF_WORKER_URL", undefined);
+    vi.stubEnv("WORD_TO_PDF_WORKER_TOKEN", undefined);
+    try {
+      expect(await engineAvailable()).toBe(false);
     } finally {
       vi.unstubAllEnvs();
     }
