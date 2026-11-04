@@ -13697,7 +13697,7 @@ details.qr-acc {
 }
 .legal-toc a::before {
   content: counter(toc) ".";
-  color: var(--border-strong);
+  color: var(--secondary);
   font-variant-numeric: tabular-nums;
   min-width: 16px;
 }
