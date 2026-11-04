@@ -20,7 +20,7 @@ export default function Footer() {
           <p>
             Your everyday digital toolkit. Simple, fast and privacy-friendly.
           </p>
-          <div className="footer-socials" aria-label="QUICKKIT on social media">
+          <nav className="footer-socials" aria-label="QUICKKIT on social media">
             {socials.map(({ label, href, icon }) => (
               <a
                 key={label}
@@ -32,7 +32,7 @@ export default function Footer() {
                 <SocialGlyph icon={icon} />
               </a>
             ))}
-          </div>
+          </nav>
           <p className="footer-promise-line">
             <ShieldCheck size={19} aria-hidden="true" />
             <span>
