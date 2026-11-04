@@ -16,11 +16,13 @@ import {
   Ban,
   Check,
   CheckCircle2,
+  ChevronDown,
   Copy,
   Download,
   Eye,
   EyeOff,
   FileArchive,
+  FileCheck2,
   FileText,
   GripVertical,
   Info,
@@ -28,9 +30,10 @@ import {
   LoaderCircle,
   LockKeyhole,
   LockOpen,
+  Pencil,
   RotateCcw,
-  Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   TriangleAlert,
   Trash2,
@@ -67,7 +70,6 @@ import {
 } from "@/lib/tools/pdf/security-logic";
 import type { PdfSecurityWorkerSuccess } from "@/lib/tools/pdf/security-worker-types";
 import { usePdfSecurityWorker } from "@/lib/tools/pdf/use-pdf-security-worker";
-import { WorkspaceHeading } from "./tool-ui";
 import styles from "./pdf-lock-unlock.module.css";
 
 type EntryStatus =
@@ -129,42 +131,42 @@ const PERMISSION_LABELS: {
   label: string;
 }[] = [
   {
-    description: "Allow the reader to print this document.",
+    description: "Print this document.",
     key: "printing",
     label: "Printing",
   },
   {
-    description: "Allow full-quality printing instead of low-resolution only.",
+    description: "Print at full quality.",
     key: "highResolutionPrinting",
     label: "High-resolution printing",
   },
   {
-    description: "Allow copying text and images to the clipboard.",
+    description: "Copy text and images.",
     key: "copying",
     label: "Copy text & images",
   },
   {
-    description: "Allow editing document contents.",
+    description: "Change document contents.",
     key: "modifying",
     label: "Edit contents",
   },
   {
-    description: "Allow adding annotations and comments.",
+    description: "Add comments and annotations.",
     key: "annotating",
     label: "Annotations & comments",
   },
   {
-    description: "Allow filling existing interactive form fields.",
+    description: "Fill interactive form fields.",
     key: "fillingForms",
     label: "Fill forms",
   },
   {
-    description: "Allow inserting, rotating or deleting pages and bookmarks.",
+    description: "Insert, rotate or delete pages.",
     key: "documentAssembly",
     label: "Document assembly",
   },
   {
-    description: "Allow text extraction for accessibility tools.",
+    description: "Extract text for assistive tools.",
     key: "contentAccessibility",
     label: "Accessibility extraction",
   },
@@ -232,6 +234,15 @@ function errorMessage(error: unknown): string {
   return "This PDF could not be processed locally. The original file is unchanged. Try again or export a fresh copy.";
 }
 
+function Hint({ text }: { text: string }) {
+  return (
+    <span className={styles.hint} title={text}>
+      <Info size={14} aria-hidden="true" />
+      <span className="sr-only">{text}</span>
+    </span>
+  );
+}
+
 function PasswordField({
   autoComplete = "off",
   error,
@@ -263,10 +274,42 @@ function PasswordField({
   const helpId = `${id}-help`;
   return (
     <div className={styles.field}>
-      <label className={styles.label} htmlFor={id}>
-        {label} {required ? <span className={styles.required}>*</span> : null}
-      </label>
-      <div className={styles.passwordRow}>
+      <div className={styles.labelRow}>
+        <label className={styles.label} htmlFor={id}>
+          {label} {required ? <span className={styles.required}>*</span> : null}
+        </label>
+        {onGenerate || onCopy ? (
+          <div className={styles.passwordActions}>
+            {onGenerate ? (
+              <button
+                aria-label="Generate strong password"
+                className={styles.smallButton}
+                onClick={onGenerate}
+                type="button"
+              >
+                <Sparkles size={13} aria-hidden="true" /> Generate
+              </button>
+            ) : null}
+            {onCopy ? (
+              <button
+                aria-label={copied ? "Copied" : `Copy ${label}`}
+                className={styles.iconButton}
+                disabled={!value}
+                onClick={() => {
+                  onCopy();
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 1800);
+                }}
+                title={copied ? "Copied" : `Copy ${label}`}
+                type="button"
+              >
+                {copied ? <Check size={15} /> : <Copy size={15} />}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+      <div className={styles.inputShell}>
         <input
           aria-describedby={error ? errorId : help ? helpId : undefined}
           aria-invalid={error ? true : undefined}
@@ -278,48 +321,21 @@ function PasswordField({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           spellCheck={false}
+          title={help}
           type={visible ? "text" : "password"}
           value={value}
         />
         <button
           aria-label={visible ? `Hide ${label}` : `Show ${label}`}
-          className={styles.iconButton}
+          className={styles.inputIcon}
           onClick={() => setVisible((current) => !current)}
           type="button"
         >
-          {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+          {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
-      {(onGenerate || onCopy) && (
-        <div className={styles.passwordActions}>
-          {onGenerate ? (
-            <button
-              className={styles.smallButton}
-              onClick={onGenerate}
-              type="button"
-            >
-              <Sparkles size={14} /> Generate strong password
-            </button>
-          ) : null}
-          {onCopy ? (
-            <button
-              className={styles.smallButton}
-              disabled={!value}
-              onClick={() => {
-                onCopy();
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 1800);
-              }}
-              type="button"
-            >
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? "Copied" : "Copy"}
-            </button>
-          ) : null}
-        </div>
-      )}
       {help ? (
-        <p className={styles.helpText} id={helpId}>
+        <p className="sr-only" id={helpId}>
           {help}
         </p>
       ) : null}
@@ -334,8 +350,13 @@ function PasswordField({
 
 function StrengthMeter({ value }: { value: string }) {
   const strength = assessPasswordStrength(value);
+  if (!value) return null;
   return (
-    <div className={styles.strength} aria-live="polite">
+    <div
+      className={styles.strength}
+      aria-live="polite"
+      title={strength.feedback}
+    >
       <div className={styles.strengthBars} aria-hidden="true">
         {[1, 2, 3, 4].map((level) => (
           <span
@@ -351,7 +372,7 @@ function StrengthMeter({ value }: { value: string }) {
         <span>Password strength: {strength.label}</span>
         <span>{strength.percent}%</span>
       </div>
-      <p className={styles.strengthFeedback}>{strength.feedback}</p>
+      <p className="sr-only">{strength.feedback}</p>
     </div>
   );
 }
@@ -465,9 +486,6 @@ export default function PdfLockUnlock() {
   const successCount = entries.filter((entry) => entry.result).length;
   const failedCount = entries.filter(
     (entry) => entry.status === "error" || entry.status === "cancelled",
-  ).length;
-  const processCount = entries.filter(
-    (entry) => entry.status !== "blocked" && entry.status !== "success",
   ).length;
   const totalBytes = entries.reduce((sum, entry) => sum + entry.size, 0);
   const totalPages = entries.reduce(
@@ -971,32 +989,69 @@ export default function PdfLockUnlock() {
   if (!ready) {
     return (
       <div className={styles.workspace} aria-busy="true">
-        <WorkspaceHeading
-          title="PDF Lock & Unlock"
-          description="Protect PDFs with AES encryption or remove protection with the correct password — entirely on your device."
-        />
-        <div className={styles.emptyQueue}>
-          <LoaderCircle size={22} className="spin" />
+        <div className={styles.loadingCard}>
+          <LoaderCircle size={22} className="spin" aria-hidden="true" />
           <p>Loading local PDF security workspace…</p>
         </div>
       </div>
     );
   }
 
+  const targets = entries.filter(
+    (entry) => entry.status !== "blocked" && entry.status !== "success",
+  );
+  const isEntryReady = (entry: PdfEntry) => {
+    if (mode === "lock") {
+      const settings: PdfLockSettings =
+        lockBatchMode === "individual" && entry.useCustomPassword
+          ? {
+              algorithm,
+              confirmPassword: entry.customConfirm ?? "",
+              openPassword: entry.customPassword ?? "",
+              ownerConfirmPassword: ownerEnabled
+                ? ownerConfirmPassword
+                : undefined,
+              ownerPassword: ownerEnabled
+                ? ownerPassword || undefined
+                : undefined,
+              permissions,
+            }
+          : globalLockSettings;
+      if (!validateLockSettings(settings).ok) return false;
+      if (entry.inspection?.encrypted && !entry.currentPassword) return false;
+      return true;
+    }
+    if (!entry.inspection?.encrypted) return true;
+    const password =
+      unlockBatchMode === "individual" ? entry.customPassword : unlockPassword;
+    return validateExistingPassword(password ?? "").ok;
+  };
+  const readyCount = targets.filter(isEntryReady).length;
+  const overPageLimit = totalPages > PDF_SECURITY_LIMITS.maxTotalPages;
   const processDisabled =
     isProcessing ||
     intakeBusy ||
-    processCount === 0 ||
+    targets.length === 0 ||
     (mode === "unlock" && !authorized) ||
-    (mode === "lock" && lockBatchMode === "common" && !lockValidation.ok);
+    readyCount !== targets.length ||
+    overPageLimit;
+  const presetLabel =
+    PDF_PERMISSION_PRESETS.find((item) => item.id === preset)?.label ??
+    "Custom";
+  const allowedCount = Object.values(permissions).filter(Boolean).length;
+  const actionHint =
+    targets.length === 0
+      ? "Add PDFs to begin."
+      : mode === "unlock" && !authorized
+        ? "Confirm you own these PDFs or have permission to remove protection."
+        : overPageLimit
+          ? `The queue exceeds ${PDF_SECURITY_LIMITS.maxTotalPages.toLocaleString()} pages. Remove files or use smaller batches.`
+          : readyCount < targets.length
+            ? `${targets.length - readyCount} file${targets.length - readyCount === 1 ? "" : "s"} still needs a valid password.`
+            : `${targets.length} file${targets.length === 1 ? "" : "s"} ready to ${mode}.${failedCount ? ` ${failedCount} need retry.` : ""}${successCount ? ` ${successCount} verified.` : ""}`;
 
   return (
     <div className={styles.workspace}>
-      <WorkspaceHeading
-        title="PDF Lock & Unlock"
-        description="Protect PDFs with AES encryption or remove protection with the correct password — entirely on your device."
-      />
-
       <div
         className={styles.tabs}
         role="tablist"
@@ -1013,7 +1068,7 @@ export default function PdfLockUnlock() {
           tabIndex={mode === "lock" ? 0 : -1}
           type="button"
         >
-          <LockKeyhole size={17} /> Lock PDF
+          <LockKeyhole size={16} aria-hidden="true" /> Lock PDF
         </button>
         <button
           aria-controls="pdf-security-unlock-panel"
@@ -1026,827 +1081,902 @@ export default function PdfLockUnlock() {
           tabIndex={mode === "unlock" ? 0 : -1}
           type="button"
         >
-          <LockOpen size={17} /> Unlock PDF
+          <LockOpen size={16} aria-hidden="true" /> Unlock PDF
         </button>
       </div>
 
       <div className={styles.layout}>
         <div className={styles.settingsColumn}>
           <section
-            aria-labelledby="pdf-security-lock-tab"
-            className={styles.card}
-            hidden={mode !== "lock"}
-            id="pdf-security-lock-panel"
-            role="tabpanel"
+            className={`${styles.card} ${styles.securityPanel}`}
+            id="pdf-security-settings"
           >
-            <h2 className={styles.cardTitle}>
-              <KeyRound size={17} /> Passwords & encryption
-            </h2>
-            <p className={styles.cardDescription}>
-              The open password is required to view the PDF. An optional
-              separate permissions password controls who can change reader
-              restrictions.
-            </p>
-            <PasswordField
-              error={
-                openPassword &&
-                confirmPassword &&
-                openPassword !== confirmPassword
-                  ? "Open passwords do not match."
-                  : undefined
-              }
-              help="At least 8 characters. AES-256 supports Unicode up to 127 UTF-8 bytes."
-              id="lock-open-password"
-              label="Open password"
-              onChange={setOpenPassword}
-              onCopy={() => void copyText(openPassword)}
-              onGenerate={() => generateInto("open")}
-              placeholder="Required to open the PDF"
-              required
-              value={openPassword}
-            />
-            <StrengthMeter value={openPassword} />
-            <PasswordField
-              error={
-                confirmPassword && openPassword !== confirmPassword
-                  ? "Open passwords do not match."
-                  : undefined
-              }
-              id="lock-confirm-password"
-              label="Confirm open password"
-              onChange={setConfirmPassword}
-              placeholder="Re-enter the open password"
-              required
-              value={confirmPassword}
-            />
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="lock-algorithm">
-                Encryption standard
-              </label>
-              <select
-                className={styles.select}
-                id="lock-algorithm"
-                onChange={(event) =>
-                  setAlgorithm(event.target.value as PdfEncryptionAlgorithm)
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>
+                <KeyRound size={16} aria-hidden="true" />
+                {mode === "lock"
+                  ? "Password & encryption"
+                  : "Known password required"}
+              </h2>
+              <Hint
+                text={
+                  mode === "lock"
+                    ? "The open password protects the file. An optional owner password controls permission changes in supporting readers."
+                    : "Unlocking requires the correct existing password. QUICKKIT never guesses, cracks or bypasses protection."
                 }
-                value={algorithm}
-              >
-                <option value="AES-256">
-                  AES-256 (PDF 2.0 / R6) — recommended
-                </option>
-                <option value="AES-128">
-                  AES-128 (PDF 1.6 / R4) — older readers
-                </option>
-              </select>
-              <p className={styles.helpText}>
-                AES-256 is the modern default. AES-128 is offered only for
-                compatibility and requires printable ASCII passwords up to 32
-                characters. Broken RC4 modes are not offered.
-              </p>
-            </div>
-            <label className={styles.permissionItem}>
-              <input
-                checked={ownerEnabled}
-                onChange={(event) => setOwnerEnabled(event.target.checked)}
-                type="checkbox"
               />
-              <span className={styles.permissionText}>
-                <strong>Set a separate permissions password</strong>
-                <small>
-                  Without it, the open password also grants owner access in
-                  supporting readers.
-                </small>
-              </span>
-            </label>
-            {ownerEnabled ? (
-              <>
-                <PasswordField
-                  help="Must be different from the open password."
-                  id="lock-owner-password"
-                  label="Permissions (owner) password"
-                  onChange={setOwnerPassword}
-                  onCopy={() => void copyText(ownerPassword)}
-                  onGenerate={() => generateInto("owner")}
-                  placeholder="Controls permission changes"
-                  value={ownerPassword}
-                />
-                <PasswordField
-                  error={
-                    ownerConfirmPassword &&
-                    ownerPassword !== ownerConfirmPassword
-                      ? "Permissions passwords do not match."
-                      : undefined
-                  }
-                  id="lock-owner-confirm-password"
-                  label="Confirm permissions password"
-                  onChange={setOwnerConfirmPassword}
-                  placeholder="Re-enter the permissions password"
-                  value={ownerConfirmPassword}
-                />
-              </>
-            ) : null}
-            {lockBatchMode === "common" &&
-            !lockValidation.ok &&
-            openPassword ? (
-              <p className={styles.fieldError} role="alert">
-                {lockValidation.message}
-              </p>
-            ) : null}
-          </section>
-
-          <section
-            aria-labelledby="pdf-security-lock-tab"
-            className={styles.card}
-            hidden={mode !== "lock"}
-            role="tabpanel"
-          >
-            <h2 className={styles.cardTitle}>
-              <Settings2 size={17} /> Permission controls
-            </h2>
-            <p className={styles.cardDescription}>
-              These restrictions are enforced by supporting PDF readers. They
-              are not equivalent to strong encryption and can be ignored by
-              non-compliant software.
-            </p>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="permission-preset">
-                Permission preset
-              </label>
-              <select
-                className={styles.select}
-                id="permission-preset"
-                onChange={(event) => applyPreset(event.target.value)}
-                value={preset}
-              >
-                {PDF_PERMISSION_PRESETS.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-                <option value="custom">Custom</option>
-              </select>
             </div>
-            <fieldset
-              className={styles.permissionsGrid}
-              disabled={isProcessing}
-            >
-              <legend className="sr-only">PDF permissions</legend>
-              {PERMISSION_LABELS.map((item) => {
-                const disabled =
-                  isProcessing ||
-                  (item.key === "highResolutionPrinting" &&
-                    !permissions.printing);
-                return (
-                  <label
-                    className={`${styles.permissionItem} ${disabled ? styles.permissionItemDisabled : ""}`}
-                    key={item.key}
-                  >
-                    <input
-                      checked={permissions[item.key]}
-                      disabled={disabled}
-                      onChange={(event) =>
-                        setPermission(item.key, event.target.checked)
-                      }
-                      type="checkbox"
-                    />
-                    <span className={styles.permissionText}>
-                      <strong>{item.label}</strong>
-                      <small>{item.description}</small>
-                    </span>
-                  </label>
-                );
-              })}
-            </fieldset>
+
             <div
-              className={`${styles.note} ${styles.warningNote}`}
-              style={{ marginTop: 14 }}
+              aria-labelledby="pdf-security-lock-tab"
+              hidden={mode !== "lock"}
+              id="pdf-security-lock-panel"
+              role="tabpanel"
             >
-              <Info size={16} />
-              <span>
-                Permission flags depend on reader software. The open password
-                and AES encryption protect the file contents; permissions alone
-                do not.
-              </span>
-            </div>
-          </section>
-
-          <section
-            aria-labelledby="pdf-security-unlock-tab"
-            className={styles.card}
-            hidden={mode !== "unlock"}
-            id="pdf-security-unlock-panel"
-            role="tabpanel"
-          >
-            <h2 className={styles.cardTitle}>
-              <LockOpen size={17} /> Known password required
-            </h2>
-            <p className={styles.cardDescription}>
-              Enter the correct existing password. QUICKKIT never guesses,
-              brute-forces, cracks or bypasses PDF protection.
-            </p>
-            {unlockBatchMode === "common" ? (
               <PasswordField
-                autoComplete="current-password"
-                help="Used for every encrypted PDF in the queue unless individual passwords are enabled."
-                id="unlock-common-password"
-                label="Existing password"
-                onChange={setUnlockPassword}
-                placeholder="Password that opens the PDF"
+                error={
+                  openPassword &&
+                  confirmPassword &&
+                  openPassword !== confirmPassword
+                    ? "Open passwords do not match."
+                    : undefined
+                }
+                help="At least 8 characters. AES-256 supports Unicode up to 127 UTF-8 bytes."
+                id="lock-open-password"
+                label="Open password"
+                onChange={setOpenPassword}
+                onCopy={() => void copyText(openPassword)}
+                onGenerate={() => generateInto("open")}
+                placeholder="Required to open the PDF"
                 required
-                value={unlockPassword}
+                value={openPassword}
               />
-            ) : (
-              <div className={styles.note}>
-                <Info size={16} />
-                <span>
-                  Individual passwords are enabled. Enter each PDF’s password in
-                  its file card below.
-                </span>
-              </div>
-            )}
-            <label className={styles.permissionItem} style={{ marginTop: 14 }}>
-              <input
-                checked={authorized}
-                onChange={(event) => setAuthorized(event.target.checked)}
-                type="checkbox"
+              <StrengthMeter value={openPassword} />
+              <PasswordField
+                error={
+                  confirmPassword && openPassword !== confirmPassword
+                    ? "Open passwords do not match."
+                    : undefined
+                }
+                id="lock-confirm-password"
+                label="Confirm open password"
+                onChange={setConfirmPassword}
+                placeholder="Re-enter the open password"
+                required
+                value={confirmPassword}
               />
-              <span className={styles.permissionText}>
-                <strong>
-                  I own these PDFs or have permission to remove protection
-                </strong>
-                <small>
-                  Unlocking removes opening-password protection and, where
-                  supported, permission restrictions.
-                </small>
-              </span>
-            </label>
-            <div
-              className={`${styles.note} ${styles.warningNote}`}
-              style={{ marginTop: 14 }}
-            >
-              <ShieldCheck size={16} />
-              <span>
-                If the password is incorrect, the original PDF is left unchanged
-                and a clear error is shown. Passwords are cleared after
-                processing and never stored or logged.
-              </span>
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <h2 className={styles.cardTitle}>
-              <FileArchive size={17} /> Batch options
-            </h2>
-            <div className={styles.field}>
-              <span className={styles.label} id="batch-mode-label">
-                Password application
-              </span>
-              <div
-                className={styles.actions}
-                role="radiogroup"
-                aria-labelledby="batch-mode-label"
-              >
-                <label className={styles.smallButton}>
-                  <input
-                    checked={
-                      (mode === "lock" ? lockBatchMode : unlockBatchMode) ===
-                      "common"
-                    }
-                    name="batch-mode"
-                    onChange={() =>
-                      mode === "lock"
-                        ? setLockBatchMode("common")
-                        : setUnlockBatchMode("common")
-                    }
-                    type="radio"
-                  />
-                  Same password for all
+              <div className={styles.inlineField}>
+                <label className={styles.label} htmlFor="lock-algorithm">
+                  Encryption
                 </label>
-                <label className={styles.smallButton}>
-                  <input
-                    checked={
-                      (mode === "lock" ? lockBatchMode : unlockBatchMode) ===
-                      "individual"
-                    }
-                    name="batch-mode"
-                    onChange={() =>
-                      mode === "lock"
-                        ? setLockBatchMode("individual")
-                        : setUnlockBatchMode("individual")
-                    }
-                    type="radio"
-                  />
-                  Individual passwords
-                </label>
+                <select
+                  className={styles.select}
+                  id="lock-algorithm"
+                  onChange={(event) =>
+                    setAlgorithm(event.target.value as PdfEncryptionAlgorithm)
+                  }
+                  value={algorithm}
+                >
+                  <option value="AES-256">AES-256 · recommended</option>
+                  <option value="AES-128">AES-128 · older readers</option>
+                </select>
+                <Hint text="AES-256 is the modern default. AES-128 compatibility mode requires printable ASCII passwords up to 32 characters. Broken RC4 modes are not offered." />
               </div>
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="zip-name">
-                ZIP filename
+              <label className={styles.toggleRow}>
+                <input
+                  checked={ownerEnabled}
+                  onChange={(event) => setOwnerEnabled(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>Set a separate permissions password</span>
+                <Hint text="Without a separate owner password, the open password also grants owner access in supporting readers." />
               </label>
-              <input
-                className={styles.input}
-                id="zip-name"
-                onChange={(event) => setZipName(event.target.value)}
-                value={zipName}
-              />
-            </div>
-            <p className={styles.helpText}>
-              Up to {PDF_SECURITY_LIMITS.maxFiles} PDFs,{" "}
-              {formatMiB(PDF_SECURITY_LIMITS.maxFileBytes)} per file,{" "}
-              {PDF_SECURITY_LIMITS.maxPagesPerFile.toLocaleString()} pages per
-              file. Files are processed one at a time to keep memory use
-              predictable. No pages are silently truncated.
-            </p>
-          </section>
-        </div>
-
-        <div className={styles.queueColumn}>
-          <div
-            className={`${styles.dropzone} ${draggingFiles ? styles.dropzoneActive : ""}`}
-            onDragEnter={(event) => {
-              event.preventDefault();
-              dragCounterRef.current += 1;
-              setDraggingFiles(true);
-            }}
-            onDragLeave={(event) => {
-              event.preventDefault();
-              dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
-              if (dragCounterRef.current === 0) setDraggingFiles(false);
-            }}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={onDrop}
-          >
-            <span className={styles.dropzoneIcon}>
-              <UploadCloud size={26} />
-            </span>
-            <h2 className={styles.dropzoneTitle}>Drop PDFs here</h2>
-            <p className={styles.dropzoneText}>
-              Your PDFs never leave this browser. Encryption, decryption and
-              verification run locally in a dedicated worker with QPDF
-              WebAssembly.
-            </p>
-            <button
-              className="primary"
-              disabled={isProcessing || intakeBusy}
-              onClick={() => fileInputRef.current?.click()}
-              type="button"
-            >
-              <UploadCloud size={16} /> Choose PDFs
-            </button>
-            <input
-              accept="application/pdf,.pdf"
-              aria-label="Choose PDFs"
-              className={styles.fileInput}
-              multiple
-              onChange={onFileInput}
-              ref={fileInputRef}
-              type="file"
-            />
-          </div>
-
-          {intakeIssues.length ? (
-            <ul className={styles.intakeIssues} role="alert">
-              {intakeIssues.map((issue) => (
-                <li key={issue.id}>{issue.message}</li>
-              ))}
-            </ul>
-          ) : null}
-
-          <div className={styles.queueHeader}>
-            <div>
-              <h2 className={styles.queueTitle}>File queue</h2>
-              <p className={styles.queueMeta}>
-                {entries.length} file{entries.length === 1 ? "" : "s"} ·{" "}
-                {formatBytes(totalBytes)}
-                {totalPages
-                  ? ` · ${totalPages.toLocaleString()} pages`
-                  : ""} · {successCount} verified
-              </p>
-            </div>
-            {entries.length ? (
-              confirmClear ? (
-                <div className={styles.actions}>
-                  <button
-                    className="toolbar-button danger"
-                    onClick={clearAll}
-                    type="button"
-                  >
-                    <Trash2 size={14} /> Confirm clear
-                  </button>
-                  <button
-                    className="toolbar-button"
-                    onClick={() => setConfirmClear(false)}
-                    type="button"
-                  >
-                    Keep files
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="toolbar-button danger"
-                  disabled={isProcessing}
-                  onClick={() => setConfirmClear(true)}
-                  type="button"
-                >
-                  <Trash2 size={14} /> Clear all
-                </button>
-              )
-            ) : null}
-          </div>
-
-          {entries.length === 0 ? (
-            <div className={styles.emptyQueue}>
-              <FileText size={24} />
-              <p>
-                Add one or more PDFs to begin. You can reorder, rename outputs,
-                and download individually or as a ZIP.
-              </p>
-            </div>
-          ) : (
-            <ol className={styles.entryList} aria-label="PDF file queue">
-              {entries.map((entry, index) => (
-                <li
-                  className={`${styles.entry} ${draggedId === entry.id ? styles.entryDragging : ""} ${dragOverId === entry.id ? styles.entryDragOver : ""}`}
-                  key={entry.id}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    if (draggedId && draggedId !== entry.id)
-                      setDragOverId(entry.id);
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    if (draggedId) {
-                      const from = entries.findIndex(
-                        (item) => item.id === draggedId,
-                      );
-                      if (from >= 0 && from !== index) reorder(from, index);
+              {ownerEnabled ? (
+                <div className={styles.ownerFields}>
+                  <PasswordField
+                    help="Must be different from the open password."
+                    id="lock-owner-password"
+                    label="Permissions (owner) password"
+                    onChange={setOwnerPassword}
+                    onCopy={() => void copyText(ownerPassword)}
+                    onGenerate={() => generateInto("owner")}
+                    placeholder="Controls permission changes"
+                    value={ownerPassword}
+                  />
+                  <PasswordField
+                    error={
+                      ownerConfirmPassword &&
+                      ownerPassword !== ownerConfirmPassword
+                        ? "Permissions passwords do not match."
+                        : undefined
                     }
-                    setDraggedId(null);
-                    setDragOverId(null);
-                  }}
+                    id="lock-owner-confirm-password"
+                    label="Confirm permissions password"
+                    onChange={setOwnerConfirmPassword}
+                    placeholder="Re-enter the permissions password"
+                    value={ownerConfirmPassword}
+                  />
+                </div>
+              ) : null}
+              {lockBatchMode === "common" &&
+              !lockValidation.ok &&
+              openPassword ? (
+                <p className={styles.fieldError} role="alert">
+                  {lockValidation.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div
+              aria-labelledby="pdf-security-unlock-tab"
+              hidden={mode !== "unlock"}
+              id="pdf-security-unlock-panel"
+              role="tabpanel"
+            >
+              {unlockBatchMode === "common" ? (
+                <PasswordField
+                  autoComplete="current-password"
+                  help="Used for every encrypted PDF unless individual passwords are enabled."
+                  id="unlock-common-password"
+                  label="Existing password"
+                  onChange={setUnlockPassword}
+                  placeholder="Password that opens the PDF"
+                  required
+                  value={unlockPassword}
+                />
+              ) : (
+                <div className={styles.note}>
+                  <Info size={15} aria-hidden="true" />
+                  <span>
+                    Individual passwords are enabled. Enter each PDF’s password
+                    in its file row.
+                  </span>
+                </div>
+              )}
+              <label className={styles.toggleRow}>
+                <input
+                  checked={authorized}
+                  onChange={(event) => setAuthorized(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>
+                  I own these PDFs or have permission to remove protection
+                </span>
+              </label>
+              <p className={styles.microcopy}>
+                Incorrect passwords leave the original unchanged. Passwords are
+                cleared after processing and never stored or logged.
+              </p>
+            </div>
+          </section>
+
+          <section
+            className={`${styles.card} ${styles.advancedPanel}`}
+            id="pdf-security-advanced"
+          >
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>
+                <SlidersHorizontal size={16} aria-hidden="true" /> Advanced
+                settings
+              </h2>
+            </div>
+
+            <details className={styles.disclosure} id="advanced-permissions">
+              <summary>
+                <span className={styles.disclosureTitle}>Permissions</span>
+                <span className={styles.disclosureMeta}>
+                  {presetLabel} · {allowedCount}/8 allowed
+                </span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.disclosureBody}>
+                <div className={styles.inlineField}>
+                  <label className={styles.label} htmlFor="permission-preset">
+                    Preset
+                  </label>
+                  <select
+                    className={styles.select}
+                    id="permission-preset"
+                    onChange={(event) => applyPreset(event.target.value)}
+                    value={preset}
+                  >
+                    {PDF_PERMISSION_PRESETS.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.label}
+                      </option>
+                    ))}
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                <fieldset
+                  className={styles.permissionsGrid}
+                  disabled={isProcessing}
                 >
-                  <div className={styles.entryMain}>
-                    <div className={styles.entryOrder}>
-                      <button
-                        aria-label={`Drag to reorder ${entry.name}`}
-                        className={styles.grip}
-                        disabled={isProcessing}
-                        draggable={!isProcessing}
-                        onDragEnd={() => {
-                          setDraggedId(null);
-                          setDragOverId(null);
-                        }}
-                        onDragStart={(event) => {
-                          setDraggedId(entry.id);
-                          event.dataTransfer.effectAllowed = "move";
-                          event.dataTransfer.setData("text/plain", entry.id);
-                        }}
-                        type="button"
+                  <legend className="sr-only">PDF permissions</legend>
+                  {PERMISSION_LABELS.map((item) => {
+                    const disabled =
+                      isProcessing ||
+                      (item.key === "highResolutionPrinting" &&
+                        !permissions.printing);
+                    return (
+                      <label
+                        className={`${styles.permissionItem} ${disabled ? styles.permissionItemDisabled : ""}`}
+                        key={item.key}
                       >
-                        <GripVertical size={16} />
-                      </button>
-                      <div className={styles.reorderButtons}>
-                        <button
-                          aria-label={`Move ${entry.name} up`}
-                          disabled={isProcessing || index === 0}
-                          onClick={() => reorder(index, index - 1)}
-                          type="button"
-                        >
-                          <ArrowUp size={13} />
-                        </button>
-                        <button
-                          aria-label={`Move ${entry.name} down`}
-                          disabled={
-                            isProcessing || index === entries.length - 1
-                          }
-                          onClick={() => reorder(index, index + 1)}
-                          type="button"
-                        >
-                          <ArrowDown size={13} />
-                        </button>
-                      </div>
-                    </div>
-                    <span className={styles.entryIcon} aria-hidden="true">
-                      {entry.result ? (
-                        <CheckCircle2 size={20} />
-                      ) : (
-                        <FileText size={20} />
-                      )}
-                    </span>
-                    <div className={styles.entryContent}>
-                      <div className={styles.entryTitleRow}>
-                        <h3 className={styles.entryName}>{entry.name}</h3>
-                      </div>
-                      <p className={styles.entryMeta}>
-                        {formatBytes(entry.size)}
-                        {entry.inspection
-                          ? ` · ${entry.inspection.pageCount.toLocaleString()} page${entry.inspection.pageCount === 1 ? "" : "s"}`
-                          : ""}
-                        {entry.inspection
-                          ? ` · ${encryptionLabel(entry.inspection)}`
-                          : ""}
-                      </p>
-                      <div className={styles.badges}>
-                        <span
-                          className={`${styles.badge} ${
-                            entry.status === "success"
-                              ? styles.badgeSuccess
-                              : entry.status === "error" ||
-                                  entry.status === "blocked"
-                                ? styles.badgeError
-                                : entry.status === "password"
-                                  ? styles.badgeWarning
-                                  : styles.badgeInfo
-                          }`}
-                        >
-                          {entry.status === "processing" ||
-                          entry.status === "inspecting" ? (
-                            <LoaderCircle size={12} className="spin" />
-                          ) : null}
-                          {statusLabel(entry, mode)}
-                        </span>
-                        {entry.result?.verification.algorithm ? (
-                          <span
-                            className={`${styles.badge} ${styles.badgeSuccess}`}
-                          >
-                            <ShieldCheck size={12} />{" "}
-                            {entry.result.verification.algorithm} verified
-                          </span>
-                        ) : null}
-                        {entry.result &&
-                        !entry.result.verification.encrypted ? (
-                          <span
-                            className={`${styles.badge} ${styles.badgeSuccess}`}
-                          >
-                            <LockOpen size={12} /> Protection removed
-                          </span>
-                        ) : null}
-                      </div>
-                      {entry.progress ? (
-                        <>
-                          <div
-                            aria-label={`Processing ${entry.name}`}
-                            aria-valuemax={100}
-                            aria-valuemin={0}
-                            aria-valuenow={stagePercent(entry.progress)}
-                            className={styles.progressBar}
-                            role="progressbar"
-                          >
-                            <div
-                              className={styles.progressFill}
-                              style={{
-                                width: `${stagePercent(entry.progress)}%`,
-                              }}
-                            />
-                          </div>
-                          <p className={styles.progressText}>
-                            {entry.progress.message}
-                          </p>
-                        </>
-                      ) : null}
-                      {entry.error ? (
-                        <div className={styles.entryAlert} role="alert">
-                          <TriangleAlert size={16} />
-                          <div>
-                            <p>{entry.error}</p>
-                            {entry.status === "error" ||
-                            entry.status === "cancelled" ? (
-                              <button
-                                className={styles.smallButton}
-                                onClick={() => retryEntry(entry)}
-                                type="button"
-                              >
-                                <RotateCcw size={13} /> Retry
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                    <button
-                      aria-label={`Remove ${entry.name}`}
-                      className={styles.removeButton}
-                      disabled={isProcessing}
-                      onClick={() => removeEntry(entry.id)}
-                      type="button"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-
-                  <div className={styles.entrySettings}>
-                    {mode === "lock" &&
-                    entry.inspection?.encrypted &&
-                    !entry.result ? (
-                      <div className={styles.passwordPanel}>
-                        <p className={styles.passwordPanelTitle}>
-                          <KeyRound size={14} /> Current password required to
-                          re-lock
-                        </p>
-                        <PasswordField
-                          id={`current-${entry.id}`}
-                          label="Current open password"
-                          onChange={(value) =>
-                            updateEntry(entry.id, { currentPassword: value })
-                          }
-                          placeholder="Existing password"
-                          value={entry.currentPassword ?? ""}
-                        />
-                        <button
-                          className={styles.smallButton}
-                          disabled={isProcessing || !entry.currentPassword}
-                          onClick={() => void verifyEntry(entry)}
-                          type="button"
-                        >
-                          <ShieldCheck size={13} /> Verify password
-                        </button>
-                      </div>
-                    ) : null}
-
-                    {mode === "lock" &&
-                    lockBatchMode === "individual" &&
-                    !entry.result ? (
-                      <label className={styles.permissionItem}>
                         <input
-                          checked={entry.useCustomPassword}
+                          checked={permissions[item.key]}
+                          disabled={disabled}
                           onChange={(event) =>
-                            updateEntry(entry.id, {
-                              useCustomPassword: event.target.checked,
-                            })
+                            setPermission(item.key, event.target.checked)
                           }
                           type="checkbox"
                         />
                         <span className={styles.permissionText}>
-                          <strong>
-                            Use a custom open password for this file
-                          </strong>
-                          <small>
-                            Otherwise the shared open password above is used.
-                          </small>
+                          <strong>{item.label}</strong>
+                          <small>{item.description}</small>
                         </span>
                       </label>
-                    ) : null}
-                    {mode === "lock" &&
-                    lockBatchMode === "individual" &&
-                    entry.useCustomPassword &&
-                    !entry.result ? (
-                      <>
-                        <PasswordField
-                          id={`custom-open-${entry.id}`}
-                          label="Custom open password"
-                          onChange={(value) =>
-                            updateEntry(entry.id, { customPassword: value })
-                          }
-                          onGenerate={() => {
-                            try {
-                              const value = generatePassword({
-                                ...defaultPasswordOptions,
-                                length: 20,
-                              });
-                              updateEntry(entry.id, {
-                                customPassword: value,
-                                customConfirm: value,
-                              });
-                            } catch {
-                              setToast({
-                                message: "Secure randomness is unavailable.",
-                                type: "error",
-                              });
-                            }
-                          }}
-                          value={entry.customPassword ?? ""}
-                        />
-                        <PasswordField
-                          error={
-                            entry.customConfirm &&
-                            entry.customPassword !== entry.customConfirm
-                              ? "Passwords do not match."
-                              : undefined
-                          }
-                          id={`custom-confirm-${entry.id}`}
-                          label="Confirm custom password"
-                          onChange={(value) =>
-                            updateEntry(entry.id, { customConfirm: value })
-                          }
-                          value={entry.customConfirm ?? ""}
-                        />
-                      </>
-                    ) : null}
+                    );
+                  })}
+                </fieldset>
+                <p className={styles.disclosureNote}>
+                  <Info size={14} aria-hidden="true" />
+                  Permission flags are reader-enforced requests, not encryption.
+                  The open password and AES encryption protect the file
+                  contents.
+                </p>
+              </div>
+            </details>
 
-                    {mode === "unlock" &&
-                    entry.inspection?.encrypted &&
-                    !entry.result ? (
-                      <div className={styles.passwordPanel}>
-                        <p className={styles.passwordPanelTitle}>
-                          <KeyRound size={14} /> Existing password
+            <details className={styles.disclosure} id="advanced-compatibility">
+              <summary>
+                <span className={styles.disclosureTitle}>
+                  Encryption compatibility
+                </span>
+                <span className={styles.disclosureMeta}>{algorithm}</span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.disclosureBody}>
+                <p className={styles.disclosureNote}>
+                  AES-256 (PDF 2.0 / R6) is recommended for modern readers.
+                  AES-128 (PDF 1.6 / R4) is offered for older readers and
+                  requires printable ASCII passwords up to 32 characters.
+                  Digitally signed PDFs are blocked because rewriting
+                  invalidates signatures.
+                </p>
+              </div>
+            </details>
+
+            <details className={styles.disclosure} id="advanced-passwords">
+              <summary>
+                <span className={styles.disclosureTitle}>
+                  Individual passwords
+                </span>
+                <span className={styles.disclosureMeta}>
+                  {(mode === "lock" ? lockBatchMode : unlockBatchMode) ===
+                  "common"
+                    ? "Shared"
+                    : "Per file"}
+                </span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.disclosureBody}>
+                <span className={styles.label} id="batch-mode-label">
+                  Password application
+                </span>
+                <div
+                  className={styles.segmented}
+                  role="radiogroup"
+                  aria-labelledby="batch-mode-label"
+                >
+                  <label>
+                    <input
+                      checked={
+                        (mode === "lock" ? lockBatchMode : unlockBatchMode) ===
+                        "common"
+                      }
+                      name="batch-mode"
+                      onChange={() =>
+                        mode === "lock"
+                          ? setLockBatchMode("common")
+                          : setUnlockBatchMode("common")
+                      }
+                      type="radio"
+                    />
+                    Same password for all
+                  </label>
+                  <label>
+                    <input
+                      checked={
+                        (mode === "lock" ? lockBatchMode : unlockBatchMode) ===
+                        "individual"
+                      }
+                      name="batch-mode"
+                      onChange={() =>
+                        mode === "lock"
+                          ? setLockBatchMode("individual")
+                          : setUnlockBatchMode("individual")
+                      }
+                      type="radio"
+                    />
+                    Individual passwords
+                  </label>
+                </div>
+                <p className={styles.disclosureNote}>
+                  Individual mode adds a password field to each file row. Lock
+                  mode can still use the shared owner password and permissions.
+                </p>
+              </div>
+            </details>
+
+            <details className={styles.disclosure} id="advanced-batch">
+              <summary>
+                <span className={styles.disclosureTitle}>Batch options</span>
+                <span className={styles.disclosureMeta}>
+                  Up to {PDF_SECURITY_LIMITS.maxFiles} files
+                </span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.disclosureBody}>
+                <p className={styles.disclosureNote}>
+                  Files are processed one at a time to keep memory use
+                  predictable. Limits:{" "}
+                  {formatMiB(PDF_SECURITY_LIMITS.maxFileBytes)} per file,{" "}
+                  {formatMiB(PDF_SECURITY_LIMITS.maxTotalBytes)} total,{" "}
+                  {PDF_SECURITY_LIMITS.maxPagesPerFile.toLocaleString()} pages
+                  per file and{" "}
+                  {PDF_SECURITY_LIMITS.maxTotalPages.toLocaleString()} pages per
+                  queue. No pages are silently truncated.
+                </p>
+              </div>
+            </details>
+
+            <details className={styles.disclosure} id="advanced-output">
+              <summary>
+                <span className={styles.disclosureTitle}>Output filename</span>
+                <span className={styles.disclosureMeta}>
+                  {mode === "lock" ? "-locked.pdf" : "-unlocked.pdf"}
+                </span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.disclosureBody}>
+                <p className={styles.disclosureNote}>
+                  Outputs use a {mode === "lock" ? "-locked" : "-unlocked"}{" "}
+                  suffix by default. Use Rename output on any file row to change
+                  its filename before downloading.
+                </p>
+              </div>
+            </details>
+
+            <details className={styles.disclosure} id="advanced-zip">
+              <summary>
+                <span className={styles.disclosureTitle}>ZIP download</span>
+                <span className={styles.disclosureMeta}>
+                  {zipName || "quickkit-pdfs.zip"}
+                </span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.disclosureBody}>
+                <label className={styles.label} htmlFor="zip-name">
+                  ZIP filename
+                </label>
+                <input
+                  className={styles.input}
+                  id="zip-name"
+                  onChange={(event) => setZipName(event.target.value)}
+                  value={zipName}
+                />
+              </div>
+            </details>
+          </section>
+        </div>
+
+        <div className={styles.queueColumn}>
+          <section
+            className={`${styles.card} ${styles.uploadPanel}`}
+            id="pdf-security-upload"
+          >
+            <div
+              className={`${styles.dropzone} ${draggingFiles ? styles.dropzoneActive : ""}`}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                dragCounterRef.current += 1;
+                setDraggingFiles(true);
+              }}
+              onDragLeave={(event) => {
+                event.preventDefault();
+                dragCounterRef.current = Math.max(
+                  0,
+                  dragCounterRef.current - 1,
+                );
+                if (dragCounterRef.current === 0) setDraggingFiles(false);
+              }}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={onDrop}
+            >
+              <span className={styles.dropzoneIcon}>
+                <UploadCloud size={24} aria-hidden="true" />
+              </span>
+              <div className={styles.dropzoneCopy}>
+                <h2 className={styles.dropzoneTitle}>Drop PDFs here</h2>
+                <p className={styles.dropzoneText}>
+                  Your PDFs never leave this browser. Up to{" "}
+                  {PDF_SECURITY_LIMITS.maxFiles} PDFs ·{" "}
+                  {formatMiB(PDF_SECURITY_LIMITS.maxFileBytes)} each ·{" "}
+                  {PDF_SECURITY_LIMITS.maxPagesPerFile.toLocaleString()} pages
+                  per file.
+                </p>
+              </div>
+              <button
+                className={styles.uploadButton}
+                disabled={isProcessing || intakeBusy}
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
+                <UploadCloud size={15} aria-hidden="true" /> Choose PDFs
+              </button>
+              <input
+                accept="application/pdf,.pdf"
+                aria-label="Choose PDFs"
+                className={styles.fileInput}
+                multiple
+                onChange={onFileInput}
+                ref={fileInputRef}
+                type="file"
+              />
+            </div>
+            {intakeIssues.length ? (
+              <ul className={styles.intakeIssues} role="alert">
+                {intakeIssues.map((issue) => (
+                  <li key={issue.id}>{issue.message}</li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+
+          <section
+            className={`${styles.card} ${styles.queuePanel}`}
+            id="pdf-security-queue"
+          >
+            <div className={styles.queueHeader}>
+              <div>
+                <h2 className={styles.queueTitle}>File queue</h2>
+                <p className={styles.queueMeta}>
+                  {entries.length} file{entries.length === 1 ? "" : "s"} ·{" "}
+                  {formatBytes(totalBytes)}
+                  {totalPages
+                    ? ` · ${totalPages.toLocaleString()} pages`
+                    : ""}{" "}
+                  · {successCount} verified
+                </p>
+              </div>
+              {entries.length ? (
+                confirmClear ? (
+                  <div className={styles.actions}>
+                    <button
+                      className={styles.dangerButton}
+                      onClick={clearAll}
+                      type="button"
+                    >
+                      <Trash2 size={14} aria-hidden="true" /> Confirm clear
+                    </button>
+                    <button
+                      className={styles.smallButton}
+                      onClick={() => setConfirmClear(false)}
+                      type="button"
+                    >
+                      Keep files
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className={styles.dangerButton}
+                    disabled={isProcessing}
+                    onClick={() => setConfirmClear(true)}
+                    type="button"
+                  >
+                    <Trash2 size={14} aria-hidden="true" /> Clear all
+                  </button>
+                )
+              ) : null}
+            </div>
+
+            {entries.length === 0 ? (
+              <div className={styles.emptyQueue}>
+                <FileText size={22} aria-hidden="true" />
+                <p>
+                  Add one or more PDFs to begin. Reorder, rename outputs, and
+                  download individually or as a ZIP.
+                </p>
+              </div>
+            ) : (
+              <ol className={styles.entryList} aria-label="PDF file queue">
+                {entries.map((entry, index) => (
+                  <li
+                    className={`${styles.entry} ${draggedId === entry.id ? styles.entryDragging : ""} ${dragOverId === entry.id ? styles.entryDragOver : ""}`}
+                    key={entry.id}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      if (draggedId && draggedId !== entry.id)
+                        setDragOverId(entry.id);
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (draggedId) {
+                        const from = entries.findIndex(
+                          (item) => item.id === draggedId,
+                        );
+                        if (from >= 0 && from !== index) reorder(from, index);
+                      }
+                      setDraggedId(null);
+                      setDragOverId(null);
+                    }}
+                  >
+                    <div className={styles.entryRow}>
+                      <div className={styles.entryOrder}>
+                        <button
+                          aria-label={`Drag to reorder ${entry.name}`}
+                          className={styles.grip}
+                          disabled={isProcessing}
+                          draggable={!isProcessing}
+                          onDragEnd={() => {
+                            setDraggedId(null);
+                            setDragOverId(null);
+                          }}
+                          onDragStart={(event) => {
+                            setDraggedId(entry.id);
+                            event.dataTransfer.effectAllowed = "move";
+                            event.dataTransfer.setData("text/plain", entry.id);
+                          }}
+                          type="button"
+                        >
+                          <GripVertical size={15} aria-hidden="true" />
+                        </button>
+                        <div className={styles.reorderButtons}>
+                          <button
+                            aria-label={`Move ${entry.name} up`}
+                            disabled={isProcessing || index === 0}
+                            onClick={() => reorder(index, index - 1)}
+                            type="button"
+                          >
+                            <ArrowUp size={12} aria-hidden="true" />
+                          </button>
+                          <button
+                            aria-label={`Move ${entry.name} down`}
+                            disabled={
+                              isProcessing || index === entries.length - 1
+                            }
+                            onClick={() => reorder(index, index + 1)}
+                            type="button"
+                          >
+                            <ArrowDown size={12} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                      <span className={styles.entryIcon} aria-hidden="true">
+                        {entry.result ? (
+                          <FileCheck2 size={18} />
+                        ) : (
+                          <FileText size={18} />
+                        )}
+                      </span>
+                      <div className={styles.entryInfo}>
+                        <div className={styles.entryTitleRow}>
+                          <h3 className={styles.entryName}>{entry.name}</h3>
+                          <span
+                            className={`${styles.badge} ${
+                              entry.status === "success"
+                                ? styles.badgeSuccess
+                                : entry.status === "error" ||
+                                    entry.status === "blocked"
+                                  ? styles.badgeError
+                                  : entry.status === "password"
+                                    ? styles.badgeWarning
+                                    : styles.badgeInfo
+                            }`}
+                          >
+                            {entry.status === "processing" ||
+                            entry.status === "inspecting" ? (
+                              <LoaderCircle size={11} className="spin" />
+                            ) : null}
+                            {statusLabel(entry, mode)}
+                          </span>
+                        </div>
+                        <p className={styles.entryMeta}>
+                          {formatBytes(entry.size)}
+                          {entry.inspection
+                            ? ` · ${entry.inspection.pageCount.toLocaleString()} page${entry.inspection.pageCount === 1 ? "" : "s"}`
+                            : ""}
+                          {entry.inspection
+                            ? ` · ${encryptionLabel(entry.inspection)}`
+                            : ""}
                         </p>
-                        {unlockBatchMode === "individual" ? (
+                        {entry.result?.verification.algorithm ||
+                        (entry.result &&
+                          !entry.result.verification.encrypted) ? (
+                          <div className={styles.badges}>
+                            {entry.result?.verification.algorithm ? (
+                              <span
+                                className={`${styles.badge} ${styles.badgeSuccess}`}
+                              >
+                                <ShieldCheck size={11} aria-hidden="true" />
+                                {entry.result.verification.algorithm} verified
+                              </span>
+                            ) : null}
+                            {entry.result &&
+                            !entry.result.verification.encrypted ? (
+                              <span
+                                className={`${styles.badge} ${styles.badgeSuccess}`}
+                              >
+                                <LockOpen size={11} aria-hidden="true" />{" "}
+                                Protection removed
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        {entry.progress ? (
+                          <>
+                            <div
+                              aria-label={`Processing ${entry.name}`}
+                              aria-valuemax={100}
+                              aria-valuemin={0}
+                              aria-valuenow={stagePercent(entry.progress)}
+                              className={styles.progressBar}
+                              role="progressbar"
+                            >
+                              <div
+                                className={styles.progressFill}
+                                style={{
+                                  width: `${stagePercent(entry.progress)}%`,
+                                }}
+                              />
+                            </div>
+                            <p className={styles.progressText}>
+                              {entry.progress.message}
+                            </p>
+                          </>
+                        ) : null}
+                        {entry.error ? (
+                          <div className={styles.entryAlert} role="alert">
+                            <TriangleAlert size={15} aria-hidden="true" />
+                            <div>
+                              <p>{entry.error}</p>
+                              {entry.status === "error" ||
+                              entry.status === "cancelled" ? (
+                                <button
+                                  className={styles.smallButton}
+                                  onClick={() => retryEntry(entry)}
+                                  type="button"
+                                >
+                                  <RotateCcw size={12} aria-hidden="true" />{" "}
+                                  Retry
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                      <button
+                        aria-label={`Remove ${entry.name}`}
+                        className={styles.removeButton}
+                        disabled={isProcessing}
+                        onClick={() => removeEntry(entry.id)}
+                        type="button"
+                      >
+                        <X size={15} aria-hidden="true" />
+                      </button>
+                    </div>
+
+                    <div className={styles.entryDetails}>
+                      {mode === "lock" &&
+                      entry.inspection?.encrypted &&
+                      !entry.result ? (
+                        <div className={styles.passwordPanel}>
+                          <p className={styles.passwordPanelTitle}>
+                            <KeyRound size={13} aria-hidden="true" /> Current
+                            password required to re-lock
+                          </p>
                           <PasswordField
-                            id={`unlock-${entry.id}`}
-                            label="Password for this PDF"
+                            id={`current-${entry.id}`}
+                            label="Current open password"
+                            onChange={(value) =>
+                              updateEntry(entry.id, { currentPassword: value })
+                            }
+                            placeholder="Existing password"
+                            value={entry.currentPassword ?? ""}
+                          />
+                          <button
+                            className={styles.smallButton}
+                            disabled={isProcessing || !entry.currentPassword}
+                            onClick={() => void verifyEntry(entry)}
+                            type="button"
+                          >
+                            <ShieldCheck size={12} aria-hidden="true" /> Verify
+                            password
+                          </button>
+                        </div>
+                      ) : null}
+
+                      {mode === "lock" &&
+                      lockBatchMode === "individual" &&
+                      !entry.result ? (
+                        <label className={styles.toggleRow}>
+                          <input
+                            checked={entry.useCustomPassword}
+                            onChange={(event) =>
+                              updateEntry(entry.id, {
+                                useCustomPassword: event.target.checked,
+                              })
+                            }
+                            type="checkbox"
+                          />
+                          <span>Use a custom open password for this file</span>
+                        </label>
+                      ) : null}
+                      {mode === "lock" &&
+                      lockBatchMode === "individual" &&
+                      entry.useCustomPassword &&
+                      !entry.result ? (
+                        <div className={styles.ownerFields}>
+                          <PasswordField
+                            id={`custom-open-${entry.id}`}
+                            label="Custom open password"
                             onChange={(value) =>
                               updateEntry(entry.id, { customPassword: value })
                             }
-                            placeholder="Correct existing password"
+                            onGenerate={() => {
+                              try {
+                                const value = generatePassword({
+                                  ...defaultPasswordOptions,
+                                  length: 20,
+                                });
+                                updateEntry(entry.id, {
+                                  customPassword: value,
+                                  customConfirm: value,
+                                });
+                              } catch {
+                                setToast({
+                                  message: "Secure randomness is unavailable.",
+                                  type: "error",
+                                });
+                              }
+                            }}
                             value={entry.customPassword ?? ""}
                           />
-                        ) : (
-                          <p className={styles.helpText}>
-                            Using the shared password from the unlock panel.
-                          </p>
-                        )}
-                        <button
-                          className={styles.smallButton}
-                          disabled={
-                            isProcessing ||
-                            (unlockBatchMode === "individual"
-                              ? !entry.customPassword
-                              : !unlockPassword)
-                          }
-                          onClick={() => void verifyEntry(entry)}
-                          type="button"
-                        >
-                          <ShieldCheck size={13} /> Verify password
-                        </button>
-                      </div>
-                    ) : null}
+                          <PasswordField
+                            error={
+                              entry.customConfirm &&
+                              entry.customPassword !== entry.customConfirm
+                                ? "Passwords do not match."
+                                : undefined
+                            }
+                            id={`custom-confirm-${entry.id}`}
+                            label="Confirm custom password"
+                            onChange={(value) =>
+                              updateEntry(entry.id, { customConfirm: value })
+                            }
+                            value={entry.customConfirm ?? ""}
+                          />
+                        </div>
+                      ) : null}
 
-                    <div className={styles.renameRow}>
-                      <div className={styles.field} style={{ marginBottom: 0 }}>
-                        <label
-                          className={styles.label}
-                          htmlFor={`output-${entry.id}`}
-                        >
-                          Output filename
-                        </label>
-                        <input
-                          className={styles.input}
-                          id={`output-${entry.id}`}
-                          onChange={(event) =>
-                            updateEntry(entry.id, {
-                              outputName: event.target.value,
-                            })
-                          }
-                          value={entry.outputName}
-                        />
-                      </div>
+                      {mode === "unlock" &&
+                      entry.inspection?.encrypted &&
+                      !entry.result ? (
+                        <div className={styles.passwordPanel}>
+                          <p className={styles.passwordPanelTitle}>
+                            <KeyRound size={13} aria-hidden="true" /> Existing
+                            password
+                          </p>
+                          {unlockBatchMode === "individual" ? (
+                            <PasswordField
+                              id={`unlock-${entry.id}`}
+                              label="Password for this PDF"
+                              onChange={(value) =>
+                                updateEntry(entry.id, { customPassword: value })
+                              }
+                              placeholder="Correct existing password"
+                              value={entry.customPassword ?? ""}
+                            />
+                          ) : (
+                            <p className={styles.microcopy}>
+                              Using the shared password from the unlock panel.
+                            </p>
+                          )}
+                          <button
+                            className={styles.smallButton}
+                            disabled={
+                              isProcessing ||
+                              (unlockBatchMode === "individual"
+                                ? !entry.customPassword
+                                : !unlockPassword)
+                            }
+                            onClick={() => void verifyEntry(entry)}
+                            type="button"
+                          >
+                            <ShieldCheck size={12} aria-hidden="true" /> Verify
+                            password
+                          </button>
+                        </div>
+                      ) : null}
+
+                      <details className={styles.renameDisclosure}>
+                        <summary>
+                          <Pencil size={13} aria-hidden="true" /> Rename output
+                        </summary>
+                        <div className={styles.renameField}>
+                          <label
+                            className={styles.label}
+                            htmlFor={`output-${entry.id}`}
+                          >
+                            Output filename
+                          </label>
+                          <input
+                            className={styles.input}
+                            id={`output-${entry.id}`}
+                            onChange={(event) =>
+                              updateEntry(entry.id, {
+                                outputName: event.target.value,
+                              })
+                            }
+                            value={entry.outputName}
+                          />
+                        </div>
+                      </details>
+
                       {entry.result ? (
-                        <button
-                          className="secondary"
-                          onClick={() => downloadEntry(entry)}
-                          type="button"
-                        >
-                          <Download size={15} /> Download PDF
-                        </button>
+                        <div className={styles.resultPanel}>
+                          <div className={styles.resultHeader}>
+                            <p className={styles.resultTitle}>
+                              <CheckCircle2 size={14} aria-hidden="true" />
+                              {mode === "lock"
+                                ? "Locked and verified"
+                                : "Unlocked and verified"}
+                            </p>
+                            <button
+                              className={styles.downloadButton}
+                              onClick={() => downloadEntry(entry)}
+                              type="button"
+                            >
+                              <Download size={14} aria-hidden="true" /> Download
+                              PDF
+                            </button>
+                          </div>
+                          <p className={styles.resultMeta}>
+                            {sanitizeOutputFilename(
+                              entry.outputName,
+                              mode === "lock" ? "locked" : "unlocked",
+                            )}{" "}
+                            · {formatBytes(entry.result.outputBytes)} ·{" "}
+                            {entry.result.verification.pageCount.toLocaleString()}{" "}
+                            pages · reopened successfully
+                            {entry.result.verification.permissionsVerified
+                              ? " · permissions verified"
+                              : ""}
+                            {entry.result.verification.openPasswordVerified
+                              ? " · password protection verified"
+                              : ""}
+                          </p>
+                          {entry.result.notices.length ? (
+                            <details className={styles.noticesDisclosure}>
+                              <summary>Security notes</summary>
+                              <ul className={styles.notices}>
+                                {entry.result.notices.map((notice) => (
+                                  <li key={notice}>{notice}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          ) : null}
+                        </div>
                       ) : null}
                     </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
 
-                    {entry.result ? (
-                      <div className={styles.resultPanel}>
-                        <div className={styles.resultHeader}>
-                          <p className={styles.resultTitle}>
-                            <CheckCircle2 size={15} />
-                            {mode === "lock"
-                              ? "Locked and verified"
-                              : "Unlocked and verified"}
-                          </p>
-                          <span className={styles.entryMeta}>
-                            {formatBytes(entry.result.outputBytes)} ·{" "}
-                            {entry.result.verification.pageCount.toLocaleString()}{" "}
-                            pages
-                          </span>
-                        </div>
-                        <p className={styles.resultMeta}>
-                          Reopened successfully · page dimensions preserved
-                          {entry.result.verification.permissionsVerified
-                            ? " · permissions verified"
-                            : ""}
-                          {entry.result.verification.openPasswordVerified
-                            ? " · password protection verified"
-                            : ""}
-                        </p>
-                        {entry.result.notices.length ? (
-                          <details>
-                            <summary className={styles.helpText}>
-                              Security notes
-                            </summary>
-                            <ul className={styles.notices}>
-                              {entry.result.notices.map((notice) => (
-                                <li key={notice}>{notice}</li>
-                              ))}
-                            </ul>
-                          </details>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-
-          <div className={styles.actionBar}>
+          <div className={styles.actionBar} id="pdf-security-action">
             {runProgress ? (
               <>
                 <div
@@ -1868,45 +1998,38 @@ export default function PdfLockUnlock() {
                 </p>
               </>
             ) : (
-              <p className={styles.actionSummary}>
-                {processCount} file{processCount === 1 ? "" : "s"} ready to{" "}
-                {mode}
-                {failedCount ? ` · ${failedCount} need retry` : ""}
-                {successCount
-                  ? ` · ${successCount} verified download${successCount === 1 ? "" : "s"}`
-                  : ""}
-              </p>
+              <p className={styles.actionSummary}>{actionHint}</p>
             )}
             <div className={styles.actionButtons}>
               <button
-                className="primary"
+                className={styles.primaryAction}
                 disabled={processDisabled}
                 onClick={() => void processQueue()}
                 type="button"
               >
                 {isProcessing ? (
-                  <LoaderCircle size={16} className="spin" />
+                  <LoaderCircle size={16} className="spin" aria-hidden="true" />
                 ) : mode === "lock" ? (
-                  <LockKeyhole size={16} />
+                  <LockKeyhole size={16} aria-hidden="true" />
                 ) : (
-                  <LockOpen size={16} />
+                  <LockOpen size={16} aria-hidden="true" />
                 )}
                 {isProcessing
                   ? "Processing…"
-                  : `${mode === "lock" ? "Lock" : "Unlock"} ${processCount} PDF${processCount === 1 ? "" : "s"}`}
+                  : `${mode === "lock" ? "Lock" : "Unlock"} ${targets.length} PDF${targets.length === 1 ? "" : "s"}`}
               </button>
               {isProcessing ? (
                 <button
-                  className="secondary"
+                  className={styles.secondaryAction}
                   onClick={cancelProcessing}
                   type="button"
                 >
-                  <Ban size={15} /> Cancel
+                  <Ban size={14} aria-hidden="true" /> Cancel
                 </button>
               ) : null}
               {failedCount && !isProcessing ? (
                 <button
-                  className="secondary"
+                  className={styles.secondaryAction}
                   onClick={() => {
                     entries
                       .filter(
@@ -1918,94 +2041,44 @@ export default function PdfLockUnlock() {
                   }}
                   type="button"
                 >
-                  <RotateCcw size={15} /> Retry failed
+                  <RotateCcw size={14} aria-hidden="true" /> Retry failed
                 </button>
               ) : null}
               {successCount && !isProcessing ? (
                 <button
-                  className="secondary"
+                  className={styles.secondaryAction}
                   onClick={() => void downloadZip()}
                   type="button"
                 >
-                  <FileArchive size={15} /> Download all as ZIP
+                  <FileArchive size={14} aria-hidden="true" /> Download all as
+                  ZIP
                 </button>
               ) : null}
             </div>
+            {toast ? (
+              <div
+                className={`${styles.toast} ${
+                  toast.type === "success"
+                    ? styles.toastSuccess
+                    : toast.type === "error"
+                      ? styles.toastError
+                      : styles.toastInfo
+                }`}
+                role="status"
+              >
+                {toast.type === "success" ? (
+                  <CheckCircle2 size={15} aria-hidden="true" />
+                ) : toast.type === "error" ? (
+                  <TriangleAlert size={15} aria-hidden="true" />
+                ) : (
+                  <Info size={15} aria-hidden="true" />
+                )}
+                {toast.message}
+              </div>
+            ) : null}
           </div>
-
-          {toast ? (
-            <div
-              className={`${styles.toast} ${
-                toast.type === "success"
-                  ? styles.toastSuccess
-                  : toast.type === "error"
-                    ? styles.toastError
-                    : styles.toastInfo
-              }`}
-              role="status"
-            >
-              {toast.type === "success" ? (
-                <CheckCircle2 size={16} />
-              ) : toast.type === "error" ? (
-                <TriangleAlert size={16} />
-              ) : (
-                <Info size={16} />
-              )}
-              {toast.message}
-            </div>
-          ) : null}
         </div>
       </div>
-
-      <section
-        className={styles.educational}
-        aria-labelledby="pdf-security-learn-title"
-      >
-        <div className={styles.queueHeader}>
-          <div>
-            <h2 className={styles.queueTitle} id="pdf-security-learn-title">
-              Security & privacy notes
-            </h2>
-            <p className={styles.queueMeta}>
-              What this tool can and cannot do.
-            </p>
-          </div>
-        </div>
-        <div className={styles.educationalGrid}>
-          <article className={styles.educationalCard}>
-            <h3>
-              <ShieldCheck size={16} /> Local by design
-            </h3>
-            <p>
-              PDFs are processed in a dedicated browser worker with QPDF
-              WebAssembly. No external PDF upload service is used. Passwords
-              live only in current page/worker memory and are cleared after
-              processing.
-            </p>
-          </article>
-          <article className={styles.educationalCard}>
-            <h3>
-              <LockKeyhole size={16} /> Encryption vs permissions
-            </h3>
-            <p>
-              AES encryption protects the document bytes. Permission flags ask
-              compliant readers to restrict printing, copying or editing, but
-              they are not a security boundary and may be ignored by some
-              software.
-            </p>
-          </article>
-          <article className={styles.educationalCard}>
-            <h3>
-              <KeyRound size={16} /> No password recovery
-            </h3>
-            <p>
-              If you lose the open password, QUICKKIT cannot recover it.
-              Unlocking requires the correct existing password and your
-              authorization. There is no cracking, guessing or bypass.
-            </p>
-          </article>
-        </div>
-      </section>
     </div>
   );
 }

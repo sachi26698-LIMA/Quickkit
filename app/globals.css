@@ -13508,3 +13508,132 @@ details.qr-acc {
     justify-content: flex-end;
   }
 }
+
+/* ---------- Compact document-workspace shell (opt-in) ---------- */
+.tool-page-compact {
+  max-width: 1180px;
+  padding-block: 20px 40px;
+}
+.tool-page-compact .breadcrumbs {
+  min-height: 24px;
+  margin-bottom: 10px;
+}
+.tool-title-compact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 0 18px;
+}
+.tool-title-compact > .tool-icon {
+  float: none;
+  margin: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  flex-shrink: 0;
+}
+.tool-title-compact > .tool-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.tool-title-copy {
+  flex: 1;
+  min-width: 0;
+}
+.tool-title-compact h1 {
+  margin: 0 0 4px;
+  font-size: 26px;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+.tool-title-compact p {
+  margin: 0;
+  clear: none;
+  max-width: none;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tool-title-compact .local-badge {
+  flex-shrink: 0;
+}
+.tool-guidance-compact {
+  gap: 32px;
+  padding-top: 26px;
+}
+.tool-guidance-compact .eyebrow {
+  display: none;
+}
+.tool-guidance-compact h2 {
+  font-size: 17px;
+  margin-bottom: 12px;
+}
+.tool-guidance-compact ol {
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+.tool-guidance-compact li {
+  margin-bottom: 8px;
+}
+.tool-guidance-compact details {
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+.tool-guidance-compact summary {
+  font-size: 12.5px;
+}
+.tool-guidance-compact details p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.tool-page-compact .related {
+  margin-top: 28px;
+}
+.tool-page-compact .related h2 {
+  font-size: 16px;
+}
+.tool-page-compact .related-grid {
+  gap: 10px;
+  margin-top: 12px;
+}
+.tool-page-compact .related-card {
+  padding: 12px;
+  border-radius: 12px;
+}
+@media (max-width: 768px) {
+  .tool-guidance-compact {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+@media (max-width: 640px) {
+  .tool-page-compact {
+    padding-block: 14px 28px;
+  }
+  .tool-title-compact {
+    gap: 10px;
+    padding-bottom: 14px;
+  }
+  .tool-title-compact > .tool-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+  .tool-title-compact h1 {
+    font-size: 20px;
+    letter-spacing: -0.5px;
+  }
+  .tool-title-compact p {
+    font-size: 12px;
+  }
+  .tool-title-compact .local-badge {
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+  .tool-page-compact .related-grid {
+    grid-template-columns: 1fr;
+  }
+}

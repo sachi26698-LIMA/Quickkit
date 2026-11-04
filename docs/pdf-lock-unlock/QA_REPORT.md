@@ -2,7 +2,7 @@
 
 **Tool:** `/tools/pdf-lock-unlock` · **Category:** PDF Tools
 **Branch:** `arena/c9142958-quickkit` · **Base:** `881d174c776d56fcf1ffc76dcc4ea7349699bd09`
-**Date:** 2026-11-04 · **Status:** Implemented, tested locally. **Not merged, not deployed** (owner approval required).
+**Date:** 2026-11-04 · **Status:** Implemented + premium UI/UX redesign, tested locally. **Not merged, not deployed** (owner approval required).
 
 ---
 
@@ -185,3 +185,91 @@ Mobile: no horizontal overflow; tabs, queue and controls remain usable; axe
   into `public/qpdf/0.3.1/` and are **gitignored** (regenerated on install/build).
 - **Nothing has been merged or deployed.** Changes remain on `arena/c9142958-quickkit`
   for owner review.
+
+---
+
+## 10. Premium UI/UX redesign (presentation-only)
+
+A second pass redesigned the tool as a compact, professional PDF security workspace
+without touching the cryptography, worker, validation, batch engine, privacy model,
+route/catalog registration, or the original five E2E tests.
+
+### Design changes
+- **Compact page header** via a new optional `ToolShell variant="compact"`: breadcrumb,
+  icon + title + one-line description + local-processing badge; repeated headings and
+  duplicate privacy paragraphs removed. Default `ToolShell` behavior is unchanged for
+  every other tool.
+- **Segmented Lock PDF / Unlock PDF tabs** directly under the heading.
+- **Balanced desktop workspace**: password/encryption card on the left; upload, file
+  queue, status and primary action on the right; collapsible advanced settings span
+  below the main workspace to avoid tall empty columns.
+- **Password panel**: grouped open/confirm/generate/copy/show-hide, strength meter,
+  encryption selector, optional separate permissions password; concise hints/tooltips
+  instead of permanent helper text.
+- **Advanced settings**: six collapsible sections (permissions, encryption compatibility,
+  individual passwords, batch options, output filename, ZIP download). Permissions use a
+  compact two-column desktop / one-column mobile grid with presets; no advanced feature
+  was removed.
+- **Upload & queue**: polished dropzone with limits, compact file rows (icon, name, size,
+  pages, status, rename, remove, reorder), per-file progress and visible errors/failures.
+- **Contextual primary action**: `Lock N PDFs` / `Unlock N PDFs`, readiness-gated with an
+  explanatory hint, processing state, duplicate-submission prevention, sticky bottom bar
+  on mobile that does not cover the queue at page end.
+- **Verified results**: success/failure per file, encryption/decryption verification,
+  output name/size, individual download, Download all as ZIP, retry failed. Success is
+  shown only after actual output verification.
+- **Purpose-built mobile order** (≤900px): title → tabs → password settings → advanced
+  accordion → upload → queue → sticky action. Full-width inputs, ≥44px touch targets,
+  16px input font, no horizontal overflow.
+- QUICKKIT palette tokens (Midnight/Deep Plum/Plum Rose/Rose Pink/Soft Blush/Coral),
+  white surfaces, light blush page background, consistent radius/shadows, reduced-motion
+  support. No new dependencies.
+
+### Redesign verification
+| Check | Result |
+|-------|--------|
+| `npm run typecheck` | clean |
+| `npm run lint` | clean (0 errors/warnings) |
+| `npm run format:check` | clean |
+| `npm test` (Vitest) | **51 files / 951 tests passed** |
+| Original E2E `pdf-lock-unlock.spec.ts` | **5/5 passed unchanged** (production build) |
+| New E2E `pdf-lock-unlock-redesign.spec.ts` | **5/5 passed** (production build) |
+| Combined PDF security E2E | **10/10 passed** against production server |
+| Responsive QA | 360 / 390 / 430 / 768 / 1024 / 1440 px — order, overflow, touch targets, sticky action |
+| Backend immutability | `sha256sum -c` OK for security-engine/logic/worker-types/hook/qpdf-runtime/worker + engine/logic unit tests |
+| Production build | succeeds; `/tools/pdf-lock-unlock` statically prerendered |
+
+New redesign E2E covers: advanced permissions accordion + presets + PDF.js permission
+verification; individual lock passwords + per-file rename through ZIP; batch cancellation
++ password clearing + retry; individual unlock password verification; responsive layout
+at all six required widths.
+
+### Before / after screenshots
+True pre-redesign baselines are preserved in `docs/pdf-lock-unlock/redesign/before/`;
+post-redesign production captures are in `docs/pdf-lock-unlock/redesign/after/`.
+The original `01–07*.png` report screenshots were refreshed from the production build
+to reflect the redesigned UI (no Next.js dev indicator).
+
+| State | Before | After |
+|-------|--------|-------|
+| Empty desktop 1440 | `redesign/before/empty-1440.png` | `redesign/after/empty-1440.png` |
+| Empty tablet 768 | `redesign/before/empty-768.png` | `redesign/after/empty-768.png` |
+| Empty mobile 390 | `redesign/before/empty-390.png` | `redesign/after/empty-390.png` |
+| Lock settings desktop | `redesign/before/lock-settings-1440.png` | `redesign/after/lock-settings-1440.png` |
+| Lock settings mobile | `redesign/before/lock-settings-390.png` | `redesign/after/lock-settings-390.png` |
+| Lock result desktop | `redesign/before/lock-result-1440.png` | `redesign/after/lock-result-1440.png` |
+| Lock result mobile | `redesign/before/lock-result-390.png` | `redesign/after/lock-result-390.png` |
+
+Additional widths (360 / 430 / 1024) are captured in both folders.
+
+### Redesign changed files
+- `components/tools/pdf-lock-unlock.tsx` — presentation rewrite; state/handlers preserved.
+- `components/tools/pdf-lock-unlock.module.css` — full redesign stylesheet + responsive order.
+- `app/tools/pdf-lock-unlock/page.tsx` — compact shell, 3 usage steps, 6 concise FAQs.
+- `components/tool-shell.tsx` — optional `variant` / `headingDescription` props (default unchanged).
+- `app/globals.css` — scoped `.tool-page-compact` / `.tool-title-compact` / `.tool-guidance-compact`.
+- `tests/e2e/pdf-lock-unlock-redesign.spec.ts` — new redesign E2E (original spec untouched).
+- `docs/pdf-lock-unlock/` — refreshed screenshots, before/after baselines, this report.
+
+**Unchanged:** all `lib/tools/pdf/*` security files, `workers/pdf-security.worker.ts`,
+QPDF asset script, PDF security unit tests, catalog/registration, and all other tools.
