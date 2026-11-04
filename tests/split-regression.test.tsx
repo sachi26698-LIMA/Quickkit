@@ -18,6 +18,7 @@ import {
   tools,
   toolsByCategory,
 } from "@/lib/catalog";
+import { legalPages } from "@/lib/legal";
 import {
   FAVORITES_KEY,
   SLUG_MIGRATIONS,
@@ -163,7 +164,11 @@ describe("cross-tool regression: the four split tools", () => {
     const { default: approvedSitemap } = await import("@/app/sitemap");
 
     const routes = approvedSitemap().map((entry) => entry.url);
-    expect(routes.length, "sitemap is actually populated").toBe(46);
+    // Count is derived, not hard-coded: every published tool plus the static
+    // and legal pages, so adding a page cannot silently leave it unlisted.
+    expect(routes.length, "sitemap is actually populated").toBe(
+      5 + legalPages.length + 8 - 1 + tools.length,
+    );
     expect(routes.some((url) => url.includes(RETIRED))).toBe(false);
     for (const slug of SPLIT_TOOLS) {
       expect(

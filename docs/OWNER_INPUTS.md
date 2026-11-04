@@ -17,10 +17,29 @@ No details in this document are presumed from your location, account or brand na
 | Reference/third-party distribution rights | Public source/assets | Confirm rights to publish the supplied design reference and comply with third-party font/library licences. Keep the initial repository private; do not assume ownership from an upload. |
 | Final release approval | `LAUNCH_APPROVED=true` for production only | Confirm completed legal pages, verified origin, security review, preview/device acceptance and rollback plan before enabling. Never use this to bypass unresolved gates. |
 
+## Legal pages: where these values live (added 4 November 2026)
+
+All twelve legal/information pages now read their owner-specific details from **`lib/site.ts` → `ownerDetails`**. Fill a field there and the "Owner to supply" marker disappears from every page at once — no page edits required. See `docs/LEGAL_PAGES.md` for the full implementation record.
+
+| `ownerDetails` field | Used by | Notes |
+|---|---|---|
+| `legalName` | Terms §15, Privacy §14, About, IP | Operating entity. QUICKKIT is a brand, not a registered entity claim. |
+| `jurisdiction` | Terms §14, Privacy, About, review notes | Governing law and forum. |
+| `postalAddress` | Copyright (agent), Terms | Only if local law requires publication. |
+| `registrationNumber` | Terms, Privacy | Only if publication is required. |
+| `privacyEmail` | Privacy §13/§14, Contact | Falls back to the general address. |
+| `securityEmail` | Security §7/§10, Contact | Falls back to the general address. |
+| `copyrightEmail` | Copyright §4/§9, Contact | Falls back to the general address. |
+| `businessEmail` | IP §8, Contact | Falls back to the general address. |
+| `dataProtectionContact` | Reserved | Only if a representative/DPO must be appointed. |
+| `minimumAge` | Privacy §12 | Intended minimum age for independent use. |
+
 ## Actual page edits pending
 
-- `app/privacy/page.tsx`: replace the owner-action draft notice with verified operator/contact details; finalize hosting/retention and rights-request process.
-- `app/terms/page.tsx`: replace draft notice; finalize operator/contact, applicable jurisdiction/consumer terms and any legally reviewed liability/dispute wording.
-- If a real contact method is configured, add it consistently to legal pages/footer; until then, do not show a fake Contact link.
-- Update the policy effective date when the final policies are approved. Current dates identify the draft implementation, not legal approval.
+- `lib/site.ts`: replace the demo `hello@quickkit.in` address and the six demo social URLs; fill `ownerDetails` above. The owner-input notice on every legal page is derived from these fields, so it clears itself once they are supplied and `legalPagesRequiringOwnerInput` in `lib/legal.ts` is emptied.
+- `lib/legal.ts`: bump `LEGAL_LAST_UPDATED` / `LEGAL_LAST_UPDATED_ISO` when the approved text replaces the draft, and remove the "Draft — pending owner details and legal review" note in `components/legal-page-shell.tsx`.
+- Privacy §9 (hosting/log retention/subprocessors): complete once the production deployment is configured.
+- Terms §12 (liability) and §14 (governing law): flagged in place; require legal review before publication.
+- Copyright §5: requires the operator to decide whether an agent registration and safe-harbour position are needed; this page claims neither.
+- Security §11 and Accessibility §12: no certification or conformance claim is made; keep it that way until a real audit exists.
 - Do not remove draft notices or claim compliance until actual details are supplied and reviewed.
