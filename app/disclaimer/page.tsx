@@ -6,7 +6,7 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactEmail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
 
 export const metadata = pageMetadata(
   "Disclaimer — limits, estimates and accuracy",
@@ -371,10 +371,9 @@ export default function DisclaimerPage() {
       <h2 id="contact">13. Questions</h2>
       <p>
         If a result looks wrong, tell us which tool and what happened — without
-        attaching private files. Email{" "}
-        <a href={`mailto:${contactEmail}`}>{contactEmail}</a> or use the{" "}
-        <Link href="/contact">contact page</Link>. Related reading:{" "}
-        <Link href="/terms">Terms and Conditions</Link>,{" "}
+        attaching private files. Use the{" "}
+        <Link href="/contact">contact page</Link>, or email <ContactLink />.
+        Related reading: <Link href="/terms">Terms and Conditions</Link>,{" "}
         <Link href="/file-handling">File Handling Policy</Link>,{" "}
         <Link href="/faq">FAQ</Link>.
       </p>

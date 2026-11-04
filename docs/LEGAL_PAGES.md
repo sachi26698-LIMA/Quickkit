@@ -21,7 +21,7 @@ This document is the audit trail behind the legal/information section: what exis
 | Processing model (verified in code) | Every tool runs in the browser: `workers/pdf-*.worker.ts`, `workers/image-encode.worker.ts`, pdf.js and tesseract.js **self-hosted** (`/pdfjs`, `/ocr`), no API routes (`find app -name route.ts` is empty), CSP `connect-src 'self'`, `frame-src 'none'`, Permissions-Policy camera/mic/geolocation off. |
 | Storage actually used | `localStorage`: `quickkit:saved-tools`, `qk:qr-presets:v1`, `qk:qr-history:v1`, `qk:qr-history-mode:v1`, `qk:i2i-retention`, `qk:p2w-retention`. IndexedDB: `quickkit-image-to-image`, `quickkit-pdf-to-word` (opt-in history, converted outputs only, 20 items, 10 MB cap). **No cookies anywhere.** |
 | Analytics / ads | None in code. No network calls except the optional contact-form endpoint, which is unset. |
-| Contact details | `hello@quickkit.in` is an explicitly marked **demo** address in `lib/site.ts`; social links are demo values. |
+| Contact details | The repository shipped `hello@quickkit.in` as a development placeholder. Phase 2 established it is **not** an owner-approved or monitored inbox, so it has been withdrawn from every surface; `contactEmail` is now `string \| null` and every page renders a marked owner-input placeholder instead. Social links remain demo values. |
 
 ## 2. What was implemented
 
@@ -33,8 +33,9 @@ This document is the audit trail behind the legal/information section: what exis
 - **Header** — legal routes mark "About" as current; `/faq` marks "Help".
 - **Sitemap page** — generated from the registry + catalog; categories with no published tools are excluded.
 - **XML sitemap** — now derived; includes the legal pages, still gated on `indexingEnabled` (empty until the owner approves launch).
-- **CSS** — a scoped legal design system in `app/globals.css` (white/soft-lavender surfaces, purple accents, 78ch measure, sticky ToC, responsive tables, AA-contrast text, reduced-motion respected).
+- **CSS** — a scoped legal design system in `app/globals.css` (white/soft-lavender surfaces, purple accents, 68ch measure, dual ToC — a sticky desktop panel and a collapsible mobile disclosure — sticky table headers, responsive tables at 1080/760/430px, AA-contrast text, reduced-motion and `prefers-contrast` respected).
 - **`scripts/check-site-links.mjs`** — dependency-free crawler that verifies status, `<h1>` count, titles, descriptions, canonical presence, `#` hrefs, in-page anchors and every internal link against a running build.
+- **`scripts/audit-legal-pages.mjs`** — Phase 2 audit runner. For all 12 routes it checks status, title, meta description length, robots, OG/Twitter, canonical, heading structure, breadcrumbs, ToC anchors (accepting any element id, since ids sit on `<section>` and `<h2>` alike), related-page links, footer groups, owner placeholders, `<time datetime>`, and scans the rendered text for compliance claims and unverified addresses. It understands negated claims ("no claim of compliance with … HIPAA"), so an honest disclaimer is not reported as a violation.
 
 ## 3. Page-by-page coverage of the brief
 
@@ -106,17 +107,33 @@ Everything below is a placeholder or an open decision, mirrored in `docs/OWNER_I
 4. `ownerDetails.privacyEmail`, `securityEmail`, `copyrightEmail`, `businessEmail` — or explicit acceptance of one shared inbox.
 5. `ownerDetails.dataProtectionContact` — only if a representative/DPO must be appointed.
 6. `ownerDetails.minimumAge` — intended minimum age for independent use.
-7. Current demo contact address `hello@quickkit.in` and the six demo social URLs in `lib/site.ts`.
+7. A **verified, monitored contact address** — `ownerDetails.publicEmail` is empty. The old development placeholder `hello@quickkit.in` was withdrawn, not renamed: setting `publicEmail` restores the mailto/`ContactLink` surface everywhere with no page edits. The six demo social URLs in `lib/site.ts` are also still open.
 8. Hosting provider, region, log retention and subprocessors, to complete `Privacy Policy §9`.
 9. Legal review of: liability cap, governing law/forum, consumer carve-outs, DMCA agent status, retention statements, and whether any consent mechanism is required for the existing local-storage keys.
 10. Decision on source licensing (currently UNLICENSED) and the distribution notice inventory.
 11. Accessibility: independent review, named contact, response commitment, and which accessibility laws apply.
 12. Security: independent review, dedicated inbox, disclosure window, and the framing (`frame-ancestors`) policy for the standalone production domain.
 
+## 7a. Phase 2 — final compliance audit and polish
+
+Phase 2 did not rebuild the pages. It audited them against the running production build and fixed what the audit found.
+
+**Contact address (item 3).** `hello@quickkit.in` could not be confirmed as an owner-approved, monitored inbox. It was therefore **withdrawn** rather than renamed: `lib/site.ts` now types `contactEmail` as `string | null`, derived from `ownerDetails.publicEmail`, and exports `contactEmailVerified` and `contactFormEndpoint`. Every surface branches on that type instead of interpolating the value — a `mailto:null` bug is a type-level mistake that `tsc` does not catch, because `${null}` is legal in a template literal. `components/contact-link.tsx` centralises the rendering, and `components/contact-form.tsx` disables itself with an explicit `.contact-closed` notice when no channel is configured, instead of composing an address that does not exist.
+
+**File-handling completeness (item 5).** The tool-by-tool audit found a real gap: Image Compressor, Image Resizer and Image Cropper are live tools but had **no section** on `/file-handling`, despite the page claiming to cover "each file-handling tool". Three sections were added, written against the enforced constants in `lib/tools/image-compress.ts`, `image-resize.ts` and `image-crop.ts`, and verified to have no persistent storage at all (blob URLs and page memory only). Sections 12–20 were renumbered to 12–23 and the `sections` registry updated to match.
+
+**Cookie policy honesty (items 6–7).** Every key in the Cookie Policy table was checked against the source: `FAVORITES_KEY`, `PRESET_STORAGE_KEY`, `HISTORY_STORAGE_KEY`, `HISTORY_MODE_KEY`, `IMAGE_HISTORY_RETENTION_KEY`, `HISTORY_RETENTION_KEY`, and the two IndexedDB database names, including the documented caps (24 presets, 20 history items, 20 outputs, 10 MB each, session/24h/7d retention with `session` as the default). The page describes **no** consent banner, analytics, ads or third-party cookies, and none exist — `document.cookie` appears nowhere in the codebase, fonts are `next/font/local`, and there is no `<iframe>`, external script, or third-party asset.
+
+**Dates (item 8).** Every route now renders `<time datetime="…">` with the valid lowercase attribute and a visible "Last updated" line.
+
+**Accessibility and layout (items 9–11).** The ToC became two elements — a persistent desktop panel and a mobile `<details>` disclosure — so only one is visible per breakpoint and neither duplicates an anchor id. Focus-visible styles, sticky table headers and zebra rows, a 68ch measure, and breakpoints at 1080/760/430px were added. **Browser binaries could not be installed in this environment, so no screenshot or real-viewport verification was performed** — see the verification report for what was and was not checked.
+
+**Known limitations of this audit.** Playwright/Chromium is unavailable here (download blocked, no system browser), so the responsive and keyboard checks are static CSS/HTML inspection plus the existing component tests, not real rendering. That must be re-run on a machine with browsers before release.
+
 ## 8. How to update a policy later
 
 1. Edit the page component in `app/<route>/page.tsx`.
 2. If you add or rename a section, update the matching `sections` entry in `lib/legal.ts` — the table of contents, the shell and the tests all read from it.
 3. If the processing model changes, update **`/file-handling` and `/privacy` in the same commit**; the crawler and the `legal-pages.test.tsx` certification guard will catch structural drift, not semantic drift.
-4. Bump `LEGAL_LAST_UPDATED` / `LEGAL_LAST_UPDATED_ISO` in `lib/legal.ts`.
-5. Run `npm run lint && npm test && npm run build`, then `node scripts/check-site-links.mjs <url>`.
+4. Bump `LEGAL_LAST_UPDATED` / `LEGAL_LAST_UPDATED_ISO` in `lib/legal.ts`. Render dates with `{...isoDatetime(value)}` — Next emits a JSX `dateTime` prop verbatim as the invalid attribute `dateTime="…"`, whereas the spread produces `datetime`.
+5. Run `npm run lint && npm test && npm run build`, then `node scripts/check-site-links.mjs <url>` and `node scripts/audit-legal-pages.mjs`.

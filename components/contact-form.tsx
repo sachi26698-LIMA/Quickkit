@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { MailCheck, Send, TriangleAlert } from "lucide-react";
 import { contactEmail, contactFormEndpoint } from "@/lib/site";
 
@@ -9,8 +10,13 @@ const initial: Fields = { name: "", email: "", subject: "", message: "" };
 /**
  * Contact form with inline validation.
  * - If CONTACT_FORM_ENDPOINT is configured (lib/site.ts), POSTs JSON there.
- * - Otherwise opens the visitor's email app via mailto: with the message
- *   pre-filled — no data is sent to any server.
+ * - Otherwise, *if and only if* a verified public address exists, opens the
+ *   visitor's email app via mailto: with the message pre-filled — no data
+ *   touches a server.
+ * - With neither configured (the current state: the demo address was withdrawn)
+ *   the form is disabled and explains why, rather than composing a mailto: to
+ *   an address that may not exist. Losing a visitor's message silently is worse
+ *   than telling them the channel is not open yet.
  */
 export default function ContactForm() {
   const [fields, setFields] = useState(initial);
@@ -18,6 +24,8 @@ export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
+
+  const channelOpen = Boolean(contactFormEndpoint || contactEmail);
 
   const set =
     (key: keyof Fields) =>
@@ -39,6 +47,7 @@ export default function ContactForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!channelOpen) return;
     if (!validate()) return;
     if (contactFormEndpoint) {
       setStatus("sending");
@@ -80,6 +89,7 @@ export default function ContactForm() {
         onChange={set(key)}
         aria-invalid={Boolean(errors[key])}
         aria-describedby={errors[key] ? `contact-${key}-error` : undefined}
+        disabled={!channelOpen}
         {...props}
       />
       {errors[key] ? (
@@ -89,6 +99,28 @@ export default function ContactForm() {
       ) : null}
     </div>
   );
+
+  if (!channelOpen) {
+    return (
+      <div className="contact-closed" role="note">
+        <p>
+          <strong>This form is not open yet.</strong> The address this site
+          shipped with was a development placeholder, never confirmed as a
+          monitored inbox, so it has been withdrawn rather than left to lose
+          messages. The operator still needs to supply a verified contact
+          address.
+        </p>
+        <p>
+          Nothing you could type here would reach anyone today, so the fields
+          are disabled rather than pretending otherwise. In the meantime, the{" "}
+          <Link href="/faq">FAQ</Link>,{" "}
+          <Link href="/file-handling">File Handling Policy</Link> and{" "}
+          <Link href="/help">Help Center</Link> answer most questions about the
+          tools and about how data is handled.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form className="contact-form" onSubmit={onSubmit} noValidate>

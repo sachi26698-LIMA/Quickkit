@@ -8,15 +8,14 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactChannels, ownerDetail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Intellectual Property Policy",
   legalPageByHref("/intellectual-property")!.description,
   "/intellectual-property",
 );
-
-const businessEmail = contactChannels.business();
 
 export default function IntellectualPropertyPage() {
   const business = ownerDetail("businessEmail");
@@ -254,19 +253,23 @@ export default function IntellectualPropertyPage() {
       <h2 id="permission">8. Requesting permission</h2>
       <p>
         For licensing, trademark use, republication, press assets or partnership
-        enquiries, email <a href={`mailto:${businessEmail}`}>{businessEmail}</a>{" "}
-        with the subject line &ldquo;IP permission request&rdquo;, describing
-        what you want to use, where it will appear, and for how long. Tell us if
-        it is a non-commercial or educational use — those are easier to
-        accommodate.
+        enquiries, email{" "}
+        <ContactLink channel="business" subject="IP permission request" /> (or
+        use the <Link href="/contact">contact page</Link>) with the subject line
+        &ldquo;IP permission request&rdquo;, describing what you want to use,
+        where it will appear, and for how long. Tell us if it is a
+        non-commercial or educational use — those are easier to accommodate.
       </p>
       <p>
         A dedicated business or licensing inbox is{" "}
-        {business ? "configured." : null}{" "}
+        {business ? "configured." : "not yet supplied: "}
         {business ? null : (
           <OwnerPlaceholder what="a monitored business/licensing address" />
         )}{" "}
-        Until then, requests route through the general contact address.
+        Until it is, send requests through the{" "}
+        <Link href="/contact">contact page</Link>; they will reach the same
+        operator, described in the{" "}
+        <Link href="/about#operator">About page</Link>.
       </p>
 
       <h2 id="contact">9. Contact</h2>

@@ -6,7 +6,7 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactEmail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
 
 export const metadata = pageMetadata(
   "Accessibility Statement",
@@ -226,13 +226,13 @@ export default function AccessibilityPage() {
 
       <h2 id="feedback">11. Accessibility feedback</h2>
       <p>
-        If something is unusable for you, that is a bug with priority. Email{" "}
-        <a href={`mailto:${contactEmail}`}>{contactEmail}</a> with the subject
-        line &ldquo;Accessibility&rdquo;, and tell us the page, what you were
-        trying to do, and the assistive technology you use. You do not need to
-        describe your disability or provide medical information — just what
-        blocked you. We aim to acknowledge within five working days and to say
-        whether and when a fix is planned.
+        If something is unusable for you, that is a bug with priority. Use the{" "}
+        <Link href="/contact">contact page</Link> (or email <ContactLink />)
+        with the subject line &ldquo;Accessibility&rdquo;, and tell us the page,
+        what you were trying to do, and the assistive technology you use. You do
+        not need to describe your disability or provide medical information —
+        just what blocked you. We aim to acknowledge within five working days
+        and to say whether and when a fix is planned.
       </p>
       <p>
         A named accessibility contact and a formal response target are still

@@ -8,15 +8,14 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactChannels, ownerDetail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Copyright and DMCA Policy",
   legalPageByHref("/copyright")!.description,
   "/copyright",
 );
-
-const copyrightEmail = contactChannels.copyright();
 
 export default function CopyrightPage() {
   const agent = ownerDetail("copyrightEmail");
@@ -137,9 +136,10 @@ export default function CopyrightPage() {
       <h2 id="reporting">4. Reporting infringement</h2>
       <p>
         If you believe material on QUICKKIT infringes a copyright you own or
-        control, write to{" "}
-        <a href={`mailto:${copyrightEmail}`}>{copyrightEmail}</a> with the
-        subject line &ldquo;Copyright notice&rdquo; and include:
+        control, send a notice through the{" "}
+        <Link href="/contact">contact page</Link> or email{" "}
+        <ContactLink channel="copyright" subject="Copyright notice" /> with the
+        subject line &ldquo;Copyright notice&rdquo;, and include:
       </p>
       <ol>
         <li>
@@ -261,13 +261,13 @@ export default function CopyrightPage() {
 
       <h2 id="contact">9. Designated contact</h2>
       <p>
-        Copyright notices and counter-notices:{" "}
-        <a href={`mailto:${copyrightEmail}`}>{copyrightEmail}</a>. Please
-        include &ldquo;Copyright notice&rdquo; or
-        &ldquo;Counter-notification&rdquo; in the subject line so it is routed
-        correctly. General enquiries go through the{" "}
-        <Link href="/contact">contact page</Link>; brand and licensing questions
-        are covered by the{" "}
+        Copyright notices and counter-notices go to{" "}
+        <ContactLink channel="copyright" subject="Copyright notice" /> (or
+        through the <Link href="/contact">contact page</Link>). Please include
+        &ldquo;Copyright notice&rdquo; or &ldquo;Counter-notification&rdquo; in
+        the subject line so it is routed correctly. General enquiries go through
+        the <Link href="/contact">contact page</Link>; brand and licensing
+        questions are covered by the{" "}
         <Link href="/intellectual-property">Intellectual Property Policy</Link>.
       </p>
     </LegalPageShell>

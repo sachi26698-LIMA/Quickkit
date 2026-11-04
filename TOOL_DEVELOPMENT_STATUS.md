@@ -1745,10 +1745,58 @@ does leave the device.
   Both now derive the expectation from `legalPages` + `tools`, so a new page cannot silently miss the
   sitemap.
 
+### Phase 2 — final compliance audit and polish (same branch, in progress)
+
+Phase 2 audited the twelve pages against the running production build instead of rebuilding them.
+
+**Contact address withdrawn.** `hello@quickkit.in` could not be confirmed as an owner-approved,
+monitored inbox, so it is no longer published anywhere. `lib/site.ts` types `contactEmail` as
+`string | null` (derived from `ownerDetails.publicEmail`) and every page branches on it — the old
+code interpolated the address into a template literal, where a `null` renders as the literal text
+`mailto:null` and `tsc` does not object. `components/contact-link.tsx` now centralises rendering, and
+the contact form disables itself with an explicit notice when no channel exists rather than composing
+a dead address. Supplying one field restores the whole surface.
+
+**`/file-handling` was incomplete.** The tool-by-tool audit found that Image Compressor, Image Resizer
+and Image Cropper are live but had **no section** on a page that claims to cover every file-handling
+tool. Three sections were added (§12–§14, everything after renumbered to §23) using the enforced
+constants in `lib/tools/image-compress.ts`, `image-resize.ts` and `image-crop.ts`. All three were
+verified to write **no** persistent storage — page memory and blob URLs only.
+
+**Everything else checked against the build:** all 6 `localStorage` keys and both IndexedDB databases
+named in `/cookies` and `/privacy` exist with the documented caps; `document.cookie` appears nowhere;
+the only `fetch` in application code is the optional contact-form POST; fonts are `next/font/local`;
+no `<iframe>`, external script or third-party asset. The Cookie Policy describes no consent banner,
+analytics or ad feature, because none is implemented. `/contact` gained the table of contents it was
+missing (it inherited a different layout), and four anchor ids moved from `<p>` elements onto the
+`<h3>` headings that label them. All twelve routes now emit a valid lowercase `<time datetime>` —
+Next 16 serialises a JSX `dateTime` prop as `dateTime="…"`, so dates are rendered through a
+`isoDatetime()` spread.
+
+### Verification actually run (Phase 2)
+
+- `npx tsc --noEmit`, `npx eslint .`, `prettier --check` — pass.
+- `npm test` — **942 passed / 50 files** (15 in `tests/legal-pages.test.tsx`).
+- `npm run build` — pass.
+- `node scripts/check-site-links.mjs` — 53 routes, 53 × 200, 0 dead links.
+- `node scripts/audit-legal-pages.mjs` — **0 problems** across the 12 routes.
+- Ad-hoc anchor sweep — 383 distinct internal links across the 12 routes, target page **and** fragment
+  checked, **0 broken**.
+- Static a11y/heading sweep — one `<h1>` per page in `<main>`, no heading-level skips, no empty links,
+  every table captioned with column headers, no duplicate ids, `lang="en"` and a skip link present.
+- `SITE_URL` + `LAUNCH_APPROVED` scratch build — canonicals, `index, follow`, 52-URL sitemap
+  (all 12 legal routes present) and `Allow: /` robots.txt; rebuilt without them afterwards and
+  confirmed back to `noindex, nofollow`.
+- **`npm run test:e2e` — not executed. Playwright browser binaries cannot be installed in this
+  sandbox (CDN blocked, no system Chrome). No claim is made that the pages were rendered at 375, 390
+  or 430 px, or that keyboard traversal was exercised in a real browser.** Those must be run before
+  approval.
+
 ### Still open (owner decisions, not code work)
 
-Operator legal name, jurisdiction, postal address/registration (if required), four dedicated inboxes
-or acceptance of one, minimum age, hosting log retention and subprocessors, source licensing decision,
+**A verified monitored contact address** (nothing is published until one is supplied), operator legal
+name, jurisdiction, postal address/registration (if required), four dedicated inboxes or acceptance of
+one, minimum age, hosting log retention and subprocessors, source licensing decision,
 independent accessibility and security review, and legal review of liability, governing law, consumer
 carve-outs and the DMCA position. None of these are invented on any page; each appears as a marked
 placeholder or a flagged provision. Full checklist: `docs/LEGAL_PAGES.md` §7 and

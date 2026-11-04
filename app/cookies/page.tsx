@@ -6,7 +6,7 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactEmail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
 
 export const metadata = pageMetadata(
   "Cookie Policy — what QUICKKIT stores (and doesn’t)",
@@ -277,10 +277,9 @@ export default function CookiesPage() {
 
       <h2 id="contact">12. Contact</h2>
       <p>
-        Questions about this policy:{" "}
-        <a href={`mailto:${contactEmail}`}>{contactEmail}</a> or the{" "}
-        <Link href="/contact">contact page</Link>. For the broader picture of
-        what the site does with data, read the{" "}
+        Questions about this policy: use the{" "}
+        <Link href="/contact">contact page</Link>, or email <ContactLink />. For
+        the broader picture of what the site does with data, read the{" "}
         <Link href="/privacy">Privacy Policy</Link> and the{" "}
         <Link href="/file-handling">File Handling Policy</Link>.
       </p>

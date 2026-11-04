@@ -10,6 +10,7 @@ import {
 } from "../lib/legal";
 import {
   contactChannels,
+  contactEmail,
   hasOwnerDetail,
   ownerDetail,
   ownerDetails,
@@ -154,11 +155,22 @@ describe("owner-detail honesty rules", () => {
     expect(ownerDetail("legalName")).toBeUndefined();
   });
 
-  it("always resolves an inbound address for every channel", () => {
-    for (const resolve of Object.values(contactChannels)) {
-      const address = resolve();
-      expect(address).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
+  it("never publishes an unverified contact address", () => {
+    // `hello@quickkit.in` shipped as a development stand-in and was never
+    // confirmed as a monitored inbox. It must not be rendered anywhere: a
+    // published-but-dead address silently loses a visitor's message.
+    if (contactEmail === null) {
+      for (const resolve of Object.values(contactChannels)) {
+        expect(resolve()).toBeNull();
+      }
+    } else {
+      // Once the owner supplies a real address, it must still be a real one.
+      for (const resolve of Object.values(contactChannels)) {
+        expect(resolve()).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
+      }
     }
+    expect(contactEmail === null || contactEmail.includes("@")).toBe(true);
+    expect(contactEmail).not.toBe("hello@quickkit.in");
   });
 });
 
@@ -222,14 +234,18 @@ describe("rendered legal page shell", () => {
       LEGAL_LAST_UPDATED_ISO,
     );
 
-    // Table of contents entries must resolve to headings that exist.
-    const toc = container.querySelector(".legal-toc");
-    expect(toc).toBeTruthy();
-    const anchors = within(toc as HTMLElement).getAllByRole("link");
-    expect(anchors.length).toBe(legalPageByHref("/terms")!.sections.length);
-    for (const anchor of anchors) {
-      const id = anchor.getAttribute("href")!.slice(1);
-      expect(container.querySelector(`#${id}`), id).toBeTruthy();
+    // Table of contents: a desktop panel plus a mobile disclosure, each
+    // listing every section, and every entry resolving to a real heading.
+    const sectionCount = legalPageByHref("/terms")!.sections.length;
+    const tocs = container.querySelectorAll(".legal-toc");
+    expect(tocs.length).toBe(2);
+    for (const toc of Array.from(tocs)) {
+      const anchors = within(toc as HTMLElement).getAllByRole("link");
+      expect(anchors.length).toBe(sectionCount);
+      for (const anchor of anchors) {
+        const id = anchor.getAttribute("href")!.slice(1);
+        expect(container.querySelector(`#${id}`), id).toBeTruthy();
+      }
     }
 
     // Related pages exclude the current page and link to real routes.

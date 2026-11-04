@@ -7,41 +7,6 @@
 // placeholder ("Owner to supply") rather than being guessed.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Demo contact inbox shown across the site. Not a verified inbox yet —
- *  swap for the real support address before public launch. */
-export const contactEmail = "hello@quickkit.in";
-
-/**
- * Optional contact-form endpoint (e.g. Formspree, Resend, or your own API).
- * Leave empty to use the built-in fallback, which opens the visitor's email
- * app with a pre-filled message (mailto:) — no data touches a server.
- * When set, the form POSTs JSON: { name, email, subject, message }.
- */
-export const contactFormEndpoint = "";
-
-/** Demo social profiles — replace each URL with the real QUICKKIT account. */
-export const socials = [
-  {
-    label: "Instagram",
-    href: "https://instagram.com/quickkit",
-    icon: "instagram",
-  },
-  {
-    label: "Facebook",
-    href: "https://facebook.com/quickkit",
-    icon: "facebook",
-  },
-  { label: "X (Twitter)", href: "https://x.com/quickkit", icon: "x" },
-  { label: "YouTube", href: "https://youtube.com/@quickkit", icon: "youtube" },
-  { label: "GitHub", href: "https://github.com/quickkit", icon: "github" },
-  {
-    label: "LinkedIn",
-    href: "https://linkedin.com/company/quickkit",
-    icon: "linkedin",
-  },
-] as const;
-export type SocialIcon = (typeof socials)[number]["icon"];
-
 /**
  * Owner-supplied legal and organisational details.
  *
@@ -54,6 +19,8 @@ export type SocialIcon = (typeof socials)[number]["icon"];
  * `docs/LEGAL_PAGES.md` for the full checklist behind these fields.
  */
 export const ownerDetails = {
+  /** Verified, monitored public contact inbox shown on every page. */
+  publicEmail: "",
   /** Registered / trading legal name of the person or company operating QUICKKIT. */
   legalName: "",
   /** Country (and region, if relevant) whose law governs the terms. */
@@ -88,6 +55,60 @@ export function ownerDetail(key: OwnerDetailKey): string | undefined {
   const value = ownerDetails[key].trim();
   return value.length ? value : undefined;
 }
+
+/**
+ * Public contact inbox.
+ *
+ * `hello@quickkit.in` is a *demo* address that was placed in this repository
+ * during development. It has never been confirmed as a real, monitored inbox,
+ * so it is deliberately NOT published: every contact surface renders the
+ * shared "Owner to supply" marker instead of an address that might silently
+ * drop a visitor's message.
+ *
+ * Set `ownerDetails.publicEmail` (below) to a verified address and it replaces
+ * the marker everywhere at once — pages, footer-side links, contact form and
+ * the per-channel routing.
+ */
+export const contactEmail: string | null =
+  ownerDetails.publicEmail.trim() || null;
+
+/**
+ * True only when a verified public inbox has been configured. UI that would
+ * otherwise print an address must branch on this and show the owner-input
+ * placeholder when it is false.
+ */
+export const contactEmailVerified = contactEmail !== null;
+
+/**
+ * Optional contact-form endpoint (e.g. Formspree, Resend, or your own API).
+ * Leave empty to use the built-in fallback, which opens the visitor's email
+ * app with a pre-filled message (mailto:) — no data touches a server.
+ * When set, the form POSTs JSON: { name, email, subject, message }.
+ */
+export const contactFormEndpoint = "";
+
+/** Demo social profiles — replace each URL with the real QUICKKIT account. */
+export const socials = [
+  {
+    label: "Instagram",
+    href: "https://instagram.com/quickkit",
+    icon: "instagram",
+  },
+  {
+    label: "Facebook",
+    href: "https://facebook.com/quickkit",
+    icon: "facebook",
+  },
+  { label: "X (Twitter)", href: "https://x.com/quickkit", icon: "x" },
+  { label: "YouTube", href: "https://youtube.com/@quickkit", icon: "youtube" },
+  { label: "GitHub", href: "https://github.com/quickkit", icon: "github" },
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/company/quickkit",
+    icon: "linkedin",
+  },
+] as const;
+export type SocialIcon = (typeof socials)[number]["icon"];
 
 /**
  * Resolved inbound channel for a kind of request. Each channel prefers the

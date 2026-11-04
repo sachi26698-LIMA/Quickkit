@@ -8,15 +8,14 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactChannels, ownerDetail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Security Policy",
   legalPageByHref("/security")!.description,
   "/security",
 );
-
-const securityEmail = contactChannels.security();
 
 export default function SecurityPage() {
   const named = ownerDetail("securityEmail");
@@ -199,8 +198,9 @@ export default function SecurityPage() {
       <h2 id="reporting">7. Reporting a vulnerability</h2>
       <p>
         We welcome good-faith reports. Email{" "}
-        <a href={`mailto:${securityEmail}`}>{securityEmail}</a> with the subject
-        line &ldquo;Security report&rdquo;, and include:
+        <ContactLink channel="security" subject="Security report" /> (or use the{" "}
+        <Link href="/contact">contact page</Link>) with the subject line
+        &ldquo;Security report&rdquo;, and include:
       </p>
       <ul>
         <li>a description of the issue and the impact you believe it has;</li>
@@ -266,12 +266,17 @@ export default function SecurityPage() {
 
       <h2 id="contact">10. Security contact</h2>
       <p>
-        <a href={`mailto:${securityEmail}`}>{securityEmail}</a>
-        {named ? null : (
+        <ContactLink channel="security" subject="Security report" />
+        {named ? (
+          " — reported messages reach the operator directly."
+        ) : (
           <>
             {" "}
-            — this is a placeholder forward to the general contact address.{" "}
-            <OwnerPlaceholder what="a dedicated, monitored security inbox" />
+            A dedicated, monitored security inbox is{" "}
+            <OwnerPlaceholder what="a dedicated, monitored security inbox" />{" "}
+            until then, reports should go through the{" "}
+            <Link href="/contact">contact page</Link> and will be handled on a
+            best-effort basis only.
           </>
         )}
       </p>

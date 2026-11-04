@@ -8,7 +8,8 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactEmail, ownerDetail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Terms and Conditions — using QUICKKIT",
@@ -320,11 +321,11 @@ export default function TermsPage() {
         protect its intellectual property or to prevent misuse.
       </p>
       <p>
-        Before starting formal proceedings, please contact us at{" "}
-        <a href={`mailto:${contactEmail}`}>{contactEmail}</a> and give us a
-        reasonable opportunity to resolve the issue informally. This costs
-        nothing and resolves most questions. Statutory consumer rights to bring
-        a claim in your local courts are unaffected.
+        Before starting formal proceedings, please contact us through the{" "}
+        <Link href="/contact">contact page</Link> (or email <ContactLink />) and
+        give us a reasonable opportunity to resolve the issue informally. This
+        costs nothing and resolves most questions. Statutory consumer rights to
+        bring a claim in your local courts are unaffected.
       </p>
       <p className="legal-review-flag">
         <strong>Needs legal review before publication.</strong> The governing
@@ -335,12 +336,11 @@ export default function TermsPage() {
 
       <h2 id="contact">15. Contact</h2>
       <p>
-        Questions about these terms:{" "}
-        <a href={`mailto:${contactEmail}`}>{contactEmail}</a>, or use the{" "}
-        <Link href="/contact">contact page</Link>. For how data is handled see
-        the <Link href="/privacy">Privacy Policy</Link> and{" "}
-        <Link href="/file-handling">File Handling Policy</Link>; for security
-        reports see the <Link href="/security">Security Policy</Link>.
+        Questions about these terms: use the{" "}
+        <Link href="/contact">contact page</Link>, or email <ContactLink />. For
+        how data is handled see the <Link href="/privacy">Privacy Policy</Link>{" "}
+        and <Link href="/file-handling">File Handling Policy</Link>; for
+        security reports see the <Link href="/security">Security Policy</Link>.
       </p>
       <p>
         Operator:{" "}

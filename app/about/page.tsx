@@ -11,8 +11,15 @@ import CategoryIcon from "@/components/category-icon";
 import { OwnerPlaceholder } from "@/components/legal-page-shell";
 import { categoryMeta, tools, toolsByCategory } from "@/lib/catalog";
 import { pageMetadata } from "@/lib/seo";
-import { legalPageByHref } from "@/lib/legal";
-import { contactEmail, ownerDetail } from "@/lib/site";
+import {
+  LEGAL_LAST_UPDATED,
+  LEGAL_LAST_UPDATED_ISO,
+  isoDatetime,
+  legalPageByHref,
+} from "@/lib/legal";
+import ContactLink from "@/components/contact-link";
+import LegalRelated from "@/components/legal-related";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "About QUICKKIT — free browser tools",
@@ -83,13 +90,24 @@ export default function AboutPage() {
             utilities for the small jobs that interrupt a working day, built so
             the work never leaves your device.
           </p>
+          <p className="legal-updated">
+            <span className="legal-updated-pill">
+              Last updated{" "}
+              <time {...isoDatetime(LEGAL_LAST_UPDATED_ISO)}>
+                {LEGAL_LAST_UPDATED}
+              </time>
+            </span>
+            <span className="legal-updated-note">
+              Describes the current build.
+            </span>
+          </p>
         </header>
 
         <div className="legal-layout">
           <aside className="legal-sidebar" aria-label="On this page">
-            <div className="legal-toc">
-              <h2>On this page</h2>
-              <ol>
+            <div className="legal-toc legal-toc--desktop">
+              <h2 id="about-toc-title">On this page</h2>
+              <ol className="legal-toc-list" aria-labelledby="about-toc-title">
                 {sections.map((section) => (
                   <li key={section.id}>
                     <a href={`#${section.id}`}>{section.label}</a>
@@ -97,11 +115,22 @@ export default function AboutPage() {
                 ))}
               </ol>
             </div>
+            <details className="legal-toc legal-toc--mobile">
+              <summary>
+                <span>On this page — {sections.length} sections</span>
+              </summary>
+              <ol className="legal-toc-list">
+                {sections.map((section) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`}>{section.label}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
             <div className="legal-sidebar-help">
               <h2>Get in touch</h2>
               <p>
-                <a href={`mailto:${contactEmail}`}>{contactEmail}</a> ·{" "}
-                <Link href="/contact">Contact page</Link>
+                <ContactLink /> · <Link href="/contact">Contact page</Link>
               </p>
             </div>
           </aside>
@@ -329,6 +358,8 @@ export default function AboutPage() {
                 </li>
               </ul>
             </section>
+
+            <LegalRelated current="/about" />
 
             <div className="legal-backtotop">
               <a href="#main">Back to top</a>

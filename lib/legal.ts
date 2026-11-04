@@ -16,6 +16,13 @@
 export const LEGAL_LAST_UPDATED = "4 November 2026";
 export const LEGAL_LAST_UPDATED_ISO = "2026-11-04";
 
+/**
+ * `dateTime` in JSX is emitted verbatim as a camel-cased attribute in the
+ * prerendered HTML; the attribute parsers actually expect is `datetime`.
+ * Spread this over a `<time>` element so every page emits valid markup.
+ */
+export const isoDatetime = (value: string) => ({ datetime: value });
+
 export type LegalGroup = "company" | "legal" | "trust" | "tools";
 
 export type LegalPage = {
@@ -184,9 +191,9 @@ export const legalPages: LegalPage[] = [
     indexable: true,
     sections: [
       { id: "channels", label: "Where to send what" },
-      { id: "form", label: "Send a message" },
       { id: "response", label: "Response times" },
-      { id: "security", label: "Security reports" },
+      { id: "security-reports", label: "Security reports" },
+      { id: "form", label: "Send a message" },
       { id: "privacy-requests", label: "Privacy requests" },
       { id: "copyright", label: "Copyright complaints" },
       { id: "business", label: "Business enquiries" },
@@ -305,6 +312,9 @@ export const legalPages: LegalPage[] = [
       { id: "pdf-to-word", label: "PDF to Word (with optional OCR)" },
       { id: "pdf-translator", label: "PDF Translator (not implemented)" },
       { id: "image-to-image", label: "Image to Image Converter" },
+      { id: "image-compressor", label: "Image Compressor" },
+      { id: "image-resizer", label: "Image Resizer" },
+      { id: "image-cropper", label: "Image Cropper" },
       { id: "images-to-pdf", label: "Images to PDF" },
       { id: "pdf-to-image", label: "PDF to Image" },
       { id: "pdf-studio", label: "PDF Studio" },

@@ -8,15 +8,14 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactChannels, contactEmail, ownerDetail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
+import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Privacy Policy — how QUICKKIT handles data",
   legalPageByHref("/privacy")!.description,
   "/privacy",
 );
-
-const privacyEmail = contactChannels.privacy();
 
 export default function PrivacyPage() {
   const legalName = ownerDetail("legalName");
@@ -332,11 +331,12 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        Send a request to <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>{" "}
-        with the subject line &ldquo;Privacy request&rdquo;. We will acknowledge
-        it and respond within the period required by applicable law. We will not
-        charge you for a reasonable request, and we will not treat a request as
-        consent to anything.
+        Send a request through the <Link href="/contact">contact page</Link>{" "}
+        with the subject line &ldquo;Privacy request&rdquo;, or email{" "}
+        <ContactLink channel="privacy" subject="Privacy request" />. We will
+        acknowledge it and respond within the period required by applicable law.
+        We will not charge you for a reasonable request, and we will not treat a
+        request as consent to anything.
       </p>
       <p className="legal-review-flag">
         <strong>Needs legal review before publication.</strong> Formal
@@ -350,16 +350,11 @@ export default function PrivacyPage() {
 
       <h2 id="contact">14. Contact and policy updates</h2>
       <p>
-        Privacy questions and requests:{" "}
-        <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>
-        {privacyEmail !== contactEmail ? (
-          <>
-            {" "}
-            (general enquiries:{" "}
-            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>)
-          </>
-        ) : null}
-        , or the <Link href="/contact">contact page</Link>.
+        Privacy questions and requests go through the{" "}
+        <Link href="/contact">contact page</Link>, or email{" "}
+        <ContactLink channel="privacy" subject="Privacy request" /> — the same
+        route also handles general enquiries while a dedicated privacy inbox has
+        not been supplied.
       </p>
       <p>
         We will update this page before changing how data is handled — for

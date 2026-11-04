@@ -6,7 +6,7 @@ import {
   LEGAL_LAST_UPDATED_ISO,
   legalPageByHref,
 } from "@/lib/legal";
-import { contactEmail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
 
 export const metadata = pageMetadata(
   "File Handling & Data Processing Policy",
@@ -268,7 +268,66 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="images-to-pdf">12. Images to PDF</h2>
+      <h2 id="image-compressor">12. Image Compressor</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> up to 20 JPEG, PNG, WebP or AVIF images per
+          batch, 15 MB each, 24 megapixels and 8,192 px per side.
+        </li>
+        <li>
+          <strong>Processing:</strong> each image is decoded into a canvas on
+          this device, optionally downscaled to a target file size or a quality
+          level (10–100), and re-encoded. Nothing is uploaded.
+        </li>
+        <li>
+          <strong>Storage:</strong> none. Source files and results live in page
+          memory plus local blob URLs, revoked when an image is removed or the
+          tab closes. Your quality and format choices are not persisted.
+        </li>
+        <li>
+          <strong>Limits:</strong> a target size can be unattainable for some
+          images; the tool reports the closest result instead of looping
+          silently.
+        </li>
+      </ul>
+
+      <h2 id="image-resizer">13. Image Resizer</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> up to 20 images per batch, 15 MB each, 24
+          megapixels per image. Output dimensions are capped at 8,192 px per
+          side and 24 megapixels, with scaling from 5% to 400%.
+        </li>
+        <li>
+          <strong>Processing:</strong> dimensions, percentage or presets are
+          applied to a canvas in the browser and the result is re-encoded
+          locally.
+        </li>
+        <li>
+          <strong>Storage:</strong> none persistent — blob URLs only, released
+          on removal or unmount. No history is written in this tool.
+        </li>
+      </ul>
+
+      <h2 id="image-cropper">14. Image Cropper</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> up to 20 images per batch, 15 MB each, 24
+          megapixels per image; output is capped at 24 megapixels and 400% of
+          the source scale.
+        </li>
+        <li>
+          <strong>Processing:</strong> the crop rectangle and any straightening
+          are applied to a canvas in the browser. The undo/redo stack (50 steps)
+          lives in page memory and is never written to storage.
+        </li>
+        <li>
+          <strong>Storage:</strong> none. Closing the tab discards the crop
+          session.
+        </li>
+      </ul>
+
+      <h2 id="images-to-pdf">15. Images to PDF</h2>
       <ul>
         <li>
           <strong>Input:</strong> multiple images; 15 MB per image and 25 MB per
@@ -285,7 +344,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="pdf-to-image">13. PDF to Image</h2>
+      <h2 id="pdf-to-image">16. PDF to Image</h2>
       <ul>
         <li>
           <strong>Input:</strong> one PDF, 25 MB, up to 100 pages rendered per
@@ -307,7 +366,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="pdf-studio">14. PDF Studio</h2>
+      <h2 id="pdf-studio">17. PDF Studio</h2>
       <ul>
         <li>
           <strong>Input:</strong> multiple PDFs, subject to the same per-file
@@ -325,7 +384,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="qr-generator">15. QR Code Generator</h2>
+      <h2 id="qr-generator">18. QR Code Generator</h2>
       <ul>
         <li>
           <strong>Input:</strong> text you type, up to about 2,000 UTF-8 bytes.
@@ -350,7 +409,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="calculators">16. Calculators and other browser tools</h2>
+      <h2 id="calculators">19. Calculators and other browser tools</h2>
       <p>
         Word Counter, Case Converter, JSON Formatter, Password Generator and the
         calculator suite process only the text or numbers you type. They hold it
@@ -360,7 +419,7 @@ export default function FileHandlingPage() {
         other apps and extensions may be able to read.
       </p>
 
-      <h2 id="external">17. External processing dependencies</h2>
+      <h2 id="external">20. External processing dependencies</h2>
       <p>
         None of these receive your data — they are all served from this origin —
         but for completeness, the engines doing the work are:
@@ -397,7 +456,7 @@ export default function FileHandlingPage() {
         feature ships, and the tool itself must say so on screen.
       </p>
 
-      <h2 id="downloads">18. Download handling</h2>
+      <h2 id="downloads">21. Download handling</h2>
       <p>
         Downloads are created with a temporary <code>blob:</code> URL and an
         anchor element with the <code>download</code> attribute. The browser
@@ -412,7 +471,7 @@ export default function FileHandlingPage() {
         and keeps no list of files you saved.
       </p>
 
-      <h2 id="retention">19. Retention and deletion</h2>
+      <h2 id="retention">22. Retention and deletion</h2>
       <div className="legal-table-wrap">
         <table className="legal-table">
           <caption className="sr-only">
@@ -476,7 +535,7 @@ export default function FileHandlingPage() {
         <Link href="/privacy#rights">Privacy Policy §13</Link>.
       </p>
 
-      <h2 id="limitations">20. Technical limitations</h2>
+      <h2 id="limitations">23. Technical limitations</h2>
       <ul>
         <li>
           Large files can fail on low-memory devices even below the published
@@ -501,10 +560,10 @@ export default function FileHandlingPage() {
         </li>
       </ul>
       <p>
-        Questions about a specific file type or behaviour not covered here?
-        Email <a href={`mailto:${contactEmail}`}>{contactEmail}</a> or use the{" "}
-        <Link href="/contact">contact page</Link> — no need to send the file
-        itself. See also the <Link href="/security">Security Policy</Link> and{" "}
+        Questions about a specific file type or behaviour not covered here? Use
+        the <Link href="/contact">contact page</Link> or email <ContactLink /> —
+        no need to send the file itself. See also the{" "}
+        <Link href="/security">Security Policy</Link> and{" "}
         <Link href="/disclaimer">Disclaimer</Link>.
       </p>
     </LegalPageShell>

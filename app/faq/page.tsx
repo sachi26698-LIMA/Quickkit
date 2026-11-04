@@ -2,11 +2,13 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { pageMetadata } from "@/lib/seo";
 import {
-  legalPageByHref,
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
+  isoDatetime,
+  legalPageByHref,
 } from "@/lib/legal";
-import { contactEmail } from "@/lib/site";
+import ContactLink from "@/components/contact-link";
+import LegalRelated from "@/components/legal-related";
 
 export const metadata = pageMetadata(
   "Frequently Asked Questions",
@@ -210,11 +212,11 @@ const groups: Group[] = [
         q: "How do I report a bug?",
         a: (
           <>
-            Email <a href={`mailto:${contactEmail}`}>{contactEmail}</a> with the
-            tool name, what you expected, what happened, and your browser.
-            Please do not attach a private document — a description is usually
-            enough. The <Link href="/contact">contact page</Link> lists every
-            channel.
+            Send a note through the <Link href="/contact">contact page</Link>{" "}
+            (or email <ContactLink />) with the tool name, what you expected,
+            what happened, and your browser. Please do not attach a private
+            document — a description is usually enough. The{" "}
+            <Link href="/contact">contact page</Link> lists every channel.
           </>
         ),
       },
@@ -304,7 +306,7 @@ export default function FaqPage() {
           <p className="legal-updated">
             <span className="legal-updated-pill">
               Last updated{" "}
-              <time dateTime={LEGAL_LAST_UPDATED_ISO}>
+              <time {...isoDatetime(LEGAL_LAST_UPDATED_ISO)}>
                 {LEGAL_LAST_UPDATED}
               </time>
             </span>
@@ -316,9 +318,9 @@ export default function FaqPage() {
 
         <div className="legal-layout">
           <aside className="legal-sidebar" aria-label="FAQ topics">
-            <div className="legal-toc">
-              <h2>Topics</h2>
-              <ol>
+            <div className="legal-toc legal-toc--desktop">
+              <h2 id="faq-toc-title">Topics</h2>
+              <ol className="legal-toc-list" aria-labelledby="faq-toc-title">
                 {groups.map((group) => (
                   <li key={group.id}>
                     <a href={`#${group.id}`}>{group.title}</a>
@@ -326,11 +328,23 @@ export default function FaqPage() {
                 ))}
               </ol>
             </div>
+            <details className="legal-toc legal-toc--mobile">
+              <summary>
+                <span>Topics — {groups.length} groups</span>
+              </summary>
+              <ol className="legal-toc-list">
+                {groups.map((group) => (
+                  <li key={group.id}>
+                    <a href={`#${group.id}`}>{group.title}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
             <div className="legal-sidebar-help">
               <h2>Still stuck?</h2>
               <p>
-                Email <a href={`mailto:${contactEmail}`}>{contactEmail}</a> or
-                use the <Link href="/contact">contact page</Link>.
+                Use the <Link href="/contact">contact page</Link> or email{" "}
+                <ContactLink />.
               </p>
             </div>
           </aside>
@@ -354,6 +368,8 @@ export default function FaqPage() {
                 </div>
               </section>
             ))}
+
+            <LegalRelated current="/faq" />
 
             <div className="legal-backtotop">
               <a href="#main">Back to top</a>
