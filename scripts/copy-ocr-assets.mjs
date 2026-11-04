@@ -3,8 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Self-host the tesseract.js OCR engine (worker + WASM cores + language
-// data) under public/ocr so the PDF to Word tool never loads code
-// or data from a third-party CDN. Mirrors scripts/copy-pdfjs-assets.mjs.
+// data) under public/ocr so the browser OCR tools (Image to Text and PDF to
+// Word) never load code or data from a third-party CDN, and never send a
+// document to a remote OCR service. Mirrors scripts/copy-pdfjs-assets.mjs.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const destinationRoot = path.join(root, "public", "ocr");
 
@@ -17,9 +18,11 @@ const workerSource = path.join(
 );
 const coreRoot = path.join(root, "node_modules", "tesseract.js-core");
 // OCR languages shipped on-device. Keep in sync with OCR_LANGUAGES in
-// lib/tools/pdf-to-word/types.ts. Only the chosen language's data file is
-// ever downloaded by the browser.
-const LANGUAGES = ["eng", "hin", "guj"];
+// lib/tools/pdf-to-word/types.ts (PDF to Word uses eng/hin/guj) and with
+// OCR_LANGUAGES in lib/tools/image-to-text/types.ts (Image to Text ships all
+// eight). Only the chosen language's data file is ever downloaded by the
+// browser, and only when that language is actually used.
+const LANGUAGES = ["eng", "hin", "guj", "mar", "ben", "tam", "tel", "urd"];
 const langSources = LANGUAGES.map((lang) => ({
   lang,
   source: path.join(

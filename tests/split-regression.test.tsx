@@ -87,7 +87,7 @@ describe("cross-tool regression: the four split tools", () => {
   });
 
   it("keep the catalogue counts consistent across every view", () => {
-    expect(tools).toHaveLength(28);
+    expect(tools).toHaveLength(29);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("PDF Tools")).toHaveLength(7);
 
@@ -163,7 +163,8 @@ describe("cross-tool regression: the four split tools", () => {
     const { default: approvedSitemap } = await import("@/app/sitemap");
 
     const routes = approvedSitemap().map((entry) => entry.url);
-    expect(routes.length, "sitemap is actually populated").toBe(46);
+    // 10 core routes + 8 category pages + one entry per live tool.
+    expect(routes.length, "sitemap is actually populated").toBe(47);
     expect(routes.some((url) => url.includes(RETIRED))).toBe(false);
     for (const slug of SPLIT_TOOLS) {
       expect(
