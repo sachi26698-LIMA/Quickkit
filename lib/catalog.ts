@@ -132,7 +132,7 @@ export const tools = [
     description:
       "Turn photos, screenshots, receipts and scanned PDFs into editable text — English, Hindi, Gujarati, Marathi, Bengali, Tamil, Telugu and Urdu, read on your device.",
     keywords:
-      "ocr image to text text from image extract text scan scanned document photo screenshot receipt invoice handwriting handwritten notes table extraction columns structured data key value form pdf copy paste editable txt docx doc csv json english hindi gujarati marathi bengali tamil telugu urdu devanagari multi language detect language confidence batch rotate crop deskew enhance privacy offline local",
+      "ocr image to text text from image extract text scan scanned document photo screenshot receipt invoice handwriting handwritten notes table extraction columns structured data key value form copy paste editable english hindi gujarati marathi bengali tamil telugu urdu devanagari multi language detect language confidence batch rotate crop deskew enhance privacy offline local",
     icon: "ocr",
     color: "rose",
     phase: 7,

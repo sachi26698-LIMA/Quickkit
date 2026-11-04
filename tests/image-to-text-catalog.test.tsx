@@ -79,6 +79,22 @@ describe("catalogue entry", () => {
     }
   });
 
+  it("does not hijack searches for other tools by naming their formats", () => {
+    // The tool can export JSON and CSV, but listing those words as keywords made
+    // "json" return two tools and broke the global search spec. Discovery
+    // phrases must stay, output formats must not be borrowed as keywords.
+    for (const query of ["json", "csv", "docx"]) {
+      const slugs = filterTools(query, "All tools").map((tool) => tool.slug);
+      expect(slugs, `"${query}" belongs to another tool`).not.toContain(SLUG);
+    }
+    // ...while its own vocabulary still works.
+    for (const query of ["ocr", "extract", "handwriting"]) {
+      expect(filterTools(query, "All tools").map((t) => t.slug)).toContain(
+        SLUG,
+      );
+    }
+  });
+
   it("suggests its own category first, then fills from the catalogue", () => {
     const related = relatedTools(toolBySlug(SLUG)!);
     expect(related).toHaveLength(3);
