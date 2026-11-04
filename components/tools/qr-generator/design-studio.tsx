@@ -5,7 +5,16 @@
  * scene model that the preview, the exports and the decoder all read from.
  */
 import { useRef, useState } from "react";
-import { Eraser, ImagePlus, Lock, SwatchBook, X } from "lucide-react";
+import {
+  Eraser,
+  Eye,
+  Frame,
+  ImagePlus,
+  Lock,
+  Palette,
+  SwatchBook,
+  X,
+} from "lucide-react";
 import {
   DOT_STYLES,
   EYE_STYLES,
@@ -15,11 +24,13 @@ import {
   effectiveContrast,
 } from "@/lib/tools/qr/style";
 import { logoOpacity } from "@/lib/tools/qr/logo";
-import type {
-  QrDotStyle,
-  QrEyeStyle,
-  QrFill,
-  QrFillKind,
+import {
+  FRAME_PRESET_TEXT,
+  type QrDotStyle,
+  type QrEyeStyle,
+  type QrFill,
+  type QrFillKind,
+  type QrFrameStyle,
 } from "@/lib/tools/qr/types";
 import {
   QrChoice,
@@ -202,14 +213,35 @@ function FillEditor({
   );
 }
 
-type DesignTab = "colours" | "pattern" | "corners" | "logo" | "templates";
+type DesignTab =
+  "colours" | "pattern" | "corners" | "logo" | "frame" | "templates";
 
 const DESIGN_TABS: { id: DesignTab; label: string }[] = [
   { id: "colours", label: "Colours" },
   { id: "pattern", label: "Pattern" },
   { id: "corners", label: "Corners" },
   { id: "logo", label: "Logo" },
+  { id: "frame", label: "Frame" },
   { id: "templates", label: "Templates" },
+];
+
+/** Brand palette quick-picks (Phase I) — fg on a light field. */
+const BRAND_SWATCHES = [
+  { name: "Deep Plum", fg: "#3b1b4f", bg: "#ffffff" },
+  { name: "Rose on blush", fg: "#d6598f", bg: "#fdf3f6" },
+  { name: "Coral on cream", fg: "#ff6b6b", bg: "#fff7f2" },
+  { name: "Midnight", fg: "#1a0f2e", bg: "#f4d7d4" },
+  { name: "Plum → rose", fg: "#3b1b4f", bg: "#ffffff", accent: "#d6598f" },
+];
+
+const FRAME_OPTIONS: { id: QrFrameStyle; label: string }[] = [
+  { id: "none", label: "None" },
+  { id: "scan", label: "Scan Me" },
+  { id: "menu", label: "Menu" },
+  { id: "follow", label: "Follow Us" },
+  { id: "contact", label: "Contact" },
+  { id: "visit", label: "Visit" },
+  { id: "custom", label: "Custom" },
 ];
 
 /** One tab of the design card. Only the selected panel is in the DOM. */
@@ -380,6 +412,97 @@ export default function DesignStudio({ studio }: { studio: QrStudio }) {
               </span>
               {swatch.name}
             </button>
+          ))}
+        </div>
+
+        <h4 className="qr-subhead">
+          <Palette size={14} aria-hidden="true" /> QUICKKIT brand palette
+        </h4>
+        <div className="qr-swatches">
+          {BRAND_SWATCHES.map((swatch) => (
+            <button
+              key={swatch.name}
+              type="button"
+              className="qr-swatch"
+              onClick={() =>
+                patchDesign({
+                  fg: {
+                    kind: swatch.accent ? "linear" : "solid",
+                    base: swatch.fg,
+                    accent: swatch.accent ?? swatch.fg,
+                    angle: 135,
+                  },
+                  bg: {
+                    kind: "solid",
+                    base: swatch.bg,
+                    accent: swatch.bg,
+                    angle: 0,
+                  },
+                })
+              }
+              title={`Apply ${swatch.name}`}
+              aria-label={`Apply ${swatch.name} brand palette`}
+            >
+              <span style={{ background: swatch.bg }}>
+                <span
+                  style={{
+                    background: swatch.accent
+                      ? `linear-gradient(135deg, ${swatch.fg}, ${swatch.accent})`
+                      : swatch.fg,
+                  }}
+                />
+              </span>
+              {swatch.name}
+            </button>
+          ))}
+        </div>
+
+        <h4 className="qr-subhead">
+          <Eye size={14} aria-hidden="true" /> Finder (eye) colours
+        </h4>
+        <p className="qr-panel-note">
+          Tint the three corner finders independently of the modules. Keep them
+          dark against a light field — scanners lock onto the finders first.
+        </p>
+        <div className="qr-eye-grid">
+          {(
+            [
+              ["eyeFrame", "Ring", design.eyeFrame],
+              ["eyeBall", "Centre", design.eyeBall],
+            ] as const
+          ).map(([key, label, fill]) => (
+            <div key={key} className="qr-eye-item">
+              <QrToggle
+                id={`qr-${key}-on`}
+                label={`${label} override`}
+                checked={fill !== null}
+                onChange={(on) =>
+                  patchDesign({
+                    [key]: on
+                      ? {
+                          kind: "solid",
+                          base: design.fg.base,
+                          accent: design.fg.base,
+                          angle: 0,
+                        }
+                      : null,
+                  })
+                }
+              />
+              {fill && (
+                <QrColorInput
+                  id={`qr-${key}-color`}
+                  label={`${label} colour`}
+                  hideLabel
+                  value={fill.base}
+                  onChange={(base) =>
+                    patchDesign({
+                      [key]: { ...fill, kind: "solid", base, accent: base },
+                    })
+                  }
+                />
+              )}
+            </div>
           ))}
         </div>
       </DesignPanel>
@@ -574,6 +697,30 @@ export default function DesignStudio({ studio }: { studio: QrStudio }) {
                   patchDesign({ logo: { ...design.logo, halo } })
                 }
               />
+              <div className="qr-logo-bg">
+                <QrToggle
+                  id="qr-logo-bg-on"
+                  label="Custom halo colour"
+                  hint="Paint the backing behind the logo in a colour you choose instead of the field."
+                  checked={design.logo.bg !== null}
+                  onChange={(on) =>
+                    patchDesign({
+                      logo: { ...design.logo, bg: on ? "#ffffff" : null },
+                    })
+                  }
+                />
+                {design.logo.bg !== null && (
+                  <QrColorInput
+                    id="qr-logo-bg-color"
+                    label="Halo colour"
+                    hideLabel
+                    value={design.logo.bg}
+                    onChange={(bg) =>
+                      patchDesign({ logo: { ...design.logo, bg } })
+                    }
+                  />
+                )}
+              </div>
               <p className="qr-logo-note">
                 <Lock size={13} aria-hidden="true" /> Error correction is forced
                 to Q or H while a logo is present — that redundancy is what the
@@ -588,6 +735,82 @@ export default function DesignStudio({ studio }: { studio: QrStudio }) {
               <ImagePlus size={14} /> Replace image
             </button>
           </div>
+        )}
+      </DesignPanel>
+
+      <DesignPanel id="frame" active={tab === "frame"} label="Frame and label">
+        <p className="qr-panel-note">
+          <Frame size={13} aria-hidden="true" /> Wrap the code in a branded
+          border with a call-to-action banner. The symbol keeps its quiet zone —
+          every framed design is decode-verified before export.
+        </p>
+        <QrChoice
+          legend="Frame style"
+          value={design.frame.style}
+          columns={4}
+          onChange={(style) =>
+            patchDesign({
+              frame: {
+                ...design.frame,
+                style,
+                // Presets carry their own label; custom keeps what you typed.
+                text:
+                  style === "custom" || style === "none"
+                    ? design.frame.text
+                    : FRAME_PRESET_TEXT[style],
+              },
+            })
+          }
+          options={FRAME_OPTIONS}
+        />
+        {design.frame.style !== "none" && (
+          <>
+            <div className="qr-field">
+              <label htmlFor="qr-frame-text">Banner text</label>
+              <input
+                id="qr-frame-text"
+                type="text"
+                className="qr-input"
+                value={design.frame.text}
+                maxLength={40}
+                placeholder="SCAN ME"
+                onChange={(event) =>
+                  patchDesign({
+                    frame: {
+                      ...design.frame,
+                      text: event.target.value,
+                      style:
+                        design.frame.style === "custom"
+                          ? "custom"
+                          : design.frame.style,
+                    },
+                  })
+                }
+              />
+              <p className="qr-field-hint">
+                Uppercase lettering, auto-fitted to the banner.{" "}
+                {design.frame.text.length}/40
+              </p>
+            </div>
+            <div className="qr-fill-grid">
+              <QrColorInput
+                id="qr-frame-fg"
+                label="Border & text"
+                value={design.frame.fg}
+                onChange={(fg) =>
+                  patchDesign({ frame: { ...design.frame, fg } })
+                }
+              />
+              <QrColorInput
+                id="qr-frame-bg"
+                label="Banner fill"
+                value={design.frame.bg}
+                onChange={(bg) =>
+                  patchDesign({ frame: { ...design.frame, bg } })
+                }
+              />
+            </div>
+          </>
         )}
       </DesignPanel>
 

@@ -789,11 +789,10 @@ export function useQrStudio() {
         const matrix = createMatrix(payloadResult.payload, design.errorLevel, {
           boost: design.boost,
         });
-        const bitmap = rasterizeScene(
-          buildScene(matrix, { ...design, size }, logo),
-        );
+        const scene = buildScene(matrix, { ...design, size }, logo);
+        const bitmap = rasterizeScene(scene);
         const check = verifyBitmap(bitmap, payloadResult.payload, {
-          totalModules: matrix.size + design.margin * 2,
+          totalModules: Math.round(scene.size / scene.modulePx),
         });
         results.push({
           size,

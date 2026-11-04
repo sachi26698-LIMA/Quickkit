@@ -1,6 +1,6 @@
 {
-  "generated": "2026-11-04T02:39:22.165Z",
-  "count": 38,
+  "generated": "2026-11-04T03:04:41.121Z",
+  "count": 44,
   "report": [
     {
       "name": "content-url",
@@ -80,7 +80,7 @@
       "typeId": "event",
       "bytes": 329,
       "version": 13,
-      "decoded": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//QUICKKIT//QR Code Generator//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\nUID:quickkit-20261104T023920Z-b1x6jovz@quickkit\r\nDTSTAMP:20261104T023920Z\r\nDTSTART:20261201T183000\r\nDTEND:20261201T210000\r\nSUMMARY:Quickkit launch party\r\nLOCATION:Rooftop\\, Bandra\r\nEND:VEVENT\r\nEND:VCALENDAR"
+      "decoded": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//QUICKKIT//QR Code Generator//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\nUID:quickkit-20261104T030439Z-wnvw3q1g@quickkit\r\nDTSTAMP:20261104T030439Z\r\nDTSTART:20261201T183000\r\nDTEND:20261201T210000\r\nSUMMARY:Quickkit launch party\r\nLOCATION:Rooftop\\, Bandra\r\nEND:VEVENT\r\nEND:VCALENDAR"
     },
     {
       "name": "content-social",
@@ -294,6 +294,36 @@
       "templateId": "listing-ink",
       "category": "realestate",
       "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "design-frame-scan",
+      "kind": "design",
+      "decoded": "https://quickkit.tools/?src=design-evidence"
+    },
+    {
+      "name": "design-frame-menu",
+      "kind": "design",
+      "decoded": "https://quickkit.tools/?src=design-evidence"
+    },
+    {
+      "name": "design-frame-follow",
+      "kind": "design",
+      "decoded": "https://quickkit.tools/?src=design-evidence"
+    },
+    {
+      "name": "design-frame-custom",
+      "kind": "design",
+      "decoded": "https://quickkit.tools/?src=design-evidence"
+    },
+    {
+      "name": "design-eye-colours",
+      "kind": "design",
+      "decoded": "https://quickkit.tools/?src=design-evidence"
+    },
+    {
+      "name": "design-frame-logo",
+      "kind": "design",
+      "decoded": "https://quickkit.tools/?src=design-evidence"
     }
   ]
 }

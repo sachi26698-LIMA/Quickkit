@@ -619,7 +619,7 @@ the updated Sections 4–5 above.
 
 ---
 
-## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 1: Phases B + C implemented)
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D implemented)
 
 Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
 creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
@@ -642,17 +642,39 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
 - Brand palette (Deep Plum / Rose / Coral / Midnight / Blush) applied to templates + gallery on the
   existing light theme; page structure unchanged.
 
-**Verification:** `tsc`/ESLint/Prettier clean; unit suite **682 passed / 39 files** (was 594/37);
-every content type and all 55 templates decoded by jsQR to the exact payload; production build clean
-with `/tools/qr-generator` static; dev preview live on port 3000; 38 decode-verified PNG artifacts +
-report in `docs/qr-studio-v3/evidence/`. Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
+**Stage 2 — Phase D (frames, labels, eye colours, brand palettes, logo background) implemented and verified:**
 
-**Honest limitations this stage:** frames/label rendering deferred to Phase D (no fake frame
-previews); browser screenshots blocked by the sandbox network policy (Chromium CDN + Debian repos
-unreachable) — live preview + engine-rendered QR evidence provided instead; Smart Link remains static
-only (no backend, no dynamic editing/analytics claimed).
+- **Frames + stroke-font labels:** six presets (Scan Me / Menu / Follow Us / Contact / Visit) plus a
+  custom-text frame. A rounded plum border + bottom call-to-action banner are drawn *outside* the
+  symbol's quiet zone; the label uses a new built-in single-stroke font (`lib/tools/qr/font.ts`, pure
+  polyline geometry shared by the rasterizer, SVG and tests — no canvas, no network font), uppercased
+  and auto-fitted to the banner. The square symbol shrinks into a code region above the banner and the
+  logo re-centres on it. New `line` shape rendered analytically in the rasterizer and as round-cap
+  `<line>` strokes in SVG. Every framed design is decode-verified before export.
+- **Independent finder colours:** optional `eyeFrame` / `eyeBall` fill overrides (ring + centre) with
+  toggles + HEX pickers in the Colours fold; the safety audit blocks/cautions a finder colour that
+  loses contrast against the field, since scanners lock onto the finders first.
+- **Brand palette quick-picks:** Deep Plum / Rose on blush / Coral on cream / Midnight / Plum→rose
+  gradient swatches in the Colours fold (Phase I palette applied to the studio, not just templates).
+- **Logo background colour:** optional halo-colour override (`logo.bg`) with a toggle + HEX picker in
+  the Logo fold; defaults to the field colour as before.
+- Frame / eye / logo-bg state is clamped from untrusted input (`readFrame`, `readOptionalFill`),
+  carried in share links, and preserved by presets/history. The design card now has six folds
+  (Colours / Pattern / Corners / Logo / Frame / Templates).
 
-**Remaining:** Phase D (frames, eye colours, palettes), F (DPI, print sheet, layout PDFs), G (bulk
+**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **703 passed / 39 files**
+(was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six new framed /
+eye-colour / logo designs decoded by jsQR to the exact payload; production build clean with
+`/tools/qr-generator` static; dev preview live on port 3000; **44 decode-verified PNG artifacts** +
+report in `docs/qr-studio-v3/evidence/` (regenerate: `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs
+run tests/qr-v3-evidence.test.ts`). Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
+
+**Honest limitations this stage:** browser screenshots blocked by the sandbox network policy (Chromium
+CDN + Debian repos unreachable) — live preview + engine-rendered QR evidence provided instead; Smart
+Link remains static only (no backend, no dynamic editing/analytics claimed). The calendar-event sample
+embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is regenerated each time (still decoded).
+
+**Remaining:** F (DPI metadata, custom-px export, A4 print sheet, layout PDFs), G (bulk
 retry/preview/per-row type), H (history/preset rename/duplicate/export/import), E (static landing-page
 builder), J (browser e2e + screenshots). **Not merged, not deployed — awaiting owner approval.**
 

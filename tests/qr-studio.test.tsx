@@ -422,9 +422,9 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
     ).toBe("Download");
   });
 
-  it("splits the workspace into four tabs and the design card into five", () => {
+  it("splits the workspace into four tabs and the design card into six", () => {
     render(<QrGenerator />);
-    expect(screen.getAllByRole("tab")).toHaveLength(9);
+    expect(screen.getAllByRole("tab")).toHaveLength(10);
     for (const name of [/Create QR/, /Bulk \(CSV\)/, /^History/, /^Presets/])
       expect(screen.getByRole("tab", { name })).toBeInTheDocument();
     for (const name of [
@@ -432,6 +432,7 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
       /^Pattern/,
       /^Corners/,
       /^Logo/,
+      /^Frame/,
       /^Templates/,
     ])
       expect(screen.getByRole("tab", { name })).toBeInTheDocument();
@@ -525,4 +526,63 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
     );
     expect(screen.getByText(/left alone/i)).toBeInTheDocument();
   });
+});
+
+describe("qr studio — V3 design controls (frame, finder colours)", () => {
+  it(
+    "applies a labelled frame from the Frame tab and stays verified",
+    async () => {
+      render(<QrGenerator />);
+      fireEvent.click(screen.getByRole("button", { name: "512 px" }));
+      typeUrl("https://example.com/menu");
+      await settle();
+      openDesignTab("Frame");
+      const group = screen.getByRole("group", { name: "Frame style" });
+      fireEvent.click(within(group).getByRole("button", { name: "Scan Me" }));
+      expect(screen.getByLabelText("Banner text")).toHaveValue("SCAN ME");
+      await settle();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "custom frame text is editable and re-verifies",
+    async () => {
+      render(<QrGenerator />);
+      fireEvent.click(screen.getByRole("button", { name: "512 px" }));
+      typeUrl("https://example.com");
+      await settle();
+      openDesignTab("Frame");
+      fireEvent.click(
+        within(screen.getByRole("group", { name: "Frame style" })).getByRole(
+          "button",
+          { name: "Custom" },
+        ),
+      );
+      const input = screen.getByLabelText("Banner text");
+      fireEvent.change(input, { target: { value: "ORDER HERE" } });
+      expect(input).toHaveValue("ORDER HERE");
+      await settle();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "enables an independent finder colour from the Colours tab",
+    async () => {
+      render(<QrGenerator />);
+      typeUrl("https://example.com");
+      await settle();
+      openDesignTab("Colours");
+      fireEvent.click(screen.getByLabelText("Ring override"));
+      expect(
+        screen.getByLabelText("Ring colour hex value"),
+      ).toBeInTheDocument();
+      await settle();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
 });

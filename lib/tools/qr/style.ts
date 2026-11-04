@@ -129,8 +129,53 @@ export function defaultDesign(): QrDesign {
       padding: 0.6,
       shape: "rounded",
       halo: true,
+      bg: null,
     },
+    frame: { style: "none", text: "", fg: "#3b1b4f", bg: "#f4d7d4" },
+    eyeFrame: null,
+    eyeBall: null,
   };
+}
+
+/** Read a frame from untrusted input, falling back to the default. */
+export function readFrame(input: unknown, fallback: QrDesign["frame"]) {
+  if (!input || typeof input !== "object") return { ...fallback };
+  const raw = input as Record<string, unknown>;
+  const styles = [
+    "none",
+    "scan",
+    "menu",
+    "follow",
+    "contact",
+    "visit",
+    "custom",
+  ];
+  const style = styles.includes(String(raw.style))
+    ? (raw.style as QrDesign["frame"]["style"])
+    : fallback.style;
+  return {
+    style,
+    text: String(raw.text ?? fallback.text).slice(0, 40),
+    fg: isHexColor(String(raw.fg ?? ""))
+      ? normalizeHex(String(raw.fg))
+      : fallback.fg,
+    bg: isHexColor(String(raw.bg ?? ""))
+      ? normalizeHex(String(raw.bg))
+      : fallback.bg,
+  };
+}
+
+/** Read an optional fill override (eye colours). null/absent stays null. */
+export function readOptionalFill(input: unknown): QrFill | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  if (!isHexColor(String(raw.base ?? ""))) return null;
+  return readFill(raw, {
+    kind: "solid",
+    base: "#3b1b4f",
+    accent: "#3b1b4f",
+    angle: 0,
+  });
 }
 
 export type DesignAdjustment = { field: string; message: string };
@@ -272,7 +317,14 @@ export function clampDesign(
         : base.logo.shape,
       halo:
         raw.logo?.halo === undefined ? base.logo.halo : Boolean(raw.logo.halo),
+      bg:
+        raw.logo?.bg && isHexColor(String(raw.logo.bg))
+          ? normalizeHex(String(raw.logo.bg))
+          : null,
     },
+    frame: readFrame(raw.frame, base.frame),
+    eyeFrame: readOptionalFill(raw.eyeFrame),
+    eyeBall: readOptionalFill(raw.eyeBall),
   };
   return { design, adjustments };
 }

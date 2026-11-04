@@ -106,8 +106,7 @@ describe("styled rendering stays scannable", () => {
         `${template.id}: ${out.verification?.message}`,
       ).toBe(true);
     }
-  }, // 55 templates, each rendered at full size and decoded by jsQR.
-  120_000);
+  }, 120_000); // 55 templates, each rendered at full size and decoded by jsQR.
 
   it("supports gradients, margins and invert", async () => {
     const gradient = await render({
@@ -278,5 +277,99 @@ describe("bitmap helpers", () => {
     expect([...flat.rgba.slice(0, 4)]).toEqual([255, 255, 255, 255]);
     // 50 % alpha red over white → (255, 127, 127)
     expect([...flat.rgba.slice(4, 8)]).toEqual([255, 127, 127, 255]);
+  });
+});
+
+describe("V3 frames, eye colours and logo background stay scannable", () => {
+  const frame = (style: string, text = "") => ({
+    style,
+    text,
+    fg: "#3b1b4f",
+    bg: "#f4d7d4",
+  });
+
+  for (const style of ["scan", "menu", "follow", "contact", "visit"]) {
+    it(`frame "${style}" renders a label and still decodes`, async () => {
+      const out = await render({ frame: frame(style) as never, size: 512 });
+      expect(out.verification?.ok, out.verification?.message).toBe(true);
+      expect(out.verification?.decoded).toBe(PAYLOAD);
+      // The banner text is real geometry in the scene.
+      expect(out.scene.shapes.some((s) => s.type === "line")).toBe(true);
+    }, 30_000);
+  }
+
+  it("custom frame text auto-fits a long label and decodes", async () => {
+    const out = await render({
+      frame: frame("custom", "SCAN FOR THE FULL AUTUMN MENU & OFFERS") as never,
+      size: 512,
+    });
+    expect(out.verification?.ok, out.verification?.message).toBe(true);
+  }, 30_000);
+
+  it("independent eye colours decode", async () => {
+    const out = await render({
+      eyeFrame: { kind: "solid", base: "#b93a73", accent: "#b93a73", angle: 0 },
+      eyeBall: { kind: "solid", base: "#3b1b4f", accent: "#3b1b4f", angle: 0 },
+      size: 512,
+    });
+    expect(out.verification?.ok, out.verification?.message).toBe(true);
+  }, 30_000);
+
+  it("a logo with an explicit background colour decodes", async () => {
+    const out = await render(
+      {
+        size: 512,
+        errorLevel: "H",
+        logo: { ...defaultDesign().logo, scale: 0.2, bg: "#ffffff" },
+      },
+      { logo: syntheticLogo() },
+    );
+    expect(out.verification?.ok, out.verification?.message).toBe(true);
+  }, 30_000);
+
+  it("frame + logo together decode", async () => {
+    const out = await render(
+      {
+        frame: frame("scan") as never,
+        size: 640,
+        errorLevel: "H",
+        logo: { ...defaultDesign().logo, scale: 0.16 },
+      },
+      { logo: syntheticLogo() },
+    );
+    expect(out.verification?.ok, out.verification?.message).toBe(true);
+  }, 30_000);
+
+  it("a framed transparent PNG decodes once flattened", async () => {
+    const out = await render({
+      frame: frame("menu") as never,
+      transparent: true,
+      size: 512,
+    });
+    expect(out.verification?.ok, out.verification?.message).toBe(true);
+  }, 30_000);
+
+  it("the SVG carries the frame label as stroke geometry", async () => {
+    const { sceneToSvg } = await import("../lib/tools/qr/svg");
+    const matrix = createMatrix(PAYLOAD, "M", { boost: true });
+    const design = {
+      ...defaultDesign(),
+      frame: frame("scan") as never,
+      size: 512,
+    };
+    const svg = await sceneToSvg(buildScene(matrix, design, null));
+    expect(svg).toContain("<line");
+    expect(svg).toContain('stroke-linecap="round"');
+  });
+
+  it("a near-invisible finder colour is flagged by the safety audit", async () => {
+    const { analyzeScannability } = await import("../lib/tools/qr/safety");
+    const matrix = createMatrix(PAYLOAD, "M", { boost: true });
+    const design = {
+      ...defaultDesign(),
+      eyeFrame: { kind: "solid", base: "#f2f2f2", accent: "#f2f2f2", angle: 0 },
+    } as QrDesign;
+    const report = analyzeScannability(design, matrix, { hasLogo: false });
+    expect(report.findings.some((f) => f.field === "eyeFrame")).toBe(true);
   });
 });

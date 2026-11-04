@@ -11647,6 +11647,47 @@ select:focus {
   padding: 9px 11px;
 }
 
+/* V3 design controls: sub-heads, eye colours, logo halo, frame ------------ */
+.qr-subhead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 18px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #3b1b4f;
+}
+.qr-subhead svg {
+  color: #d6598f;
+}
+.qr-eye-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.qr-eye-item {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fdfbff;
+}
+.qr-logo-bg {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed #e8e0fa;
+}
+.qr-field-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6f6787;
+}
+
 /* Templates ------------------------------------------------------------- */
 .qr-template-grid {
   display: grid;
