@@ -166,13 +166,7 @@ export async function processPdf(
       if (contents instanceof PDFArray)
         contents.insert(0, pdf.context.register(stream));
     }
-    if (
-      font &&
-      (overlaySet.has(indices[index]) ||
-        "header" in overrides ||
-        "footer" in overrides ||
-        "numbering" in overrides)
-    ) {
+    if (font) {
       const draw = (text: string, y: number) => {
         if (!text) return;
         const textWidth = font.widthOfTextAtSize(text, v.fontSize);
@@ -194,11 +188,14 @@ export async function processPdf(
           color: color(v.color),
         });
       };
-      draw(v.header, height - 22);
-      draw(v.footer, 18);
+      if (overlaySet.has(indices[index]) || "header" in overrides)
+        draw(v.header, height - 22);
+      if (overlaySet.has(indices[index]) || "footer" in overrides)
+        draw(v.footer, 18);
       if (
         v.numbering &&
-        numbered.has(index) &&
+        (overlaySet.has(indices[index]) || "numbering" in overrides) &&
+        (numbered.has(index) || "numbering" in overrides) &&
         !(v.skipFirstNumber && index === 0)
       )
         draw(

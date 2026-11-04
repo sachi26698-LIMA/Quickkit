@@ -243,9 +243,9 @@ test("V2 mocked native base: live local editing, exact exports, search and compa
   await expect(
     page.getByRole("img", { name: "Before PDF page 2", exact: true }),
   ).toBeVisible();
-  await mkdir("docs/word-to-pdf/v2", { recursive: true });
+  await mkdir("test-results/word-to-pdf-v2", { recursive: true });
   await page.screenshot({
-    path: "docs/word-to-pdf/v2/before-after-mocked-engine.png",
+    path: "test-results/word-to-pdf-v2/before-after-mocked-engine.png",
     fullPage: true,
     animations: "disabled",
   });
@@ -256,7 +256,7 @@ test("V2 mocked native base: live local editing, exact exports, search and compa
     page.getByText("Original DOCX review notes", { exact: true }),
   ).toBeVisible();
   await page.screenshot({
-    path: "docs/word-to-pdf/v2/docx-comparison-mocked-engine.png",
+    path: "test-results/word-to-pdf-v2/docx-comparison-mocked-engine.png",
     fullPage: true,
     animations: "disabled",
   });
@@ -291,10 +291,10 @@ test("V2 mocked native base: live local editing, exact exports, search and compa
   });
   const a11y = await new AxeBuilder({ page }).analyze();
   expect(a11y.violations).toEqual([]);
-  await mkdir("docs/word-to-pdf/v2", { recursive: true });
+  await mkdir("test-results/word-to-pdf-v2", { recursive: true });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
-    path: "docs/word-to-pdf/v2/desktop-live-mocked-engine.png",
+    path: "test-results/word-to-pdf-v2/desktop-live-mocked-engine.png",
     fullPage: true,
     animations: "disabled",
   });
@@ -317,7 +317,7 @@ test("V2 mocked native base: live local editing, exact exports, search and compa
   const mobileA11y = await new AxeBuilder({ page }).analyze();
   expect(mobileA11y.violations).toEqual([]);
   await page.screenshot({
-    path: "docs/word-to-pdf/v2/mobile-live-mocked-engine.png",
+    path: "test-results/word-to-pdf-v2/mobile-live-mocked-engine.png",
     fullPage: false,
     animations: "disabled",
   });
@@ -458,7 +458,7 @@ test("V2 queue replacement/reorder and settings undo/reset stay on the existing 
     .getByRole("button", { name: "Toggle settings panel", exact: true })
     .click();
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const name of ["Settings", "Preview", "Files"]) {
+  for (const name of ["Edit", "Preview", "Files"]) {
     await page
       .getByRole("navigation", { name: "Workspace panels" })
       .getByRole("button", { name, exact: true })

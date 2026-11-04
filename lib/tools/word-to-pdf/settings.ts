@@ -422,12 +422,25 @@ export function decodeWatermark(
     );
   return { bytes, type };
 }
-/** Base-mode native requests never need local page plans or image bytes. */
+/** Base-mode requests send only native rendering options, never local overlays/assets/plans/metadata. */
 export function nativeRequestSettings(s: Settings): Settings {
   return {
-    ...s,
-    visualPlan: null,
-    imageWatermark: "",
-    imageWatermarkEnabled: false,
+    ...defaults,
+    paper: s.layoutScope === "all" ? s.paper : "Original",
+    landscape: s.landscape,
+    width: s.width,
+    height: s.height,
+    margins: s.layoutScope === "all" && s.margins,
+    top: s.top,
+    right: s.right,
+    bottom: s.bottom,
+    left: s.left,
+    layoutScope: s.layoutScope,
+    quality: s.quality,
+    compression: s.compression,
+    jpegQuality: s.jpegQuality,
+    preserveResolution: s.preserveResolution,
+    imageDpi: s.imageDpi,
+    tagged: s.tagged,
   };
 }

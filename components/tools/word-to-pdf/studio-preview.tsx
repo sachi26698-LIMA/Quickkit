@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
@@ -14,108 +13,13 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import {
-  openPdfPreview,
-  type PdfPreviewHandle,
-} from "@/lib/tools/pdf-to-word/preview-pdf";
+import { type PdfPreviewHandle } from "@/lib/tools/pdf-to-word/preview-pdf";
 import { searchPdf } from "@/lib/tools/word-to-pdf/search-pdf";
 import { orderedPages, type Settings } from "@/lib/tools/word-to-pdf/settings";
+import { usePdf, Thumb, WindowedPages } from "./preview-resources";
 import OriginalPane from "./original-pane";
 import styles from "./word-to-pdf.module.css";
 
-type Loaded = { bytes: Uint8Array; handle: PdfPreviewHandle };
-function usePdf(bytes?: Uint8Array) {
-  const [loaded, setLoaded] = useState<Loaded | null>(null),
-    [failure, setFailure] = useState<{
-      bytes: Uint8Array;
-      message: string;
-    } | null>(null);
-  useEffect(() => {
-    if (!bytes) return;
-    let disposed = false,
-      handle: PdfPreviewHandle | undefined;
-    void openPdfPreview(bytes, true)
-      .then((value) => {
-        handle = value;
-        if (disposed) void value.destroy();
-        else setLoaded({ bytes, handle: value });
-      })
-      .catch(() => {
-        if (!disposed)
-          setFailure({
-            bytes,
-            message:
-              "This PDF could not be opened. Retry conversion or inspect an individual download.",
-          });
-      });
-    return () => {
-      disposed = true;
-      void handle?.destroy();
-    };
-  }, [bytes]);
-  return {
-    handle: loaded && loaded.bytes === bytes ? loaded.handle : undefined,
-    error: failure && failure.bytes === bytes ? failure.message : "",
-  };
-}
-function Thumb({
-  handle,
-  page,
-  selected,
-  onSelect,
-}: {
-  handle: PdfPreviewHandle;
-  page: number;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const [url, setUrl] = useState("");
-  useEffect(() => {
-    let dead = false,
-      current = "";
-    const observer = new IntersectionObserver((entries) => {
-      if (!entries.some((e) => e.isIntersecting)) return;
-      observer.disconnect();
-      void handle.renderThumbnail(page, 90).then((value) => {
-        if (!value) return;
-        if (dead) URL.revokeObjectURL(value);
-        else {
-          current = value;
-          setUrl(value);
-        }
-      });
-    });
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      dead = true;
-      observer.disconnect();
-      if (current) URL.revokeObjectURL(current);
-    };
-  }, [handle, page]);
-  return (
-    <button
-      ref={ref}
-      className={`${styles.thumb} ${selected ? styles.selectedThumb : ""}`}
-      aria-label={`Go to page ${page}`}
-      aria-current={selected ? "page" : undefined}
-      onClick={onSelect}
-    >
-      {url ? (
-        <Image
-          unoptimized
-          src={url}
-          alt={`Page ${page} thumbnail`}
-          width={90}
-          height={125}
-        />
-      ) : (
-        <span className={styles.thumbPending}>Rendering…</span>
-      )}
-      <span>{page}</span>
-    </button>
-  );
-}
 function PdfCanvas({
   handle,
   page,
@@ -241,7 +145,11 @@ export default function StudioPreview({
   onRotate,
   onRefresh,
   canRefresh,
+  page,
+  onPageChange: setPage,
 }: {
+  page: number;
+  onPageChange: (page: number) => void;
   bytes?: Uint8Array;
   base?: Uint8Array;
   file?: File;
@@ -256,8 +164,7 @@ export default function StudioPreview({
   const { handle, error } = usePdf(bytes);
   const [comparison, setComparison] = useState("pdf");
   const before = usePdf(comparison === "before" ? base : undefined);
-  const [page, setPage] = useState(1),
-    [zoom, setZoom] = useState("fit-page"),
+  const [zoom, setZoom] = useState("fit-page"),
     [thumbs, setThumbs] = useState(false);
   const [expanded, setExpanded] = useState(false),
     [query, setQuery] = useState(""),
@@ -318,9 +225,20 @@ export default function StudioPreview({
         );
     }
   }
-  let sourcePage = currentPage;
+  const [docxPages, setDocxPages] = useState<{ file?: File; count: number }>({
+    count: 0,
+  });
+  let sourcePage: number | null = currentPage;
   try {
-    if (sourcePages)
+    if (settings.visualPlan) {
+      const source = settings.visualPlan.pages[currentPage - 1]?.source;
+      sourcePage =
+        source === null
+          ? null
+          : source === undefined
+            ? currentPage
+            : source + 1;
+    } else if (sourcePages)
       sourcePage =
         (orderedPages(settings, sourcePages)[currentPage - 1] ??
           currentPage - 1) + 1;
@@ -508,6 +426,17 @@ export default function StudioPreview({
           ))}
         </div>
       )}
+      {comparison === "docx" && file && (
+        <p className={styles.comparisonNote} role="status">
+          Linked source-page navigation and zoom.{" "}
+          {docxPages.file === file && docxPages.count > 0
+            ? `Approximate DOCX: ${docxPages.count} pages · native PDF: ${sourcePages || "unknown"} · edited PDF: ${handle?.pageCount || "unknown"}. `
+            : "Counting approximate DOCX pages… "}
+          Different counts are not proof of missing content. Browser layout
+          cannot reliably detect substituted fonts or shifted tables, images,
+          headers or footers; verify these in Word and the PDF.
+        </p>
+      )}
       {stale && bytes && (
         <p className={styles.staleNote}>
           Showing the last PDF. Apply valid settings and refresh native layout
@@ -521,22 +450,44 @@ export default function StudioPreview({
       ) : bytes ? (
         <div className={styles.viewerBody}>
           {thumbs && handle && (
-            <aside className={styles.thumbRail} aria-label="Page thumbnails">
-              {Array.from({ length: handle.pageCount }, (_, i) => (
+            <WindowedPages
+              count={handle.pageCount}
+              rowHeight={155}
+              active={currentPage - 1}
+              className={styles.thumbRail}
+            >
+              {(i) => (
                 <Thumb
-                  key={i}
                   handle={handle}
                   page={i + 1}
                   selected={i + 1 === currentPage}
                   onSelect={() => setPage(i + 1)}
                 />
-              ))}
-            </aside>
+              )}
+            </WindowedPages>
           )}
           <div
             className={`${styles.comparison} ${comparison !== "pdf" ? styles.splitView : ""}`}
           >
-            {comparison === "docx" && file && <OriginalPane file={file} />}
+            {comparison === "docx" && file && (
+              <OriginalPane
+                file={file}
+                count={docxPages.file === file ? docxPages.count : 0}
+                page={sourcePage}
+                zoom={zoom}
+                onPageCount={(count) => setDocxPages({ file, count })}
+                onVisiblePage={(source) => {
+                  const at = settings.visualPlan
+                    ? settings.visualPlan.pages.findIndex(
+                        (p) => p.source === source - 1,
+                      )
+                    : sourcePages
+                      ? orderedPages(settings, sourcePages).indexOf(source - 1)
+                      : source - 1;
+                  if (at >= 0) setPage(at + 1);
+                }}
+              />
+            )}
             {comparison === "before" && (
               <div className={styles.pdfPanel}>
                 <div className={styles.compareLabel}>
@@ -544,6 +495,10 @@ export default function StudioPreview({
                 </div>
                 {before.error ? (
                   <p role="alert">{before.error}</p>
+                ) : sourcePage === null ? (
+                  <p className={styles.note}>
+                    Inserted blank page — no native source page.
+                  </p>
                 ) : (
                   <PdfCanvas
                     handle={before.handle}

@@ -1505,3 +1505,191 @@
   background: var(--plum);
   color: #fff;
 }
+
+/* V3 editor reuses the V2 workspace. Fixed rows unmount offscreen thumbnails. */
+.windowedPages {
+  height: min(480px, 58vh);
+  min-height: 220px;
+  overflow: auto;
+  overflow-anchor: none;
+  scrollbar-width: thin;
+}
+.panelSwitch {
+  display: flex;
+  gap: 6px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.studio .panelSwitch button[aria-pressed="true"],
+.studio .panelSwitch button[aria-pressed="true"]:hover {
+  background: var(--plum);
+  color: #fff;
+}
+.pageEditor {
+  min-width: 0;
+}
+.pageActions {
+  padding: 0 12px 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.pageActions label,
+.pageActions > p {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.selectionCount {
+  font-size: 11px;
+  margin: 3px 0;
+  color: var(--plum);
+}
+.editorPages {
+  padding: 8px 10px;
+  background: #faf8fb;
+  border-block: 1px solid var(--line);
+}
+.pageCard {
+  height: 164px;
+  border: 1px solid #3b1b4f26;
+  border-radius: 8px;
+  background: #fff;
+  padding: 6px;
+  min-width: 0;
+}
+.pageCardSelected {
+  border: 2px solid var(--rose);
+  background: #f4d7d42e;
+}
+.pageCardHead {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+}
+.pageCardHead label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.pageCardHead > span {
+  font-size: 10px;
+}
+.pageCardBody {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 125px;
+  min-width: 0;
+}
+.pageCardBody > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.pageCardBody > div > span {
+  color: var(--muted);
+}
+.pageCardBody .thumb {
+  width: 76px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.thumb img {
+  max-height: 110px;
+  object-fit: contain;
+}
+.pageCardBody .thumb img {
+  max-height: 91px;
+  width: 58px;
+}
+.editorPending {
+  width: 76px;
+  font-size: 10px;
+  padding: 12px 6px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.pageMoves {
+  display: flex;
+  gap: 5px;
+}
+.pageMoves button {
+  flex: 1;
+  min-height: 32px;
+}
+.pageEditor > .note {
+  padding: 12px;
+}
+.pageAppearance {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.pageAppearance summary {
+  cursor: pointer;
+  color: var(--plum);
+  font-size: 12px;
+  font-weight: 700;
+}
+.rangeFields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.rangeFields:disabled {
+  opacity: 0.55;
+}
+.comparisonNote {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+  padding: 12px 18px;
+  background: #f4d7d43d;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 760px) {
+  .pageActions button,
+  .pageMoves button,
+  .pageCardBody button {
+    min-height: 44px;
+  }
+  .pageCardBody .thumb {
+    min-height: 100px;
+  }
+  .pageCardHead input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+  }
+  .pageCardHead label {
+    min-height: 30px;
+  }
+  .pageCardBody .pageMoves {
+    display: flex;
+  }
+  .pageCardBody > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .pageCardBody > div > strong,
+  .pageCardBody > div > span {
+    width: 100%;
+  }
+  .pageMoves {
+    flex: 1;
+  }
+  .pageAppearance {
+    border-top: 1px solid var(--line);
+  }
+}

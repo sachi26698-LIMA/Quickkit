@@ -10,7 +10,10 @@ import {
   type Settings,
 } from "@/lib/tools/word-to-pdf/settings";
 import { requestConversion } from "@/lib/tools/word-to-pdf/client-convert";
-import { processPdf } from "@/lib/tools/word-to-pdf/process-pdf";
+import {
+  processPdf,
+  extractPdfPages,
+} from "@/lib/tools/word-to-pdf/process-pdf";
 export type StudioRow = {
   id: string;
   file: File;
@@ -23,6 +26,7 @@ export type StudioRow = {
   sourcePages?: number;
   native?: string;
   outputKey?: string;
+  outputSettings?: Settings;
   version: number;
 };
 type Preferences = { global: Settings; individual: Record<string, Settings> };
@@ -55,6 +59,10 @@ export function useStudio() {
     prefsRef = useRef(prefs);
   const [undoCount, setUndoCount] = useState(0),
     history = useRef<Preferences[]>([]);
+  const [redoCount, setRedoCount] = useState(0),
+    future = useRef<Preferences[]>([]);
+  const localAbort = useRef<AbortController | null>(null),
+    extractionAbort = useRef<AbortController | null>(null);
   const [activeId, setActiveId] = useState("");
   const [consent, setConsent] = useState(false),
     [auto, setAuto] = useState(false);
@@ -106,6 +114,8 @@ export function useStudio() {
       mounted.current = false;
       controller.abort();
       abort.current?.abort();
+      localAbort.current?.abort();
+      extractionAbort.current?.abort();
     };
   }, []);
   const effective = (row: StudioRow) =>
@@ -119,14 +129,19 @@ export function useStudio() {
     if (active.current) return;
     history.current = [...history.current.slice(-29), prefsRef.current];
     setUndoCount(history.current.length);
+    future.current = [];
+    setRedoCount(0);
     prefsRef.current = next;
     setPrefs(next);
   };
   const changeSettings = (settings: Settings, id?: string) =>
     mutatePrefs(
       id
-        ? { ...prefs, individual: { ...prefs.individual, [id]: settings } }
-        : { ...prefs, global: settings },
+        ? {
+            ...prefsRef.current,
+            individual: { ...prefsRef.current.individual, [id]: settings },
+          }
+        : { ...prefsRef.current, global: settings },
     );
   const override = (id: string, enabled: boolean) => {
     const individual = { ...prefs.individual };
@@ -138,11 +153,50 @@ export function useStudio() {
     if (active.current) return;
     const previous = history.current.pop();
     if (previous) {
+      future.current = [...future.current.slice(-29), prefsRef.current];
+      setRedoCount(future.current.length);
       prefsRef.current = previous;
       setPrefs(previous);
       setUndoCount(history.current.length);
     }
   };
+  const redo = () => {
+    if (active.current) return;
+    const next = future.current.pop();
+    if (next) {
+      history.current = [...history.current.slice(-29), prefsRef.current];
+      setUndoCount(history.current.length);
+      prefsRef.current = next;
+      setPrefs(next);
+      setRedoCount(future.current.length);
+    }
+  };
+  async function extract(id: string, indices: number[]) {
+    const row = rowsRef.current.find((r) => r.id === id);
+    if (!row || !ready(row) || !row.bytes || active.current)
+      throw new Error("Wait for synchronized output before extraction.");
+    extractionAbort.current?.abort();
+    const control = new AbortController();
+    extractionAbort.current = control;
+    const task = localChain.current
+      .catch(() => undefined)
+      .then(() => extractPdfPages(row.bytes!, indices, control.signal));
+    localChain.current = task;
+    const bytes = await task;
+    const current = rowsRef.current.find((r) => r.id === id);
+    const currentSettings =
+      prefsRef.current.individual[id] || prefsRef.current.global;
+    if (
+      !current ||
+      current.bytes !== row.bytes ||
+      current.outputKey !== JSON.stringify(currentSettings) ||
+      current.status !== "done"
+    )
+      throw new Error(
+        "Document changed during extraction. Retry with synchronized output.",
+      );
+    return bytes;
+  }
   function add(files: FileList | File[]) {
     if (active.current) return;
     setError("");
@@ -184,12 +238,14 @@ export function useStudio() {
       return { ...value, individual };
     };
     history.current = history.current.map(prune);
+    future.current = future.current.map(prune);
     const next = prune(prefsRef.current);
     prefsRef.current = next;
     setPrefs(next);
   }
   function remove(id: string) {
     if (active.current) return;
+    extractionAbort.current?.abort();
     pruneFileSettings([id]);
     updateRows((all) => all.filter((r) => r.id !== id));
     if (id === activeId) setActiveId(rowsRef.current[0]?.id || "");
@@ -263,6 +319,7 @@ export function useStudio() {
               bytes: result.bytes,
               pages: result.pages,
               outputKey: JSON.stringify(settings),
+              outputSettings: settings,
               message: "Live preview and export are synchronized",
             });
           } catch (e) {
@@ -292,6 +349,13 @@ export function useStudio() {
             (message) => patch(row.id, { message }),
           );
           control.signal.throwIfAborted();
+          if (result.base)
+            patch(row.id, {
+              base: result.bytes,
+              sourcePages: result.pages,
+              native: nativeKey(settings),
+              version: row.version + 1,
+            });
           const final = result.base
             ? await processClient(result.bytes, settings, control.signal)
             : result;
@@ -312,6 +376,7 @@ export function useStudio() {
             sourcePages: result.pages,
             native: nativeKey(settings),
             outputKey: JSON.stringify(settings),
+            outputSettings: settings,
             version: row.version + 1,
             message: "Completed · review formatting before use",
           });
@@ -339,7 +404,9 @@ export function useStudio() {
   ]);
   useEffect(() => {
     const controller = new AbortController();
+    localAbort.current = controller;
     const timer = setTimeout(() => {
+      if (controller.signal.aborted) return;
       setLocalBusy(false);
       const jobs = rowsRef.current.filter(
         (r) =>
@@ -373,6 +440,15 @@ export function useStudio() {
                   row.base!,
                   s,
                   controller.signal,
+                  (done, total) => {
+                    if (
+                      !controller.signal.aborted &&
+                      (done === total || done % 4 === 0)
+                    )
+                      patch(row.id, {
+                        message: `Processing PDF pages ${done}/${total}`,
+                      });
+                  },
                 );
                 if (controller.signal.aborted) return;
                 if (
@@ -388,6 +464,7 @@ export function useStudio() {
                   bytes: result.bytes,
                   pages: result.pages,
                   outputKey: JSON.stringify(s),
+                  outputSettings: s,
                   status: "done",
                   message: "Live preview and export are synchronized",
                 });
@@ -406,6 +483,9 @@ export function useStudio() {
           }
         });
     }, 400);
+    controller.signal.addEventListener("abort", () => clearTimeout(timer), {
+      once: true,
+    });
     return () => {
       clearTimeout(timer);
       controller.abort();
@@ -444,6 +524,33 @@ export function useStudio() {
     setError,
     undoCount,
     undo,
+    redoCount,
+    redo,
+    extract,
+    cancelExtraction: () => extractionAbort.current?.abort(),
+    cancelLocal: () => {
+      localAbort.current?.abort();
+      setLocalBusy(false);
+      updateRows((all) =>
+        all.map((r) =>
+          r.base && !ready(r)
+            ? {
+                ...r,
+                status: "cancelled",
+                outputKey: undefined,
+                message: "Local PDF update cancelled. Retry before export.",
+              }
+            : r,
+        ),
+      );
+    },
+    retryLocal: () => {
+      if (selected?.base && selected.native === nativeKey(selectedSettings))
+        patch(selected.id, {
+          version: selected.version + 1,
+          outputKey: undefined,
+        });
+    },
     changeSettings,
     override,
     add,
@@ -460,6 +567,9 @@ export function useStudio() {
         pruneFileSettings(rowsRef.current.map((r) => r.id));
         history.current = [];
         setUndoCount(0);
+        future.current = [];
+        setRedoCount(0);
+        extractionAbort.current?.abort();
         updateRows(() => []);
         setActiveId("");
         setAuto(false);

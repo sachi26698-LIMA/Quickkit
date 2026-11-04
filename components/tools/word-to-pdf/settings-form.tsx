@@ -1,5 +1,6 @@
 "use client";
 import { sizes, type Settings } from "@/lib/tools/word-to-pdf/settings";
+import WatermarkSettings from "./watermark-settings";
 import styles from "./word-to-pdf.module.css";
 export default function SettingsForm({
   value: s,
@@ -123,9 +124,21 @@ export default function SettingsForm({
           <span>02</span> Page Management
         </summary>
         <div className={styles.settings}>
-          {text("pages", "Pages to export", "All pages, or 1-3, 5")}
-          {text("excludePages", "Exclude pages", "None, or 2, 4-6")}
-          {text("pageOrder", "Output page order", "Original order, or 3, 1-2")}
+          <fieldset className={styles.rangeFields} disabled={!!s.visualPlan}>
+            {text("pages", "Pages to export", "All pages, or 1-3, 5")}
+            {text("excludePages", "Exclude pages", "None, or 2, 4-6")}
+            {text(
+              "pageOrder",
+              "Output page order",
+              "Original order, or 3, 1-2",
+            )}
+          </fieldset>
+          {s.visualPlan && (
+            <p className={styles.note}>
+              Visual page edits control output order. Reset visual edits in the
+              page editor to use source ranges again.
+            </p>
+          )}
           <p className={styles.note}>
             Ranges use source-PDF page numbers after native pagination. Output
             order must list every included page exactly once. Subsets/reordering
@@ -134,6 +147,21 @@ export default function SettingsForm({
           {check("numbering", "Add page numbers")}
           {s.numbering && (
             <>
+              {text(
+                "numberFormat",
+                "Custom number template",
+                "Page {n} of {total}",
+              )}
+              {text(
+                "numberingPages",
+                "Number output pages",
+                "All output pages, or 1-3, 5",
+              )}
+              <p className={styles.note}>
+                Templates: {"{n}"}, {"{total}"}, {"{section}"}. Numbers follow
+                output positions, including unprinted pages. Skip-first and
+                source-overlay range rules still apply.
+              </p>
               {number("startNumber", "Numbering starts at", 1, 3900)}
               {select("numberStyle", "Number format", [
                 ["arabic", "Arabic · 1, 2, 3"],
@@ -269,6 +297,7 @@ export default function SettingsForm({
           </p>
         </div>
       </details>
+      <WatermarkSettings value={s} onChange={onChange} />
       <details>
         <summary>
           <span>05</span> PDF Metadata

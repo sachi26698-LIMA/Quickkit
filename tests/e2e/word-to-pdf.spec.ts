@@ -43,11 +43,11 @@ test("real installation fails closed and never uploads without an engine", async
   ).toBe(403);
   const a11y = await new AxeBuilder({ page }).analyze();
   expect(a11y.violations).toEqual([]);
-  await mkdir("docs/word-to-pdf/screenshots", { recursive: true });
+  await mkdir("test-results/word-to-pdf-v1", { recursive: true });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     animations: "disabled",
-    path: "docs/word-to-pdf/screenshots/desktop.png",
+    path: "test-results/word-to-pdf-v1/desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -62,7 +62,7 @@ test("real installation fails closed and never uploads without an engine", async
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     animations: "disabled",
-    path: "docs/word-to-pdf/screenshots/mobile.png",
+    path: "test-results/word-to-pdf-v1/mobile.png",
     fullPage: true,
   });
 });
@@ -127,7 +127,7 @@ test("mocked transport: consent, sequential batch, individual settings, PDF prev
     page.getByRole("img", { name: "Converted PDF page 2" }),
   ).toBeVisible();
   await page.screenshot({
-    path: "docs/word-to-pdf/screenshots/preview-mocked-transport.png",
+    path: "test-results/word-to-pdf-v1/preview-mocked-transport.png",
     fullPage: true,
   });
   await page.keyboard.press("Escape");

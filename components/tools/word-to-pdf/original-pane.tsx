@@ -1,10 +1,36 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DocxPane from "@/components/tools/pdf-to-word/docx-pane";
 import { prepareDocx } from "@/lib/tools/word-to-pdf/docx";
 import { defaults } from "@/lib/tools/word-to-pdf/settings";
 import styles from "./word-to-pdf.module.css";
-export default function OriginalPane({ file }: { file: File }) {
+export default function OriginalPane({
+  file,
+  page,
+  zoom,
+  count,
+  onPageCount,
+  onVisiblePage,
+}: {
+  file: File;
+  page: number | null;
+  zoom: string;
+  count: number;
+  onPageCount: (n: number) => void;
+  onVisiblePage: (n: number) => void;
+}) {
+  const callbacks = useRef({ onPageCount, onVisiblePage });
+  useEffect(() => {
+    callbacks.current = { onPageCount, onVisiblePage };
+  }, [onPageCount, onVisiblePage]);
+  const reportCount = useCallback(
+    (n: number) => callbacks.current.onPageCount(n),
+    [],
+  );
+  const reportPage = useCallback(
+    (n: number) => callbacks.current.onVisiblePage(n),
+    [],
+  );
   const [loaded, setLoaded] = useState<{
     file: File;
     blob?: Blob;
@@ -48,7 +74,11 @@ export default function OriginalPane({ file }: { file: File }) {
         ORIGINAL DOCX{" "}
         <span>Approximate browser layout — not a Word reference PDF</span>
       </div>
-      {loaded?.file !== file ? (
+      {page === null ? (
+        <p className={styles.note}>
+          Inserted blank page — no original DOCX page.
+        </p>
+      ) : loaded?.file !== file ? (
         <div className={styles.skeleton} role="status">
           Opening original DOCX…
         </div>
@@ -64,12 +94,24 @@ export default function OriginalPane({ file }: { file: File }) {
               if ((e.target as HTMLElement).closest("a")) e.preventDefault();
             }}
           >
+            {count > 0 && page > count && (
+              <p className={styles.note}>
+                Source page {page} exceeds this approximate browser layout;
+                showing its last page ({count}).
+              </p>
+            )}
             <DocxPane
               blob={loaded.blob}
-              page={1}
-              zoom={{ kind: "fit-width" }}
-              onPageCount={() => {}}
-              onVisiblePage={() => {}}
+              page={Math.min(page, count || page)}
+              zoom={
+                zoom === "fit-width"
+                  ? { kind: "fit-width" }
+                  : zoom === "fit-page"
+                    ? { kind: "fit-page" }
+                    : { kind: "percent", value: Number(zoom) }
+              }
+              onPageCount={reportCount}
+              onVisiblePage={reportPage}
             />
           </div>
         )

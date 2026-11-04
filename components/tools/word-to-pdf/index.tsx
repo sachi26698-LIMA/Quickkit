@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   ArrowDown,
@@ -14,6 +14,7 @@ import {
   Settings2,
   ShieldCheck,
   Undo2,
+  Redo2,
   Upload,
   X,
   RotateCcw,
@@ -23,16 +24,43 @@ import {
   defaults,
   outputName,
   nativeKey,
+  orderedPages,
 } from "@/lib/tools/word-to-pdf/settings";
 import { createZip } from "@/lib/tools/zip";
 import { downloadBlob, downloadText, formatBytes } from "@/lib/tools/download";
 import { useStudio } from "./use-studio";
+import {
+  initialPlan,
+  patchPages,
+  type VisualPlan,
+  type PageOverrides,
+} from "@/lib/tools/word-to-pdf/page-plan";
+import PageEditor from "./page-editor";
+import PageAppearance from "./page-appearance";
 import SettingsForm from "./settings-form";
 import StudioPreview from "./studio-preview";
 import QueueThumbnail from "./queue-thumbnail";
 import styles from "./word-to-pdf.module.css";
 
+const mobileSnapshot = () => window.matchMedia("(max-width: 760px)").matches;
+const serverMobileSnapshot = () => false;
+const subscribeMobile = (notify: () => void) => {
+  const media = window.matchMedia("(max-width: 760px)");
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+};
 export default function WordToPdf() {
+  const mobile = useSyncExternalStore(
+    subscribeMobile,
+    mobileSnapshot,
+    serverMobileSnapshot,
+  );
+  const [pageMode, setPageMode] = useState("files"),
+    [previewPage, setPreviewPage] = useState(1),
+    [pageSelection, setPageSelection] = useState<{
+      file: string;
+      ids: string[];
+    }>({ file: "", ids: [] });
   const studio = useStudio();
   const { rows, selected, selectedSettings, busy, ready } = studio;
   const [mobileTab, setMobileTab] = useState("files"),
@@ -50,7 +78,7 @@ export default function WordToPdf() {
   const report = () =>
     JSON.stringify(
       {
-        tool: "Word to PDF Converter V2",
+        tool: "Word to PDF Converter V3",
         completed: completed.length,
         failed: failed.length,
         needsUpdate: stale.length,
@@ -107,6 +135,79 @@ export default function WordToPdf() {
     });
   }
   const nativeChanged = selected?.native !== nativeKey(selectedSettings);
+  let visualPlan: VisualPlan | null = null,
+    planProblem = "";
+  if (selected?.base && selected.sourcePages)
+    try {
+      visualPlan =
+        selectedSettings.visualPlan ||
+        initialPlan(
+          selected.sourcePages,
+          orderedPages(selectedSettings, selected.sourcePages),
+        );
+    } catch (e) {
+      planProblem = e instanceof Error ? e.message : "Invalid page plan.";
+    }
+  const selection =
+    pageSelection.file === selected?.id
+      ? pageSelection.ids.filter((id) =>
+          visualPlan?.pages.some((p) => p.id === id),
+        )
+      : [];
+  const selectPages = (ids: string[]) =>
+    setPageSelection({ file: selected?.id || "", ids });
+  const changePlan = (plan: VisualPlan | null) => {
+    if (selected) {
+      setScope("file");
+      studio.changeSettings(
+        { ...selectedSettings, visualPlan: plan },
+        selected.id,
+      );
+    }
+  };
+  const patchSelected = (patch: PageOverrides) => {
+    if (visualPlan) changePlan(patchPages(visualPlan, selection, patch));
+  };
+  const pageEditor = visualPlan ? (
+    <PageEditor
+      key={selected!.id}
+      plan={visualPlan}
+      bytes={selected?.bytes}
+      synchronized={!!selected && ready(selected)}
+      selection={selection}
+      onSelect={selectPages}
+      onChange={changePlan}
+      onGoTo={(page) => {
+        setPreviewPage(page);
+        setMobileTab("preview");
+      }}
+      onExtract={async () => {
+        if (!selected || !visualPlan) return;
+        const bytes = await studio.extract(
+          selected.id,
+          visualPlan.pages.flatMap((p, i) =>
+            selection.includes(p.id) ? [i] : [],
+          ),
+        );
+        downloadBlob(
+          new Blob([bytes]),
+          outputName(selected.name.replace(/\.pdf$/i, "") + "-selected"),
+        );
+      }}
+      onCancelExtract={studio.cancelExtraction}
+      onReset={() => {
+        changePlan(null);
+        selectPages([]);
+      }}
+      disabled={busy || studio.nativeStale}
+    />
+  ) : (
+    <p className={styles.note} role={planProblem ? "alert" : undefined}>
+      {planProblem ||
+        "Convert a DOCX to unlock editing of actual PDF pages. A retained native PDF is required; no simulated pages are shown."}
+    </p>
+  );
+
   return (
     <div className={styles.studio}>
       <div className={styles.toolbar}>
@@ -122,7 +223,7 @@ export default function WordToPdf() {
             </nav>
             <h1>Word to PDF Converter</h1>
           </div>
-          <span className={styles.version}>STUDIO V2</span>
+          <span className={styles.version}>STUDIO V3</span>
         </div>
         <div className={styles.toolbarActions}>
           <span className={styles.statusPill} role="status">
@@ -139,6 +240,40 @@ export default function WordToPdf() {
           >
             <Undo2 size={16} />
             <span>Undo</span>
+          </button>
+          <button
+            aria-label="Redo edits"
+            disabled={busy || !studio.redoCount}
+            onClick={studio.redo}
+          >
+            <Redo2 size={16} />
+            <span>Redo</span>
+          </button>
+          <button
+            aria-label="Open page editor"
+            onClick={() => {
+              setPageMode("pages");
+              setShowFiles(true);
+              setShowSettings(true);
+              setMobileTab("edit");
+            }}
+          >
+            <Settings2 size={16} />
+            <span>Page editor</span>
+          </button>
+          <button
+            aria-label="Export complete PDF"
+            disabled={!selected || !ready(selected) || busy}
+            onClick={() => {
+              if (selected && ready(selected))
+                downloadBlob(
+                  new Blob([selected.bytes!]),
+                  outputName(selected.name),
+                );
+            }}
+          >
+            <Download size={16} />
+            <span>Export</span>
           </button>
           <button
             aria-label="Reset settings"
@@ -234,19 +369,19 @@ export default function WordToPdf() {
         )}
       </div>
       <nav className={styles.mobileTabs} aria-label="Workspace panels">
-        {["files", "preview", "settings"].map((tab) => (
+        {["files", "preview", "edit"].map((tab) => (
           <button
             key={tab}
             aria-pressed={mobileTab === tab}
             onClick={() => {
               setMobileTab(tab);
               if (tab === "files") setShowFiles(true);
-              if (tab === "settings") setShowSettings(true);
+              if (tab === "edit") setShowSettings(true);
             }}
           >
             {tab === "files" ? (
               <FileText size={16} />
-            ) : tab === "settings" ? (
+            ) : tab === "edit" ? (
               <Settings2 size={16} />
             ) : (
               <Eye size={16} />
@@ -285,231 +420,261 @@ export default function WordToPdf() {
             className={`${styles.filesPanel} ${mobileTab !== "files" ? styles.mobileInactive : ""}`}
             aria-label="Document queue"
           >
-            <div className={styles.panelHeading}>
-              <div>
-                <span className={styles.eyebrow}>SOURCE FILES</span>
-                <h2>
-                  Your documents <span>{rows.length}/10</span>
-                </h2>
+            {!mobile && (
+              <div className={styles.panelSwitch}>
+                <button
+                  aria-pressed={pageMode === "files"}
+                  onClick={() => setPageMode("files")}
+                >
+                  File queue
+                </button>
+                <button
+                  aria-pressed={pageMode === "pages"}
+                  onClick={() => setPageMode("pages")}
+                >
+                  Pages
+                </button>
               </div>
-            </div>
-            <fieldset disabled={busy} className={styles.fieldset}>
-              <label
-                className={styles.drop}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  studio.add(e.dataTransfer.files);
-                }}
-              >
-                <Upload size={25} />
-                <strong>Drop DOCX files here</strong>
-                <span>or choose documents</span>
-                <small>20 MiB each · 80 MiB batch</small>
-                <input
-                  aria-label="Choose DOCX files"
-                  type="file"
-                  multiple
-                  accept=".docx"
-                  onChange={(e) => {
-                    if (e.target.files) studio.add(e.target.files);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              <div className={styles.fileList}>
-                {rows.map((r, index) => (
-                  <article
-                    key={r.id}
-                    className={`${styles.fileCard} ${selected?.id === r.id ? styles.activeFile : ""}`}
+            )}
+            {pageMode === "pages" && !mobile ? (
+              pageEditor
+            ) : (
+              <>
+                <div className={styles.panelHeading}>
+                  <div>
+                    <span className={styles.eyebrow}>SOURCE FILES</span>
+                    <h2>
+                      Your documents <span>{rows.length}/10</span>
+                    </h2>
+                  </div>
+                </div>
+                <fieldset disabled={busy} className={styles.fieldset}>
+                  <label
+                    className={styles.drop}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      studio.add(e.dataTransfer.files);
+                    }}
                   >
-                    <div className={styles.fileTitle}>
-                      <button
-                        className={styles.selectFile}
-                        aria-label={`Select ${r.file.name}`}
-                        aria-pressed={selected?.id === r.id}
-                        onClick={() => studio.setActiveId(r.id)}
+                    <Upload size={25} />
+                    <strong>Drop DOCX files here</strong>
+                    <span>or choose documents</span>
+                    <small>20 MiB each · 80 MiB batch</small>
+                    <input
+                      aria-label="Choose DOCX files"
+                      type="file"
+                      multiple
+                      accept=".docx"
+                      onChange={(e) => {
+                        if (e.target.files) studio.add(e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <div className={styles.fileList}>
+                    {rows.map((r, index) => (
+                      <article
+                        key={r.id}
+                        className={`${styles.fileCard} ${selected?.id === r.id ? styles.activeFile : ""}`}
                       >
-                        <QueueThumbnail bytes={r.bytes} name={r.file.name} />
-                        <span>
-                          <strong>{r.file.name}</strong>
-                          <small>
-                            {formatBytes(r.file.size)} ·{" "}
-                            {r.sourcePages
-                              ? `${r.sourcePages} source pages`
-                              : "Pages unknown"}
-                          </small>
-                        </span>
-                      </button>
-                      <button
-                        aria-label={`Remove ${r.file.name}`}
-                        onClick={() => studio.remove(r.id)}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                    <p
-                      className={
-                        r.status === "error" ? styles.error : styles.fileStatus
-                      }
-                      role={r.status === "error" ? "alert" : "status"}
-                    >
-                      {r.status === "error"
-                        ? r.message
-                        : r.bytes && !ready(r)
-                          ? "Settings changed — update required"
-                          : r.message}
-                    </p>
-                    {r.status === "converting" && (
-                      <progress
-                        aria-label={`Conversion progress for ${r.file.name}`}
-                      />
-                    )}
-                    <label className={styles.filename}>
-                      Output filename
-                      <input
-                        value={r.name}
-                        onChange={(e) =>
-                          studio.patch(r.id, { name: e.target.value })
-                        }
-                      />
-                    </label>
-                    <div className={styles.fileActions}>
-                      <button
-                        aria-label={`Move ${r.file.name} up`}
-                        disabled={index === 0}
-                        onClick={() => studio.move(r.id, -1)}
-                      >
-                        <ArrowUp size={14} />
-                      </button>
-                      <button
-                        aria-label={`Move ${r.file.name} down`}
-                        disabled={index === rows.length - 1}
-                        onClick={() => studio.move(r.id, 1)}
-                      >
-                        <ArrowDown size={14} />
-                      </button>
-                      <label className={styles.replace}>
-                        Replace
-                        <input
-                          type="file"
-                          aria-label={`Replace ${r.file.name}`}
-                          accept=".docx"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) studio.replace(r.id, f);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
-                      {r.bytes && (
-                        <button onClick={() => previewFile(r.id)}>
-                          Preview PDF
-                        </button>
-                      )}
-                      {["error", "cancelled"].includes(r.status) && (
-                        <button
-                          disabled={!studio.available || !studio.consent}
-                          onClick={() => void studio.run(r.id)}
+                        <div className={styles.fileTitle}>
+                          <button
+                            className={styles.selectFile}
+                            aria-label={`Select ${r.file.name}`}
+                            aria-pressed={selected?.id === r.id}
+                            onClick={() => studio.setActiveId(r.id)}
+                          >
+                            <QueueThumbnail
+                              bytes={r.bytes}
+                              name={r.file.name}
+                            />
+                            <span>
+                              <strong>{r.file.name}</strong>
+                              <small>
+                                {formatBytes(r.file.size)} ·{" "}
+                                {r.sourcePages
+                                  ? `${r.sourcePages} source pages`
+                                  : "Pages unknown"}
+                              </small>
+                            </span>
+                          </button>
+                          <button
+                            aria-label={`Remove ${r.file.name}`}
+                            onClick={() => studio.remove(r.id)}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                        <p
+                          className={
+                            r.status === "error"
+                              ? styles.error
+                              : styles.fileStatus
+                          }
+                          role={r.status === "error" ? "alert" : "status"}
                         >
-                          Retry
-                        </button>
-                      )}
-                    </div>
-                    <details className={styles.individual}>
-                      <summary>Individual page & quality settings</summary>
-                      <label className={styles.check}>
-                        <input
-                          type="checkbox"
-                          checked={!!studio.prefs.individual[r.id]}
-                          onChange={(e) => {
-                            studio.override(r.id, e.target.checked);
-                            studio.setActiveId(r.id);
-                            setScope(e.target.checked ? "file" : "global");
-                          }}
-                        />
-                        Override global settings
-                      </label>
-                      {studio.prefs.individual[r.id] && (
-                        <>
-                          <label>
-                            Page size
-                            <select
-                              value={studio.prefs.individual[r.id].paper}
-                              onChange={(e) =>
-                                studio.changeSettings(
-                                  {
-                                    ...studio.prefs.individual[r.id],
-                                    paper: e.target
-                                      .value as typeof selectedSettings.paper,
-                                  },
-                                  r.id,
+                          {r.status === "error"
+                            ? r.message
+                            : r.bytes && !ready(r)
+                              ? "Settings changed — update required"
+                              : r.message}
+                        </p>
+                        {r.status === "converting" && (
+                          <progress
+                            aria-label={`Conversion progress for ${r.file.name}`}
+                          />
+                        )}
+                        <label className={styles.filename}>
+                          Output filename
+                          <input
+                            value={r.name}
+                            onChange={(e) =>
+                              studio.patch(r.id, { name: e.target.value })
+                            }
+                          />
+                        </label>
+                        <div className={styles.fileActions}>
+                          <button
+                            aria-label={`Move ${r.file.name} up`}
+                            disabled={index === 0}
+                            onClick={() => studio.move(r.id, -1)}
+                          >
+                            <ArrowUp size={14} />
+                          </button>
+                          <button
+                            aria-label={`Move ${r.file.name} down`}
+                            disabled={index === rows.length - 1}
+                            onClick={() => studio.move(r.id, 1)}
+                          >
+                            <ArrowDown size={14} />
+                          </button>
+                          <label className={styles.replace}>
+                            Replace
+                            <input
+                              type="file"
+                              aria-label={`Replace ${r.file.name}`}
+                              accept=".docx"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) studio.replace(r.id, f);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          {r.bytes && (
+                            <button onClick={() => previewFile(r.id)}>
+                              Preview PDF
+                            </button>
+                          )}
+                          {["error", "cancelled"].includes(r.status) && (
+                            <button
+                              disabled={!studio.available || !studio.consent}
+                              onClick={() => void studio.run(r.id)}
+                            >
+                              Retry
+                            </button>
+                          )}
+                        </div>
+                        <details className={styles.individual}>
+                          <summary>Individual page & quality settings</summary>
+                          <label className={styles.check}>
+                            <input
+                              type="checkbox"
+                              checked={!!studio.prefs.individual[r.id]}
+                              onChange={(e) => {
+                                studio.override(r.id, e.target.checked);
+                                studio.setActiveId(r.id);
+                                setScope(e.target.checked ? "file" : "global");
+                              }}
+                            />
+                            Override global settings
+                          </label>
+                          {studio.prefs.individual[r.id] && (
+                            <>
+                              <label>
+                                Page size
+                                <select
+                                  value={studio.prefs.individual[r.id].paper}
+                                  onChange={(e) =>
+                                    studio.changeSettings(
+                                      {
+                                        ...studio.prefs.individual[r.id],
+                                        paper: e.target
+                                          .value as typeof selectedSettings.paper,
+                                      },
+                                      r.id,
+                                    )
+                                  }
+                                >
+                                  {[
+                                    "Original",
+                                    "A4",
+                                    "A3",
+                                    "A5",
+                                    "Letter",
+                                    "Legal",
+                                    "Custom",
+                                  ].map((v) => (
+                                    <option key={v}>{v}</option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button
+                                onClick={() => {
+                                  studio.setActiveId(r.id);
+                                  setScope("file");
+                                  setShowSettings(true);
+                                  setMobileTab("edit");
+                                }}
+                              >
+                                Edit all file settings
+                              </button>
+                            </>
+                          )}
+                        </details>
+                        {r.bytes && (
+                          <div className={styles.fileResult}>
+                            <span>
+                              {r.pages} output pages ·{" "}
+                              {formatBytes(r.bytes.length)}
+                            </span>
+                            <button
+                              disabled={!ready(r) || studio.localBusy}
+                              onClick={() =>
+                                downloadBlob(
+                                  new Blob([r.bytes!], {
+                                    type: "application/pdf",
+                                  }),
+                                  outputName(r.name),
                                 )
                               }
                             >
-                              {[
-                                "Original",
-                                "A4",
-                                "A3",
-                                "A5",
-                                "Letter",
-                                "Legal",
-                                "Custom",
-                              ].map((v) => (
-                                <option key={v}>{v}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <button
-                            onClick={() => {
-                              studio.setActiveId(r.id);
-                              setScope("file");
-                              setShowSettings(true);
-                              setMobileTab("settings");
-                            }}
-                          >
-                            Edit all file settings
-                          </button>
-                        </>
-                      )}
-                    </details>
-                    {r.bytes && (
-                      <div className={styles.fileResult}>
-                        <span>
-                          {r.pages} output pages · {formatBytes(r.bytes.length)}
-                        </span>
-                        <button
-                          disabled={!ready(r) || studio.localBusy}
-                          onClick={() =>
-                            downloadBlob(
-                              new Blob([r.bytes!], { type: "application/pdf" }),
-                              outputName(r.name),
-                            )
-                          }
-                        >
-                          <Download size={13} />
-                          Download
-                        </button>
-                      </div>
-                    )}
-                  </article>
-                ))}
-              </div>
-              {!rows.length && (
-                <p className={styles.queueEmpty}>
-                  Your originals stay unchanged.
-                  <br />
-                  Add up to 10 documents to begin.
-                </p>
-              )}
-              <button
-                className={styles.clearButton}
-                disabled={!rows.length}
-                onClick={studio.clear}
-              >
-                Clear files
-              </button>
-            </fieldset>
+                              <Download size={13} />
+                              Download
+                            </button>
+                          </div>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                  {!rows.length && (
+                    <p className={styles.queueEmpty}>
+                      Your originals stay unchanged.
+                      <br />
+                      Add up to 10 documents to begin.
+                    </p>
+                  )}
+                  <button
+                    className={styles.clearButton}
+                    disabled={!rows.length}
+                    onClick={studio.clear}
+                  >
+                    Clear files
+                  </button>
+                </fieldset>
+              </>
+            )}
           </aside>
         )}
         <section
@@ -519,11 +684,13 @@ export default function WordToPdf() {
         >
           <StudioPreview
             key={selected?.id || "empty"}
+            page={previewPage}
+            onPageChange={setPreviewPage}
             bytes={selected?.bytes}
             base={selected?.base}
             file={selected?.file}
             sourcePages={selected?.sourcePages}
-            settings={selectedSettings}
+            settings={selected?.outputSettings || selectedSettings}
             stale={!!selected?.bytes && !ready(selected)}
             loading={busy || studio.localBusy}
             onRotate={() => {
@@ -565,9 +732,27 @@ export default function WordToPdf() {
         </section>
         {showSettings && (
           <aside
-            className={`${styles.settingsPanel} ${mobileTab !== "settings" ? styles.mobileInactive : ""}`}
+            className={`${styles.settingsPanel} ${mobileTab !== "edit" ? styles.mobileInactive : ""}`}
             aria-label="Export settings"
           >
+            {mobile && mobileTab === "edit" && pageEditor}
+            {visualPlan && (
+              <PageAppearance
+                settings={selectedSettings}
+                plan={visualPlan}
+                selection={selection}
+                onPatch={patchSelected}
+                onClear={() =>
+                  changePlan({
+                    ...visualPlan,
+                    pages: visualPlan.pages.map((p) =>
+                      selection.includes(p.id) ? { ...p, overrides: {} } : p,
+                    ),
+                  })
+                }
+                disabled={busy || studio.nativeStale}
+              />
+            )}
             <div className={styles.panelHeading}>
               <span className={styles.eyebrow}>MAKE IT YOURS</span>
               <h2>Export settings</h2>
@@ -620,6 +805,15 @@ export default function WordToPdf() {
             <div className={styles.livePolicy}>
               <span className={styles.liveDot} />
               Local edits update after 400 ms.
+              {studio.localBusy && (
+                <button onClick={studio.cancelLocal}>Cancel PDF update</button>
+              )}
+              {selected?.base &&
+                !ready(selected) &&
+                !studio.nativeStale &&
+                !studio.localBusy && (
+                  <button onClick={studio.retryLocal}>Retry PDF update</button>
+                )}
               <p>
                 Native layout and quality need a new upload. No automatic
                 re-upload by default.
