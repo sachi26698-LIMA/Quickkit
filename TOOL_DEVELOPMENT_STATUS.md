@@ -619,6 +619,43 @@ the updated Sections 4–5 above.
 
 ---
 
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 1: Phases B + C implemented)
+
+Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
+creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
+eye colours, print layouts, DPI metadata, bulk retry/preview/per-row types, history/preset
+rename/duplicate/export/import, static multi-link landing pages). Branch `arena/bc33caa6-quickkit`,
+continuing the existing QR history — no rebuild. The owner chose a **staged** rollout: content types
++ templates first, then design/exports/bulk/history.
+
+**Phase A (audit) complete** — inventory, gap analysis and plan in `docs/qr-studio-v3/AUDIT_AND_PLAN.md`.
+**Stage 1 (Phases B + C) implemented and verified:**
+
+- **27 content types** (12 preserved + 15 new: Instagram, Facebook page, YouTube channel,
+  Spotify/music, Google Maps, Google Review, business website+contact vCard, product, booking,
+  event/ticket, PDF/document, gallery, video, multi-social, multi-link landing). Each has validated
+  fields and a real payload builder; destination types encode user-provided https URLs only.
+- **55 templates across 11 categories** with a real gallery: search, category filter, rendered
+  previews, one-click Apply, customize-after, save-custom, duplicate, delete, reset. Templates carry
+  colour/pattern/eye/logo-position + caption + print layout/size metadata that pre-fill the real PDF
+  options. Custom templates persist under a new localStorage key; presets/history untouched.
+- Brand palette (Deep Plum / Rose / Coral / Midnight / Blush) applied to templates + gallery on the
+  existing light theme; page structure unchanged.
+
+**Verification:** `tsc`/ESLint/Prettier clean; unit suite **682 passed / 39 files** (was 594/37);
+every content type and all 55 templates decoded by jsQR to the exact payload; production build clean
+with `/tools/qr-generator` static; dev preview live on port 3000; 38 decode-verified PNG artifacts +
+report in `docs/qr-studio-v3/evidence/`. Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
+
+**Honest limitations this stage:** frames/label rendering deferred to Phase D (no fake frame
+previews); browser screenshots blocked by the sandbox network policy (Chromium CDN + Debian repos
+unreachable) — live preview + engine-rendered QR evidence provided instead; Smart Link remains static
+only (no backend, no dynamic editing/analytics claimed).
+
+**Remaining:** Phase D (frames, eye colours, palettes), F (DPI, print sheet, layout PDFs), G (bulk
+retry/preview/per-row type), H (history/preset rename/duplicate/export/import), E (static landing-page
+builder), J (browser e2e + screenshots). **Not merged, not deployed — awaiting owner approval.**
+
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 
 Requested directly by the owner on 2 November 2026 with an attached reference image; it does not

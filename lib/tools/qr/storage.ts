@@ -9,12 +9,16 @@ import { sensitiveKeysFor } from "./payload";
 import type { QrContentTypeId, QrDesign } from "./types";
 import { clampDesign, presetDesign, readFill } from "./style";
 import { defaultDesign } from "./style";
+import type { QrTemplate, QrTemplateCategory } from "./templates";
+import { TEMPLATE_CATEGORIES } from "./templates";
 
 export const PRESET_STORAGE_KEY = "qk:qr-presets:v1";
 export const HISTORY_STORAGE_KEY = "qk:qr-history:v1";
 export const HISTORY_MODE_KEY = "qk:qr-history-mode:v1";
+export const CUSTOM_TEMPLATE_STORAGE_KEY = "qk:qr-custom-templates:v1";
 export const MAX_PRESETS = 24;
 export const MAX_HISTORY = 20;
+export const MAX_CUSTOM_TEMPLATES = 24;
 
 export type QrHistoryMode = "full" | "designs";
 
@@ -225,6 +229,93 @@ export function purgeAllLocalData() {
   clearHistory();
   storage.remove(PRESET_STORAGE_KEY);
   storage.remove(HISTORY_MODE_KEY);
+}
+
+/* ---------------------------------------------------- custom templates (V3) */
+
+const isCategory = (value: unknown): value is QrTemplateCategory =>
+  TEMPLATE_CATEGORIES.some((category) => category.id === value);
+
+/** Load user-saved templates. Existing presets/history are never touched. */
+export function loadCustomTemplates(): QrTemplate[] {
+  const stored = storage.get(CUSTOM_TEMPLATE_STORAGE_KEY);
+  if (!Array.isArray(stored)) return [];
+  return stored
+    .filter(
+      (item): item is Record<string, unknown> =>
+        Boolean(item) && typeof item === "object",
+    )
+    .slice(0, MAX_CUSTOM_TEMPLATES)
+    .map((item) => ({
+      id: String(item.id ?? newId()),
+      name: String(item.name ?? "Untitled template").slice(0, 40),
+      blurb: String(item.blurb ?? "Saved in this browser").slice(0, 80),
+      category: isCategory(item.category) ? item.category : "personal",
+      design: readDesign(item.design),
+      label:
+        typeof item.label === "string" ? item.label.slice(0, 60) : undefined,
+      layout: typeof item.layout === "string" ? item.layout : undefined,
+      printMm:
+        typeof item.printMm === "number" && Number.isFinite(item.printMm)
+          ? item.printMm
+          : undefined,
+      custom: true,
+    }));
+}
+
+function persistCustomTemplates(templates: QrTemplate[]) {
+  storage.set(
+    CUSTOM_TEMPLATE_STORAGE_KEY,
+    templates.slice(0, MAX_CUSTOM_TEMPLATES),
+  );
+  return templates.slice(0, MAX_CUSTOM_TEMPLATES);
+}
+
+/** Save the current design as a reusable custom template. */
+export function saveCustomTemplate(
+  input: {
+    name: string;
+    category: QrTemplateCategory;
+    design: QrDesign;
+    label?: string;
+  },
+  existing: QrTemplate[],
+): QrTemplate[] {
+  const template: QrTemplate = {
+    id: `custom-${newId()}`,
+    name: input.name.trim().slice(0, 40) || "Untitled template",
+    blurb: "Saved in this browser",
+    category: input.category,
+    design: presetDesign(input.design),
+    label: input.label?.trim().slice(0, 60) || undefined,
+    custom: true,
+  };
+  return persistCustomTemplates([template, ...existing]);
+}
+
+/** Duplicate any template (built-in or custom) into an editable custom copy. */
+export function duplicateCustomTemplate(
+  source: QrTemplate,
+  existing: QrTemplate[],
+): QrTemplate[] {
+  const copy: QrTemplate = {
+    ...source,
+    id: `custom-${newId()}`,
+    name: `${source.name} copy`.slice(0, 40),
+    blurb: source.custom ? source.blurb : "Copy of a built-in template",
+    design: presetDesign({ ...defaultDesign(), ...source.design }),
+    custom: true,
+  };
+  return persistCustomTemplates([copy, ...existing]);
+}
+
+export function deleteCustomTemplate(
+  id: string,
+  existing: QrTemplate[],
+): QrTemplate[] {
+  return persistCustomTemplates(
+    existing.filter((template) => template.id !== id),
+  );
 }
 
 export function formatWhen(timestamp: number) {

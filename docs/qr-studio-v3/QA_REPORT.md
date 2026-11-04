@@ -1,0 +1,154 @@
+# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 1: Phases B + C)
+
+**Date:** 3 November 2026
+**Branch:** `arena/bc33caa6-quickkit` (continues the existing QR history — no rebuild)
+**Scope of this stage:** Phase B (content types) and Phase C (template library), per the owner's
+"staged: content types + templates first" choice. Phases D–J follow in later stages.
+**Baseline before changes:** 594 unit tests / 37 files passing, clean `npm ci`.
+
+---
+
+## 1. Phase B — Content types: 12 → 27 (all real, all decode-verified)
+
+Every type has its own validated fields and a real payload builder. Nothing is a dropdown label
+without a payload. Destination-link types encode **user-provided https URLs only** — QUICKKIT never
+fetches, opens or pretends to retrieve account/document data.
+
+| # | Type | Payload mechanism | Validation | Status |
+|---|------|-------------------|-----------|--------|
+| 1 | Website URL | normalized http(s) URL | scheme/credential/localhost guards | preserved |
+| 2 | Plain text | raw UTF-8 | ≤2500 chars | preserved |
+| 3 | Email | `mailto:` + cc/subject/body | email regex | preserved |
+| 4 | Phone | `tel:` | 3–15 digits | preserved |
+| 5 | SMS | `SMSTO:` | number + message | preserved |
+| 6 | WhatsApp | `wa.me/<digits>?text=` | digits-only number | preserved |
+| 7 | Wi-Fi | `WIFI:` (WPA/WEP/open, hidden, EAP) | ISO escaping, secret redaction | preserved |
+| 8 | vCard contact | vCard 3.0, RFC folding | 14 fields | preserved |
+| 9 | Location | `geo:` / Maps / Maps-app | lat/lng range | preserved |
+| 10 | Calendar event | iCalendar `VEVENT` | real dates, UTC/floating | preserved |
+| 11 | Social profile | 14 platform URLs | handle/URL normalization | preserved |
+| 12 | App download | App Store / Play / Amazon / custom | App ID + package parsing | preserved |
+| 13 | **Instagram profile** | `instagram.com/<handle>/` | handle or full URL | **new** |
+| 14 | **Facebook page** | `facebook.com/<page>` | page name or URL | **new** |
+| 15 | **YouTube channel** | `youtube.com/@handle` or `/channel/UC…` | handle / channel ID / URL | **new** |
+| 16 | **Spotify / music** | `open.spotify.com` content link or any https music URL | Spotify path must be track/album/playlist/artist/episode/show/user | **new** |
+| 17 | **Google Maps location** | `google.com/maps/search/?api=1&query=…` | place, lat/lng range, or Google Maps link host check | **new** |
+| 18 | **Google Review link** | `search.google.com/local/writereview?placeid=…` | Place ID format, or g.page/Google review link | **new** |
+| 19 | **Business website + contact** | vCard 3.0 with ORG/URL/TITLE/TEL/EMAIL/ADR | name + website required, vCard escaping | **new** |
+| 20 | **Product / shopping link** | validated https URL | dangerous schemes refused | **new** |
+| 21 | **Appointment booking** | validated https URL | dangerous schemes refused | **new** |
+| 22 | **Event / ticket link** | validated https URL | dangerous schemes refused | **new** |
+| 23 | **PDF / document link** | validated https URL | dangerous schemes refused | **new** |
+| 24 | **Image gallery link** | validated https URL | dangerous schemes refused | **new** |
+| 25 | **Video link** | validated https URL | dangerous schemes refused | **new** |
+| 26 | **Multi-social links** | validated https link-in-bio URL | dangerous schemes refused | **new** |
+| 27 | **Multi-link landing page** | validated https hosted-page URL | dangerous schemes refused | **new** |
+
+**Verification:** `tests/qr-payload.test.ts` asserts the exact payload string for every type and
+renders each into a PNG that **jsQR decodes back to the identical string**. New validation edge cases
+(bad coordinates, non-Google review hosts, non-content Spotify paths, missing business name/website,
+`javascript:` schemes) are covered. `tests/qr-v3-evidence.test.ts` re-renders all 27 from realistic
+samples and decodes each; with `QR_EVIDENCE=1` it emits the actual PNGs to `evidence/content-*.png`.
+
+**Note on multi-social / multi-link:** these encode a single hosted landing-page URL (the only honest
+static-QR mechanism). The downloadable landing-page *builder* is Phase E and is not yet built; the
+field help says so plainly. No dynamic/editable QR or analytics is claimed.
+
+**Small additive fix:** the shared email regex now accepts valid multi-label domains
+(`hello@mail.example.com`) while still rejecting empty/consecutive-dot labels — needed for business
+contacts; no previously-valid input is rejected and no existing test changed its expectation.
+
+---
+
+## 2. Phase C — Template library: 8 → 55, categorized gallery
+
+**55 distinct templates across the 11 required categories** (5 each): Business, Restaurant & Cafe,
+Social Media, Events, Marketing, Product Packaging, Personal, Education, Retail, Travel, Real Estate.
+The original 8 (Signature, Midnight Grape, Editorial Mono, Sunrise Coral, Mint Fresh, Inverted Noir,
+Clear Badge, Poster Bold) are retained within their categories.
+
+Each template defines: **colour scheme** (solid/linear/radial), **background**, **module pattern**,
+**corner/eye style**, **logo positioning** (on logo-oriented templates), a **label/caption**, a
+suggested **print layout** and **physical print size (mm)**. Applying a template pre-fills the real
+PDF caption + print-width options, so it changes printable output, not just on-screen colour.
+
+**Gallery features (all real, wired to the engine):**
+- **Search** across name, blurb, caption and category label (case-insensitive).
+- **Filter by category** chips (All + 11 categories + My templates), horizontally scrollable on mobile.
+- **Template preview** — every card shows a genuine rendered mini-QR (`QrThumb`), never a swatch.
+- **One-click Apply** — resets to defaults + template (no blending), keeps the user's logo image/size.
+- **Customize after applying** — all Design Studio controls remain live.
+- **Save custom template** — name + category, persisted to a new localStorage key.
+- **Duplicate** any built-in or custom template into an editable copy.
+- **Reset** to the house look.
+- **Delete** custom templates.
+
+**Verification:** `tests/qr-render.test.ts` renders and decodes **all 55** templates.
+`tests/qr-templates.test.ts` (13 tests) checks ≥50 distinct ids, all 11 categories, per-template
+metadata, the original 8 names, search/filter behavior, and the save/duplicate/delete round-trip —
+including that custom templates **never write to the preset or history storage keys**.
+`tests/qr-v3-evidence.test.ts` emits one rendered PNG per category to `evidence/template-*.png`.
+
+**Honest deferral:** templates carry **no frame yet** — frames + label rendering arrive with Design
+Studio V3 (Phase D). Rather than ship fake frame previews, templates currently express their look
+through colour/pattern/eyes/logo plus the caption + print metadata that already drive the real PDF.
+
+---
+
+## 3. Branding
+
+Templates and the gallery use the requested QUICKKIT palette — Deep Plum `#3B1B4F`, Rose Pink
+`#D6598F` / deep rose `#B93A73`, Coral `#FF6B6B` / deep coral `#C93A3A`, Midnight `#1A0F2E`, Soft
+Blush `#F4D7D4` — on the existing premium light theme. The Signature template is the plum→rose house
+look. Page structure (Create / Bulk / History / Presets; Content / Design / Advanced / Preview) is
+unchanged; the gallery lives in the existing Design → Templates tab.
+
+---
+
+## 4. Test & build evidence
+
+| Gate | Result |
+|------|--------|
+| TypeScript (`tsc --noEmit`) | clean |
+| ESLint (changed files) | clean |
+| Prettier (changed files) | formatted |
+| Unit suite | **682 passing / 39 files** (was 594/37; +88 tests incl. 39 evidence renders) |
+| Independent decode | every content type + all 55 templates + 11 category samples decoded by jsQR to the exact payload |
+| Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
+| Dev preview | running on port 3000 (live preview) |
+| Rendered artifacts | 38 real PNGs + `report.json` in `docs/qr-studio-v3/evidence/` |
+
+**CSP:** untouched. No production policy was weakened.
+
+### Screenshot limitation (honest)
+Browser screenshots could **not** be captured in this sandbox: the Playwright Chromium CDN
+(`cdn.playwright.dev`) and Debian package repositories are both outside the sandbox's allowed network
+hosts, and no system browser is present. Instead, this stage provides (a) the **live dev preview** for
+interactive desktop/mobile inspection and (b) **engine-rendered, decode-verified QR PNGs** as concrete
+visual evidence. The Playwright e2e suite (which includes the overflow sweep and download-decode
+checks) is unchanged and ready to run wherever a browser is available. UI screenshots will be captured
+in a browser-enabled environment before final sign-off.
+
+---
+
+## 5. Preserved functionality (no regressions)
+
+All 21 pre-existing studio UI tests pass unchanged (except the picker label list, extended to 27).
+Wi-Fi secret redaction, history/presets storage, bulk CSV, the decode gate, the safety audit, exports
+(PNG/high-res/SVG/PDF), copy/share and the "Try sample protects a typed URL" guard all still work.
+Existing localStorage keys are untouched; custom templates use a new key.
+
+---
+
+## 6. Remaining stages (next, on owner go-ahead)
+
+- **Phase D:** frames + label rendering (shared scene + stroke font), independent eye colours, brand
+  preset palettes, logo background colour — all gated by the decode check.
+- **Phase F:** PNG DPI metadata, custom px in the export row, A4 print-sheet grid, layout PDFs.
+- **Phase G:** bulk retry-failed, pre-generation preview, per-row content type.
+- **Phase H:** history/preset rename, duplicate, JSON export/import.
+- **Phase E:** static multi-link landing-page builder (downloadable HTML) — no backend, no analytics.
+- **Phase J:** full e2e + browser screenshots in a browser-enabled environment.
+
+**Status: Stage 1 (Phases B + C) implemented and verified — awaiting owner review. Not merged, not
+deployed.**

@@ -5,7 +5,7 @@
  * scene model that the preview, the exports and the decoder all read from.
  */
 import { useRef, useState } from "react";
-import { Eraser, ImagePlus, Lock, Sparkles, SwatchBook, X } from "lucide-react";
+import { Eraser, ImagePlus, Lock, SwatchBook, X } from "lucide-react";
 import {
   DOT_STYLES,
   EYE_STYLES,
@@ -29,6 +29,7 @@ import {
   QrToggle,
 } from "./shared";
 import type { QrStudio } from "./use-qr-studio";
+import TemplateGallery from "./template-gallery";
 
 const PRESET_SWATCHES = [
   { name: "QUICKKIT purple", fg: "#4b19b8", bg: "#ffffff" },
@@ -238,21 +239,15 @@ function DesignPanel({
 }
 
 export default function DesignStudio({ studio }: { studio: QrStudio }) {
-  const {
-    design,
-    patchDesign,
-    logo,
-    attachLogo,
-    removeLogo,
-    templates,
-    templateId,
-    applyTemplate,
-  } = studio;
+  const { design, patchDesign, logo, attachLogo, removeLogo, templateId } =
+    studio;
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [tab, setTab] = useState<DesignTab>("colours");
   const contrast = effectiveContrast(design.fg, design.bg);
-  const templateName = templates.find((entry) => entry.id === templateId)?.name;
+  const templateName = studio.allTemplates.find(
+    (entry) => entry.id === templateId,
+  )?.name;
   const fieldContrast = contrastRatio(design.fg.base, design.bg.base);
   const opacity = logo ? Math.round(logoOpacity(logo) * 100) : 0;
 
@@ -599,52 +594,9 @@ export default function DesignStudio({ studio }: { studio: QrStudio }) {
       <DesignPanel
         id="templates"
         active={tab === "templates"}
-        label="Ready-made templates"
+        label="Template gallery"
       >
-        <div className="qr-template-grid">
-          {templates.map((template) => (
-            <button
-              key={template.id}
-              type="button"
-              className={
-                templateId === template.id
-                  ? "qr-template active"
-                  : "qr-template"
-              }
-              aria-pressed={templateId === template.id}
-              onClick={() => applyTemplate(template.id)}
-            >
-              <span
-                className="qr-template-chip"
-                style={{
-                  background: template.design.bg?.base ?? "#ffffff",
-                }}
-                aria-hidden="true"
-              >
-                <span
-                  style={{
-                    background:
-                      template.design.fg?.kind &&
-                      template.design.fg.kind !== "solid"
-                        ? `linear-gradient(135deg, ${template.design.fg.base}, ${template.design.fg.accent})`
-                        : (template.design.fg?.base ?? "#17152b"),
-                    borderRadius:
-                      template.design.dotStyle === "dots"
-                        ? "50%"
-                        : `${(template.design.cornerRadius ?? 0.2) * 90}%`,
-                  }}
-                />
-              </span>
-              <strong>{template.name}</strong>
-              <small>{template.blurb}</small>
-            </button>
-          ))}
-        </div>
-        <p className="help">
-          <Sparkles size={13} aria-hidden="true" /> Each template was rendered
-          and decoded before it shipped here. Your own combinations can be saved
-          on the Presets tab — they stay in this browser.
-        </p>
+        <TemplateGallery studio={studio} />
       </DesignPanel>
     </QrDisclosure>
   );

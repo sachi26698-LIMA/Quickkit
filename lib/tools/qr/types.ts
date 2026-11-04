@@ -14,7 +14,22 @@ export type QrContentTypeId =
   | "location"
   | "event"
   | "social"
-  | "app";
+  | "app"
+  | "instagram"
+  | "facebook"
+  | "youtube"
+  | "spotify"
+  | "gmaps"
+  | "greview"
+  | "business"
+  | "product"
+  | "booking"
+  | "ticket"
+  | "document"
+  | "gallery"
+  | "video"
+  | "socials"
+  | "landing";
 
 /** How a fill (foreground modules or the background) is painted. */
 export type QrFillKind = "solid" | "linear" | "radial";

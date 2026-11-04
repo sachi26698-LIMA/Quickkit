@@ -14,15 +14,17 @@ import {
   contentTypeDef,
   defaultValuesFor,
   isKnownContentType,
+  sampleValuesFor,
   type QrValues,
 } from "@/lib/tools/qr/payload";
 import { utf8Length } from "@/lib/tools/qr/capacity";
 import { renderQr, type RenderOutput } from "@/lib/tools/qr/render";
+import { defaultDesign } from "@/lib/tools/qr/style";
 import {
-  defaultDesign,
-  QR_TEMPLATES,
-  templateById,
-} from "@/lib/tools/qr/style";
+  QR_TEMPLATE_LIBRARY,
+  type QrTemplate,
+  type QrTemplateCategory,
+} from "@/lib/tools/qr/templates";
 import { safeFixDesign } from "@/lib/tools/qr/safety";
 import { prepareLogo } from "@/lib/tools/qr/logo";
 import {
@@ -46,12 +48,16 @@ import {
 } from "@/lib/tools/qr/share";
 import {
   clearHistory as clearHistoryStore,
+  deleteCustomTemplate as deleteCustomTemplateStore,
   deletePreset as deletePresetStore,
+  duplicateCustomTemplate as duplicateCustomTemplateStore,
+  loadCustomTemplates,
   loadHistory,
   loadHistoryMode,
   loadPresets,
   recordHistory,
   removeHistory,
+  saveCustomTemplate as saveCustomTemplateStore,
   saveHistoryMode,
   savePreset as savePresetStore,
   type QrHistoryEntry,
@@ -98,28 +104,28 @@ const HEAVY_DEBOUNCE_MS = 650;
 
 function labelFor(typeId: QrContentTypeId, values: QrValues) {
   const def = contentTypeDef(typeId);
-  const candidates =
-    typeId === "url"
-      ? [values.url]
-      : typeId === "text"
-        ? [values.text]
-        : typeId === "wifi"
-          ? [values.ssid]
-          : typeId === "vcard"
-            ? [`${values.firstName ?? ""} ${values.lastName ?? ""}`]
-            : typeId === "event"
-              ? [values.title]
-              : typeId === "social"
-                ? [values.platform, values.username]
-                : typeId === "email"
-                  ? [values.to]
-                  : [
-                      values.title,
-                      values.label,
-                      values.name,
-                      values.url,
-                      values.text,
-                    ];
+  const primary: Partial<Record<QrContentTypeId, (string | boolean)[]>> = {
+    url: [values.url],
+    text: [values.text],
+    wifi: [values.ssid],
+    vcard: [`${values.firstName ?? ""} ${values.lastName ?? ""}`],
+    event: [values.title],
+    social: [values.platform, values.username],
+    email: [values.to],
+    instagram: [values.username],
+    facebook: [values.page],
+    youtube: [values.channel],
+    business: [values.company],
+    gmaps: [values.place, values.url],
+    greview: [values.placeId, values.url],
+  };
+  const candidates = primary[typeId] ?? [
+    values.title,
+    values.label,
+    values.name,
+    values.url,
+    values.text,
+  ];
   const chosen = candidates.filter(Boolean).join(" ").trim();
   return (chosen || def.label).slice(0, 48);
 }
@@ -147,6 +153,7 @@ export function useQrStudio() {
   } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [presets, setPresets] = useState<QrPreset[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<QrTemplate[]>([]);
   const [history, setHistory] = useState<QrHistoryEntry[]>([]);
   const [historyMode, setHistoryMode] = useState<QrHistoryMode>("full");
   const [storageReady, setStorageReady] = useState(false);
@@ -231,6 +238,7 @@ export function useQrStudio() {
      * single deferred batch: doing it synchronously here would cascade renders
      * while the browser is still painting the first frame. */
     const stored = loadPresets();
+    const savedTemplates = loadCustomTemplates();
     const entries = loadHistory();
     const mode = loadHistoryMode();
     const shared = readShareHash(window.location.hash);
@@ -238,6 +246,7 @@ export function useQrStudio() {
     if (parsed?.ok) restoredFromLink.current = true;
     queueMicrotask(() => {
       setPresets(stored);
+      setCustomTemplates(savedTemplates);
       setHistory(entries);
       setHistoryMode(mode);
       if (parsed && parsed.ok) {
@@ -403,48 +412,111 @@ export function useQrStudio() {
    * typed in another content type is replaced.
    */
   const loadSample = useCallback(() => {
-    const typed = String(valuesByType.url?.url ?? "").trim();
-    setTypeId("url");
-    if (typed) {
+    // V2 guard first: an address the user already typed is never replaced, no
+    // matter which type is selected. Jump back to the URL type and say so.
+    const typedUrl = String(valuesByType.url?.url ?? "").trim();
+    if (typedUrl) {
+      setTypeId("url");
       setFlash({
         kind: "info",
         text: "Your own address is already in the Web address field, so it was left alone. Clear that field and press Try sample again for the example.",
       });
       return;
     }
+    // Nothing typed yet: load a working sample for the current type so the
+    // preview, the checks and the downloads all come alive.
+    if (typeId === "url") {
+      setValuesByType((current) => ({
+        ...current,
+        url: {
+          ...(current.url ?? defaultValuesFor("url")),
+          url: QR_SAMPLE_URL,
+        },
+      }));
+      setFlash({
+        kind: "info",
+        text: "Sample link loaded into the Web address field — the preview, the decode check and the downloads are all real. Overwrite it any time.",
+      });
+      return;
+    }
     setValuesByType((current) => ({
       ...current,
-      url: { ...(current.url ?? defaultValuesFor("url")), url: QR_SAMPLE_URL },
+      [typeId]: sampleValuesFor(typeId),
     }));
     setFlash({
       kind: "info",
-      text: "Sample link loaded into the Web address field — the preview, the decode check and the downloads are all real. Overwrite it any time.",
+      text: `Sample ${contentTypeDef(typeId).label.toLowerCase()} loaded — the preview, the decode check and the downloads are all real. Overwrite it any time.`,
     });
-  }, [valuesByType]);
+  }, [typeId, valuesByType]);
 
   const patchDesign = useCallback((patch: Partial<QrDesign>) => {
     setDesignState((current) => ({ ...current, ...patch }));
     setTemplateId("");
   }, []);
 
-  const applyTemplate = useCallback((id: string) => {
-    const template = templateById(id);
-    if (!template) return;
-    setTemplateId(id);
-    // A template has to land on its own design, not a blend of the last two:
-    // keys a template leaves out (invert, transparency, dot scale, corner
-    // radius) used to survive from whichever template was applied before, so
-    // "Clear Badge" over "Inverted Noir" produced a code that could not be
-    // verified at all. Start from the shipped defaults and let the template
-    // overwrite them. The uploaded logo and the chosen export size stay the
-    // user's — a template is a look, not a workflow reset.
-    setDesignState((current) => {
-      const next: QrDesign = { ...defaultDesign(), ...template.design };
-      next.logo = current.logo;
-      if (template.design.size === undefined) next.size = current.size;
-      if (template.design.margin === undefined) next.margin = current.margin;
-      return next;
+  const applyTemplate = useCallback(
+    (id: string) => {
+      const template = [...QR_TEMPLATE_LIBRARY, ...customTemplates].find(
+        (entry) => entry.id === id,
+      );
+      if (!template) return;
+      setTemplateId(id);
+      // A template has to land on its own design, not a blend of the last two:
+      // keys a template leaves out (invert, transparency, dot scale, corner
+      // radius) used to survive from whichever template was applied before, so
+      // "Clear Badge" over "Inverted Noir" produced a code that could not be
+      // verified at all. Start from the shipped defaults and let the template
+      // overwrite them. The uploaded logo image and the chosen export size stay
+      // the user's — a template is a look, not a workflow reset. A template may
+      // still suggest a logo *position*, which is merged over the current one.
+      setDesignState((current) => {
+        const next: QrDesign = { ...defaultDesign(), ...template.design };
+        next.logo = { ...current.logo, ...(template.design.logo ?? {}) };
+        if (template.design.size === undefined) next.size = current.size;
+        if (template.design.margin === undefined) next.margin = current.margin;
+        return next;
+      });
+      // A template's suggested caption and print width pre-fill the real PDF
+      // options, so applying it changes the printable output too — not just the
+      // on-screen colours.
+      if (template.label || template.printMm) {
+        setPdfOptions((current) => ({
+          ...current,
+          ...(template.label ? { caption: template.label } : {}),
+          ...(template.printMm ? { sizeMm: template.printMm } : {}),
+        }));
+      }
+    },
+    [customTemplates],
+  );
+
+  const saveCustomTemplate = useCallback(
+    (name: string, category: QrTemplateCategory) => {
+      const next = saveCustomTemplateStore(
+        { name, category, design },
+        loadCustomTemplates(),
+      );
+      setCustomTemplates(next);
+      setFlash({
+        kind: "info",
+        text: `Template “${name.trim() || "Untitled template"}” saved in this browser. Find it under My templates.`,
+      });
+    },
+    [design],
+  );
+
+  const duplicateTemplate = useCallback((template: QrTemplate) => {
+    const next = duplicateCustomTemplateStore(template, loadCustomTemplates());
+    setCustomTemplates(next);
+    setFlash({
+      kind: "info",
+      text: `“${template.name}” duplicated — edit it under My templates.`,
     });
+  }, []);
+
+  const deleteCustomTemplate = useCallback((id: string) => {
+    setCustomTemplates(deleteCustomTemplateStore(id, loadCustomTemplates()));
+    setTemplateId((current) => (current === id ? "" : current));
   }, []);
 
   const applyPreset = useCallback((preset: QrPreset) => {
@@ -815,8 +887,13 @@ export function useQrStudio() {
     testing,
     label,
     templateId,
-    templates: QR_TEMPLATES,
+    templates: QR_TEMPLATE_LIBRARY,
+    customTemplates,
+    allTemplates: [...QR_TEMPLATE_LIBRARY, ...customTemplates],
     applyTemplate,
+    saveCustomTemplate,
+    duplicateTemplate,
+    deleteCustomTemplate,
     applyPreset,
     savePreset,
     deletePreset,

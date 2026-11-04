@@ -106,7 +106,8 @@ describe("styled rendering stays scannable", () => {
         `${template.id}: ${out.verification?.message}`,
       ).toBe(true);
     }
-  });
+  }, // 55 templates, each rendered at full size and decoded by jsQR.
+  120_000);
 
   it("supports gradients, margins and invert", async () => {
     const gradient = await render({

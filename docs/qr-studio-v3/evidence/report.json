@@ -1,0 +1,299 @@
+{
+  "generated": "2026-11-04T02:39:22.165Z",
+  "count": 38,
+  "report": [
+    {
+      "name": "content-url",
+      "kind": "content",
+      "typeId": "url",
+      "bytes": 38,
+      "version": 3,
+      "decoded": "https://quickkit.tools/?src=qr-example"
+    },
+    {
+      "name": "content-text",
+      "kind": "content",
+      "typeId": "text",
+      "bytes": 32,
+      "version": 3,
+      "decoded": "Hello from QUICKKIT — scan me!"
+    },
+    {
+      "name": "content-email",
+      "kind": "content",
+      "typeId": "email",
+      "bytes": 127,
+      "version": 8,
+      "decoded": "mailto:hello@quickkit.tools?subject=Hi%20from%20a%20QR%20code&body=I%20scanned%20your%20code%20and%20wanted%20to%20say%20hello."
+    },
+    {
+      "name": "content-phone",
+      "kind": "content",
+      "typeId": "phone",
+      "bytes": 17,
+      "version": 2,
+      "decoded": "tel:+919876543210"
+    },
+    {
+      "name": "content-sms",
+      "kind": "content",
+      "typeId": "sms",
+      "bytes": 47,
+      "version": 3,
+      "decoded": "SMSTO:+919876543210:Hi! I scanned your QR code."
+    },
+    {
+      "name": "content-whatsapp",
+      "kind": "content",
+      "typeId": "whatsapp",
+      "bytes": 64,
+      "version": 4,
+      "decoded": "https://wa.me/919876543210?text=Hello%20from%20your%20QR%20code!"
+    },
+    {
+      "name": "content-wifi",
+      "kind": "content",
+      "typeId": "wifi",
+      "bytes": 39,
+      "version": 3,
+      "decoded": "WIFI:T:nopass;S:Café Aurora Wi-Fi;P:;;"
+    },
+    {
+      "name": "content-vcard",
+      "kind": "content",
+      "typeId": "vcard",
+      "bytes": 205,
+      "version": 10,
+      "decoded": "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Lovelace;Ada;;;\r\nFN:Ada Lovelace\r\nORG:Quickkit\r\nTITLE:Engineer\r\nTEL;TYPE=CELL,VOICE:+919876543210\r\nEMAIL;TYPE=INTERNET:ada@quickkit.tools\r\nURL:https://quickkit.tools/\r\nEND:VCARD"
+    },
+    {
+      "name": "content-location",
+      "kind": "content",
+      "typeId": "location",
+      "bytes": 48,
+      "version": 4,
+      "decoded": "https://maps.google.com/?q=19.076%2C72.8777&z=16"
+    },
+    {
+      "name": "content-event",
+      "kind": "content",
+      "typeId": "event",
+      "bytes": 329,
+      "version": 13,
+      "decoded": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//QUICKKIT//QR Code Generator//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\nUID:quickkit-20261104T023920Z-b1x6jovz@quickkit\r\nDTSTAMP:20261104T023920Z\r\nDTSTART:20261201T183000\r\nDTEND:20261201T210000\r\nSUMMARY:Quickkit launch party\r\nLOCATION:Rooftop\\, Bandra\r\nEND:VEVENT\r\nEND:VCALENDAR"
+    },
+    {
+      "name": "content-social",
+      "kind": "content",
+      "typeId": "social",
+      "bytes": 41,
+      "version": 3,
+      "decoded": "https://www.instagram.com/quickkit.tools/"
+    },
+    {
+      "name": "content-app",
+      "kind": "content",
+      "typeId": "app",
+      "bytes": 62,
+      "version": 4,
+      "decoded": "https://play.google.com/store/apps/details?id=com.quickkit.app"
+    },
+    {
+      "name": "content-instagram",
+      "kind": "content",
+      "typeId": "instagram",
+      "bytes": 41,
+      "version": 3,
+      "decoded": "https://www.instagram.com/quickkit.tools/"
+    },
+    {
+      "name": "content-facebook",
+      "kind": "content",
+      "typeId": "facebook",
+      "bytes": 39,
+      "version": 3,
+      "decoded": "https://www.facebook.com/quickkit.tools"
+    },
+    {
+      "name": "content-youtube",
+      "kind": "content",
+      "typeId": "youtube",
+      "bytes": 33,
+      "version": 3,
+      "decoded": "https://www.youtube.com/@quickkit"
+    },
+    {
+      "name": "content-spotify",
+      "kind": "content",
+      "typeId": "spotify",
+      "bytes": 56,
+      "version": 4,
+      "decoded": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
+    },
+    {
+      "name": "content-gmaps",
+      "kind": "content",
+      "typeId": "gmaps",
+      "bytes": 80,
+      "version": 5,
+      "decoded": "https://www.google.com/maps/search/?api=1&query=Gateway%20of%20India%2C%20Mumbai"
+    },
+    {
+      "name": "content-greview",
+      "kind": "content",
+      "typeId": "greview",
+      "bytes": 79,
+      "version": 5,
+      "decoded": "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4"
+    },
+    {
+      "name": "content-business",
+      "kind": "content",
+      "typeId": "business",
+      "bytes": 253,
+      "version": 11,
+      "decoded": "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Lovelace;Ada;;;\r\nFN:Ada Lovelace\r\nORG:Aurora Café\r\nTITLE:Owner\r\nURL:https://auroracafe.example.com/\r\nTEL;TYPE=WORK,VOICE:+919876543210\r\nEMAIL;TYPE=WORK:hello@auroracafe.example.com\r\nADR;TYPE=WORK:;;;Mumbai;;;India\r\nEND:VCARD"
+    },
+    {
+      "name": "content-product",
+      "kind": "content",
+      "typeId": "product",
+      "bytes": 44,
+      "version": 4,
+      "decoded": "https://store.example.com/product/aurora-mug"
+    },
+    {
+      "name": "content-booking",
+      "kind": "content",
+      "typeId": "booking",
+      "bytes": 37,
+      "version": 3,
+      "decoded": "https://calendly.com/quickkit/consult"
+    },
+    {
+      "name": "content-ticket",
+      "kind": "content",
+      "typeId": "ticket",
+      "bytes": 46,
+      "version": 4,
+      "decoded": "https://tickets.example.com/event/launch-night"
+    },
+    {
+      "name": "content-document",
+      "kind": "content",
+      "typeId": "document",
+      "bytes": 31,
+      "version": 3,
+      "decoded": "https://quickkit.tools/menu.pdf"
+    },
+    {
+      "name": "content-gallery",
+      "kind": "content",
+      "typeId": "gallery",
+      "bytes": 39,
+      "version": 3,
+      "decoded": "https://photos.example.com/aurora-album"
+    },
+    {
+      "name": "content-video",
+      "kind": "content",
+      "typeId": "video",
+      "bytes": 28,
+      "version": 3,
+      "decoded": "https://youtu.be/dQw4w9WgXcQ"
+    },
+    {
+      "name": "content-socials",
+      "kind": "content",
+      "typeId": "socials",
+      "bytes": 26,
+      "version": 2,
+      "decoded": "https://linktr.ee/quickkit"
+    },
+    {
+      "name": "content-landing",
+      "kind": "content",
+      "typeId": "landing",
+      "bytes": 28,
+      "version": 3,
+      "decoded": "https://quickkit.tools/links"
+    },
+    {
+      "name": "template-signature",
+      "kind": "template",
+      "templateId": "signature",
+      "category": "business",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-sunrise",
+      "kind": "template",
+      "templateId": "sunrise",
+      "category": "restaurant",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-midnight",
+      "kind": "template",
+      "templateId": "midnight",
+      "category": "social",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-poster",
+      "kind": "template",
+      "templateId": "poster",
+      "category": "events",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-campaign-plum",
+      "kind": "template",
+      "templateId": "campaign-plum",
+      "category": "marketing",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-glass",
+      "kind": "template",
+      "templateId": "glass",
+      "category": "packaging",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-personal-plum",
+      "kind": "template",
+      "templateId": "personal-plum",
+      "category": "personal",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-classroom-ink",
+      "kind": "template",
+      "templateId": "classroom-ink",
+      "category": "education",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-shelf-coral",
+      "kind": "template",
+      "templateId": "shelf-coral",
+      "category": "retail",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-boarding-ink",
+      "kind": "template",
+      "templateId": "boarding-ink",
+      "category": "travel",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    },
+    {
+      "name": "template-listing-ink",
+      "kind": "template",
+      "templateId": "listing-ink",
+      "category": "realestate",
+      "decoded": "https://quickkit.tools/?src=template-evidence"
+    }
+  ]
+}

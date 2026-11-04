@@ -103,7 +103,7 @@ describe("qr studio — empty state", () => {
     );
   });
 
-  it("offers all twelve content types in one compact picker", () => {
+  it("offers all twenty-seven content types in one compact picker", () => {
     render(<QrGenerator />);
     const select = screen.getByLabelText(
       "QR content type",
@@ -124,6 +124,21 @@ describe("qr studio — empty state", () => {
       "Calendar event",
       "Social profile",
       "App download",
+      "Instagram profile",
+      "Facebook page",
+      "YouTube channel",
+      "Spotify / music",
+      "Google Maps location",
+      "Google Review link",
+      "Business website + contact",
+      "Product / shopping link",
+      "Appointment booking",
+      "Event / ticket link",
+      "PDF / document link",
+      "Image gallery link",
+      "Video link",
+      "Multi-social links",
+      "Multi-link landing page",
     ]);
     expect(select.value).toBe("url");
   });
