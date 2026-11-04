@@ -928,3 +928,86 @@ export function tiffDpi(bytes: Uint8Array): number | null {
     return null;
   }
 }
+
+/* --------------------------------- gif ---------------------------------- */
+
+export type GifInfo = {
+  width: number;
+  height: number;
+  /** Image descriptors found, i.e. real frames in the stream. */
+  frames: number;
+  /** More than one frame: the file is an animation. */
+  animated: boolean;
+  /** A NETSCAPE2.0 looping extension is present. */
+  loops: boolean;
+};
+
+/**
+ * Walk a GIF block stream without decoding any pixels.
+ *
+ * Frame count matters: the converter can either copy an animated GIF through
+ * untouched or collapse it to its first frame, and the two must never be
+ * confused. Bounded to the bytes it is given and never allocates.
+ */
+export function inspectGif(bytes: Uint8Array): GifInfo {
+  if (bytes.length < 13) throw new Error("This GIF file is too short to read.");
+  const signature = String.fromCharCode(...bytes.subarray(0, 6));
+  if (signature !== "GIF87a" && signature !== "GIF89a")
+    throw new Error("This file is not a GIF image.");
+  const width = bytes[6] | (bytes[7] << 8);
+  const height = bytes[8] | (bytes[9] << 8);
+  if (!width || !height) throw new Error("This GIF has no pixel dimensions.");
+
+  const packed = bytes[10];
+  let offset = 13;
+  if (packed & 0x80) offset += 3 * (2 << (packed & 0x07));
+
+  let frames = 0;
+  let loops = false;
+  let guard = 0;
+
+  while (offset < bytes.length && guard < 1_000_000) {
+    guard += 1;
+    const block = bytes[offset];
+    if (block === 0x3b) break; // trailer
+    if (block === 0x21) {
+      // Extension: 0x21, label, block size, that many data bytes, then 0x00.
+      const label = bytes[offset + 1];
+      if (
+        label === 0xff &&
+        bytes[offset + 2] === 11 &&
+        String.fromCharCode(...bytes.subarray(offset + 3, offset + 14)) ===
+          "NETSCAPE2.0"
+      )
+        loops = true;
+      // The size byte sits at offset + 2, so the sub-block walk starts there.
+      offset = skipSubBlocks(bytes, offset + 2);
+      continue;
+    }
+    if (block === 0x2c) {
+      // Image descriptor: left, top, width, height, packed.
+      frames += 1;
+      const local = bytes[offset + 9];
+      offset += 10;
+      if (local & 0x80) offset += 3 * (2 << (local & 0x07));
+      offset += 1; // LZW minimum code size
+      offset = skipSubBlocks(bytes, offset);
+      continue;
+    }
+    break; // unknown block: stop rather than guess
+  }
+
+  return { width, height, frames, animated: frames > 1, loops };
+}
+
+/** Skip a run of GIF data sub-blocks, returning the offset after the 0 byte. */
+function skipSubBlocks(bytes: Uint8Array, start: number): number {
+  let offset = start;
+  while (offset < bytes.length) {
+    const size = bytes[offset];
+    offset += 1;
+    if (size === 0) return offset;
+    offset += size;
+  }
+  return offset;
+}

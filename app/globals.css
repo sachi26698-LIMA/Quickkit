@@ -10701,3 +10701,556 @@ select:focus {
     row-gap: 8px;
   }
 }
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — smart compression controls (Phase 2)
+ * ---------------------------------------------------------------- */
+.converter-size-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.converter-size-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink-soft);
+  min-height: 44px;
+}
+.converter-size-mode strong {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.converter-size-mode small {
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.converter-size-mode:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--lavender-soft);
+}
+.converter-size-mode.active {
+  border-color: transparent;
+  background: var(--gradient-primary);
+  box-shadow: 0 8px 18px rgb(59 27 79 / 0.2);
+}
+.converter-size-mode.active strong,
+.converter-size-mode.active small {
+  color: #fff;
+}
+.converter-size-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.converter-size-preset {
+  min-height: 36px;
+  padding: 7px 14px;
+  font-size: 12px;
+}
+.converter-target-row {
+  display: flex;
+  gap: 8px;
+}
+.converter-target-row input {
+  flex: 1;
+  min-width: 0;
+}
+.converter-target-row select {
+  width: 84px;
+}
+.converter-optimize {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.converter-optimize-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.converter-optimize-option input {
+  accent-color: var(--rose-deep);
+}
+.converter-optimize-option.active {
+  border-color: var(--border-strong);
+  background: var(--lavender-soft);
+  color: var(--purple-deep);
+  font-weight: 600;
+}
+.converter-size-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.converter-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.converter-toggle input {
+  margin-top: 2px;
+  accent-color: var(--rose-deep);
+}
+.converter-toggle small {
+  display: block;
+  font-weight: 450;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.converter-estimate {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #ece5fa;
+  background: #f9f7ff;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #4c4560;
+}
+.converter-estimate strong {
+  color: var(--purple-deep);
+}
+.converter-estimate.warning {
+  border-color: #f4d6de;
+  background: #fff6f8;
+  color: #8d3247;
+}
+.converter-estimate.warning strong {
+  color: #a1354b;
+}
+/* Compression report under a converted result. */
+.converter-size-report {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d9f2e8;
+  background: #f4fdf9;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #2f6b57;
+}
+.converter-size-report.warning {
+  border-color: #f4d6de;
+  background: #fff6f8;
+  color: #8d3247;
+}
+.converter-size-report ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+@media (max-width: 640px) {
+  /* Stacked, thumb-friendly controls on phones. */
+  .converter-size-modes {
+    grid-template-columns: 1fr;
+  }
+  .converter-size-preset {
+    flex: 1 1 30%;
+    justify-content: center;
+  }
+  .converter-target-row select {
+    width: 72px;
+  }
+}
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — crop, rotate & straighten (Phase 3)
+ * ---------------------------------------------------------------- */
+.converter-edit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.converter-edit-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.converter-edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+.converter-edit-button:hover:not(:disabled) {
+  background: var(--lavender-soft);
+  border-color: var(--border-strong);
+  color: var(--purple-deep);
+}
+.converter-edit-button.active {
+  border-color: transparent;
+  background: var(--gradient-primary);
+  color: #fff;
+  box-shadow: 0 8px 18px rgb(59 27 79 / 0.18);
+}
+.converter-edit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.converter-crop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  /* Thumb-sized edit buttons, two per row, on phones. */
+  .converter-edit-button {
+    flex: 1 1 45%;
+    justify-content: center;
+  }
+  .converter-crop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — draggable page order (Phase 4)
+ * ---------------------------------------------------------------- */
+.converter-file.draggable {
+  cursor: grab;
+}
+.converter-file.draggable:active {
+  cursor: grabbing;
+}
+.converter-file.drag-over {
+  border-color: var(--rose-deep);
+  box-shadow: 0 0 0 2px rgb(185 58 115 / 0.18);
+}
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — PDF Studio page grid (Phase 4)
+ * ---------------------------------------------------------------- */
+.converter-studio {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 14px;
+}
+.converter-page-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.converter-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 12.5px;
+  cursor: grab;
+}
+.converter-page:active {
+  cursor: grabbing;
+}
+.converter-page strong {
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.converter-page.removed {
+  opacity: 0.6;
+  background: #faf8fc;
+}
+.converter-page.removed strong {
+  text-decoration: line-through;
+}
+.converter-page.drag-over {
+  border-color: var(--rose-deep);
+  box-shadow: 0 0 0 2px rgb(185 58 115 / 0.18);
+}
+.converter-page-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.converter-studio-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.converter-studio-bulk button {
+  min-height: 40px;
+  font-size: 12.5px;
+}
+@media (max-width: 640px) {
+  /* Full-width actions so thumbs can reach them on a phone. */
+  .converter-page-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .converter-studio-bulk button {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — before/after slider + full screen (Phase 5)
+ * ---------------------------------------------------------------- */
+.converter-stage-slider {
+  position: relative;
+  overflow: hidden;
+}
+.converter-slider-layer {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 430px;
+  width: auto;
+}
+/* The converted layer sits exactly on top of the original. */
+.converter-slider-layer + .converter-slider-layer {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+.converter-slider-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--rose-deep);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.7);
+  pointer-events: none;
+}
+.converter-slider-tag {
+  position: absolute;
+  bottom: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgb(35 24 51 / 0.72);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.converter-slider-tag.left {
+  left: 8px;
+}
+.converter-slider-tag.right {
+  right: 8px;
+}
+.converter-stage-full {
+  max-height: none;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #17101f;
+}
+.converter-stage-full img,
+.converter-stage-full .converter-slider-layer {
+  max-height: 92vh;
+  max-width: 96vw;
+}
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — batch report (Phase 6)
+ * ---------------------------------------------------------------- */
+.converter-report {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 14px;
+}
+.converter-report-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.converter-report-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.converter-report-row strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.converter-report-row small {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  white-space: normal;
+  line-height: 1.45;
+}
+.converter-report-row.failed {
+  border-color: #f4d6de;
+  background: #fff6f8;
+}
+.converter-report-row.failed small {
+  color: #a1354b;
+}
+.converter-report-row.cancelled {
+  opacity: 0.7;
+  background: #faf8fc;
+}
+
+/* ---------------------------------------------------------------- *
+ * Image & PDF Converter — collapsible settings (Phase 7)
+ * ---------------------------------------------------------------- */
+details.converter-block > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  min-height: 32px;
+  border-radius: 8px;
+}
+details.converter-block > summary::-webkit-details-marker {
+  display: none;
+}
+details.converter-block > summary:hover h3 {
+  color: var(--purple-deep);
+}
+details.converter-block > summary:focus-visible {
+  outline: 2px solid var(--rose-deep);
+  outline-offset: 2px;
+}
+details.converter-block > summary h3 {
+  margin: 0;
+  flex: 1;
+}
+.converter-block-chevron {
+  color: var(--ink-soft);
+  transition: transform 0.18s ease;
+}
+details.converter-block[open] > summary .converter-block-chevron {
+  transform: rotate(180deg);
+}
+/* Collapsed sections keep their spacing tidy. */
+details.converter-block:not([open]) {
+  padding-bottom: 4px;
+}
+
+/* ------------------- image-to-image conversion history ------------------- */
+/* Device-local recent conversions. Mirrors .converter-result so the history
+   row reads as part of the same card language. */
+.converter-history {
+  margin-top: 16px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #ece7f6;
+  border-radius: 14px;
+}
+.converter-history-retention {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  color: var(--secondary);
+}
+.converter-history-retention select {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 1px solid #ece7f6;
+  border-radius: 8px;
+  background: #fbfaff;
+  color: var(--plum);
+}
+.converter-history-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.converter-history-list li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  background: #fdfcff;
+  border: 1px solid #f1eef8;
+  border-radius: 12px;
+  padding: 10px;
+}
+.converter-history-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.converter-history-copy strong {
+  font-size: 11.5px;
+  color: var(--plum);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.converter-history-copy small {
+  font-size: 10.5px;
+  color: var(--secondary);
+}
+/* Scoped so it cannot collide with a future global .ghost button. */
+.converter-history .ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: 10.5px;
+  border: 1px solid #ece7f6;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--secondary);
+  cursor: pointer;
+}
+.converter-history .ghost:hover:not(:disabled) {
+  background: #f2edfd;
+  color: var(--plum);
+}

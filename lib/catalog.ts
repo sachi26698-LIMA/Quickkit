@@ -195,15 +195,50 @@ export const tools = [
     phase: 3,
   },
   {
-    slug: "image-converter",
-    name: "Image & PDF Converter",
+    slug: "image-to-image",
+    name: "Image to Image Converter",
     category: "Image Tools",
-    categories: ["Image Tools", "PDF Tools"],
     description:
-      "Convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF, turn images into multi-page PDFs, and export PDF pages as JPG, PNG or WEBP — all on your device.",
+      "Convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF in batch, with quality-first compression, target file sizes, resizing and a real before/after preview.",
     keywords:
-      "convert conversion format jpg jpeg png webp avif gif bmp tiff pdf images to pdf pdf to image export dpi page range batch zip transparency",
+      "convert conversion format jpg jpeg png webp avif gif bmp tiff heic heif batch zip quality target kb mb lossless lossy transparency background resize aspect ratio crop rotate flip straighten exif orientation metadata prefix suffix",
     icon: "convert",
+    color: "blue",
+    phase: 3,
+  },
+  {
+    slug: "images-to-pdf",
+    name: "Images to PDF Converter",
+    category: "PDF Tools",
+    description:
+      "Turn your pictures into one PDF, one image per page. Drag to order pages, rotate them, pick A4, A3, A5, Letter or a custom size, set margins and fit, and download a real PDF.",
+    keywords:
+      "images to pdf pictures photos to pdf jpg png webp to pdf create build make pdf page order drag drop reorder rotate remove a4 a3 a5 letter custom size portrait landscape margin contain cover fill background quality dpi title filename preview page count",
+    icon: "imagesToPdf",
+    color: "purple",
+    phase: 3,
+  },
+  {
+    slug: "pdf-to-image",
+    name: "PDF to Image Converter",
+    category: "PDF Tools",
+    description:
+      "Export PDF pages as JPG, PNG or WEBP images. Choose every page or a custom range, set the resolution up to 300 DPI, preview the real rendered pages, and download single pages or one ZIP.",
+    keywords:
+      "pdf to image pdf to jpg pdf to png pdf to webp convert pdf pages export render extract pages as pictures screenshots dpi resolution quality page range background thumbnail preview zip download batch",
+    icon: "pdfToImage",
+    color: "blue",
+    phase: 3,
+  },
+  {
+    slug: "pdf-studio",
+    name: "PDF Studio",
+    category: "PDF Tools",
+    description:
+      "Merge PDFs, extract or split page ranges, delete, rotate and reorder individual pages, and compress the result — with live thumbnails and page counts, all processed on your device.",
+    keywords:
+      "pdf studio merge combine join pdf split extract pages delete remove rotate reorder drag drop page order compress shrink organize arrange thumbnails page count batch multiple pdfs",
+    icon: "pdfStudio",
     color: "purple",
     phase: 3,
   },

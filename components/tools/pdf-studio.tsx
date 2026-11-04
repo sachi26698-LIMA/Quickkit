@@ -4,7 +4,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  ArrowRightLeft,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -12,6 +11,7 @@ import {
   ChevronRight,
   ChevronUp,
   CircleStop,
+  CopyPlus,
   Download,
   Eye,
   FileArchive,
@@ -21,7 +21,12 @@ import {
   ImageDown,
   Layers,
   Loader2,
+  Maximize2,
+  Pause,
+  Play,
   RefreshCw,
+  RotateCcw,
+  RotateCw,
   Settings2,
   ShieldCheck,
   Sparkles,
@@ -33,7 +38,6 @@ import { useHydrated } from "@/lib/use-hydrated";
 import { downloadBlob, formatBytes } from "@/lib/tools/download";
 import {
   CONVERT_FORMATS,
-  INPUT_ACCEPT,
   CONVERT_LIMITS,
   INPUT_ACCEPT_PDF,
   describePageRange,
@@ -42,30 +46,38 @@ import {
   inputFormatFromName,
   keepsAlpha,
   mmToPt,
-  parsePageRange,
   placeImage,
   resolvePage,
   type ConvertFormat,
   type ConvertMode,
   type ConvertSettings,
-  type InputFormat,
 } from "@/lib/tools/image-convert";
 import {
   canvasEncodeSupport,
-  convertImageFile,
-  imagesToPdf,
   inspectInput,
-  pdfToImages,
   readPdfPageCount,
   renderPdfThumbnails,
-  resetImageEncoder,
   zipOutputs,
   type CanvasSupport,
-  type InputDetails,
 } from "@/lib/tools/image-convert-runner";
-import ConverterSettings from "./image-converter/settings-panel";
+import { sizeReportSummary } from "@/lib/tools/image-size";
 import {
-  MODE_META,
+  buildPageList,
+  describePlan,
+  dropPage,
+  duplicatePage,
+  dropRanges,
+  keepOnlyRanges,
+  movePage,
+  planProblem,
+  rotatePage,
+  summarisePlan,
+  toggleRemoved,
+  type PdfPageOp,
+} from "@/lib/tools/pdf-studio";
+import { runPdfStudio } from "@/lib/tools/image-convert-runner";
+import PdfStudioSettings from "./pdf-studio/settings";
+import {
   OVERRIDE_OPTIONS,
   formatDimensions,
   formatPages,
@@ -74,15 +86,41 @@ import {
   type Message,
   type QueueItem,
   type QueueStatus,
-} from "./image-converter/types";
+} from "./convert-shared/types";
 
-const IMAGE_ACCEPT = INPUT_ACCEPT;
 const PDF_ACCEPT = INPUT_ACCEPT_PDF;
 let sequence = 0;
 const nextId = (prefix: string) => `${prefix}-${Date.now()}-${sequence++}`;
 
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong. Try again.";
+
+/** How the preview shows the work: one side, or a draggable before/after. */
+type CompareView = "source" | "result" | "slider";
+
+type BatchRow = {
+  name: string;
+  status: "converted" | "failed" | "cancelled";
+  sourceBytes: number;
+  outputBytes: number;
+  format: string;
+  error?: string;
+};
+
+type BatchReport = {
+  startedAt: string;
+  rows: BatchRow[];
+  paused?: boolean;
+};
+
+function reportTotals(report: BatchReport) {
+  const converted = report.rows.filter((row) => row.status === "converted");
+  const failed = report.rows.filter((row) => row.status === "failed");
+  const cancelled = report.rows.filter((row) => row.status === "cancelled");
+  const input = converted.reduce((sum, row) => sum + row.sourceBytes, 0);
+  const output = converted.reduce((sum, row) => sum + row.outputBytes, 0);
+  return { converted, failed, cancelled, input, output };
+}
 
 const statusLabel: Record<QueueStatus, string> = {
   inspecting: "Reading…",
@@ -93,16 +131,18 @@ const statusLabel: Record<QueueStatus, string> = {
   cancelled: "Cancelled",
 };
 
-export default function ImageConverter() {
+export default function PdfStudio() {
   const hydrated = useHydrated();
-  const [mode, setMode] = useState<ConvertMode>("image");
+  const [mode] = useState<ConvertMode>("pdf-studio");
   const [settings, setSettings] = useState<ConvertSettings>(() =>
     defaultSettings("image"),
   );
   const [items, setItems] = useState<QueueItem[]>([]);
   const [results, setResults] = useState<ConversionResult[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [compare, setCompare] = useState<"source" | "result">("source");
+  const [compare, setCompare] = useState<CompareView>("source");
+  /** 0–100 position of the before/after divider. */
+  const [split, setSplit] = useState(50);
   const [zoom, setZoom] = useState(100);
   // "Fit" is the default so a tall page is shown whole; moving the zoom
   // slider opts into free zoom (with scrolling) for close inspection.
@@ -117,12 +157,24 @@ export default function ImageConverter() {
   const [dragging, setDragging] = useState(false);
   const [support, setSupport] = useState<CanvasSupport | null>(null);
   const [pdfPage, setPdfPage] = useState(1);
+  // PDF Studio: the explicit page plan the user has built.
+  const [studioPages, setStudioPages] = useState<PdfPageOp[]>([]);
   // Small screens get an explicit Files/Preview switch instead of one very
   // long column; both panels stay mounted so previews keep their state.
   const [mobilePanel, setMobilePanel] = useState<"files" | "preview">("files");
 
   const itemsRef = useRef<QueueItem[]>([]);
   const urlsRef = useRef<Set<string>>(new Set());
+  const dragIdRef = useRef<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const studioDragIdRef = useRef<string | null>(null);
+  const [studioDragOverId, setStudioDragOverId] = useState<string | null>(null);
+  // Batch control: a batch can be paused between files and resumed, and every
+  // run leaves a report so nothing that failed is quietly forgotten.
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const resumeRef = useRef<(() => void) | null>(null);
+  const [batchReport] = useState<BatchReport | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const filesInputRef = useRef<HTMLInputElement>(null);
 
@@ -183,58 +235,53 @@ export default function ImageConverter() {
     [items, selectedId],
   );
   const activeItemId = selected?.id ?? null;
-  const isPdfMode = mode === "pdf-to-image";
-  const pdfItem = isPdfMode && selected?.format === "pdf" ? selected : null;
-  const selectedResult =
-    results.find(
-      (result) =>
-        result.itemId === activeItemId &&
-        (!isPdfMode || result.page === pdfPage),
-    ) ??
-    results.find((result) => result.itemId === activeItemId) ??
-    results[0] ??
-    null;
-  const canCompare =
-    Boolean(selected) && (mode !== "pdf-to-image" || Boolean(pdfItem));
+  const canCompare = Boolean(selected);
 
-  const readyImages = useMemo(
+  const studioSources = useMemo(
     () =>
-      items.filter(
-        (item) =>
-          item.format !== "pdf" &&
-          (item.status === "ready" ||
-            item.status === "done" ||
-            item.status === "error" ||
-            item.status === "cancelled"),
+      items
+        .filter((item) => item.format === "pdf")
+        .map((item) => ({ name: item.name, pages: item.pageCount ?? 0 })),
+    [items],
+  );
+
+  const studioPlan = useMemo(
+    () =>
+      summarisePlan(
+        studioPages,
+        settings.studio.action,
+        settings.studio.ranges,
+        studioSources,
       ),
-    [items],
+    [
+      studioPages,
+      settings.studio.action,
+      settings.studio.ranges,
+      studioSources,
+    ],
   );
-  const readyPdf = useMemo(
-    () =>
-      items.find(
-        (item) =>
-          item.format === "pdf" &&
-          (item.status === "ready" ||
-            item.status === "done" ||
-            item.status === "cancelled"),
-      ) ?? null,
-    [items],
-  );
-
-  const parsedRange = useMemo(() => {
-    if (!pdfItem?.pageCount)
-      return { pages: null as number[] | null, error: "" };
-    try {
-      return {
-        pages: parsePageRange(settings.pdfRender.range, pdfItem.pageCount),
-        error: "",
-      };
-    } catch (error) {
-      return { pages: null as number[] | null, error: errorMessage(error) };
-    }
-  }, [pdfItem, settings.pdfRender.range]);
+  const studioProblem =
+    planProblem(
+      studioPages,
+      settings.studio.action,
+      settings.studio.ranges,
+      studioSources,
+    ) ?? null;
 
   /* ------------------------------ file input ----------------------------- */
+
+  /** Rebuild the studio plan whenever the set of queued PDFs changes. */
+  const syncStudioPlan = useCallback((next: QueueItem[]) => {
+    const pdfs = next.filter((item) => item.format === "pdf");
+    setStudioPages(
+      buildPageList(
+        pdfs.map((item) => ({
+          name: item.name,
+          pages: item.pageCount ?? 0,
+        })),
+      ),
+    );
+  }, []);
 
   const addFiles = useCallback(
     async (incoming: File[]) => {
@@ -244,7 +291,9 @@ export default function ImageConverter() {
       const problems: string[] = [];
       const current = itemsRef.current;
       const wantsPdf = mode === "pdf-to-image";
+      const wantsStudio = mode === "pdf-studio";
 
+      // PDF to image renders one document; the studio merges many.
       if (wantsPdf && current.length > 0) {
         setMessage({
           tone: "error",
@@ -264,13 +313,13 @@ export default function ImageConverter() {
           problems.push(`"${file.name}" is not a supported file type.`);
           continue;
         }
-        if (wantsPdf && format !== "pdf") {
+        if ((wantsPdf || wantsStudio) && format !== "pdf") {
           problems.push(
             `"${file.name}" is an image. Switch to Image to image or Images to PDF.`,
           );
           continue;
         }
-        if (!wantsPdf && format === "pdf") {
+        if (!wantsPdf && !wantsStudio && format === "pdf") {
           problems.push(`"${file.name}" is a PDF. Use PDF to image for PDFs.`);
           continue;
         }
@@ -352,6 +401,8 @@ export default function ImageConverter() {
               kind: "pdf",
             });
             setPdfPage(1);
+            if (itemsRef.current.some((entry) => entry.format === "pdf"))
+              syncStudioPlan(itemsRef.current);
           } else {
             updateItem(item.id, {
               status: "ready",
@@ -360,6 +411,8 @@ export default function ImageConverter() {
               width: details.width,
               height: details.height,
               dpi: details.dpi,
+              frames: details.frames,
+              animated: details.animated,
             });
           }
         } catch (error) {
@@ -370,7 +423,7 @@ export default function ImageConverter() {
         }
       }
     },
-    [busy, commitItems, mode, selectedId, trackUrl, updateItem],
+    [busy, commitItems, mode, selectedId, syncStudioPlan, trackUrl, updateItem],
   );
 
   const onPick = (list: FileList | null) => {
@@ -414,6 +467,26 @@ export default function ImageConverter() {
     [busy, commitItems],
   );
 
+  /** Drop item `fromId` into the position held by `toId` (drag-and-drop). */
+  const reorderItem = useCallback(
+    (fromId: string, toId: string) => {
+      if (busy || fromId === toId) return;
+      const current = itemsRef.current;
+      const from = current.findIndex((entry) => entry.id === fromId);
+      const to = current.findIndex((entry) => entry.id === toId);
+      if (from < 0 || to < 0) return;
+      const next = [...current];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      commitItems(next);
+      setMessage({
+        tone: "info",
+        text: `Moved ${moved.name} to position ${to + 1}.`,
+      });
+    },
+    [busy, commitItems],
+  );
+
   const clearAll = useCallback(() => {
     if (busy) return;
     for (const url of urlsRef.current) URL.revokeObjectURL(url);
@@ -428,387 +501,117 @@ export default function ImageConverter() {
       text: "Queue cleared. Your original files are untouched.",
     });
     setPdfPage(1);
+    setStudioPages([]);
     if (filesInputRef.current) filesInputRef.current.value = "";
   }, [busy, commitItems]);
 
-  const changeMode = (next: ConvertMode) => {
-    if (busy || next === mode) return;
-    const keeps =
-      next === "pdf-to-image"
-        ? itemsRef.current.filter((item) => item.format === "pdf").slice(0, 1)
-        : itemsRef.current.filter((item) => item.format !== "pdf");
-    for (const result of results) releaseUrl(result.url);
-    setResults([]);
-    setCompare("source");
-    setPdfPage(1);
-    if (keeps.length !== itemsRef.current.length) {
-      for (const item of itemsRef.current)
-        if (!keeps.includes(item)) releaseUrl(item.url);
-      commitItems(keeps);
-      setSelectedId(keeps[0]?.id ?? null);
-      setMessage({
-        tone: "info",
-        text:
-          keeps.length > 0
-            ? "Kept the files that fit the new mode. Other files were removed from the queue."
-            : "Mode changed. Add files for this conversion.",
-      });
-    } else {
-      setMessage(null);
-    }
-    setMode(next);
-    setSettings((previous) => ({ ...previous, mode: next }));
-    setProgress({ done: 0, total: 0, label: "" });
-  };
-
   /* ----------------------------- conversion ------------------------------ */
 
-  const convertImageBatch = async (targets: QueueItem[]) => {
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setBusy(true);
-    setCompare("result");
-    setMessage(null);
-    setProgress({ done: 0, total: targets.length, label: "Preparing…" });
-    for (const target of targets) {
-      const stale = results.filter((result) => result.itemId === target.id);
-      for (const result of stale) releaseUrl(result.url);
-    }
-    setResults((previous) =>
-      previous.filter(
-        (result) => !targets.some((target) => target.id === result.itemId),
-      ),
-    );
-
-    let ok = 0;
-    let failed = 0;
-    for (let index = 0; index < targets.length; index += 1) {
-      const item = targets[index];
-      if (controller.signal.aborted) {
-        updateItem(item.id, { status: "cancelled", error: undefined });
-        continue;
-      }
-      updateItem(item.id, {
-        status: "converting",
-        error: undefined,
-        progress: undefined,
-      });
-      setProgress({
-        done: index,
-        total: targets.length,
-        label: `Converting ${item.name}`,
-      });
-      try {
-        const format =
-          item.override === "auto" ? settings.image.format : item.override;
-        const def = formatById(format);
-        if (def.canvas && support && !support[format as keyof CanvasSupport]) {
-          throw new Error(
-            `This browser cannot encode ${def.label}. Choose another format.`,
-          );
-        }
-        const details: InputDetails = {
-          format: item.format as Exclude<InputFormat, "pdf">,
-          kind: "image",
-          width: item.width,
-          height: item.height,
-          dpi: item.dpi,
-        };
-        const output = await convertImageFile(item.file, {
-          format,
-          settings,
-          details,
-          signal: controller.signal,
-        });
-        const url = trackUrl(output.blob);
-        const result: ConversionResult = {
-          id: nextId("result"),
-          itemId: item.id,
-          name: output.name,
-          blob: output.blob,
-          url,
-          format: output.format,
-          width: output.width,
-          height: output.height,
-          sourceBytes: item.bytes,
-          sourceWidth: item.width,
-          sourceHeight: item.height,
-          note: output.note,
-        };
-        setResults((previous) => [
-          ...previous.filter((entry) => entry.itemId !== item.id),
-          result,
-        ]);
-        updateItem(item.id, { status: "done", error: undefined });
-        if (ok === 0) setSelectedId(item.id);
-        ok += 1;
-      } catch (error) {
-        if (controller.signal.aborted) {
-          updateItem(item.id, { status: "cancelled", error: undefined });
-        } else {
-          failed += 1;
-          updateItem(item.id, {
-            status: "error",
-            error: errorMessage(error),
-          });
-        }
-      }
-      setProgress({
-        done: index + 1,
-        total: targets.length,
-        label: `Finished ${item.name}`,
-      });
-    }
-
-    abortRef.current = null;
-    if (ok > 0) setMobilePanel("preview");
-    resetImageEncoder();
-    setBusy(false);
-    setMessage(
-      failed
-        ? {
-            tone: "error",
-            text: `${ok} converted, ${failed} failed. Fix the file or try another format, then convert again.`,
-          }
-        : {
-            tone: "success",
-            text:
-              ok === 1
-                ? "Conversion finished. Compare the result and download it."
-                : `${ok} images converted. Download them individually or as one ZIP.`,
-          },
-    );
-  };
-
-  const convertPdfPages = async (item: QueueItem) => {
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setBusy(true);
-    setCompare("result");
-    setMessage(null);
-    let pages: number[] = [];
-    try {
-      pages = parsePageRange(settings.pdfRender.range, item.pageCount ?? 0);
-    } catch (error) {
-      setBusy(false);
-      abortRef.current = null;
-      setMessage({ tone: "error", text: errorMessage(error) });
-      return;
-    }
-    for (const result of results) releaseUrl(result.url);
-    setResults([]);
-    updateItem(item.id, {
-      status: "converting",
-      error: undefined,
-      progress: 0,
-    });
-    setProgress({ done: 0, total: pages.length, label: "Rendering page 1…" });
-    try {
-      const output = await pdfToImages(item.file, settings, {
-        signal: controller.signal,
-        onPage: (done, total) => {
-          setProgress({
-            done,
-            total,
-            label: `Rendering page ${done} of ${total}…`,
-          });
-          updateItem(item.id, { progress: done / total });
-        },
-      });
-      const created = output.outputs.map<ConversionResult>((page) => ({
-        id: nextId("page"),
-        itemId: item.id,
-        name: page.name,
-        blob: page.blob,
-        url: trackUrl(page.blob),
-        format: settings.pdfRender.format,
-        width: page.width,
-        height: page.height,
-        page: page.page,
-        pages: output.pageCount,
-        sourceBytes: item.bytes / Math.max(1, output.pageCount),
-        note: `Page ${page.page} of ${output.pageCount}`,
-      }));
-      setResults(created);
-      setMobilePanel("preview");
-      updateItem(item.id, { status: "done", error: undefined });
-      setPdfPage(created[0]?.page ?? 1);
-      const capped = created.some(
-        (page) =>
-          (page.width ?? 0) * (page.height ?? 0) >
-          CONVERT_LIMITS.maxPagePixels * 0.999,
-      );
-      setMessage({
-        tone: "success",
-        text: `${created.length} page${created.length === 1 ? "" : "s"} exported at ${settings.pdfRender.dpi} DPI${
-          capped ? " (capped at 36 megapixels per page)" : ""
-        }. Download single pages or the whole ZIP.`,
-      });
-    } catch (error) {
-      if (controller.signal.aborted) {
-        updateItem(item.id, { status: "cancelled", error: undefined });
-        setMessage({
-          tone: "info",
-          text: "Export cancelled. Finished pages were kept in memory only while the run lasted.",
-        });
-      } else {
-        updateItem(item.id, {
-          status: "error",
-          error: errorMessage(error),
-        });
-        setMessage({ tone: "error", text: errorMessage(error) });
-      }
-    } finally {
-      abortRef.current = null;
-      setBusy(false);
-    }
-  };
-
-  const convertPdfToPages = async () => {
-    if (!readyPdf) {
+  /** Reorder / rotate / remove / extract / split / compress the queued PDFs. */
+  const runStudio = async () => {
+    const pdfItems = itemsRef.current.filter((item) => item.format === "pdf");
+    if (!pdfItems.length) {
       setMessage({ tone: "error", text: "Add a PDF first." });
       return;
     }
-    if (readyPdf.status === "inspecting") {
-      setMessage({
-        tone: "info",
-        text: "Still reading this PDF. Try again in a moment.",
-      });
-      return;
-    }
-    if (!readyPdf.pageCount) {
-      setMessage({
-        tone: "error",
-        text: "This PDF has not finished loading its page count. Try again.",
-      });
-      return;
-    }
-    await convertPdfPages(readyPdf);
-  };
-
-  const convertToPdfFile = async () => {
-    const targets = readyImages;
-    if (!targets.length) {
-      setMessage({
-        tone: "error",
-        text: "Add at least one image to create a PDF.",
-      });
+    if (studioProblem) {
+      setMessage({ tone: "error", text: studioProblem });
       return;
     }
     const controller = new AbortController();
     abortRef.current = controller;
     setBusy(true);
-    setMessage(null);
     setCompare("result");
+    setMessage(null);
+    setProgress({ done: 0, total: 1, label: "Reading documents…" });
     for (const result of results) releaseUrl(result.url);
     setResults([]);
-    for (const target of targets)
-      updateItem(target.id, {
-        status: "converting",
-        error: undefined,
-        progress: 0,
-      });
-    setProgress({
-      done: 0,
-      total: targets.length,
-      label: "Building the first page…",
-    });
     try {
-      const output = await imagesToPdf(
-        targets.map((target) => target.file),
-        settings,
-        {
-          signal: controller.signal,
-          onPage: (done, total) => {
-            setProgress({
-              done,
-              total,
-              label: `Placing page ${done} of ${total}…`,
-            });
-            for (const target of targets)
-              updateItem(target.id, { progress: done / total });
-          },
-        },
-      );
-      const url = trackUrl(output.blob);
-      const result: ConversionResult = {
-        id: nextId("pdf"),
-        itemId: targets[0].id,
+      const outputs = await runPdfStudio({
+        files: pdfItems.map((item) => item.file),
+        pages: studioPages,
+        action: settings.studio.action,
+        settings: settings.studio,
+        sources: studioSources,
+        signal: controller.signal,
+        onProgress: (done, total) =>
+          setProgress({
+            done,
+            total,
+            label: `Writing page ${done} of ${total}…`,
+          }),
+      });
+      const created = outputs.map<ConversionResult>((output) => ({
+        id: nextId("studio"),
+        itemId: pdfItems[0].id,
         name: output.name,
         blob: output.blob,
-        url,
+        url: trackUrl(output.blob),
         format: "pdf",
         pages: output.pages,
-        sourceBytes: targets.reduce((sum, target) => sum + target.bytes, 0),
-        note: output.note,
-      };
-      setResults([result]);
+        sourceBytes: output.sourceBytes,
+        note: output.notices.length ? output.notices.join(" ") : undefined,
+      }));
+      setResults(created);
       setMobilePanel("preview");
-      for (const target of targets)
-        updateItem(target.id, { status: "done", error: undefined });
-      setSelectedId(targets[0].id);
-      setPdfPage(1);
+      for (const item of pdfItems)
+        updateItem(item.id, { status: "done", error: undefined });
       setMessage({
         tone: "success",
-        text: `${output.pages} page PDF created with ${targets.length} image${targets.length === 1 ? "" : "s"}. Previews below are rendered from the real PDF.`,
+        text:
+          created.length === 1
+            ? `${created[0].name} written with ${created[0].pages} page${created[0].pages === 1 ? "" : "s"}. Your originals are untouched.`
+            : `${created.length} PDFs written. Download them individually or as one ZIP.`,
       });
     } catch (error) {
-      if (controller.signal.aborted) {
-        for (const target of targets)
-          updateItem(target.id, { status: "cancelled", error: undefined });
-        setMessage({ tone: "info", text: "PDF creation cancelled." });
-      } else {
-        for (const target of targets)
-          updateItem(target.id, {
-            status: "error",
-            error: errorMessage(error),
-          });
-        setMessage({ tone: "error", text: errorMessage(error) });
-      }
+      if (controller.signal.aborted)
+        setMessage({ tone: "info", text: "Cancelled. Nothing was written." });
+      else setMessage({ tone: "error", text: errorMessage(error) });
     } finally {
       abortRef.current = null;
       setBusy(false);
+      setProgress({ done: 0, total: 0, label: "" });
     }
   };
 
   const startConversion = async () => {
     if (busy) return;
-    if (mode === "image") {
-      if (!readyImages.length) {
-        setMessage({ tone: "error", text: "Add at least one image first." });
-        return;
-      }
-      await convertImageBatch(readyImages);
-      return;
-    }
-    if (mode === "images-to-pdf") {
-      await convertToPdfFile();
-      return;
-    }
-    await convertPdfToPages();
+    await runStudio();
   };
 
   const cancel = () => {
     abortRef.current?.abort();
+    // A paused batch must not stay parked once the user cancels it.
+    if (pausedRef.current) resume();
     setMessage({ tone: "info", text: "Cancelling after the current step…" });
+  };
+
+  /** Wait between files while the batch is paused. */
+
+  const pause = () => {
+    if (!busy || pausedRef.current) return;
+    pausedRef.current = true;
+    setPaused(true);
+    setMessage({
+      tone: "info",
+      text: "Paused. The current file finishes, then the batch waits for you.",
+    });
+  };
+
+  const resume = () => {
+    if (!pausedRef.current) return;
+    pausedRef.current = false;
+    setPaused(false);
+    resumeRef.current?.();
+    resumeRef.current = null;
   };
 
   const retryItem = (id: string) => {
     if (busy) return;
     const item = itemsRef.current.find((entry) => entry.id === id);
     if (!item) return;
-    const fresh: QueueItem = { ...item, status: "ready", error: undefined };
     updateItem(id, { status: "ready", error: undefined });
-    if (mode === "image") {
-      if (item.format === "pdf") return;
-      void convertImageBatch([fresh]);
-      return;
-    }
-    if (mode === "images-to-pdf") {
-      void convertToPdfFile();
-      return;
-    }
-    void convertPdfToPages();
+    void runStudio();
   };
 
   const downloadAllZip = async () => {
@@ -819,7 +622,8 @@ export default function ImageConverter() {
       );
       const base =
         settings.baseName.trim() ||
-        (mode === "images-to-pdf" ? "quickkit-pdf" : "quickkit-converted");
+        settings.studio.filename.trim() ||
+        "quickkit-studio";
       downloadBlob(
         blob,
         `${base.replace(/[^\w-]+/g, "-") || "quickkit"}-results.zip`,
@@ -841,13 +645,9 @@ export default function ImageConverter() {
     : 0;
 
   const conversionLabel =
-    mode === "image"
-      ? `Convert ${readyImages.length || 0} image${readyImages.length === 1 ? "" : "s"}`
-      : mode === "images-to-pdf"
-        ? `Create PDF · ${readyImages.length} page${readyImages.length === 1 ? "" : "s"}`
-        : `Export ${parsedRange.pages?.length ?? 0} page${
-            (parsedRange.pages?.length ?? 0) === 1 ? "" : "s"
-          }`;
+    studioPlan.outputs > 1
+      ? `Write ${studioPlan.outputs} PDFs`
+      : `Write PDF · ${studioPlan.kept} page${studioPlan.kept === 1 ? "" : "s"}`;
 
   const previewTitle =
     compare === "result" ? "Converted output" : "Source preview";
@@ -856,48 +656,15 @@ export default function ImageConverter() {
     <div className="converter-workspace">
       <div className="workspace-heading">
         <div>
-          <h2>Image &amp; PDF Converter</h2>
+          <h2>PDF Studio</h2>
           <p>
-            Convert images, build PDFs from pictures, and export PDF pages — all
-            inside this tab.
+            Merge, extract, split, rotate, reorder and compress the pages of
+            your PDFs — every file stays on your device.
           </p>
         </div>
         <span className="local-badge">
           <ShieldCheck size={13} aria-hidden="true" /> Local processing
         </span>
-      </div>
-
-      <div
-        className="converter-modes"
-        role="group"
-        aria-label="Conversion mode"
-      >
-        {MODE_META.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            aria-pressed={mode === entry.id}
-            className={
-              mode === entry.id ? "converter-mode active" : "converter-mode"
-            }
-            disabled={busy}
-            onClick={() => changeMode(entry.id)}
-          >
-            <span className="converter-mode-icon">
-              {entry.id === "image" ? (
-                <ArrowRightLeft size={18} aria-hidden="true" />
-              ) : entry.id === "images-to-pdf" ? (
-                <FileText size={18} aria-hidden="true" />
-              ) : (
-                <FileImage size={18} aria-hidden="true" />
-              )}
-            </span>
-            <span>
-              <strong>{entry.label}</strong>
-              <small>{entry.short}</small>
-            </span>
-          </button>
-        ))}
       </div>
 
       <div
@@ -936,23 +703,19 @@ export default function ImageConverter() {
           disabled={busy}
         >
           <Upload size={16} aria-hidden="true" />
-          {mode === "pdf-to-image" ? "Choose a PDF" : "Choose images"}
+          Choose PDFs
         </button>
         <input
           ref={filesInputRef}
-          id="image-converter-input"
-          data-testid="image-converter-input"
+          id="pdf-studio-input"
+          data-testid="pdf-studio-input"
           type="file"
           className="converter-file-input"
-          accept={mode === "pdf-to-image" ? PDF_ACCEPT : IMAGE_ACCEPT}
-          multiple={mode !== "pdf-to-image"}
+          accept={PDF_ACCEPT}
+          multiple
           disabled={busy}
           onChange={(event) => onPick(event.target.files)}
-          aria-label={
-            mode === "pdf-to-image"
-              ? "Choose a PDF to convert"
-              : "Choose images to convert"
-          }
+          aria-label="Choose PDFs to work on"
         />
         <div
           className="converter-supported"
@@ -1019,12 +782,43 @@ export default function ImageConverter() {
             {items.map((item) => (
               <li
                 key={item.id}
-                className={
-                  item.id === activeItemId
-                    ? "converter-file selected"
-                    : "converter-file"
-                }
+                className={[
+                  "converter-file",
+                  item.id === activeItemId ? "selected" : "",
+                  mode === "images-to-pdf" ? "draggable" : "",
+                  dragOverId === item.id ? "drag-over" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 data-testid="converter-item"
+                draggable={mode === "images-to-pdf" && !busy}
+                onDragStart={(event) => {
+                  if (mode !== "images-to-pdf" || busy) return;
+                  dragIdRef.current = item.id;
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", item.name);
+                }}
+                onDragOver={(event) => {
+                  if (mode !== "images-to-pdf" || busy) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  if (dragOverId !== item.id) setDragOverId(item.id);
+                }}
+                onDragLeave={() => {
+                  if (dragOverId === item.id) setDragOverId(null);
+                }}
+                onDrop={(event) => {
+                  if (mode !== "images-to-pdf" || busy) return;
+                  event.preventDefault();
+                  const fromId = dragIdRef.current;
+                  dragIdRef.current = null;
+                  setDragOverId(null);
+                  if (fromId) reorderItem(fromId, item.id);
+                }}
+                onDragEnd={() => {
+                  dragIdRef.current = null;
+                  setDragOverId(null);
+                }}
               >
                 <button
                   type="button"
@@ -1252,18 +1046,12 @@ export default function ImageConverter() {
                   : "PDF → image"}
             </span>
           </div>
-          <ConverterSettings
-            mode={mode}
+          <PdfStudioSettings
             settings={settings}
             onChange={setSettings}
-            support={support}
             disabled={busy}
-            selectedSize={
-              selected && selected.format !== "pdf"
-                ? { width: selected.width, height: selected.height }
-                : undefined
-            }
-            pageCount={pdfItem?.pageCount}
+            studioSummary={describePlan(studioPlan)}
+            studioProblem={studioProblem}
           />
 
           <div className="converter-actions">
@@ -1272,11 +1060,7 @@ export default function ImageConverter() {
               className="primary"
               data-testid="converter-run"
               onClick={() => void startConversion()}
-              disabled={
-                busy ||
-                (!readyImages.length && mode !== "pdf-to-image") ||
-                (mode === "pdf-to-image" && !readyPdf)
-              }
+              disabled={busy || Boolean(studioProblem)}
             >
               {busy ? (
                 <Loader2
@@ -1297,6 +1081,22 @@ export default function ImageConverter() {
                 onClick={cancel}
               >
                 <CircleStop size={16} aria-hidden="true" /> Cancel
+              </button>
+            ) : null}
+            {busy && mode === "image" ? (
+              <button
+                type="button"
+                className="secondary"
+                data-testid="converter-pause"
+                aria-pressed={paused}
+                onClick={() => (paused ? resume() : pause())}
+              >
+                {paused ? (
+                  <Play size={16} aria-hidden="true" />
+                ) : (
+                  <Pause size={16} aria-hidden="true" />
+                )}
+                {paused ? "Resume" : "Pause"}
               </button>
             ) : null}
             <button
@@ -1362,6 +1162,269 @@ export default function ImageConverter() {
           ) : null}
         </section>
 
+        {batchReport && batchReport.rows.length ? (
+          <section
+            className="converter-panel converter-report"
+            aria-labelledby="batch-report-heading"
+          >
+            <div className="converter-panel-head">
+              <h3 id="batch-report-heading">
+                <Files size={16} aria-hidden="true" /> Batch report
+              </h3>
+              <span className="chip converter-chip">
+                started {batchReport.startedAt}
+              </span>
+            </div>
+            {(() => {
+              const totals = reportTotals(batchReport);
+              return (
+                <>
+                  <p
+                    className="converter-hint"
+                    data-testid="converter-report-summary"
+                  >
+                    {totals.converted.length} converted · {totals.failed.length}{" "}
+                    failed · {totals.cancelled.length} cancelled ·{" "}
+                    {formatBytes(totals.input)} in, {formatBytes(totals.output)}{" "}
+                    out (
+                    {totals.input
+                      ? `${Math.round(((totals.input - totals.output) / totals.input) * 100)}% smaller`
+                      : "—"}
+                    )
+                  </p>
+                  <ul className="converter-report-list">
+                    {batchReport.rows.map((row, index) => (
+                      <li
+                        key={`${row.name}-${index}`}
+                        className={`converter-report-row ${row.status}`}
+                        data-testid="converter-report-row"
+                      >
+                        <strong title={row.name}>{row.name}</strong>
+                        <small>
+                          {row.status === "converted"
+                            ? `${row.format} · ${formatBytes(row.sourceBytes)} → ${formatBytes(row.outputBytes)}`
+                            : row.status === "cancelled"
+                              ? "Cancelled before it was written"
+                              : `Failed — ${row.error ?? "unknown error"}`}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
+          </section>
+        ) : null}
+
+        {mode === "pdf-studio" ? (
+          <section
+            className="converter-panel converter-studio"
+            aria-labelledby="studio-grid-heading"
+          >
+            <div className="converter-panel-head">
+              <h3 id="studio-grid-heading">
+                <Layers size={16} aria-hidden="true" /> Page order
+              </h3>
+              <span className="chip converter-chip">
+                {studioPlan.kept} of {studioPlan.total} kept
+              </span>
+            </div>
+            {studioPages.length ? (
+              <ol className="converter-page-grid">
+                {studioPages.map((page, index) => {
+                  const source = studioSources[page.sourceIndex];
+                  return (
+                    <li
+                      key={page.id}
+                      className={[
+                        "converter-page",
+                        page.removed ? "removed" : "",
+                        studioDragOverId === page.id ? "drag-over" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      data-testid="converter-studio-page"
+                      draggable={!busy}
+                      onDragStart={() => {
+                        studioDragIdRef.current = page.id;
+                      }}
+                      onDragOver={(event) => {
+                        if (busy) return;
+                        event.preventDefault();
+                        if (studioDragOverId !== page.id)
+                          setStudioDragOverId(page.id);
+                      }}
+                      onDragLeave={() => {
+                        if (studioDragOverId === page.id)
+                          setStudioDragOverId(null);
+                      }}
+                      onDrop={(event) => {
+                        if (busy) return;
+                        event.preventDefault();
+                        const fromId = studioDragIdRef.current;
+                        studioDragIdRef.current = null;
+                        setStudioDragOverId(null);
+                        if (fromId)
+                          setStudioPages((current) =>
+                            dropPage(current, fromId, page.id),
+                          );
+                      }}
+                      onDragEnd={() => {
+                        studioDragIdRef.current = null;
+                        setStudioDragOverId(null);
+                      }}
+                    >
+                      <strong>
+                        {index + 1}. {source?.name ?? "PDF"} · p{page.page}
+                      </strong>
+                      {page.rotation ? (
+                        <span className="chip converter-chip">
+                          {page.rotation}°
+                        </span>
+                      ) : null}
+                      {page.removed ? (
+                        <span className="chip converter-chip">removed</span>
+                      ) : null}
+                      <span className="converter-page-actions">
+                        <button
+                          type="button"
+                          className="converter-icon-button"
+                          aria-label={`Move page ${page.page} earlier`}
+                          disabled={busy || index === 0}
+                          onClick={() =>
+                            setStudioPages((current) =>
+                              movePage(current, page.id, -1),
+                            )
+                          }
+                        >
+                          <ChevronLeft size={14} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="converter-icon-button"
+                          aria-label={`Move page ${page.page} later`}
+                          disabled={busy || index === studioPages.length - 1}
+                          onClick={() =>
+                            setStudioPages((current) =>
+                              movePage(current, page.id, 1),
+                            )
+                          }
+                        >
+                          <ChevronRight size={14} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="converter-icon-button"
+                          aria-label={`Rotate page ${page.page} left`}
+                          disabled={busy}
+                          onClick={() =>
+                            setStudioPages((current) =>
+                              rotatePage(current, page.id, -90),
+                            )
+                          }
+                        >
+                          <RotateCcw size={14} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="converter-icon-button"
+                          aria-label={`Rotate page ${page.page} right`}
+                          disabled={busy}
+                          onClick={() =>
+                            setStudioPages((current) =>
+                              rotatePage(current, page.id, 90),
+                            )
+                          }
+                        >
+                          <RotateCw size={14} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="converter-icon-button"
+                          aria-label={`Duplicate page ${page.page}`}
+                          disabled={busy}
+                          onClick={() =>
+                            setStudioPages((current) =>
+                              duplicatePage(current, page.id),
+                            )
+                          }
+                        >
+                          <CopyPlus size={14} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="converter-icon-button"
+                          aria-label={
+                            page.removed
+                              ? `Keep page ${page.page}`
+                              : `Remove page ${page.page}`
+                          }
+                          aria-pressed={page.removed}
+                          disabled={busy}
+                          onClick={() =>
+                            setStudioPages((current) =>
+                              toggleRemoved(current, page.id),
+                            )
+                          }
+                        >
+                          {page.removed ? (
+                            <RefreshCw size={14} aria-hidden="true" />
+                          ) : (
+                            <Trash2 size={14} aria-hidden="true" />
+                          )}
+                        </button>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : (
+              <p className="converter-hint">
+                Add one or more PDFs and every page appears here. Drag to
+                reorder, or use the arrows on a phone.
+              </p>
+            )}
+            <div className="converter-studio-bulk">
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy || !settings.studio.ranges.trim()}
+                onClick={() =>
+                  setStudioPages((current) =>
+                    keepOnlyRanges(
+                      current,
+                      settings.studio.ranges,
+                      studioSources,
+                    ),
+                  )
+                }
+              >
+                Keep only the range
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy || !settings.studio.ranges.trim()}
+                onClick={() =>
+                  setStudioPages((current) =>
+                    dropRanges(current, settings.studio.ranges, studioSources),
+                  )
+                }
+              >
+                Remove the range
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy || !studioPages.length}
+                onClick={() => syncStudioPlan(itemsRef.current)}
+              >
+                Reset page list
+              </button>
+            </div>
+          </section>
+        ) : null}
+
         <aside
           id="converter-preview-panel"
           className="converter-panel converter-preview"
@@ -1393,6 +1456,16 @@ export default function ImageConverter() {
                   disabled={!results.length}
                 >
                   Converted
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={compare === "slider"}
+                  className={compare === "slider" ? "active" : ""}
+                  onClick={() => setCompare("slider")}
+                  disabled={!results.length || mode === "pdf-to-image"}
+                  title="Drag to compare the original with the output"
+                >
+                  Slider
                 </button>
               </div>
             ) : null}
@@ -1426,62 +1499,6 @@ export default function ImageConverter() {
             ) : (
               <PdfLayoutPreview item={selected} settings={settings} />
             )
-          ) : mode === "pdf-to-image" && pdfItem ? (
-            compare === "result" && selectedResult ? (
-              <div className="converter-image-result">
-                <div className="converter-stage">
-                  <img
-                    src={selectedResult.url}
-                    alt={`Converted page ${selectedResult.page ?? ""} preview`}
-                    className="converter-output-image"
-                    data-testid="converter-result-image"
-                  />
-                </div>
-                <div className="converter-detail-grid">
-                  <span>Page</span>
-                  <strong>{selectedResult.page ?? "—"}</strong>
-                  <span>Format</span>
-                  <strong>
-                    {formatById(selectedResult.format as ConvertFormat).label}
-                  </strong>
-                  <span>Dimensions</span>
-                  <strong>
-                    {formatDimensions(
-                      selectedResult.width,
-                      selectedResult.height,
-                    )}
-                  </strong>
-                  <span>File size</span>
-                  <strong>{formatBytes(selectedResult.blob.size)}</strong>
-                </div>
-                <div className="converter-preview-actions">
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() => downloadOne(selectedResult)}
-                  >
-                    <Download size={15} aria-hidden="true" /> Download page
-                  </button>
-                  <ExportedPageNav
-                    results={results.filter(
-                      (entry) => entry.itemId === selectedResult.itemId,
-                    )}
-                    current={selectedResult}
-                    onSelect={(page) => setPdfPage(page)}
-                  />
-                </div>
-              </div>
-            ) : (
-              <PdfGallery
-                key={`source-${pdfItem.id}`}
-                blob={pdfItem.file}
-                pageCount={pdfItem.pageCount ?? 0}
-                page={pdfPage}
-                onPage={setPdfPage}
-                selectedPages={parsedRange.pages}
-                title={`Preview of ${pdfItem.name}`}
-              />
-            )
           ) : selected.format === "pdf" ? (
             <PdfGallery
               key={`source-${selected.id}`}
@@ -1496,8 +1513,14 @@ export default function ImageConverter() {
               item={selected}
               result={results.find((entry) => entry.itemId === selected.id)}
               compare={
-                compare === "result" && results.length ? "result" : "source"
+                compare === "slider" && results.length
+                  ? "slider"
+                  : compare === "result" && results.length
+                    ? "result"
+                    : "source"
               }
+              split={split}
+              onSplit={setSplit}
               zoom={zoom}
               fit={fit}
               onZoom={(value) => {
@@ -1626,6 +1649,8 @@ function ImagePreview({
   item,
   result,
   compare,
+  split,
+  onSplit,
   zoom,
   fit,
   onZoom,
@@ -1633,36 +1658,113 @@ function ImagePreview({
 }: {
   item: QueueItem;
   result?: ConversionResult;
-  compare: "source" | "result";
+  compare: CompareView;
+  split: number;
+  onSplit: (value: number) => void;
   zoom: number;
   fit: boolean;
   onZoom: (value: number) => void;
   onFit: (value: boolean) => void;
 }) {
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [fullScreen, setFullScreen] = useState(false);
   const showingResult = compare === "result" && Boolean(result);
+  const slider = compare === "slider" && Boolean(result);
   const source = showingResult && result ? result : null;
   const transparency =
     showingResult && result
       ? keepsAlpha(result.format as ConvertFormat)
       : keepsAlpha(item.format as ConvertFormat);
+
+  // The browser leaves full screen on Escape, so follow its state instead of
+  // keeping our own idea of it.
+  useEffect(() => {
+    const onChange = () =>
+      setFullScreen(Boolean(document.fullscreenElement === stageRef.current));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullScreen = () => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void stage.requestFullscreen?.();
+  };
+
   return (
     <div className="converter-image-preview">
       <div
-        className={
-          transparency
-            ? "converter-stage converter-checkerboard"
-            : "converter-stage"
-        }
+        ref={stageRef}
+        className={[
+          "converter-stage",
+          transparency ? "converter-checkerboard" : "",
+          slider ? "converter-stage-slider" : "",
+          fullScreen ? "converter-stage-full" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
-        <img
-          src={source ? source.url : item.url}
-          alt={`${showingResult ? "Converted" : "Original"} preview of ${item.name}`}
-          className={fit ? "converter-preview-fit" : undefined}
-          style={fit ? undefined : { width: `${zoom}%` }}
-          data-testid="converter-preview-image"
-        />
+        {slider && result ? (
+          <>
+            {/* Both layers are the real files: the divider only reveals them. */}
+            <img
+              src={item.url}
+              alt={`Original ${item.name}`}
+              className="converter-slider-layer converter-preview-fit"
+              data-testid="converter-slider-before"
+            />
+            <img
+              src={result.url}
+              alt={`Converted ${result.name}`}
+              className="converter-slider-layer converter-preview-fit"
+              style={{ clipPath: `inset(0 0 0 ${split}%)` }}
+              data-testid="converter-slider-after"
+            />
+            <span
+              className="converter-slider-line"
+              style={{ left: `${split}%` }}
+              aria-hidden="true"
+            />
+            <span className="converter-slider-tag left">Original</span>
+            <span className="converter-slider-tag right">Converted</span>
+          </>
+        ) : (
+          <img
+            src={source ? source.url : item.url}
+            alt={`${showingResult ? "Converted" : "Original"} preview of ${item.name}`}
+            className={fit ? "converter-preview-fit" : undefined}
+            style={fit ? undefined : { width: `${zoom}%` }}
+            data-testid="converter-preview-image"
+          />
+        )}
       </div>
-      <div className="converter-zoom">
+      {slider ? (
+        <div className="converter-zoom">
+          <label htmlFor="converter-split">Before / after</label>
+          <input
+            id="converter-split"
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={split}
+            data-testid="converter-split"
+            onChange={(event) => onSplit(Number(event.target.value))}
+          />
+          <output>{split}%</output>
+          <button
+            type="button"
+            className="converter-edit-button"
+            onClick={toggleFullScreen}
+            aria-pressed={fullScreen}
+          >
+            <Maximize2 size={14} aria-hidden="true" />
+            {fullScreen ? "Exit full screen" : "Full screen"}
+          </button>
+        </div>
+      ) : null}
+      <div className="converter-zoom" hidden={slider}>
         <label htmlFor="converter-zoom">Zoom</label>
         <input
           id="converter-zoom"
@@ -1683,6 +1785,15 @@ function ImagePreview({
           />
           Fit to panel
         </label>
+        <button
+          type="button"
+          className="converter-edit-button"
+          onClick={toggleFullScreen}
+          aria-pressed={fullScreen}
+        >
+          <Maximize2 size={14} aria-hidden="true" />
+          {fullScreen ? "Exit full screen" : "Full screen"}
+        </button>
       </div>
       <div className="converter-detail-grid">
         <span>Original</span>
@@ -1705,47 +1816,26 @@ function ImagePreview({
           </>
         ) : null}
       </div>
-    </div>
-  );
-}
-
-function ExportedPageNav({
-  results,
-  current,
-  onSelect,
-}: {
-  results: ConversionResult[];
-  current: ConversionResult;
-  onSelect: (page: number) => void;
-}) {
-  const index = results.findIndex((entry) => entry.id === current.id);
-  return (
-    <div
-      className="converter-pagenav"
-      role="group"
-      aria-label="Exported page navigation"
-    >
-      <button
-        type="button"
-        className="converter-icon-button"
-        onClick={() => onSelect(results[index - 1].page ?? 1)}
-        disabled={index <= 0}
-        aria-label="Previous exported page"
-      >
-        <ChevronLeft size={16} aria-hidden="true" />
-      </button>
-      <span className="converter-pagecount">
-        Page {current.page ?? "—"} · {index + 1} of {results.length}
-      </span>
-      <button
-        type="button"
-        className="converter-icon-button"
-        onClick={() => onSelect(results[index + 1].page ?? 1)}
-        disabled={index < 0 || index >= results.length - 1}
-        aria-label="Next exported page"
-      >
-        <ChevronRight size={16} aria-hidden="true" />
-      </button>
+      {result?.size ? (
+        <div
+          className={
+            result.size.warning
+              ? "converter-size-report warning"
+              : "converter-size-report"
+          }
+          data-testid="converter-size-report"
+        >
+          <strong>
+            {result.size.lossless
+              ? "Lossless output — no quality was lost"
+              : `Lossy output at quality ${result.size.quality}%`}
+          </strong>
+          <ul>
+            <li>{sizeReportSummary(result.size, result.size.target)}</li>
+            {result.size.warning ? <li>{result.size.warning}</li> : null}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

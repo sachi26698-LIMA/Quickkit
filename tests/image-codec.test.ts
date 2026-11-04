@@ -7,6 +7,7 @@ import {
   encodeTiff,
   hasTransparency,
   hexToRgb,
+  inspectGif,
   inspectTiff,
   medianCutPalette,
   tiffDpi,
@@ -445,5 +446,75 @@ describe("GIF encoder", () => {
     expect(single.palette[single.pixels[0]]).toEqual([1, 2, 3]);
     const solidGif = readGif(encodeGif(solid(5, 5, [255, 255, 255, 255])));
     expect(solidGif.palette[solidGif.pixels[0]]).toEqual([255, 255, 255]);
+  });
+});
+
+/* --------------------------- gif frame walking --------------------------- */
+
+/** Minimal GIF89a built by hand: header, global table, then N frames. */
+function buildGif(frames: number, options: { loop?: boolean } = {}) {
+  const bytes: number[] = [];
+  const push = (...values: number[]) => bytes.push(...values);
+  const text = (value: string) =>
+    push(...value.split("").map((c) => c.charCodeAt(0)));
+
+  text("GIF89a");
+  push(8, 0, 6, 0); // 8 x 6 logical size
+  push(0x80); // global colour table, 2 entries
+  push(0, 0); // background, aspect
+  push(255, 0, 0, 0, 255, 0); // 2-entry palette
+
+  if (options.loop) {
+    push(0x21, 0xff, 11);
+    text("NETSCAPE2.0");
+    push(3, 1, 0, 0, 0);
+  }
+
+  for (let frame = 0; frame < frames; frame += 1) {
+    push(0x21, 0xf9, 4, 0, 10, 0, 0, 0); // graphic control, 100 ms delay
+    push(0x2c, 0, 0, 0, 0, 8, 0, 6, 0, 0); // image descriptor, no local table
+    push(2, 2, 0x44, 0x01, 0x00); // LZW min code 2 + one data sub-block + end
+  }
+  push(0x3b); // trailer
+  return new Uint8Array(bytes);
+}
+
+describe("inspectGif", () => {
+  it("reads the size of a real single-frame encode", () => {
+    const encoded = encodeGif(solid(12, 9, [10, 20, 30, 255]));
+    const info = inspectGif(encoded);
+    expect(info.width).toBe(12);
+    expect(info.height).toBe(9);
+    expect(info.frames).toBe(1);
+    expect(info.animated).toBe(false);
+  });
+
+  it("counts frames in an animation", () => {
+    const info = inspectGif(buildGif(4));
+    expect(info.width).toBe(8);
+    expect(info.height).toBe(6);
+    expect(info.frames).toBe(4);
+    expect(info.animated).toBe(true);
+  });
+
+  it("sees the Netscape loop extension", () => {
+    expect(inspectGif(buildGif(2, { loop: true })).loops).toBe(true);
+    expect(inspectGif(buildGif(2)).loops).toBe(false);
+  });
+
+  it("does not mistake a sub-block for a frame", () => {
+    // 0x2c appears inside the image data; a byte scanner would over-count.
+    const info = inspectGif(buildGif(1));
+    expect(info.frames).toBe(1);
+    expect(info.animated).toBe(false);
+  });
+
+  it("rejects files that are not GIFs", () => {
+    expect(() => inspectGif(new Uint8Array([1, 2, 3]))).toThrow(/too short/);
+    expect(() =>
+      inspectGif(
+        new Uint8Array("PNG-not-a-gif".split("").map((c) => c.charCodeAt(0))),
+      ),
+    ).toThrow(/not a GIF/);
   });
 });
