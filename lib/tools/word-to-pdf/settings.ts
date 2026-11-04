@@ -1,3 +1,5 @@
+import { validatePlan, type VisualPlan } from "./page-plan";
+import { inspectImageHeader } from "../image-header";
 export const MAX_FILE = 20 * 1024 * 1024;
 export const MAX_QUEUE = 80 * 1024 * 1024;
 export const sizes = {
@@ -34,6 +36,19 @@ export type Settings = {
   overlayPages: string;
   startNumber: number;
   numberStyle: "arabic" | "roman";
+  numberFormat: string;
+  numberingPages: string;
+  watermarkText: string;
+  watermarkColor: string;
+  watermarkSize: number;
+  watermarkOpacity: number;
+  watermarkAngle: number;
+  watermarkPages: string;
+  imageWatermark: string;
+  imageWatermarkEnabled: boolean;
+  imageWatermarkWidth: number;
+  imageWatermarkOpacity: number;
+  visualPlan: VisualPlan | null;
   skipFirstNumber: boolean;
   rotation: number;
   backgroundEnabled: boolean;
@@ -75,6 +90,19 @@ export const defaults: Settings = {
   overlayPages: "",
   startNumber: 1,
   numberStyle: "arabic",
+  numberFormat: "{n}",
+  numberingPages: "",
+  watermarkText: "",
+  watermarkColor: "#3B1B4F",
+  watermarkSize: 48,
+  watermarkOpacity: 0.15,
+  watermarkAngle: 35,
+  watermarkPages: "",
+  imageWatermark: "",
+  imageWatermarkEnabled: false,
+  imageWatermarkWidth: 40,
+  imageWatermarkOpacity: 0.2,
+  visualPlan: null,
   skipFirstNumber: false,
   rotation: 0,
   backgroundEnabled: false,
@@ -190,6 +218,8 @@ export function validateSettings(input: unknown): Settings {
     "excludePages",
     "pageOrder",
     "overlayPages",
+    "numberingPages",
+    "watermarkPages",
   ] as const)
     if (
       typeof s[k] !== "string" ||
@@ -205,6 +235,67 @@ export function validateSettings(input: unknown): Settings {
       /[\x00-\x1f]/.test(s[k])
     )
       throw new Error(`Invalid PDF ${k}.`);
+  if (
+    typeof s.numberFormat !== "string" ||
+    s.numberFormat.length > 80 ||
+    !s.numberFormat.includes("{n}") ||
+    /[^\x20-\x7e]/.test(s.numberFormat) ||
+    /[{}]/.test(s.numberFormat.replace(/\{(?:n|total|section)\}/g, ""))
+  )
+    throw new Error(
+      "Number format needs {n}; optional {total} and {section}, up to 80 basic Latin characters.",
+    );
+  if (
+    typeof s.watermarkText !== "string" ||
+    s.watermarkText.length > 80 ||
+    /[^\x20-\x7e]/.test(s.watermarkText) ||
+    typeof s.watermarkColor !== "string" ||
+    !/^#[0-9a-f]{6}$/i.test(s.watermarkColor)
+  )
+    throw new Error(
+      "Watermark needs up to 80 basic Latin characters and a valid colour.",
+    );
+  for (const [key, min, max] of [
+    ["watermarkSize", 12, 96],
+    ["watermarkOpacity", 0.05, 1],
+    ["watermarkAngle", -90, 90],
+    ["imageWatermarkWidth", 10, 80],
+    ["imageWatermarkOpacity", 0.05, 1],
+  ] as const)
+    if (
+      typeof s[key] !== "number" ||
+      !Number.isFinite(s[key]) ||
+      s[key] < min ||
+      s[key] > max
+    )
+      throw new Error(`Invalid ${key}.`);
+  if (typeof s.imageWatermarkEnabled !== "boolean")
+    throw new Error("Invalid image watermark switch.");
+  decodeWatermark(s.imageWatermark);
+  if (s.imageWatermarkEnabled && !s.imageWatermark)
+    throw new Error(
+      "Choose a PNG or JPEG before enabling the image watermark.",
+    );
+  const plan = validatePlan(s.visualPlan);
+  if (plan)
+    for (const page of plan.pages) {
+      if (
+        "imageWatermarkEnabled" in page.overrides &&
+        typeof page.overrides.imageWatermarkEnabled !== "boolean"
+      )
+        throw new Error("Invalid per-page image watermark switch.");
+      if (page.overrides.imageWatermarkEnabled && !s.imageWatermark)
+        throw new Error(
+          "Choose a PNG or JPEG before enabling the image watermark.",
+        );
+      validateSettings({
+        ...s,
+        ...page.overrides,
+        imageWatermark: "",
+        imageWatermarkEnabled: false,
+        visualPlan: null,
+      });
+    }
   return s;
 }
 export function selectedPages(range: string, count: number): number[] {
@@ -308,4 +399,35 @@ export function pageNumber(
       value -= n;
     }
   return result;
+}
+
+/** A single local asset per document; no remote URLs, SVG, or oversized decoded pixel buffers. */
+export function decodeWatermark(
+  value: string,
+): { bytes: Uint8Array; type: "image/png" | "image/jpeg" } | null {
+  if (value === "") return null;
+  if (typeof value !== "string" || value.length > 350_000)
+    throw new Error("Image watermark exceeds the local 256 KiB asset limit.");
+  const match =
+    /^data:(image\/(?:png|jpeg));base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);
+  if (!match) throw new Error("Use a local PNG or JPEG image watermark.");
+  const bytes = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
+  if (bytes.length > 256 * 1024)
+    throw new Error("Image watermark exceeds 256 KiB.");
+  const type = match[1] as "image/png" | "image/jpeg";
+  const { width, height } = inspectImageHeader(bytes, type);
+  if (width * height > 4_000_000 || width > 4096 || height > 4096)
+    throw new Error(
+      "Watermark images must be at most 4 megapixels and 4,096 pixels per edge.",
+    );
+  return { bytes, type };
+}
+/** Base-mode native requests never need local page plans or image bytes. */
+export function nativeRequestSettings(s: Settings): Settings {
+  return {
+    ...s,
+    visualPlan: null,
+    imageWatermark: "",
+    imageWatermarkEnabled: false,
+  };
 }

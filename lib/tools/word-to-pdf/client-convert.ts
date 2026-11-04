@@ -1,4 +1,4 @@
-import { type Settings } from "./settings";
+import { nativeRequestSettings, type Settings } from "./settings";
 /** The existing consent-gated NDJSON transport, with optional native-base response for V2. */
 export async function requestConversion(
   file: File,
@@ -12,7 +12,9 @@ export async function requestConversion(
     headers: {
       "Content-Type": "application/octet-stream",
       "X-Quickkit-Consent": "server-conversion",
-      "X-Quickkit-Settings": encodeURIComponent(JSON.stringify(settings)),
+      "X-Quickkit-Settings": encodeURIComponent(
+        JSON.stringify(nativeRequestSettings(settings)),
+      ),
       "X-Quickkit-Base": "true",
     },
     body: file,
