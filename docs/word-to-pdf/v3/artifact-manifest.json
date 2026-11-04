@@ -1,0 +1,32 @@
+{
+  "kind": "Authored PDF fixture, mocked native response; not DOCX conversion fidelity",
+  "file": "editor-demo-authored-fixture.pdf",
+  "sha256": "f01716a080c49ec66bac67c073a04835e33f25ceefe4a96671b51c424e73c733",
+  "bytes": 8037,
+  "pages": [
+    {
+      "outputPage": 1,
+      "width": 400,
+      "height": 842,
+      "rotation": 0
+    },
+    {
+      "outputPage": 2,
+      "width": 400,
+      "height": 842,
+      "rotation": 90
+    },
+    {
+      "outputPage": 3,
+      "width": 400,
+      "height": 842,
+      "rotation": 0
+    },
+    {
+      "outputPage": 4,
+      "width": 602,
+      "height": 842,
+      "rotation": 0
+    }
+  ]
+}

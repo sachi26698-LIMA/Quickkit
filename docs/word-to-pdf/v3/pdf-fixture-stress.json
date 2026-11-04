@@ -1,0 +1,38 @@
+{
+  "kind": "Actual authored PDF fixtures, NOT native DOCX conversion",
+  "productionSourceAndOutputCap": 100,
+  "rssNote": "RSS is sampled before/after; maxRSS is cumulative process lifetime, not isolated case peak. Vitest workers and fixtures affect it.",
+  "results": [
+    {
+      "pages": 100,
+      "status": "PASS - actual 100-page PDF edited and parsed",
+      "sourceBytes": 42782,
+      "outputBytes": 88865,
+      "fixtureMs": 90.39383700000002,
+      "editAndVerifyMs": 176.094872,
+      "rssBeforeMiB": 95.7578125,
+      "rssAfterMiB": 109.94140625,
+      "processLifetimeMaxRssMiB": 123.0234375
+    },
+    {
+      "pages": 500,
+      "status": "PASS - actual oversized PDF parsed and rejected; NOT supported editing/conversion",
+      "sourceBytes": 214072,
+      "fixtureMs": 180.74366500000008,
+      "rejectMs": 42.81419899999992,
+      "rssBeforeMiB": 136.96875,
+      "rssAfterMiB": 137.3515625,
+      "processLifetimeMaxRssMiB": 138.6796875
+    },
+    {
+      "pages": 1000,
+      "status": "PASS - actual oversized PDF parsed and rejected; NOT supported editing/conversion",
+      "sourceBytes": 430311,
+      "fixtureMs": 267.553771,
+      "rejectMs": 77.0068960000001,
+      "rssBeforeMiB": 173.53515625,
+      "rssAfterMiB": 174.06640625,
+      "processLifetimeMaxRssMiB": 175.5
+    }
+  ]
+}

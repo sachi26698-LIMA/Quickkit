@@ -1,5 +1,6 @@
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 import { PdfToWordError } from "./types";
+import { boundedPreviewScale } from "../pdf/preview-size";
 
 /**
  * Interactive preview of the ORIGINAL PDF: opens the document once and
@@ -55,6 +56,7 @@ export interface PdfPreviewHandle {
 
 export async function openPdfPreview(
   bytes: Uint8Array,
+  respectPageRotation = false,
 ): Promise<PdfPreviewHandle> {
   const pdfjs = await loadPdfJs();
   const loadingTask = pdfjs.getDocument({
@@ -75,6 +77,7 @@ export async function openPdfPreview(
   try {
     doc = await loadingTask.promise;
   } catch (error) {
+    await loadingTask.destroy().catch(() => undefined);
     const name = error instanceof Error ? error.name : "";
     throw new PdfToWordError(
       name === "PasswordException" ? "password-protected" : "corrupted",
@@ -98,7 +101,10 @@ export async function openPdfPreview(
       const cached = sizeCache.get(key);
       if (cached) return cached;
       const page = await doc.getPage(pageNo);
-      const viewport = page.getViewport({ scale: 1, rotation });
+      const viewport = page.getViewport({
+        scale: 1,
+        rotation: (rotation + (respectPageRotation ? page.rotate : 0)) % 360,
+      });
       const size = { widthPt: viewport.width, heightPt: viewport.height };
       sizeCache.set(key, size);
       page.cleanup();
@@ -110,17 +116,38 @@ export async function openPdfPreview(
       const serial = ++renderSerial;
       currentTask?.cancel();
       const page = await doc.getPage(pageNo);
-      const base = page.getViewport({ scale: 1, rotation });
-      const widthPx = Math.max(
-        40,
-        Math.min(MAX_CANVAS_WIDTH_PX, Math.round(targetWidthPx)),
-      );
-      const scale = widthPx / base.width;
-      const viewport = page.getViewport({ scale, rotation });
+      const base = page.getViewport({
+        scale: 1,
+        rotation: (rotation + (respectPageRotation ? page.rotate : 0)) % 360,
+      });
+      let scale: number;
+      try {
+        scale = respectPageRotation
+          ? boundedPreviewScale(
+              base.width,
+              base.height,
+              Math.min(MAX_CANVAS_WIDTH_PX, Math.max(1, targetWidthPx)),
+              8_000_000,
+            )
+          : Math.max(
+              40,
+              Math.min(MAX_CANVAS_WIDTH_PX, Math.round(targetWidthPx)),
+            ) / base.width;
+      } catch (error) {
+        page.cleanup();
+        throw error;
+      }
+      const viewport = page.getViewport({
+        scale,
+        rotation: (rotation + (respectPageRotation ? page.rotate : 0)) % 360,
+      });
       canvas.width = Math.max(1, Math.floor(viewport.width));
       canvas.height = Math.max(1, Math.floor(viewport.height));
       const context = canvas.getContext("2d");
-      if (!context) return null;
+      if (!context) {
+        page.cleanup();
+        return null;
+      }
       context.fillStyle = "#ffffff";
       context.fillRect(0, 0, canvas.width, canvas.height);
       const task = page.render({ canvas, viewport });
@@ -150,7 +177,14 @@ export async function openPdfPreview(
           const dpr = Math.min(2, window.devicePixelRatio || 1);
           const base = page.getViewport({ scale: 1 });
           const viewport = page.getViewport({
-            scale: (widthPx * dpr) / base.width,
+            scale: respectPageRotation
+              ? boundedPreviewScale(
+                  base.width,
+                  base.height,
+                  widthPx * dpr,
+                  700_000,
+                )
+              : (widthPx * dpr) / base.width,
           });
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.floor(viewport.width));

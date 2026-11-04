@@ -31,12 +31,12 @@ const groups: Group[] = [
         q: "Are my files uploaded to a server?",
         a: (
           <>
-            No. The tools run in your browser and there is no upload endpoint
-            for them to send to. Your PDFs, images and text are read into the
-            tab&rsquo;s memory, processed there, and turned into a file you
-            download. The site&rsquo;s Content Security Policy also blocks
-            connections to other origins, so a script could not post your file
-            elsewhere even if it tried. Read the{" "}
+            Most tools process files in your browser without uploading. Word to
+            PDF is an explicit-consent exception: requesting conversion sends
+            DOCX bytes to an operator-controlled native engine or private
+            worker. Selecting a file alone does not upload it. Temporary job
+            cleanup is required; there is no permanent document store by default
+            or automatic third-party conversion fallback. Read the{" "}
             <Link href="/file-handling">File Handling Policy</Link> for the
             tool-by-tool detail.
           </>

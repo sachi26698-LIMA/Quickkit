@@ -37,9 +37,9 @@ export default function PrivacyPage() {
           session-recording script.
         </li>
         <li>
-          Your files and text are processed by code running in your own browser.
-          They are not uploaded to a QUICKKIT server — the application has no
-          server endpoint that accepts them.
+          Most tools process files and text in your browser. Word to PDF is an
+          explicit-consent exception using operator-controlled LibreOffice
+          processing; selecting a file alone does not upload it.
         </li>
         <li>
           A few preferences (saved tools, QR presets, optional conversion
@@ -56,8 +56,9 @@ export default function PrivacyPage() {
       <p>
         We do not ask for, and the application does not collect, your name,
         email address, phone number, postal address, payment details, date of
-        birth or location. There is no form on the site that submits to a
-        QUICKKIT server.
+        birth or location. Word to PDF sends document bytes to an
+        operator-controlled conversion endpoint only after explicit consent and
+        a conversion request.
       </p>
       <p>What exists, in total, is:</p>
       <ul>
@@ -110,14 +111,17 @@ export default function PrivacyPage() {
 
       <h2 id="uploads">5. Do files leave my device?</h2>
       <p>
-        For the tools in this release, no file you select is transmitted to
-        QUICKKIT or to a third party as part of processing. This is not a policy
-        promise bolted on top of a server pipeline; it is how the software is
-        built. The page has no upload endpoint to send to, and the Content
-        Security Policy served with every page restricts network connections to
-        the site&rsquo;s own origin ( <code>connect-src &apos;self&apos;</code>
-        ), so a future accidental call to an external API would be blocked by
-        the browser.
+        Most tools do not transmit selected files as part of processing. Word to
+        PDF is the exception: with explicit consent, Convert or Refresh sends
+        DOCX bytes to the operator-controlled native engine or private worker.
+        Automatic re-upload requires separate opt-in. No upload occurs on file
+        selection and no third-party conversion fallback is used. Native job
+        files are temporary and cleanup is required after processing; actual
+        host isolation, crash cleanup and logging/retention remain operator
+        release gates. Native conversion is disabled when its engine is
+        unavailable. The browser Content Security Policy restricts browser
+        connections to the site origin; it does not prevent the server from
+        calling its private worker.
       </p>
       <p>
         Two honest qualifications. First, the hosting provider still sees the
@@ -237,10 +241,12 @@ export default function PrivacyPage() {
       <h2 id="retention">10. Data retention and deletion</h2>
       <ul>
         <li>
-          <strong>Tool inputs:</strong> held in page memory only, for as long as
-          the tab holds them. Closing the tab, refreshing or resetting the
-          workspace deletes them. There is nothing for us to delete on your
-          behalf because we never had a copy.
+          <strong>Tool inputs:</strong> for browser-local tools, held in page
+          memory for as long as the tab holds them. Closing the tab, refreshing
+          or resetting the workspace deletes those local inputs. Word to PDF
+          temporarily processes consented uploads on operator-controlled
+          infrastructure; it does not permanently store documents by default.
+          Host logs/crash retention must be verified by the operator.
         </li>
         <li>
           <strong>Browser preferences:</strong> retained until you remove them —
@@ -266,13 +272,14 @@ export default function PrivacyPage() {
 
       <h2 id="security">11. Security measures</h2>
       <p>
-        Local processing removes an entire category of risk: there is no store
-        of user files to breach. On top of that, the site is served over HTTPS
-        with a Content Security Policy, HSTS, <code>nosniff</code>, a
-        restrictive Referrer-Policy and a Permissions-Policy that disables
-        camera, microphone and geolocation use by the page. Dependencies are
-        reviewed and pinned. The details, and the honest limits of each measure,
-        are in the <Link href="/security">Security Policy</Link>.
+        Local processing avoids server document copies for browser-local tools.
+        Word to PDF additionally requires secure temporary native processing. On
+        top of that, the site is served over HTTPS with a Content Security
+        Policy, HSTS, <code>nosniff</code>, a restrictive Referrer-Policy and a
+        Permissions-Policy that disables camera, microphone and geolocation use
+        by the page. Dependencies are reviewed and pinned. The details, and the
+        honest limits of each measure, are in the{" "}
+        <Link href="/security">Security Policy</Link>.
       </p>
       <p>
         No website can promise absolute security. Your device, browser,
@@ -283,10 +290,10 @@ export default function PrivacyPage() {
       <h2 id="children">12. Children&rsquo;s privacy</h2>
       <p>
         QUICKKIT is a general-purpose utility site, not a service directed at
-        children, and it collects no personal information from anyone — so it
-        does not knowingly collect personal information from children. It has no
-        chat, no profile, no comment feature and no way for a child to be
-        contacted through the site.{" "}
+        children, and does not ask for personal profiles. Consented Word to PDF
+        documents may contain personal information; users are responsible for
+        appropriate rights and consent. It has no chat, no profile, no comment
+        feature and no way for a child to be contacted through the site.{" "}
         {ownerDetail("minimumAge") ? (
           <>
             The operator&rsquo;s stated minimum age for independent use is{" "}
@@ -312,7 +319,9 @@ export default function PrivacyPage() {
       <p>
         In practice, the most useful thing to know is this:{" "}
         <strong>QUICKKIT holds almost no personal data about you.</strong> We
-        cannot export or delete tool inputs we never received. What we can do:
+        cannot export or delete browser-local inputs we never received. Word to
+        PDF server processing is subject to the operator retention controls.
+        What we can do:
       </p>
       <ul>
         <li>
@@ -357,9 +366,9 @@ export default function PrivacyPage() {
         not been supplied.
       </p>
       <p>
-        We will update this page before changing how data is handled — for
-        example if a future tool ever needs a server-side API, we will describe
-        it here, name the provider, and reassess consent requirements first. The
+        We will update this page before changing how data is handled — including
+        any changes to the Word to PDF server-side pipeline, its
+        operator-controlled processing providers and consent requirements. The
         revision date at the top of the page always matches the current text.
         Related documents: <Link href="/cookies">Cookie Policy</Link>,{" "}
         <Link href="/file-handling">File Handling Policy</Link>,{" "}

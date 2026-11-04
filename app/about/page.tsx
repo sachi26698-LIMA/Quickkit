@@ -31,7 +31,7 @@ const principles = [
   {
     Icon: ShieldCheck,
     title: "Private by design",
-    text: "Tools run in your browser. Your files, text and passwords are processed on your device and are not uploaded — there is no QUICKKIT server endpoint that could receive them.",
+    text: "Most tools run in your browser. Word to PDF is an explicit-consent exception: documents are sent to operator-controlled LibreOffice processing only when you request conversion. No automatic third-party conversion fallback.",
   },
   {
     Icon: Sparkles,
@@ -41,7 +41,7 @@ const principles = [
   {
     Icon: Rocket,
     title: "Fast and lightweight",
-    text: "Because the work happens locally, results are effectively instant — and the site stays usable on modest hardware and slow connections.",
+    text: "Most work happens locally, while native Word to PDF depends on the operator-controlled engine and connection.",
   },
   {
     Icon: MonitorSmartphone,
@@ -88,7 +88,8 @@ export default function AboutPage() {
           <p className="legal-intro">
             QUICKKIT is an everyday digital toolkit — {liveTools} free browser
             utilities for the small jobs that interrupt a working day, built so
-            the work never leaves your device.
+            most work stays on your device; Word to PDF asks before server
+            processing.
           </p>
           <p className="legal-updated">
             <span className="legal-updated-pill">
@@ -225,21 +226,21 @@ export default function AboutPage() {
             <section id="privacy" className="legal-section">
               <h2>How privacy is designed in</h2>
               <p>
-                This is a technical claim, not a slogan, so here is what it
-                rests on. The application has no upload endpoint, no database
-                and no user account. Files are read with the browser&rsquo;s
-                file picker and processed in the tab — on the main thread or in
-                a worker inside the same tab. Third-party engines (the PDF
-                engine, the OCR engine and its language data) are self-hosted,
-                not fetched from a CDN, so using a tool makes no request to an
-                outside service.
+                Most tools read files with the browser file picker and process
+                them in the tab. Word to PDF is a clearly disclosed exception:
+                DOCX files are sent to operator-controlled native processing
+                only after consent and a requested conversion. No permanent
+                document storage or automatic third-party fallback is used by
+                default. Native host isolation, cleanup and retention require
+                operator verification before production approval.
               </p>
               <p>
                 Every page is served with a Content Security Policy whose{" "}
                 <code>connect-src</code> is restricted to this origin, which
                 means the browser itself would block an attempt to send your
-                file elsewhere. There is no analytics and no advertising: we
-                cannot see who you are or what you convert.
+                file elsewhere. There is no analytics and no advertising: we do
+                not add tracking analytics. This browser policy does not prevent
+                consented server processing by the Word to PDF private worker.
               </p>
               <p>
                 Where privacy is <em>not</em> absolute, we say so: the hosting

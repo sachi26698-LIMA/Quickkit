@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-04T10:47:13.881Z",
+  "kind": "Real native DOCX probe; no mock/fallback conversion",
+  "endpoint": "http://127.0.0.1:3001/api/word-to-pdf",
+  "engineAvailable": false,
+  "results": [
+    {
+      "pages": 100,
+      "status": "BLOCKED",
+      "reason": "Native engine unavailable; no DOCX uploaded and no successful conversion simulated."
+    },
+    {
+      "pages": 500,
+      "status": "BLOCKED",
+      "reason": "Native engine unavailable; no DOCX uploaded and no successful conversion simulated."
+    },
+    {
+      "pages": 1000,
+      "status": "BLOCKED",
+      "reason": "Native engine unavailable; no DOCX uploaded and no successful conversion simulated."
+    }
+  ],
+  "fidelity": "PDF parse/page counts are automated checks, not font/layout fidelity certification. Inspect fonts, tables, images, headers/footers and page breaks manually on the isolated native host.",
+  "serverPeakRss": null
+}

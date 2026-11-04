@@ -44,9 +44,9 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(robots().rules).toEqual({ userAgent: "*", allow: "/" });
   const routes = sitemap();
   // 5 static + the published legal/information pages + 7 non-empty categories
-  // + 28 tool pages. Derived so a new page cannot skip the sitemap unnoticed.
+  // + 29 tool pages. Derived so a new page cannot skip the sitemap unnoticed.
   const { legalPages } = await import("../lib/legal");
-  expect(routes).toHaveLength(5 + legalPages.length + 7 + 28);
+  expect(routes).toHaveLength(5 + legalPages.length + 7 + 29);
   expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
     true,
   );

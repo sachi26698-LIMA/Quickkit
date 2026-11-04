@@ -30,14 +30,19 @@ export default function SecurityPage() {
     >
       <h2 id="model">1. Security model</h2>
       <p>
-        QUICKKIT is a static, client-side application. There is no user
-        database, no authentication, no session, no payment flow and no file
-        store. The most valuable asset on the site is your document while it is
-        open in a tab — and that never leaves your device.
+        Most QUICKKIT tools are client-side. Word to PDF adds an
+        explicit-consent server endpoint and an authenticated
+        operator-controlled native worker. It requires isolation, bounded
+        resources, temporary-file cleanup and verified host retention practices;
+        it is not production-certified by this policy. There is no user account
+        or permanent document store by default.
       </p>
       <p>That design removes whole classes of risk:</p>
       <ul>
-        <li>there is no server-side copy of your files to breach or leak;</li>
+        <li>
+          browser-local tools have no server document copy; consented Word to
+          PDF processing additionally requires secured temporary server files;
+        </li>
         <li>there are no credentials of yours for us to store or lose;</li>
         <li>
           there is no account takeover path, because there is no account to take

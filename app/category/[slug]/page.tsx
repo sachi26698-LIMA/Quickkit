@@ -76,8 +76,8 @@ export default async function CategoryPage({
             <h2>Coming soon</h2>
             <p>
               We’re building {meta.name} for the toolkit. In the meantime,
-              explore the tools that are ready today — every one is free and
-              runs in your browser.
+              explore the tools that are ready today — tools are free, with
+              processing details disclosed on each tool page.
             </p>
             <Link className="primary" href="/tools">
               Explore All Tools <ArrowRight size={16} aria-hidden="true" />

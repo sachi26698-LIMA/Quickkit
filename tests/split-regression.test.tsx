@@ -88,9 +88,9 @@ describe("cross-tool regression: the four split tools", () => {
   });
 
   it("keep the catalogue counts consistent across every view", () => {
-    expect(tools).toHaveLength(28);
+    expect(tools).toHaveLength(29);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
-    expect(toolsByCategory("PDF Tools")).toHaveLength(7);
+    expect(toolsByCategory("PDF Tools")).toHaveLength(8);
 
     // Every category's listing must be a subset of the catalogue, and the
     // per-category counts must sum to the total now that nothing is dual-listed.
@@ -167,7 +167,7 @@ describe("cross-tool regression: the four split tools", () => {
     // Count is derived, not hard-coded: every published tool plus the static
     // and legal pages, so adding a page cannot silently leave it unlisted.
     expect(routes.length, "sitemap is actually populated").toBe(
-      5 + legalPages.length + 8 - 1 + tools.length,
+      5 + legalPages.length + 7 + tools.length,
     );
     expect(routes.some((url) => url.includes(RETIRED))).toBe(false);
     for (const slug of SPLIT_TOOLS) {
