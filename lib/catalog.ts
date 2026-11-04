@@ -26,9 +26,9 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "PDF Tools",
     slug: "pdf-tools",
-    blurb: "Merge, split, convert and manage PDF files.",
+    blurb: "Merge, split, convert, lock and manage PDF files.",
     description:
-      "Combine, split and export PDFs locally. Word to PDF is a separately disclosed, opt-in self-hosted conversion workflow.",
+      "Everything you need to work with PDFs — combine documents, export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption locally. Word to PDF is a separately disclosed, opt-in self-hosted conversion workflow.",
     tint: "tint-pdf",
     icon: "pdf",
   },
@@ -298,6 +298,18 @@ export const tools = [
     icon: "word",
     color: "blue",
     phase: 6,
+  },
+  {
+    slug: "pdf-lock-unlock",
+    name: "PDF Lock & Unlock",
+    category: "PDF Tools",
+    description:
+      "Protect PDFs with AES-256 encryption, open and permissions passwords, and reader permission controls — or unlock them with the correct existing password. Batch processing and verified ZIP downloads, all on your device.",
+    keywords:
+      "pdf lock unlock password protect encrypt decrypt permissions aes aes-256 aes-128 security batch zip open password owner password restrict printing copying editing",
+    icon: "pdfLock",
+    color: "purple",
+    phase: 10,
   },
   {
     slug: "percentage-calculator",

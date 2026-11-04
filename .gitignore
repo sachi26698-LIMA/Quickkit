@@ -1,6 +1,7 @@
 node_modules/
 .next/
 /public/pdfjs/
+/public/qpdf/
 coverage/
 playwright-report/
 test-results/

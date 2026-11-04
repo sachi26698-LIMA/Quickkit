@@ -88,9 +88,9 @@ describe("cross-tool regression: the four split tools", () => {
   });
 
   it("keep the catalogue counts consistent across every view", () => {
-    expect(tools).toHaveLength(29);
+    expect(tools).toHaveLength(30);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
-    expect(toolsByCategory("PDF Tools")).toHaveLength(8);
+    expect(toolsByCategory("PDF Tools")).toHaveLength(9);
 
     // Every category's listing must be a subset of the catalogue, and the
     // per-category counts must sum to the total now that nothing is dual-listed.
