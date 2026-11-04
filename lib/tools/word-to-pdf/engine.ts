@@ -3,6 +3,7 @@ import { constants } from "node:fs";
 import {
   access,
   mkdtemp,
+  mkdir,
   readFile,
   rm,
   stat,
@@ -11,7 +12,11 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { PDFDocument } from "@cantoo/pdf-lib";
+import {
+  workerConfigured,
+  privateWorkerAvailable,
+  renderWithPrivateWorker,
+} from "./private-worker";
 import { processPdf } from "./process-pdf";
 import { prepareDocx } from "./docx";
 import { type Settings } from "./settings";
@@ -20,6 +25,7 @@ export const enginePath = () =>
   process.env.WORD_TO_PDF_SOFFICE || "/usr/bin/libreoffice";
 export async function engineAvailable() {
   if (process.env.WORD_TO_PDF_ENABLED !== "true") return false;
+  if (workerConfigured()) return privateWorkerAvailable();
   try {
     await access(enginePath(), constants.X_OK);
     return true;
@@ -47,8 +53,18 @@ export async function convert(
   signal.throwIfAborted();
   stage("Validating DOCX");
   const prepared = prepareDocx(bytes, s);
+  if (workerConfigured()) {
+    stage(
+      "Rendering with isolated private LibreOffice worker — page progress unavailable",
+    );
+    const source = await renderWithPrivateWorker(prepared, s, signal);
+    stage("Checking pages and applying export settings");
+    const result = await processPdf(source, s, signal);
+    return { ...result, source };
+  }
   const dir = await mkdtemp(join(tmpdir(), "quickkit-word-"));
   try {
+    await mkdir(join(dir, "home"), { mode: 0o700 });
     await writeFile(join(dir, "input.docx"), prepared, { mode: 0o600 });
     signal.throwIfAborted();
     stage("Rendering with LibreOffice — page progress unavailable");
@@ -87,7 +103,20 @@ export async function convert(
           dir,
           join(dir, "input.docx"),
         ],
-        { detached: true, stdio: "ignore", cwd: dir },
+        {
+          detached: true,
+          stdio: "ignore",
+          cwd: dir,
+          env: {
+            NODE_ENV: "production",
+            PATH: "/usr/bin:/bin",
+            HOME: join(dir, "home"),
+            TMPDIR: dir,
+            LANG: "C.UTF-8",
+            LC_ALL: "C.UTF-8",
+            SAL_USE_VCLPLUGIN: "svp",
+          },
+        },
       );
       let killed = false;
       const kill = () => {
@@ -130,11 +159,6 @@ export async function convert(
     signal.throwIfAborted();
     stage("Checking pages and applying export settings");
     const source = new Uint8Array(await readFile(path));
-    const original = await PDFDocument.load(source);
-    if (original.getPageCount() > 100)
-      throw new Error(
-        "This document exceeds the provisional 100-page limit. 1,000-page support is not stress-tested or enabled.",
-      );
     const result = await processPdf(source, s, signal);
     return { ...result, source };
   } finally {

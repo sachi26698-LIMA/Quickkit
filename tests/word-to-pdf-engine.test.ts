@@ -1,5 +1,5 @@
 // A fake executable verifies native-process orchestration only, NOT DOCX rendering fidelity.
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   mkdtemp,
   writeFile,
@@ -41,7 +41,7 @@ async function executable(pageCount = 2, hang = false) {
     record = join(dir, "args.json");
   await writeFile(
     script,
-    `#!${process.execPath}\nconst fs = require('node:fs'); const path = require('node:path'); fs.writeFileSync(${JSON.stringify(record)}, JSON.stringify(process.argv.slice(2))); ${hang ? "setInterval(() => {}, 1000);" : `fs.writeFileSync(path.join(path.dirname(process.argv.at(-1)), 'input.pdf'), Buffer.from(${JSON.stringify(Buffer.from(await pdf.save()).toString("base64"))}, 'base64'));`}`,
+    `#!${process.execPath}\nconst fs = require('node:fs'); fs.writeFileSync(${JSON.stringify(record + ".environment.json")}, JSON.stringify({secret:process.env.QUICKKIT_NATIVE_TEST_SECRET,home:process.env.HOME,lang:process.env.LANG})); const path = require('node:path'); fs.writeFileSync(${JSON.stringify(record)}, JSON.stringify(process.argv.slice(2))); ${hang ? "setInterval(() => {}, 1000);" : `fs.writeFileSync(path.join(path.dirname(process.argv.at(-1)), 'input.pdf'), Buffer.from(${JSON.stringify(Buffer.from(await pdf.save()).toString("base64"))}, 'base64'));`}`,
     { mode: 0o700 },
   );
   process.env.WORD_TO_PDF_SOFFICE = script;
@@ -74,6 +74,26 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
     );
     expect(stages).toHaveLength(3);
     await expect(access(dirname(args.at(-1)!))).rejects.toThrow();
+  });
+  it("does not inherit web secrets into the local child (still not an OS sandbox)", async () => {
+    vi.stubEnv("QUICKKIT_NATIVE_TEST_SECRET", "synthetic-sentinel");
+    try {
+      const record = await executable();
+      await convert(
+        await source(),
+        defaults,
+        new AbortController().signal,
+        () => {},
+      );
+      const environment = JSON.parse(
+        await readFile(record + ".environment.json", "utf8"),
+      );
+      expect(environment.secret).toBeUndefined();
+      expect(environment.lang).toBe("C.UTF-8");
+      expect(environment.home).toContain("quickkit-word-");
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
   it("rejects over-limit native output and still cleans up", async () => {
     const record = await executable(101);

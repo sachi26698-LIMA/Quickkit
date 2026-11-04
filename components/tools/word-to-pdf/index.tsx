@@ -375,11 +375,12 @@ export default function WordToPdf() {
           <strong>Your documents. Your decision.</strong>
           <span>
             {" "}
-            LibreOffice on this QUICKKIT server handles conversion—not your
-            browser. Uploads require consent and Convert, Refresh, or separately
-            enabled automatic re-upload. No third-party conversion API.
-            Temporary server files are deleted after processing; local results
-            remain in this tab until cleared or closed.
+            LibreOffice on this operator’s QUICKKIT server or private worker
+            handles conversion—not your browser. Uploads require consent and
+            Convert, Refresh, or separately enabled automatic re-upload. No
+            third-party conversion API. Temporary server files are deleted after
+            processing; local results remain in this tab until cleared or
+            closed.
           </span>
         </div>
       </div>
@@ -395,8 +396,8 @@ export default function WordToPdf() {
         {studio.available === false && (
           <span>
             {" "}
-            · No files will be uploaded. An operator must install and isolate
-            the native engine.
+            · No files will be uploaded. An operator must configure a private
+            isolated worker, or install and isolate the native engine.
           </span>
         )}
       </div>
