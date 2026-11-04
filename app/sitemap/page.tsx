@@ -1,13 +1,39 @@
 import Link from "next/link";
-import PageHero from "@/components/page-hero";
+import { ChevronRight } from "lucide-react";
 import { categoryMeta, tools } from "@/lib/catalog";
+import { footerGroups, legalPages } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Sitemap — every QUICKKIT page",
-  "A complete map of QUICKKIT: all tools, categories, company pages and legal pages.",
+  "A complete map of QUICKKIT: all tools, categories, company pages, legal documents and trust policies, each on its own page.",
   "/sitemap",
 );
+
+const legalGroupLabel: Record<string, string> = {
+  company: "Company & information",
+  legal: "Legal",
+  trust: "Trust & security",
+};
+
+const companyLinks = [
+  { href: "/", label: "Home" },
+  { href: "/tools", label: "All Tools" },
+  { href: "/saved", label: "Saved Tools" },
+  { href: "/help", label: "Help Center" },
+  { href: "/sitemap", label: "Sitemap (this page)" },
+  ...legalPages
+    .filter((page) => page.group === "company")
+    .map((page) => ({ href: page.href, label: page.title })),
+];
+
+const legalLinks = legalPages
+  .filter((page) => page.group === "legal")
+  .map((page) => ({ href: page.href, label: page.title }));
+
+const trustLinks = legalPages
+  .filter((page) => page.group === "trust")
+  .map((page) => ({ href: page.href, label: page.title }));
 
 const groups: { title: string; links: { href: string; label: string }[] }[] = [
   {
@@ -16,7 +42,8 @@ const groups: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/", label: "Home" },
       { href: "/tools", label: "All Tools" },
       { href: "/saved", label: "Saved Tools" },
-      { href: "/#categories", label: "Categories (homepage)" },
+      { href: "/help", label: "Help Center" },
+      { href: "/#categories", label: "Categories (homepage section)" },
     ],
   },
   {
@@ -31,38 +58,49 @@ const groups: { title: string; links: { href: string; label: string }[] }[] = [
     links: tools.map((t) => ({ href: `/tools/${t.slug}`, label: t.name })),
   },
   {
-    title: "Company",
-    links: [
-      { href: "/about", label: "About Us" },
-      { href: "/contact", label: "Contact Us" },
-      { href: "/help", label: "Help Center" },
-      { href: "/help#faq", label: "Help & FAQ" },
-    ],
+    title: legalGroupLabel.company,
+    links: companyLinks.filter(
+      (link) =>
+        link.href !== "/" && link.href !== "/saved" && link.href !== "/tools",
+    ),
   },
-  {
-    title: "Legal",
-    links: [
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/terms", label: "Terms of Use" },
-      { href: "/cookies", label: "Cookie Policy" },
-    ],
-  },
+  { title: legalGroupLabel.legal, links: legalLinks },
+  { title: legalGroupLabel.trust, links: trustLinks },
 ];
 
 export default function SitemapPage() {
+  const legalCount = legalPages.length + 3; // + home, help, sitemap
+
   return (
-    <div className="home inner-page">
+    <div className="home inner-page legal-page">
       <div className="container">
-        <PageHero
-          eyebrow="FIND EVERYTHING"
-          title="Site"
-          titleAccent="Map"
-          lede="Every page on QUICKKIT in one place — tools, categories, company and legal."
-        />
+        <nav className="breadcrumbs legal-breadcrumbs" aria-label="Breadcrumb">
+          <ol>
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight size={12} />
+            </li>
+            <li aria-current="page">Sitemap</li>
+          </ol>
+        </nav>
+
+        <header className="legal-hero">
+          <span className="eyebrow">Find everything</span>
+          <h1>Site Map</h1>
+          <p className="legal-intro">
+            Every page on QUICKKIT in one place: {tools.length} tools,{" "}
+            {categoryMeta.length} categories, {legalCount} information and
+            policy pages. Each policy page has its own address — nothing is
+            buried inside another document.
+          </p>
+        </header>
+
         <div className="sitemap-grid">
           {groups.map(({ title, links }) => (
-            <section key={title} aria-label={title}>
-              <h2>{title}</h2>
+            <section key={title} aria-labelledby={`sm-${slug(title)}`}>
+              <h2 id={`sm-${slug(title)}`}>{title}</h2>
               <ul>
                 {links.map(({ href, label }) => (
                   <li key={href + label}>
@@ -73,7 +111,38 @@ export default function SitemapPage() {
             </section>
           ))}
         </div>
+
+        <section
+          className="legal-section sitemap-notes"
+          aria-labelledby="sm-notes"
+        >
+          <h2 id="sm-notes">About this map</h2>
+          <p>
+            The tool, category and policy groups above are generated from the
+            same records the site uses to build its navigation and footer, so a
+            link cannot point at a page that does not exist, and a page cannot
+            exist without being listed here.
+          </p>
+          <p>
+            A machine-readable version is published at <code>/sitemap.xml</code>
+            , but only once the operator has explicitly approved the production
+            origin for indexing — while the site is in review it returns an
+            empty url set, and crawlers are told <code>noindex</code>. That
+            prevents draft pages from being indexed before launch.
+          </p>
+          <p>
+            The four footer groups mirror these the other way round:{" "}
+            {footerGroups.map((group) => group.heading).join(", ")}.
+          </p>
+        </section>
       </div>
     </div>
   );
+}
+
+function slug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }

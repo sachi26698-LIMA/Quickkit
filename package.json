@@ -27,6 +27,7 @@
     "@tesseract.js-data/eng": "^1.0.0",
     "@tesseract.js-data/guj": "^1.0.0",
     "@tesseract.js-data/hin": "^1.0.0",
+    "@xmldom/xmldom": "^0.9.12",
     "docx": "^9.15.1",
     "docx-preview": "^0.4.1",
     "fflate": "^0.8.3",

@@ -1,0 +1,9 @@
+{
+  "fixture": "Authored PDF, mocked native response; not a DOCX conversion stress test",
+  "outputPages": 100,
+  "maximumMountedRowsBound": 10,
+  "initialMountedRows": 8,
+  "lastMountedRows": 5,
+  "live": 3,
+  "peak": 3
+}

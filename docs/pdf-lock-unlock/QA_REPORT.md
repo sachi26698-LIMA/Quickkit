@@ -38,12 +38,12 @@ echoes the user password; decryption verification uses `--decrypt --password=…
 
 - `lib/catalog.ts` — single new entry `pdf-lock-unlock` (icon `pdfLock`, color `purple`),
   appended after `pdf-to-word`; PDF category blurb/description updated. Catalog now has
-  **29 tools / 8 PDF tools**.
+  **30 tools / 9 PDF tools** after merging `main` (Word to PDF + PDF Lock & Unlock).
 - `components/tool-icon.tsx` — `pdfLock → LockKeyhole`.
 - `app/page.tsx` — added to homepage popular chips (2nd slot) + metadata description.
 - Route `app/tools/pdf-lock-unlock/page.tsx` renders through the shared `ToolShell`, so
   All Tools, the PDF category page, search, related tools, and the sitemap pick it up
-  automatically. Sitemap route count updated 46 → 47 in tests.
+  automatically. Sitemap route counts are derived from published legal pages + tools in tests.
 - Verified live in E2E: homepage chip, `/tools` search ("lock unlock"), and
   `/category/pdf-tools` listing all show the tool exactly once.
 
