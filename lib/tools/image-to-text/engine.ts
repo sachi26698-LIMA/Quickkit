@@ -12,6 +12,7 @@
  * never written anywhere but the worker's memory.
  */
 import type { OcrLanguageCode } from "./types";
+import { imageDataToPng } from "./encode";
 import { OcrError } from "./types";
 import { flattenLines, type RawBlock } from "./geometry";
 import type { OcrLine } from "./types";
@@ -25,13 +26,13 @@ interface TessData {
 
 interface TessWorker {
   recognize: (
-    image: ImageData,
+    image: Uint8Array | ImageData,
     options?: Record<string, unknown>,
     output?: Record<string, boolean>,
   ) => Promise<{ data: TessData }>;
   setParameters: (params: Record<string, string | number>) => Promise<unknown>;
   detect?: (
-    image: ImageData,
+    image: Uint8Array | ImageData,
   ) => Promise<{ data: { orientation_degrees?: number | null } }>;
   terminate: () => Promise<void>;
 }
@@ -209,11 +210,16 @@ export async function recognizeImage(
     throw new OcrError("cancelled", "OCR was cancelled.");
   }
   progressSink = options.onProgress ?? null;
+  // The engine only understands encoded bytes; see ./encode.ts for why.
+  const encoded = await imageDataToPng(image);
+  if (options.signal?.aborted) {
+    throw new OcrError("cancelled", "OCR was cancelled.");
+  }
   let data: TessData;
   try {
     const result = await withTimeout(
       worker.recognize(
-        image,
+        encoded,
         {
           tessedit_pageseg_mode: options.psm,
           rotateAuto: options.autoRotate,

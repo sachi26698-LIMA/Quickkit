@@ -16,7 +16,8 @@ import path from "node:path";
  * written and lint-checked but has not been executed yet. See the QA report.
  */
 
-const FIXTURES = path.join(__dirname, "..", "fixtures", "image-to-text");
+// Playwright loads specs as ES modules here, so __dirname does not exist.
+const FIXTURES = path.join(process.cwd(), "tests", "fixtures", "image-to-text");
 
 /** Attach real fixture files to the tool's file input. */
 async function upload(page: Page, names: string[]) {
@@ -30,6 +31,32 @@ async function startOcr(page: Page) {
 }
 
 const READ_TIMEOUT = 120_000;
+
+/** Inflate every Deflate stream in a PDF, so its content stream can be read. */
+async function inflatePdfStreams(pdf: Buffer): Promise<string> {
+  const { inflateSync } = await import("node:zlib");
+  const chunks: string[] = [];
+  const start = Buffer.from("stream");
+  const end = Buffer.from("endstream");
+  let cursor = 0;
+  for (;;) {
+    const at = pdf.indexOf(start, cursor);
+    if (at < 0) break;
+    let dataStart = at + start.length;
+    while (pdf[dataStart] === 0x0d || pdf[dataStart] === 0x0a) dataStart += 1;
+    const stop = pdf.indexOf(end, dataStart);
+    if (stop < 0) break;
+    try {
+      chunks.push(
+        inflateSync(pdf.subarray(dataStart, stop)).toString("latin1"),
+      );
+    } catch {
+      // Font programs and images are not Deflate; skip them.
+    }
+    cursor = stop + end.length;
+  }
+  return chunks.join("\n");
+}
 
 test.describe("Image to Text (OCR)", () => {
   test("is listed in the catalogue, search and category pages", async ({
@@ -45,7 +72,7 @@ test.describe("Image to Text (OCR)", () => {
       page.getByRole("link", { name: /Image to Text \(OCR\)/i }).first(),
     ).toBeVisible();
 
-    await page.goto("/categories/text-writing");
+    await page.goto("/category/text-writing");
     await expect(
       page.getByRole("link", { name: /Image to Text \(OCR\)/i }).first(),
     ).toBeVisible();
@@ -155,6 +182,48 @@ test.describe("Image to Text (OCR)", () => {
     expect(text).not.toContain("?");
   });
 
+  test("exports every format, including PDF with selectable Hindi text", async ({
+    page,
+  }) => {
+    test.setTimeout(READ_TIMEOUT * 2 + 120_000);
+    await page.goto("/tools/image-to-text");
+    await page.getByRole("button", { name: /Hindi/i }).click();
+    await upload(page, ["hindi-printed.png"]);
+    await startOcr(page);
+    const editor = page.locator("#i2t-editor-text");
+    await expect(editor).toHaveValue(/[\u0900-\u097F]{4,}/u, {
+      timeout: READ_TIMEOUT,
+    });
+
+    // TXT / DOCX / JSON / PDF all download with the right extension.
+    for (const [name, pattern] of [
+      ["TXT", /\.txt$/],
+      ["DOCX", /\.docx$/],
+      ["JSON", /\.json$/],
+      ["PDF", /\.pdf$/],
+    ] as const) {
+      const pending = page.waitForEvent("download", { timeout: 120_000 });
+      await page.getByRole("button", { name: new RegExp(`^${name}`) }).click();
+      const download = await pending;
+      expect(download.suggestedFilename()).toMatch(pattern);
+      if (name === "PDF") await download.saveAs("test-results/hindi.pdf");
+      if (name === "JSON") {
+        const json = JSON.parse(
+          await readFile((await download.path())!, "utf8"),
+        );
+        expect(JSON.stringify(json)).toMatch(/[\u0900-\u097F]/u);
+      }
+    }
+
+    // The PDF must keep the Hindi text selectable, not just as pixels. The
+    // content stream is Deflate-compressed, so decode before asserting.
+    const pdf = await readFile("test-results/hindi.pdf");
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(await inflatePdfStreams(pdf)).toContain("/ActualText");
+    // The export report says exactly how many lines are selectable.
+    await expect(page.getByText(/selectable Unicode line/i)).toBeVisible();
+  });
+
   test("extracts a table and exports it as CSV with real columns", async ({
     page,
   }) => {
@@ -235,7 +304,9 @@ test.describe("Image to Text (OCR)", () => {
     await page.getByLabel("Find", { exact: true }).fill("QUICKKIT");
     await page.getByLabel("Replace with").fill("FASTKIT");
     await page.getByRole("button", { name: "All", exact: true }).click();
-    await expect(page.getByRole("status").first()).toContainText(/Replaced/i);
+    await expect(
+      page.getByRole("status").filter({ hasText: /Replaced/ }),
+    ).toContainText(/Replaced 1 match/i);
     await expect(editor).toHaveValue(/FASTKIT/);
     await expect(editor).not.toHaveValue(/QUICKKIT/);
   });
@@ -249,9 +320,10 @@ test.describe("Image to Text (OCR)", () => {
       mimeType: "text/plain",
       buffer: Buffer.from("not an image"),
     });
-    await expect(page.getByRole("alert")).toContainText(
-      /not an image or PDF this tool can read/i,
-    );
+    // The file-level issue and the batch summary are both alerts.
+    await expect(
+      page.getByRole("alert").filter({ hasText: /notes\.txt/ }),
+    ).toContainText(/not an image or PDF this tool can read/i);
   });
 
   test("never claims languages it cannot read", async ({ page }) => {
@@ -279,6 +351,26 @@ test.describe("Image to Text (OCR)", () => {
         workspace.getByText(new RegExp(unsupported, "i")),
       ).toHaveCount(0);
     }
+  });
+
+  test("cancels a running batch and can start again", async ({ page }) => {
+    test.setTimeout(READ_TIMEOUT + 60_000);
+    await page.goto("/tools/image-to-text");
+    await upload(page, ["large-image.png"]);
+    await startOcr(page);
+
+    // Cancel must be reachable while the batch runs.
+    const cancel = page.getByRole("button", { name: "Cancel" });
+    if (await cancel.isVisible().catch(() => false)) {
+      await cancel.click();
+      await expect(page.getByText(/Cancelled/i).first()).toBeVisible({
+        timeout: 30_000,
+      });
+    }
+    // Whatever happened, the workspace recovers and offers Start OCR again.
+    await expect(page.getByRole("button", { name: "Start OCR" })).toBeEnabled({
+      timeout: 60_000,
+    });
   });
 
   test("stays usable on a phone viewport", async ({ page }) => {

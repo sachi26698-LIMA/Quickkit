@@ -15150,7 +15150,10 @@ details.qr-acc {
   }
   .i2t-col-side {
     position: static;
-    order: -1;
+    /* Keep the natural order on narrow screens: upload and Start OCR must come
+       before the settings column, not after it. On phones the whole layout is
+       reordered explicitly further down. */
+    order: 0;
   }
   .i2t-settings fieldset {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -15160,6 +15163,47 @@ details.qr-acc {
     grid-column: 1 / -1;
   }
 }
+@media (max-width: 700px) {
+  /* Phone order: choose files -> press Start OCR -> adjust settings -> read. */
+  .i2t-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .i2t-col-main,
+  .i2t-col-side {
+    display: contents;
+  }
+  .i2t-upload {
+    order: 1;
+  }
+  .i2t-run-bar {
+    order: 2;
+    position: sticky;
+    bottom: 8px;
+    z-index: 30;
+    box-shadow: 0 10px 26px rgb(59 27 79 / 0.16);
+  }
+  .i2t-progress-panel,
+  .i2t-success,
+  .i2t-alert {
+    order: 3;
+  }
+  /* Results first, configuration after: after a read completes the text is
+     what the user came for, not another card of settings. */
+  .i2t-side-by-side {
+    order: 4;
+  }
+  .i2t-export {
+    order: 5;
+  }
+  .i2t-side-head {
+    order: 6;
+  }
+  .i2t-col-side > * {
+    order: 7;
+  }
+}
+
 @media (max-width: 860px) {
   .i2t-workspace {
     padding: 16px;

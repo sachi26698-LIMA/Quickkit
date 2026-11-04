@@ -8,12 +8,14 @@
  *  - DOCX : a genuine OOXML package via the `docx` library, with headings,
  *           paragraphs and real tables, so Hindi/Gujarati/Tamil text stays
  *           editable in Word;
- *  - PDF  : a real PDF. Devanagari/Gujarati/Bengali/Tamil/Telugu/Urdu text is
- *           not representable in PDF's standard fonts, so those sections are
- *           *rendered* and embedded as high-resolution images inside the PDF
- *           (still one file, still local), and the page is marked as image
- *           text in the export report. Latin text is written as real,
- *           selectable, searchable text.
+ *  - PDF  : a real PDF. Latin text goes in as ordinary selectable text.
+ *           Standard PDF fonts cannot encode Devanagari, Gujarati, Bengali,
+ *           Tamil, Telugu or Urdu, and a raw font embed would also lose
+ *           conjunct shaping, so those pages are drawn by the browser and
+ *           embedded as high-resolution images *with an invisible Unicode text
+ *           layer* (`/ActualText`) over every line. The page therefore looks
+ *           correct and still copies/searches as the original script; the
+ *           export report states how many pages and lines that applies to.
  *  - CSV  : one file per extracted table, RFC 4180 quoted, UTF-8 with BOM so
  *           Excel opens Indic scripts correctly;
  *  - JSON : text, fields, tables, per-page confidence and settings.
@@ -21,6 +23,7 @@
 import { createZip, type ZipEntry } from "@/lib/tools/zip";
 import type { OcrDocumentSection, OcrPage, PageExtraction } from "./types";
 import { languageTag } from "./language";
+import { renderTextToPng } from "./pdf-text";
 
 /* --------------------------------- helpers -------------------------------- */
 
@@ -374,7 +377,19 @@ export interface PdfSectionInput {
   text: string;
   /** Provide when the text needs image fallback (non-Latin script). */
   image?: PdfPageImage;
+  /** Shaped render of `text`, preferred over the scanned page image. */
+  rendered?: ShapedPage;
   rtl: boolean;
+}
+
+/** A browser-rendered page with the line geometry of its invisible text layer. */
+export interface ShapedPage {
+  dataUrl: string;
+  width: number;
+  height: number;
+  cssWidth: number;
+  cssHeight: number;
+  lines: { text: string; left: number; baseline: number; lineHeight: number }[];
 }
 
 export interface PdfExportResult {
@@ -382,6 +397,8 @@ export interface PdfExportResult {
   /** Sections written as real text vs. rendered as images. */
   textSections: number;
   imageSections: number;
+  /** Rendered lines that carry a selectable Unicode text layer. */
+  selectableLines: number;
 }
 
 const PAGE_WIDTH = 595.28; // A4 points
@@ -425,28 +442,56 @@ export function wrapText(
 }
 
 /**
- * Build a PDF. Latin sections are written as real selectable text; sections in
- * scripts the standard PDF fonts cannot encode are embedded as page images so
- * the characters are still correct on screen and in print.
+ * Build a PDF.
+ *
+ * Latin sections are written as real, selectable, searchable text with a
+ * standard font. Sections containing scripts the standard fonts cannot encode
+ * are *shaped and rendered* by the browser (so conjuncts and vowel signs are
+ * correct) and embedded at print resolution; over every rendered line an
+ * invisible `/ActualText` span carries the original Unicode, which is the
+ * standard accessible-PDF technique for image text. The result is a PDF that
+ * looks right, prints right, and still copies and searches as Urdu/Hindi/
+ * Gujarati/Tamil text.
  */
 export async function buildPdf(
   sections: PdfSectionInput[],
   title: string,
 ): Promise<PdfExportResult> {
-  const { PDFDocument, StandardFonts, rgb } = await import("@cantoo/pdf-lib");
+  const { PDFDocument, PDFOperator, StandardFonts, rgb } =
+    await import("@cantoo/pdf-lib");
   const doc = await PDFDocument.create();
   doc.setTitle(title);
   doc.setCreator("QUICKKIT Image to Text (OCR)");
   doc.setProducer("QUICKKIT — processed on your device");
+  doc.setLanguage("und");
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   let textSections = 0;
   let imageSections = 0;
+  let selectableLines = 0;
 
   for (const section of sections) {
-    if (section.image && needsImageFallback(section.text)) {
+    if (needsImageFallback(section.text)) {
       imageSections += 1;
-      const png = await doc.embedPng(section.image.dataUrl);
+      // Prefer a freshly shaped render of the extracted text; only fall back
+      // to the scanned page when the browser could not draw the script.
+      const rendered =
+        section.rendered ??
+        (section.image
+          ? {
+              dataUrl: section.image.dataUrl,
+              width: section.image.width,
+              height: section.image.height,
+              cssWidth: section.image.width,
+              cssHeight: section.image.height,
+              lines: [],
+            }
+          : null);
+      if (!rendered) {
+        textSections += 1;
+        continue;
+      }
+      const png = await doc.embedPng(rendered.dataUrl);
       const scale = Math.min(
         (PAGE_WIDTH - MARGIN * 2) / png.width,
         (PAGE_HEIGHT - MARGIN * 2) / png.height,
@@ -455,21 +500,43 @@ export async function buildPdf(
       const width = png.width * scale;
       const height = png.height * scale;
       const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-      page.drawText("Rendered text (Unicode script)", {
+      page.drawText(section.title.slice(0, 90), {
         x: MARGIN,
-        y: PAGE_HEIGHT - MARGIN + 12,
+        y: PAGE_HEIGHT - MARGIN,
         size: 8,
         font,
         color: rgb(0.42, 0.33, 0.44),
       });
+      const imageTop = PAGE_HEIGHT - MARGIN * 1.6;
       page.drawImage(png, {
         x: MARGIN,
-        y: PAGE_HEIGHT - MARGIN - height,
+        y: imageTop - height,
         width,
         height,
       });
+      // Map rendered CSS pixels onto the placed image, then lay one invisible
+      // Unicode span over each line.
+      const pxToPt = height / rendered.cssHeight;
+      const placedWidth = rendered.cssWidth * pxToPt;
+      for (const line of rendered.lines) {
+        if (!line.text.trim()) continue;
+        selectableLines += 1;
+        const baseline = imageTop - line.baseline * pxToPt;
+        const lineWidth = Math.max(1, placedWidth);
+        drawInvisibleText(page, {
+          PDFOperator,
+          text: line.text,
+          x: MARGIN,
+          y: baseline,
+          width: lineWidth,
+          height: Math.max(1, line.lineHeight * pxToPt),
+          rtl: section.rtl,
+          fontKey: ensureFontKey(page, font),
+        });
+      }
       continue;
     }
+
     textSections += 1;
     let page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     let cursor = PAGE_HEIGHT - MARGIN;
@@ -507,7 +574,124 @@ export async function buildPdf(
     blob: new Blob([bytes as unknown as BlobPart], { type: "application/pdf" }),
     textSections,
     imageSections,
+    selectableLines,
   };
+}
+
+/** Resource name used for the invisible selectable text layer. */
+const FONT_KEY = "F-i2t";
+
+/**
+ * Publish the standard font under a fixed resource name so the invisible text
+ * layer can reference it. pdf-lib names fonts per document, and guessing the
+ * name makes the layer unextractable, so the name is set explicitly here.
+ */
+function ensureFontKey(
+  page: unknown,
+  font: { ref: { toString(): string } },
+): string {
+  type Node = {
+    newFontDictionary?: (
+      key: string,
+      ref: unknown,
+    ) => { asString?: () => string } | string;
+  };
+  const node = (page as { node?: Node }).node;
+  if (!node?.newFontDictionary) {
+    throw new Error("This PDF library cannot attach the text layer.");
+  }
+  // pdf-lib may normalise the requested name, so the returned key is the only
+  // reliable reference to use in the content stream.
+  const key = node.newFontDictionary(FONT_KEY, font.ref);
+  if (typeof key === "string") return key.replace(/^\//u, "");
+  const text = key?.asString?.() ?? "";
+  return text.replace(/^\//u, "") || FONT_KEY;
+}
+
+/** UTF-16BE hex string, the form `/ActualText` expects. */
+function actualTextHex(text: string): string {
+  const buffer = new Uint8Array(2 + text.length * 2);
+  buffer[0] = 0xfe;
+  buffer[1] = 0xff;
+  let offset = 2;
+  for (const unit of text) {
+    const code = unit.codePointAt(0) ?? 0;
+    if (code > 0xffff) {
+      const high = 0xd800 + ((code - 0x10000) >> 10);
+      const low = 0xdc00 + ((code - 0x10000) & 0x3ff);
+      buffer[offset++] = high >> 8;
+      buffer[offset++] = high & 0xff;
+      buffer[offset++] = low >> 8;
+      buffer[offset++] = low & 0xff;
+    } else {
+      buffer[offset++] = code >> 8;
+      buffer[offset++] = code & 0xff;
+    }
+  }
+  return Array.from(buffer.slice(0, offset))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Draw an invisible text layer for one rendered image line.
+ *
+ * `Tr 3` keeps the glyphs invisible while leaving them extractable, and
+ * `/ActualText` supplies the true Unicode. The placeholder has to be a real
+ * multi-character run: extractors keep a lone "." verbatim and only substitute
+ * `/ActualText` for actual words. Sizing the run to the line also makes text
+ * selection rectangles match what the reader sees.
+ */
+function drawInvisibleText(
+  page: PDFPageLike,
+  options: {
+    PDFOperator: unknown;
+    text: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rtl: boolean;
+    fontKey: string;
+  },
+): void {
+  const { PDFOperator, text, x, y, width, height, rtl, fontKey } = options;
+  const makeOperator = PDFOperator as {
+    of: (name: string) => import("@cantoo/pdf-lib").PDFOperator;
+  };
+  const hex = actualTextHex(text);
+  const size = clamp(height * 0.8, 2, 40);
+  // Helvetica averages ~0.5em per glyph; a run that spans the line keeps the
+  // selection box aligned with the drawn text.
+  const glyphs = Math.max(2, Math.min(4000, Math.round(width / (size * 0.5))));
+  const placeholder = "x".repeat(glyphs);
+  const startX = rtl ? x + width : x;
+  const ops = [
+    "q",
+    "BT",
+    "3 Tr",
+    `/Span << /ActualText <${hex}> >> BDC`,
+    `/${fontKey} ${size.toFixed(2)} Tf`,
+    `${startX.toFixed(2)} ${y.toFixed(2)} Td`,
+    `(${placeholder}) Tj`,
+    "EMC",
+    "ET",
+    "Q",
+  ];
+  for (const token of ops) {
+    page.pushOperators(makeOperator.of(token));
+  }
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+/** Minimal structural type for the pdf-lib page methods used above. */
+interface PDFPageLike {
+  pushOperators: (
+    ...operators: import("@cantoo/pdf-lib").PDFOperator[]
+  ) => void;
 }
 
 /**
@@ -585,6 +769,46 @@ export function renderTextToImage(
   canvas.width = 0;
   canvas.height = 0;
   return { dataUrl, width, height };
+}
+
+/**
+ * Render a section with the browser's shaper and return it in the form the PDF
+ * builder embeds (data URL + per-line geometry for the `/ActualText` layer).
+ */
+async function renderShapedPage(
+  text: string,
+  options: { rtl: boolean; heading?: string },
+): Promise<ShapedPage> {
+  const body = options.heading ? `${options.heading}\n${text}` : text;
+  const rendered = await renderTextToPng(body, {
+    width: 1240,
+    fontSize: 30,
+    lineHeight: 46,
+    rtl: options.rtl,
+    scale: 2,
+  });
+  const dataUrl = await bytesToDataUrl(rendered.bytes);
+  return {
+    dataUrl,
+    width: rendered.width,
+    height: rendered.height,
+    cssWidth: rendered.cssWidth,
+    cssHeight: rendered.cssHeight,
+    lines: rendered.lines,
+  };
+}
+
+async function bytesToDataUrl(bytes: Uint8Array): Promise<string> {
+  if (typeof FileReader === "undefined") {
+    throw new Error("This browser cannot prepare the PDF text layer.");
+  }
+  const blob = new Blob([bytes as unknown as BlobPart], { type: "image/png" });
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Could not encode the PDF page."));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /* --------------------------------- ZIP ----------------------------------- */
@@ -699,23 +923,35 @@ export async function buildExport(
       };
     }
     case "pdf": {
-      const inputs: PdfSectionInput[] = sections.map((section) => ({
-        title: section.title,
-        text: section.text,
-        rtl: section.page.rtl,
-        image: needsImageFallback(section.text)
-          ? renderTextToImage(section.text, {
-              rtl: section.page.rtl,
-              heading: options.includeHeaders ? section.title : undefined,
-            })
-          : undefined,
-      }));
+      const inputs: PdfSectionInput[] = [];
+      for (const section of sections) {
+        const needsRender = needsImageFallback(section.text);
+        inputs.push({
+          title: section.title,
+          text: section.text,
+          rtl: section.page.rtl,
+          // Shape the script with the browser so conjuncts and vowel signs are
+          // correct, and keep the line geometry for the invisible text layer.
+          rendered: needsRender
+            ? await renderShapedPage(section.text, {
+                rtl: section.page.rtl,
+                heading: options.includeHeaders ? section.title : undefined,
+              })
+            : undefined,
+          image: needsRender
+            ? renderTextToImage(section.text, {
+                rtl: section.page.rtl,
+                heading: options.includeHeaders ? section.title : undefined,
+              })
+            : undefined,
+        });
+      }
       const result = await buildPdf(inputs, options.documentTitle);
       return {
         files: [{ name: `${base}.pdf`, blob: result.blob }],
         summary: `${result.textSections} page(s) as real text${
           result.imageSections
-            ? `, ${result.imageSections} as rendered Unicode text (non-Latin script)`
+            ? `, ${result.imageSections} shaped and embedded with ${result.selectableLines} selectable Unicode line(s)`
             : ""
         }`,
       };

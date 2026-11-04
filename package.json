@@ -21,6 +21,7 @@
   "license": "UNLICENSED",
   "description": "Seven privacy-conscious browser utilities. Handy tools. Zero hassle.",
   "dependencies": {
+    "@cantoo/fontkit": "^2.0.12",
     "@cantoo/pdf-lib": "2.11.1",
     "@tesseract.js-data/ben": "1.0.0",
     "@tesseract.js-data/eng": "^1.0.0",

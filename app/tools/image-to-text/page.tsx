@@ -34,7 +34,11 @@ const faqs = [
   },
   {
     q: "Is the PDF export searchable?",
-    a: "The PDF export writes real, selectable text for Latin scripts. Standard PDF fonts cannot represent Devanagari, Gujarati, Bengali, Tamil, Telugu or Urdu, so pages in those scripts are rendered at high resolution and embedded as images inside the same PDF — the characters are correct and printable, but not selectable. DOCX, TXT and JSON keep that text fully editable, and the export report tells you which pages were rendered.",
+    a: "Yes, including Hindi, Gujarati, Bengali, Tamil, Telugu and Urdu. Latin text is written into the PDF as ordinary selectable text. For scripts the standard PDF fonts cannot encode, the page is drawn by your browser so the letterforms and conjuncts are correct, and an invisible Unicode text layer is placed over every line. That means you can select, copy and search the original text in the PDF, while the visible page keeps its correct shaping. The export report tells you exactly how many pages were written as plain text and how many lines carry that selectable layer. DOCX, TXT and JSON hold the text natively, which is the best choice for further editing.",
+  },
+  {
+    q: "What about the file-size or memory cost of a big batch?",
+    a: "Reading happens one page at a time in a worker, images are reduced to a sensible reading resolution first, and finished page images are released as soon as their text layer exists. Typical measured figures on a laptop-class machine: a 12-megapixel scan takes about 2.3 seconds, a four-file mixed batch about 2.5 seconds, and the JavaScript heap stayed around 13 MB throughout. Cancelling a batch stops the engine immediately and still frees the worker.",
   },
   {
     q: "Can I edit the text and keep the changes?",
