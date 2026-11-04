@@ -42,6 +42,18 @@ const devAllowedOrigins = [
 const config: NextConfig = {
   poweredByHeader: false,
   ...(enforcing ? {} : { allowedDevOrigins: devAllowedOrigins }),
+  async redirects() {
+    return [
+      {
+        // The combined Image & PDF Converter was split into four separate
+        // tools. Existing bookmarks, saved cards and inbound links keep
+        // working instead of hitting a 404.
+        source: "/tools/image-converter",
+        destination: "/tools/image-to-image",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

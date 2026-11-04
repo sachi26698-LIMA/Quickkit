@@ -13,6 +13,9 @@ import {
   Scaling,
   Crop,
   ArrowRightLeft,
+  FileImage,
+  ImageDown,
+  Layers,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -29,6 +32,9 @@ const icons = {
   resize: Scaling,
   crop: Crop,
   convert: ArrowRightLeft,
+  imagesToPdf: FileImage,
+  pdfToImage: ImageDown,
+  pdfStudio: Layers,
 };
 export default function ToolIcon({
   icon,

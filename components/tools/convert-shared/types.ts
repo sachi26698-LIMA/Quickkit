@@ -1,17 +1,12 @@
 import type {
   ConvertFormat,
-  ConvertMode,
   InputFormat,
   InputKind,
 } from "@/lib/tools/image-convert";
+import type { SizeReport } from "@/lib/tools/image-size";
 
 export type QueueStatus =
-  | "inspecting"
-  | "ready"
-  | "converting"
-  | "done"
-  | "error"
-  | "cancelled";
+  "inspecting" | "ready" | "converting" | "done" | "error" | "cancelled";
 
 export type QueueItem = {
   id: string;
@@ -24,14 +19,41 @@ export type QueueItem = {
   format: InputFormat;
   width?: number;
   height?: number;
+  /**
+   * Clockwise degrees the user asked for, always a multiple of 90. Absent or
+   * 0 means the image is placed exactly as it was read.
+   */
+  rotation?: number;
   dpi?: number | null;
   pageCount?: number;
+  /**
+   * PDF only: first page size in points. Used to estimate rendered output size
+   * before conversion. Pages within one PDF can differ, so this is page 1.
+   */
+  pageWidthPt?: number;
+  pageHeightPt?: number;
+  /** GIF only: real frame count, so animations are handled explicitly. */
+  frames?: number;
+  animated?: boolean;
   status: QueueStatus;
   error?: string;
   /** 0–1 when the source reports real page progress; undefined otherwise. */
   progress?: number;
   /** Per-file target format in image mode; "auto" follows the shared setting. */
   override: ConvertFormat | "auto";
+};
+
+/** A PDF page inside the studio grid. */
+export type StudioPage = {
+  id: string;
+  /** Queue item id this page came from. */
+  itemId: string;
+  sourceIndex: number;
+  page: number;
+  rotation: 0 | 90 | 180 | 270;
+  removed: boolean;
+  /** Object URL of the rendered thumbnail, if one was produced. */
+  thumb?: string;
 };
 
 export type ConversionResult = {
@@ -49,33 +71,14 @@ export type ConversionResult = {
   sourceWidth?: number;
   sourceHeight?: number;
   note?: string;
+  /** What the size engine actually did — absent in fixed-quality mode. */
+  size?: SizeReport;
 };
 
-export type Message = { tone: "info" | "success" | "error"; text: string } | null;
-
-export type ModeMeta = {
-  id: ConvertMode;
-  label: string;
-  short: string;
-};
-
-export const MODE_META: readonly ModeMeta[] = [
-  {
-    id: "image",
-    label: "Image to image",
-    short: "Convert format, quality, size",
-  },
-  {
-    id: "images-to-pdf",
-    label: "Images to PDF",
-    short: "One image per page",
-  },
-  {
-    id: "pdf-to-image",
-    label: "PDF to image",
-    short: "Pages as JPG, PNG or WebP",
-  },
-] as const;
+export type Message = {
+  tone: "info" | "success" | "error";
+  text: string;
+} | null;
 
 export const OVERRIDE_OPTIONS: { id: ConvertFormat | "auto"; label: string }[] =
   [
