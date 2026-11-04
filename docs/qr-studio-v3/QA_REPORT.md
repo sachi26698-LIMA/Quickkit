@@ -1,10 +1,11 @@
-# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D)
+# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F)
 
 **Date:** 5 November 2026 (Stage 1: 3 November 2026)
 **Branch:** `arena/bc33caa6-quickkit` (continues the existing QR history — no rebuild)
 **Scope:** Stage 1 delivered Phase B (content types) + Phase C (template library). On the owner's
 "Continue" go-ahead, Stage 2 adds **Phase D** (frames + labels, independent eye colours, brand
-palettes, logo background). Phases F / G / H / E follow; J (browser e2e) when a browser is available.
+palettes, logo background) and **Phase F** (DPI metadata, custom-size export, print layouts, A4 cut
+sheet). Phases G / H / E follow; J (browser e2e) when a browser is available.
 **Baseline before changes:** 594 unit tests / 37 files passing, clean `npm ci`.
 
 ---
@@ -129,7 +130,33 @@ artworks to `evidence/design-*.png`, all decoded.
 
 ---
 
-## 4. Branding
+## 4. Phase F — Exports: DPI, custom size, print layouts, A4 sheet (Stage 2)
+
+Every export still wraps the **same decode-verified pixels** the preview shows — no format is a second
+rendering, and nothing is offered for a code that has not been read back.
+
+| Feature | What was built | Status |
+|---------|----------------|--------|
+| **PNG DPI metadata** | `withPngDpi` stamps a standard `pHYs` chunk (72/150/300/600 DPI) into PNG + high-res exports. Metadata only — pixels unchanged, so the file still decodes. `readPngDpi` reads it back | **new, verified** |
+| **Custom-size export** | A 64–4096 px input re-renders at the requested size and re-verifies before saving; out-of-range values disable the button | **new, verified** |
+| **Business card** | 85 × 55 mm PDF — code right, wrapped name left | **new, verified** |
+| **Sticker** | 50 × 50 mm PDF — code fills the face, optional caption | **new, verified** |
+| **Product label** | 70 × 40 mm PDF — code left, caption right | **new, verified** |
+| **Poster** | A4 PDF — large 130 mm code + bold caption | **new, verified** |
+| **Table tent** | A4 landscape PDF — fold guide, two faces (one printed inverted so both read upright when folded) | **new, verified** |
+| **A4 cut sheet** | cols×rows grid of identical codes with cut guides, clamped to fit A4; columns/rows/code-width/gap controls | **new, verified** |
+| **Single (preserved)** | The original centre-on-paper PDF with paper/size/padding/caption | preserved |
+
+**Verification:** `tests/qr-layouts.test.ts` (11 tests) proves DPI round-trips at 72/150/300/600 and the
+stamped PNG still decodes to the exact payload (and that a second stamp replaces, not duplicates, the
+chunk); every layout reloads via `PDFDocument.load` as a valid one-page PDF at its promised millimetre
+dimensions; the table tent is A4 landscape; the sheet grid clamps an oversized request to fit A4 and
+renders the right page. `tests/qr-studio.test.tsx` (+4 tests) drives the DPI select, custom-size guard,
+layout selector and the sheet/fixed-layout control visibility through the real UI.
+
+---
+
+## 5. Branding
 
 Templates, the gallery **and now the Design Studio itself** use the requested QUICKKIT palette — Deep
 Plum `#3B1B4F`, Rose Pink `#D6598F` / deep rose `#B93A73`, Coral `#FF6B6B` / deep coral `#C93A3A`,
@@ -141,15 +168,16 @@ six folds (Colours / Pattern / Corners / Logo / **Frame** / Templates).
 
 ---
 
-## 5. Test & build evidence
+## 6. Test & build evidence
 
 | Gate | Result |
 |------|--------|
 | TypeScript (`tsc --noEmit`) | clean |
 | ESLint (changed files) | clean |
 | Prettier (changed files) | formatted |
-| Unit suite | **703 passing / 39 files** (was 682/39 at Stage 1, 594/37 baseline; +21 in Phase D) |
-| Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload |
+| Unit suite | **718 passing / 40 files** (was 682/39 at Stage 1, 594/37 baseline; +21 Phase D, +15 Phase F) |
+| Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
+| Print layouts | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit |
 | Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
 | Dev preview | running on port 3000 (live preview) |
 | Rendered artifacts | 44 real PNGs + `report.json` in `docs/qr-studio-v3/evidence/` |
@@ -167,7 +195,7 @@ in a browser-enabled environment before final sign-off.
 
 ---
 
-## 6. Preserved functionality (no regressions)
+## 7. Preserved functionality (no regressions)
 
 All pre-existing studio UI tests pass (the layout test now expects six design folds / ten tabs; the
 picker label list covers 27 types). Wi-Fi secret redaction, history/presets storage, bulk CSV, the
@@ -178,14 +206,12 @@ style is chosen).
 
 ---
 
-## 7. Remaining stages (Stage 2 continues)
+## 8. Remaining stages (Stage 2 continues)
 
-- **Phase F:** PNG DPI metadata, custom px in the export row, A4 print-sheet grid, layout PDFs
-  (business card / poster / sticker / product label / table tent / A4 sheet).
 - **Phase G:** bulk retry-failed, pre-generation preview, per-row content type.
 - **Phase H:** history/preset rename, duplicate, JSON export/import with validation.
 - **Phase E:** static multi-link landing-page builder (downloadable HTML) — no backend, no analytics.
 - **Phase J:** full e2e + browser screenshots in a browser-enabled environment.
 
-**Status: Stage 2 — Phases B + C + D implemented and verified; F / G / H / E in progress. Awaiting
+**Status: Stage 2 — Phases B + C + D + F implemented and verified; G / H / E in progress. Awaiting
 owner review. Not merged, not deployed.**

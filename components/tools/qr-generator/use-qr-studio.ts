@@ -34,13 +34,20 @@ import {
   type QrLogoImage,
 } from "@/lib/tools/qr/types";
 import {
-  createQrPdf,
   pngBlob,
   qrFilename,
   svgBlob,
   type QrPdfOptions,
   DEFAULT_PDF_OPTIONS,
 } from "@/lib/tools/qr/export";
+import {
+  DEFAULT_SHEET,
+  createLayoutPdf,
+  printLayoutDef,
+  type QrPrintLayoutId,
+  type SheetOptions,
+} from "@/lib/tools/qr/layouts";
+import { withPngDpi } from "@/lib/tools/qr/png";
 import {
   decodeShareConfig,
   encodeShareConfig,
@@ -159,6 +166,9 @@ export function useQrStudio() {
   const [storageReady, setStorageReady] = useState(false);
   const [pdfOptions, setPdfOptions] =
     useState<QrPdfOptions>(DEFAULT_PDF_OPTIONS);
+  const [pngDpi, setPngDpi] = useState<number>(300);
+  const [printLayout, setPrintLayout] = useState<QrPrintLayoutId>("single");
+  const [sheet, setSheet] = useState<SheetOptions>(DEFAULT_SHEET);
   const [sizeSlot, setSizeSlot] =
     useState<Slot<{ size: number; ok: boolean; message: string }[]>>(null);
   const [testing, setTesting] = useState(false);
@@ -635,8 +645,11 @@ export function useQrStudio() {
           return;
         }
         if (!png) return;
+        // Stamp the print resolution as metadata only — the verified pixels are
+        // untouched, so the file still decodes exactly as checked.
+        const finalPng = withPngDpi(png, pngDpi);
         downloadBlob(
-          pngBlob(png),
+          pngBlob(finalPng),
           qrFilename({
             label,
             typeId,
@@ -647,7 +660,7 @@ export function useQrStudio() {
         );
         setFlash({
           kind: "info",
-          text: `PNG downloaded — ${target}×${target} px, ${design.transparent ? "transparent" : design.bg.base + " field"}, verified by decode before saving.`,
+          text: `PNG downloaded — ${target}×${target} px at ${pngDpi} DPI, ${design.transparent ? "transparent" : design.bg.base + " field"}, verified by decode before saving.`,
         });
       } catch (error) {
         setFlash({
@@ -658,7 +671,7 @@ export function useQrStudio() {
         setBusy(null);
       }
     },
-    [design, label, logo, output, payloadResult, typeId],
+    [design, label, logo, output, payloadResult, pngDpi, typeId],
   );
 
   const exportSvg = useCallback(async () => {
@@ -705,17 +718,26 @@ export function useQrStudio() {
     }
     setBusy("Building PDF…");
     try {
-      const bytes = await createQrPdf(
-        [{ png: output.png, caption: pdfOptions.caption ? label : null }],
+      const bytes = await createLayoutPdf(
+        output.png,
+        pdfOptions.caption ? label : null,
+        printLayout,
         pdfOptions,
+        sheet,
       );
+      const layoutDef = printLayoutDef(printLayout);
       downloadBlob(
         new Blob([bytes as unknown as BlobPart], { type: "application/pdf" }),
-        qrFilename({ label, typeId, ext: "pdf", suffix: pdfOptions.paper }),
+        qrFilename({ label, typeId, ext: "pdf", suffix: printLayout }),
       );
       setFlash({
         kind: "info",
-        text: `PDF downloaded — ${PAPER_LABEL[pdfOptions.paper]} at ${pdfOptions.sizeMm} mm for the code.`,
+        text:
+          printLayout === "single"
+            ? `PDF downloaded — ${PAPER_LABEL[pdfOptions.paper]} at ${pdfOptions.sizeMm} mm for the code.`
+            : printLayout === "a4-sheet"
+              ? `PDF downloaded — A4 cut sheet, ${sheet.cols}×${sheet.rows} codes at ${sheet.codeMm} mm.`
+              : `PDF downloaded — ${layoutDef.name} (${layoutDef.pageMm?.w}×${layoutDef.pageMm?.h} mm).`,
       });
     } catch (error) {
       setFlash({
@@ -725,7 +747,7 @@ export function useQrStudio() {
     } finally {
       setBusy(null);
     }
-  }, [label, output, pdfOptions, payloadResult, typeId]);
+  }, [label, output, pdfOptions, payloadResult, printLayout, sheet, typeId]);
 
   const copyPayload = useCallback(async () => {
     try {
@@ -882,6 +904,12 @@ export function useQrStudio() {
     storageReady,
     pdfOptions,
     setPdfOptions,
+    pngDpi,
+    setPngDpi,
+    printLayout,
+    setPrintLayout,
+    sheet,
+    setSheet,
     sizeTests,
     testing,
     label,

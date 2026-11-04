@@ -619,7 +619,7 @@ the updated Sections 4–5 above.
 
 ---
 
-## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D implemented)
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F implemented)
 
 Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
 creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
@@ -662,9 +662,24 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
   carried in share links, and preserved by presets/history. The design card now has six folds
   (Colours / Pattern / Corners / Logo / Frame / Templates).
 
-**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **703 passed / 39 files**
-(was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six new framed /
-eye-colour / logo designs decoded by jsQR to the exact payload; production build clean with
+**Stage 2 — Phase F (exports: DPI, custom size, print layouts, A4 sheet) implemented and verified:**
+
+- **PNG DPI metadata:** a standard `pHYs` chunk stamps the chosen print resolution (72/150/300/600 DPI)
+  into every PNG export. It is metadata only — the verified pixels are untouched, so the file still
+  decodes exactly as checked (`withPngDpi`/`readPngDpi` in `png.ts`, round-trip + decode tested).
+- **Custom-size export:** a 64–4096 px input in the Download fold re-renders at the requested size and
+  re-verifies before saving (the high-res button now also carries the chosen DPI).
+- **Print layouts (`lib/tools/qr/layouts.ts`):** real physical PDFs built with pdf-lib from the same
+  verified PNG — Business card (85×55 mm), Sticker (50×50 mm), Product label (70×40 mm), Poster (A4,
+  130 mm code), Table tent (A4 landscape, fold guide, one face printed inverted so both read upright),
+  plus the original Single-on-paper. A layout selector + caption toggle drive the PDF button.
+- **A4 cut sheet:** a cols×rows grid of identical codes with light cut guides, clamped to fit A4 with a
+  margin (`clampSheet`); columns/rows/code-width/gap controls appear when the sheet layout is chosen.
+
+**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **718 passed / 40 files**
+(was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six framed /
+eye-colour / logo designs decoded by jsQR to the exact payload; every print layout reloads as a valid
+PDF at its promised millimetre size and DPI-stamped PNGs still decode; production build clean with
 `/tools/qr-generator` static; dev preview live on port 3000; **44 decode-verified PNG artifacts** +
 report in `docs/qr-studio-v3/evidence/` (regenerate: `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs
 run tests/qr-v3-evidence.test.ts`). Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
@@ -674,9 +689,9 @@ CDN + Debian repos unreachable) — live preview + engine-rendered QR evidence p
 Link remains static only (no backend, no dynamic editing/analytics claimed). The calendar-event sample
 embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is regenerated each time (still decoded).
 
-**Remaining:** F (DPI metadata, custom-px export, A4 print sheet, layout PDFs), G (bulk
-retry/preview/per-row type), H (history/preset rename/duplicate/export/import), E (static landing-page
-builder), J (browser e2e + screenshots). **Not merged, not deployed — awaiting owner approval.**
+**Remaining:** G (bulk retry/preview/per-row type), H (history/preset rename/duplicate/export/import),
+E (static landing-page builder), J (browser e2e + screenshots). **Not merged, not deployed — awaiting
+owner approval.**
 
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 

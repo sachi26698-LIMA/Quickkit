@@ -586,3 +586,56 @@ describe("qr studio — V3 design controls (frame, finder colours)", () => {
     TEST_TIMEOUT,
   );
 });
+
+describe("qr studio — V3 export controls (DPI, custom px, print layouts)", () => {
+  function openExportMore() {
+    const summary = document.querySelector("#qr-export-more summary");
+    fireEvent.click(summary as HTMLElement);
+  }
+
+  it("exposes DPI, custom-size and print-layout controls", () => {
+    render(<QrGenerator />);
+    openExportMore();
+    const dpi = screen.getByLabelText("Print resolution (DPI metadata)");
+    expect(dpi).toHaveValue("300");
+    fireEvent.change(dpi, { target: { value: "600" } });
+    expect(dpi).toHaveValue("600");
+    expect(screen.getByLabelText("Custom size (px)")).toBeInTheDocument();
+    expect(screen.getByLabelText("PDF layout")).toHaveValue("single");
+  });
+
+  it("reveals the grid controls for the A4 cut sheet and hides the paper picker", () => {
+    render(<QrGenerator />);
+    openExportMore();
+    fireEvent.change(screen.getByLabelText("PDF layout"), {
+      target: { value: "a4-sheet" },
+    });
+    expect(screen.getByRole("slider", { name: /Columns/ })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: /Rows/ })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Paper")).toBeNull();
+  });
+
+  it("a fixed layout hides the paper picker and explains its size", () => {
+    render(<QrGenerator />);
+    openExportMore();
+    fireEvent.change(screen.getByLabelText("PDF layout"), {
+      target: { value: "business-card" },
+    });
+    expect(screen.queryByLabelText("Paper")).toBeNull();
+    expect(
+      screen.getByText(/prints on a fixed 85 × 55 mm/),
+    ).toBeInTheDocument();
+  });
+
+  it("guards the custom-size export button against an out-of-range value", () => {
+    render(<QrGenerator />);
+    typeUrl("https://example.com");
+    openExportMore();
+    const input = screen.getByLabelText("Custom size (px)");
+    const button = screen.getByRole("button", { name: /Export/ });
+    fireEvent.change(input, { target: { value: "10" } });
+    expect(button).toBeDisabled();
+    fireEvent.change(input, { target: { value: "1024" } });
+    expect(button).not.toBeDisabled();
+  });
+});

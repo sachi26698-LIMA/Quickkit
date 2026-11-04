@@ -12001,6 +12001,24 @@ select:focus {
   grid-template-columns: minmax(0, 1fr);
   gap: 0 12px;
 }
+.qr-custom-px {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.qr-custom-px .qr-input {
+  flex: 1;
+  min-width: 0;
+}
+.qr-custom-px .qr-mini-button {
+  flex: none;
+  white-space: nowrap;
+}
+.qr-block-label svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+  color: #d6598f;
+}
 .qr-filenames {
   margin-top: 14px;
 }
