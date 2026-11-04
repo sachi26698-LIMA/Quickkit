@@ -354,6 +354,15 @@ export function useStudio() {
             (message) => patch(row.id, { message }),
           );
           control.signal.throwIfAborted();
+          if (
+            result.base &&
+            retained(rowsRef.current.filter((r) => r.id !== row.id)) +
+              result.bytes.length >
+              LIMIT
+          )
+            throw new Error(
+              "Retained PDF memory limit reached. Clear completed files before refreshing.",
+            );
           if (result.base)
             patch(row.id, {
               base: result.bytes,

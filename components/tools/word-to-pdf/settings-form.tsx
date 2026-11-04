@@ -159,8 +159,8 @@ export default function SettingsForm({
               )}
               <p className={styles.note}>
                 Templates: {"{n}"}, {"{total}"}, {"{section}"}. Numbers follow
-                output positions, including unprinted pages. Skip-first and
-                source-overlay range rules still apply.
+                output positions, including unprinted pages. Explicit per-page
+                number switches override range gates; skip-first still applies.
               </p>
               {number("startNumber", "Numbering starts at", 1, 3900)}
               {select("numberStyle", "Number format", [
