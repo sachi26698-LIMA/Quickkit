@@ -16,6 +16,7 @@ import {
   FileImage,
   ImageDown,
   Layers,
+  ScanLine,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -35,6 +36,7 @@ const icons = {
   imagesToPdf: FileImage,
   pdfToImage: ImageDown,
   pdfStudio: Layers,
+  scan: ScanLine,
 };
 export default function ToolIcon({
   icon,

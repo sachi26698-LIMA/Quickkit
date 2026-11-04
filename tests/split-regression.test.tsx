@@ -88,7 +88,7 @@ describe("cross-tool regression: the four split tools", () => {
   });
 
   it("keep the catalogue counts consistent across every view", () => {
-    expect(tools).toHaveLength(28);
+    expect(tools).toHaveLength(29);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("PDF Tools")).toHaveLength(7);
 
