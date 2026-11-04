@@ -28,7 +28,7 @@ export const categoryMeta: CategoryMeta[] = [
     slug: "pdf-tools",
     blurb: "Merge, split, convert and manage PDF files.",
     description:
-      "Everything you need to work with PDFs — combine documents, export pages as images and turn photos into a PDF, all in your browser with nothing uploaded.",
+      "Combine, split and export PDFs locally. Word to PDF is a separately disclosed, opt-in self-hosted conversion workflow.",
     tint: "tint-pdf",
     icon: "pdf",
   },
@@ -276,6 +276,17 @@ export const tools = [
     icon: "pdfCompress",
     color: "peach",
     phase: 5,
+  },
+  {
+    slug: "word-to-pdf",
+    name: "Word to PDF Converter",
+    category: "PDF Tools",
+    description:
+      "Convert DOCX documents with opt-in self-hosted LibreOffice processing. Requires an enabled server engine; files are not converted in your browser.",
+    keywords: "word docx pdf office document batch convert",
+    icon: "word",
+    color: "purple",
+    phase: 6,
   },
   {
     slug: "pdf-to-word",

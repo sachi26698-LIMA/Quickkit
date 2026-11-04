@@ -13,7 +13,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "About Us — small tasks, thoughtfully solved",
-  "QUICKKIT is a free, privacy-friendly digital toolkit: everyday browser tools with no accounts, no uploads and no clutter.",
+  "QUICKKIT is a free, privacy-friendly digital toolkit: everyday browser tools with no accounts and no clutter. Word to PDF uses explicitly consented server processing.",
   "/about",
 );
 
@@ -21,7 +21,7 @@ const principles = [
   {
     Icon: ShieldCheck,
     title: "Private by design",
-    text: "Tools run locally in your browser. Your files, text and passwords are never uploaded — because the most secure server is the one that never receives your data.",
+    text: "Most tools run locally in your browser. Word to PDF is an explicit opt-in exception using self-hosted LibreOffice; its upload and privacy notice appears before conversion.",
   },
   {
     Icon: Sparkles,

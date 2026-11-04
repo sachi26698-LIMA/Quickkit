@@ -43,7 +43,8 @@ export default function Footer() {
             <span>
               <strong>Your work stays yours.</strong>
               <br />
-              Tools run on your device. No sign-up, no tracking analytics.
+              Most tools run on your device. Word to PDF asks before upload. No
+              sign-up or tracking analytics.
             </span>
           </p>
         </div>

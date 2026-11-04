@@ -1,10 +1,12 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 3 November 2026  
+**Last updated:** 4 November 2026
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
+**Current active tool:** Word to PDF Converter V2 — owner-directed upgrade of the same route on 4 November 2026. **Advanced studio / live PDF editing implemented for review; native adapter still gated and NOT production-approved.** Route `/tools/word-to-pdf`, category PDF Tools. Engine disabled by default pending isolated LibreOffice hosting and real rendering QA. No deployment, merge or 1,000-page claim. See the V2 dated entry at the end and `docs/WORD_TO_PDF_V2_QA.md` (supersedes the V1 delivery report). The owner’s explicit request authorizes this work without changing approval states of previous tools.
+
+**Previous active-tool record (historical):** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
 
 ## Percentage Calculator focused verification
 
@@ -1656,3 +1658,31 @@ contract. Three checks in this workstream therefore touched files outside the QR
 
 **Owner gate.** Not merged, not deployed, not indexed. The owner must open the live preview, use
 every feature, inspect the responsive layouts and approve the design before anything else happens.
+
+
+## 4 November 2026 — Word to PDF Converter (owner-directed)
+
+**State: implementation for review / gated — not production-ready, live-approved, merged or deployed.** Earlier tool approval notes remain historical and unchanged.
+
+- Added `/tools/word-to-pdf` and PDF Tools catalog discovery, responsive QUICKKIT light workspace, multi-file queue, global/file page settings, consent, stage progress, cancellation/retry, custom names, page preview and ZIP exports.
+- Reused existing PDF.js preview, PDF-lib editing, ZIP and download utilities. Existing PDF-to-Word batch code is feature-specific; new sequential orchestration follows its bounded approach rather than coupling the two engines. Existing tool implementations were not modified.
+- Native self-hosted LibreOffice chosen after audit. No false browser-only converter or third-party upload fallback. Requires explicit operator opt-in and user consent. Engine is unavailable in this sandbox and the preview accurately reports that.
+- Settings include native DOCX section page-size/orientation/margin overrides, native quality options, PDF page selection and custom PDF header/footer/number overlays. Print preset is not certified print-ready output; font/complex Word fidelity requires inspection.
+- Conservative cap: 100 rendered pages, not 1,000. Native stress/fidelity tests are outstanding; no unsupported performance guarantee.
+- Minimal shared copy changes were necessary to remove site-wide “all inputs stay local” claims after introducing the explicit server-processing exception. Catalog/sitemap count assertions updated for exactly one added tool; no existing conversion logic changed.
+- Evidence: `docs/WORD_TO_PDF_AUDIT.md`, `docs/WORD_TO_PDF_OPERATIONS.md`, `docs/WORD_TO_PDF_QA.md`, screenshots under `docs/word-to-pdf/screenshots/`.
+- Release blockers: native rendering corpus (including charts and long documents), container/network/resource isolation verification, actual-host cancellation/crash retention tests, Firefox/WebKit and owner review. Do not mark production-ready based on mocked tests.
+
+
+## 4 November 2026 — Word to PDF Converter V2 (same route, owner-directed upgrade)
+
+**State: UI / local PDF studio implemented for review; native rendering release gate blocked. Not merged, deployed or production-approved.** Existing `/tools/word-to-pdf`, PDF Tools listing, API, native engine opt-in and previous tool functionality remain intact.
+
+- Replaced the V1 form/modal with a premium three-panel studio: branded/status toolbar, bounded undo/reset, file queue/reorder/replace/custom names, collapsible/resizable sidebars, inline actual PDF canvas, lazy page thumbnails, navigation/zoom/fit/rotation, text-layer search, original DOCX and native-versus-final PDF comparisons, help and full-viewport preview.
+- Added organized Page Setup / Page Management / Appearance / Quality / Metadata panels, global and file scopes, selected-page geometry, include/exclude/order, Arabic/Roman numbering and first-page omission, shared overlay styling, backgrounds, native compression/resolution/tagging requests, metadata and completion reports.
+- Shared `process-pdf.ts` drives native export and serialized debounced local updates. Native-affecting changes mark output stale and block export. Refresh is explicit; automatic native re-upload requires separate, revocable opt-in. No upload on file selection. Preview and downloads use the same retained final bytes.
+- Mobile Files/Preview/Settings tabs, overflow checks, sticky export and full-viewport preview included. No simulated PDF pages or runtime fake demo document. Successful screenshots are explicitly labelled mocked-native-response evidence; actual installation screenshots show engine unavailable.
+- New V2 unit coverage: 32 tests. Final full unit suite **986 passed / 52 files**. Final tool Chromium E2E **8 passed**. TypeScript, lint and production build passed. Wider 41-case Chromium selection had an earlier 41/41 pass, but final attempts were **40 passed / 1 unchanged PDF Splitter synthetic-drop-before-hydration assertion failure**. A hydration-ready diagnostic confirmed the Splitter rejection flow works; no unrelated source/test was modified to hide it. See QA for exact scope.
+- Native engine remains absent; complex DOCX fidelity, fonts/charts/structure, isolated-host security/retention and long-document stress tests remain outstanding. 1,000-page capability stays disabled. Numeric pre-render size estimation and forced text outlines/font-substitution editing are not implemented or faked; embedding remains automatic/capability-dependent.
+- Source queue remains 80 MiB; native + edited PDF retention is bounded to 120 MiB combined. Canvas area/edge bounds, serialized transforms/thumbnails, cancellation and resource cleanup are implemented; no peak-RSS guarantee.
+- Evidence: `docs/WORD_TO_PDF_V2_AUDIT.md`, `docs/WORD_TO_PDF_V2_QA.md`, `docs/WORD_TO_PDF_V2_OPERATIONS.md`, screenshots in `docs/word-to-pdf/v2/`. Existing operator container/network/quota and privacy release gates still apply.

@@ -14,7 +14,7 @@ export default function Page() {
       <span className="eyebrow">Your work stays yours</span>
       <h1>Privacy Policy</h1>
       <p className="legal-updated">
-        Last updated: 1 November 2026. This policy describes the current
+        Last updated: 4 November 2026. This policy describes the current
         QUICKKIT implementation in plain language. It is not a promise of
         absolute privacy or security — no website can honestly make one.
       </p>
@@ -30,23 +30,37 @@ export default function Page() {
 
       <h2>1. Information we collect</h2>
       <p>
-        Very little, by design. We do not operate user accounts, and tool inputs
-        are never sent to us (see §2). The information that exists at all is:
-        (a) ordinary technical data in website requests handled by our hosting
-        provider (§4), (b) a saved-tools list stored only in your own browser if
-        you use the Save feature (§5), and (c) anything you voluntarily send us
-        by email (§8).
+        Very little, by design. We do not operate user accounts, and most tool
+        inputs are processed locally. Word to PDF is an explicit opt-in
+        server-processing exception (see §2). The information that exists at all
+        is: (a) ordinary technical data in website requests handled by our
+        hosting provider (§4), (b) a saved-tools list stored only in your own
+        browser if you use the Save feature (§5), and (c) anything you
+        voluntarily send us by email (§8).
       </p>
 
-      <h2>2. How the tools process your data — locally</h2>
+      <h2>2. How the tools process your data</h2>
       <p>
-        Every current QUICKKIT tool processes your input on your device, in your
-        browser. The PDF tools use dedicated browser workers and local canvas
-        previews where a preview is shown. Your PDFs, text, JSON, passwords, QR
-        content and images are not uploaded to a server, stored in a database or
-        written to application logs. Inputs live in the page’s memory;
-        refreshing or leaving the tool clears them (your browser may separately
-        retain form state or history).
+        Except for the opt-in Word to PDF workflow described below, QUICKKIT
+        tools process your input on your device, in your browser. The PDF tools
+        use dedicated browser workers and local canvas previews where a preview
+        is shown. Your PDFs, text, JSON, passwords, QR content and images are
+        not uploaded to a server, stored in a database or written to application
+        logs. Inputs live in the page’s memory; refreshing or leaving the tool
+        clears them (your browser may separately retain form state or history).
+      </p>
+
+      <p>
+        Word to PDF is different: when an operator enables its native engine,
+        DOCX files are sent to this QUICKKIT server only after you explicitly
+        consent and click Convert. Self-hosted LibreOffice processes the files;
+        no third-party conversion API is used. Temporary inputs, profiles and
+        outputs are removed after success, failure or cancellation. A server
+        crash can interrupt cleanup, so operators must enforce temporary-storage
+        expiry and disable request-body logging and backups. Hosting access logs
+        may still record ordinary request metadata. Do not upload documents if
+        you do not trust the installation operator. Browser results remain in
+        the current tab until removed, cleared or closed.
       </p>
 
       <h2>3. File privacy, clipboard and downloads</h2>
