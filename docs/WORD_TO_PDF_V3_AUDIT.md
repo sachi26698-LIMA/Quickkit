@@ -17,3 +17,10 @@ Read: TOOL_DEVELOPMENT_STATUS.md, V2 QA/operations/audit, native adapter and end
 5. Add a dedicated virtualized page editor to the existing Files panel, with drag/drop plus touch/keyboard move buttons. Editor sections are output ordering groups, not Word section reflow or guaranteed PDF outlines.
 6. Synchronize comparison page/zoom controls using actual source mapping; report observed approximate DOCX/output counts and potential font/layout limitations without inventing detected substitutions or fidelity scores.
 7. Run PDF-output unit/browser verification, actual local-PDF 100-page stress, 500/1,000 guard tests, and an explicit native stress availability probe. Report native blockers separately from authored PDF fixture tests. Preserve unrelated tools and document any unchanged regression-test race.
+
+
+## Audit closure / evidence
+
+The planned existing-route extension is implemented in checkpoints `3abf9e1`, `e1a86e8`, `c10e848`. See [final QA](WORD_TO_PDF_V3_QA.md) and [editor report](WORD_TO_PDF_V3_EDITOR_REPORT.md). An implementation review identified and removed the risk of re-copying shared images/fonts for every duplicate: one copier shares immutable streams, while mutable content/resource containers and annotation geometry are isolated. Actual 100-copy image-PDF tests verify independent edits and bounded output growth. ZIP packing uses one bounded-chunk worker, not a synchronous UI-thread CRC loop. New native bases are checked against the retained-byte budget before being retained, including pagination-change failure paths.
+
+Native blockers did not disappear: the real endpoint is unavailable, no native conversion/fidelity/stress success is claimed, and the cap remains 100. The 500/1,000-page actual PDF cases are explicit rejection tests. Automated font-substitution/semantic layout detection is not implemented; linked approximate comparison shows observed counts and honest manual-review warnings. These limitations and physical-device/cross-browser/operator release gates are preserved in the delivery report.

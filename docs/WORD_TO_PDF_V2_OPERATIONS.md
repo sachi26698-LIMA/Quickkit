@@ -1,5 +1,7 @@
 # Word to PDF Studio V2 — operator setup and capability boundaries
 
+> Historical V2 record. The owner-directed V3 extension and current verification/limits are documented in [V3 QA](WORD_TO_PDF_V3_QA.md) and [V3 engine status](WORD_TO_PDF_V3_ENGINE_STATUS.md). V2 results below are preserved, not replaced by V3 results.
+
 **4 November 2026. Not production-approved.** The existing native engine remains opt-in. Read [the original isolation checklist](WORD_TO_PDF_OPERATIONS.md) before enabling anything. No merge, deployment or host provisioning is part of V2.
 
 ## Enable only on an isolated persistent Linux Node host
