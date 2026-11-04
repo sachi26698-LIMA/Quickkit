@@ -1,6 +1,6 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 3 November 2026  
+**Last updated:** 4 November 2026  
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
@@ -1656,3 +1656,148 @@ contract. Three checks in this workstream therefore touched files outside the QR
 
 **Owner gate.** Not merged, not deployed, not indexed. The owner must open the live preview, use
 every feature, inspect the responsive layouts and approve the design before anything else happens.
+
+---
+
+## Legal & information architecture upgrade (4 November 2026, branch `arena/90233e12-quickkit`)
+
+**Owner gate:** not merged, not deployed, not indexed. Branch status `active`.
+
+### What changed
+
+The site previously had three legal pages (`/terms`, `/privacy`, `/cookies`), all plain `prose`
+articles with no breadcrumbs, no table of contents, no related-page links and no back-to-top, and a
+footer whose "Legal" column listed only those three. Nine required information routes did not exist.
+
+Now there are **twelve independently routable legal and information pages**, each with its own
+metadata, canonical, Open Graph data, breadcrumbs, table of contents, related-page list,
+back-to-top control and feedback link:
+
+| Route | Page | State |
+|---|---|---|
+| `/terms` | Terms and Conditions | Rewritten, 15 sections, 2 legal-review flags |
+| `/privacy` | Privacy Policy | Rewritten, 14 sections, evidence-based |
+| `/cookies` | Cookie Policy | Rewritten, full storage inventory table |
+| `/disclaimer` | Disclaimer | **New**, 13 sections incl. estimate-vs-guarantee table |
+| `/about` | About QUICKKIT | Rebuilt with policy cross-links and roadmap |
+| `/contact` | Contact Us | Rebuilt with five routed request types |
+| `/faq` | Frequently Asked Questions | **New**, 25 answers in 6 groups |
+| `/copyright` | Copyright and DMCA Policy | **New**, 9 sections incl. counter-notification |
+| `/accessibility` | Accessibility Statement | **New**, 12 sections incl. known limitations |
+| `/security` | Security Policy | **New**, 11 sections, no certification claims |
+| `/file-handling` | Data Processing and File Handling Policy | **New**, 20 sections, tool-by-tool |
+| `/intellectual-property` | Intellectual Property Policy | **New**, 9 sections incl. licence table |
+
+### Architecture
+
+- `lib/legal.ts` — one registry (route, nav label, title, description, group, section anchors,
+  indexability) that drives the footer, the sitemap page, the XML sitemap and the page shell.
+- `components/legal-page-shell.tsx` — shared server-rendered shell: breadcrumbs, hero, `<time>`
+  last-updated, sticky table of contents, owner-input notice, related pages, back-to-top, feedback,
+  legal-review note. Content remains per page — this is a design system, not a text template.
+- `lib/site.ts` — `ownerDetails` block plus `contactChannels` resolvers. Empty fields render a
+  visible *Owner to supply* marker; no entity, address, jurisdiction or inbox is invented.
+- `components/footer.tsx` — four generated groups (Tools, Company, Legal, Trust & Security),
+  21 links, zero duplicates, zero `#` hrefs.
+- `components/header.tsx` — legal routes now set `aria-current` on "About"; `/faq` sets it on "Help".
+- `app/sitemap/page.tsx` and `app/sitemap.ts` — derived from the registry; empty categories excluded;
+  XML sitemap still gated on `indexingEnabled`.
+- `app/globals.css` — scoped `.legal-*` design system (white/soft-lavender surfaces, purple accents,
+  78ch measure, responsive tables, reduced-motion respected) appended without touching tool styles.
+- `scripts/check-site-links.mjs` — dependency-free crawler for status, `<h1>` count, titles,
+  descriptions, canonical presence, `#` hrefs, in-page anchors and every internal link.
+
+### Content accuracy (checked against code, not assumed)
+
+Claims on `/file-handling` and `/privacy` were verified in the source before being written: PDF and
+image work happens in `workers/pdf-*.worker.ts` and `workers/image-encode.worker.ts`; pdf.js is served
+from `/pdfjs` and tesseract.js plus eng/hin/guj data from `/ocr` (self-hosted, no CDN); there are no
+`route.ts` API endpoints; the CSP sets `connect-src 'self'` and `frame-src 'none'`; the only
+`fetch()` in the codebase is the contact form, whose endpoint is unset. Storage keys were read from
+`lib/use-favorites.ts`, `lib/tools/qr/storage.ts`, `lib/tools/image-history.ts` and
+`lib/tools/pdf-to-word/history.ts`. The page states that files are **not** transmitted for processing,
+because that is what the implementation proves, and separately documents the hosting metadata that
+does leave the device.
+
+### Verification actually run
+
+- `npx tsc --noEmit` — pass.
+- `npx eslint .` — pass.
+- `prettier --check` — pass.
+- `npm test` — **942 passed / 50 files**, including the new `tests/legal-pages.test.tsx` (15 tests).
+- `npm run build` — pass; all twelve routes prerendered static.
+- `node scripts/check-site-links.mjs` — **53 routes crawled, 53 returned 200, 0 dead links,
+  0 placeholder hrefs**. Six external (demo social) links were not fetched, by design.
+- Scratch build with `SITE_URL` + `LAUNCH_APPROVED` — canonical and `og:url` verified on 14 routes,
+  `robots` became `index, follow`, `robots.txt` emitted `Allow: /`, all 52 sitemap URLs returned 200,
+  then the artefacts were rebuilt with indexing disabled again.
+- `npm run test:e2e` — **not executed here**: Playwright browser binaries cannot be downloaded in this
+  sandbox (every Playwright CDN is blocked and no system browser is installed). The suites were
+  extended — `tests/e2e/quality.spec.ts` now sweeps all twelve routes for axe and overflow at nine
+  widths, and `tests/e2e/legal-pages.spec.ts` adds per-route metadata, breadcrumb, ToC, related-link,
+  footer, skip-link and active-state coverage. They must be run in CI or locally before merge.
+
+### Two pre-existing defects found and fixed
+
+- `lib/calculator-info.ts` — six calculator meta descriptions were 60–69 characters, below a useful
+  snippet length. Rewritten; no behaviour change.
+- `tests/launch.test.ts` / `tests/split-regression.test.tsx` — sitemap length was hard-coded at 46.
+  Both now derive the expectation from `legalPages` + `tools`, so a new page cannot silently miss the
+  sitemap.
+
+### Phase 2 — final compliance audit and polish (same branch, in progress)
+
+Phase 2 audited the twelve pages against the running production build instead of rebuilding them.
+
+**Contact address withdrawn.** `hello@quickkit.in` could not be confirmed as an owner-approved,
+monitored inbox, so it is no longer published anywhere. `lib/site.ts` types `contactEmail` as
+`string | null` (derived from `ownerDetails.publicEmail`) and every page branches on it — the old
+code interpolated the address into a template literal, where a `null` renders as the literal text
+`mailto:null` and `tsc` does not object. `components/contact-link.tsx` now centralises rendering, and
+the contact form disables itself with an explicit notice when no channel exists rather than composing
+a dead address. Supplying one field restores the whole surface.
+
+**`/file-handling` was incomplete.** The tool-by-tool audit found that Image Compressor, Image Resizer
+and Image Cropper are live but had **no section** on a page that claims to cover every file-handling
+tool. Three sections were added (§12–§14, everything after renumbered to §23) using the enforced
+constants in `lib/tools/image-compress.ts`, `image-resize.ts` and `image-crop.ts`. All three were
+verified to write **no** persistent storage — page memory and blob URLs only.
+
+**Everything else checked against the build:** all 6 `localStorage` keys and both IndexedDB databases
+named in `/cookies` and `/privacy` exist with the documented caps; `document.cookie` appears nowhere;
+the only `fetch` in application code is the optional contact-form POST; fonts are `next/font/local`;
+no `<iframe>`, external script or third-party asset. The Cookie Policy describes no consent banner,
+analytics or ad feature, because none is implemented. `/contact` gained the table of contents it was
+missing (it inherited a different layout), and four anchor ids moved from `<p>` elements onto the
+`<h3>` headings that label them. All twelve routes now emit a valid lowercase `<time datetime>` —
+Next 16 serialises a JSX `dateTime` prop as `dateTime="…"`, so dates are rendered through a
+`isoDatetime()` spread.
+
+### Verification actually run (Phase 2)
+
+- `npx tsc --noEmit`, `npx eslint .`, `prettier --check` — pass.
+- `npm test` — **942 passed / 50 files** (15 in `tests/legal-pages.test.tsx`).
+- `npm run build` — pass.
+- `node scripts/check-site-links.mjs` — 53 routes, 53 × 200, 0 dead links.
+- `node scripts/audit-legal-pages.mjs` — **0 problems** across the 12 routes.
+- Ad-hoc anchor sweep — 383 distinct internal links across the 12 routes, target page **and** fragment
+  checked, **0 broken**.
+- Static a11y/heading sweep — one `<h1>` per page in `<main>`, no heading-level skips, no empty links,
+  every table captioned with column headers, no duplicate ids, `lang="en"` and a skip link present.
+- `SITE_URL` + `LAUNCH_APPROVED` scratch build — canonicals, `index, follow`, 52-URL sitemap
+  (all 12 legal routes present) and `Allow: /` robots.txt; rebuilt without them afterwards and
+  confirmed back to `noindex, nofollow`.
+- **`npm run test:e2e` — not executed. Playwright browser binaries cannot be installed in this
+  sandbox (CDN blocked, no system Chrome). No claim is made that the pages were rendered at 375, 390
+  or 430 px, or that keyboard traversal was exercised in a real browser.** Those must be run before
+  approval.
+
+### Still open (owner decisions, not code work)
+
+**A verified monitored contact address** (nothing is published until one is supplied), operator legal
+name, jurisdiction, postal address/registration (if required), four dedicated inboxes or acceptance of
+one, minimum age, hosting log retention and subprocessors, source licensing decision,
+independent accessibility and security review, and legal review of liability, governing law, consumer
+carve-outs and the DMCA position. None of these are invented on any page; each appears as a marked
+placeholder or a flagged provision. Full checklist: `docs/LEGAL_PAGES.md` §7 and
+`docs/OWNER_INPUTS.md`.
