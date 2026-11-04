@@ -18,7 +18,7 @@ import { unzipSync, zipSync, strFromU8, strToU8 } from "fflate";
 import { mkdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 const png = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDasAAAAASUVORK5CYII=",
+  "iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAIAAAAt/+nTAAAAP0lEQVR4nO3PMQ0AMAgAMOTswdWUTNgMYQINHHxNaqBx7l9VL1eFgICAgICAgICAgICAgICAgICAgICAgMBUA+ErkKbjB4dtAAAAAElFTkSuQmCC",
   "base64",
 );
 const cell = (text) => new TableCell({ children: [new Paragraph(text)] });
