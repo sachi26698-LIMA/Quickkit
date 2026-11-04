@@ -1,3 +1,4 @@
+import { buildZipBlob } from "../lib/tools/word-to-pdf/export-zip";
 import { describe, expect, it } from "vitest";
 import {
   PDFDocument,
@@ -6,6 +7,7 @@ import {
   decodePDFRawStream,
   PDFName,
   PDFDict,
+  PDFNumber,
 } from "@cantoo/pdf-lib";
 import {
   defaults,
@@ -320,5 +322,159 @@ describe("V3 actual PDF materialization", () => {
       }),
     ).rejects.toThrow();
     expect(progress).toEqual([0, 1, 2, 3, 4]);
+  });
+});
+
+describe("V3 rotated overlays and bounded resource copies", () => {
+  it.each([0, 90, 180, 270])(
+    "places bottom-left numbering in displayed coordinates after %i-degree rotation",
+    async (rotation) => {
+      const result = await processPdf(await fixture(), {
+        ...defaults,
+        rotation,
+        numbering: true,
+        align: "left",
+      });
+      const pdf = await PDFDocument.load(result.bytes);
+      const matrices = [
+        ...streams(pdf, 0).matchAll(
+          /([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+) Tm/g,
+        ),
+      ];
+      const matrix = matrices.at(-1)!.slice(1).map(Number),
+        expected =
+          rotation === 0
+            ? [1, 0, 0, 1, 18, 36]
+            : rotation === 90
+              ? [0, 1, -1, 0, 364, 18]
+              : rotation === 180
+                ? [-1, 0, 0, -1, 382, 764]
+                : [0, -1, 1, 0, 36, 782];
+      matrix.forEach((n, i) => expect(n).toBeCloseTo(expected[i]));
+      expect(pdf.getPage(0).getRotation().angle).toBe(rotation);
+    },
+  );
+  it("does not leak unselected root overlays through a selected header override", async () => {
+    const p = patchPages(plan(), [ids[1]], { header: "ONLY SELECTED" });
+    const result = await processPdf(await fixture(), {
+      ...defaults,
+      visualPlan: p,
+      overlayPages: "1",
+      header: "ROOT HEADER",
+      footer: "ROOT FOOTER",
+      numbering: true,
+    });
+    const pdf = await PDFDocument.load(result.bytes);
+    expect(streams(pdf, 1)).toContain(
+      Buffer.from("ONLY SELECTED").toString("hex").toUpperCase(),
+    );
+    expect(streams(pdf, 1)).not.toContain(
+      Buffer.from("ROOT FOOTER").toString("hex").toUpperCase(),
+    );
+  });
+  it("duplicates 100 actual image pages while sharing immutable assets and isolating page streams", async () => {
+    const pdf = await PDFDocument.create(),
+      page = pdf.addPage([400, 800]);
+    page.drawText("SOURCE", { x: 20, y: 700 });
+    const data = new Uint8Array(512 * 512 * 3);
+    for (let i = 0; i < data.length; i++) data[i] = i % 251;
+    const image = pdf.context.register(
+      pdf.context.stream(data, {
+        Type: "XObject",
+        Subtype: "Image",
+        Width: 512,
+        Height: 512,
+        ColorSpace: "DeviceRGB",
+        BitsPerComponent: 8,
+      }),
+    );
+    page.node.setXObject(PDFName.of("SharedAsset"), image);
+    page.node.addContentStream(
+      pdf.context.register(
+        pdf.context.flateStream("q 200 0 0 200 30 30 cm /SharedAsset Do Q"),
+      ),
+    );
+    const source = await pdf.save();
+    const p = {
+      sourceCount: 1,
+      pages: Array.from({ length: 100 }, (_, i) => ({
+        id: `copy-${i}`,
+        source: 0,
+        rotation: i === 1 ? 90 : 0,
+        section: "Main",
+        overrides: { header: `Copy ${i + 1}` },
+      })),
+    };
+    const result = await processPdf(source, { ...defaults, visualPlan: p });
+    expect(result.bytes.length).toBeLessThan(source.length * 2);
+    const final = await PDFDocument.load(result.bytes);
+    expect(final.getPageCount()).toBe(100);
+    const asset = (i: number) =>
+      final
+        .getPage(i)
+        .node.Resources()!
+        .lookup(PDFName.of("XObject"), PDFDict)
+        .get(PDFName.of("SharedAsset"))!
+        .toString();
+    expect(asset(0)).toBe(asset(99));
+    expect(streams(final, 0)).toContain(
+      Buffer.from("Copy 1").toString("hex").toUpperCase(),
+    );
+    expect(streams(final, 0)).not.toContain(
+      Buffer.from("Copy 100").toString("hex").toUpperCase(),
+    );
+    expect(
+      final.getPages().filter((p) => p.getRotation().angle === 90),
+    ).toHaveLength(1);
+  });
+  it("keeps duplicate annotation rectangles independent during selected geometry edits", async () => {
+    const pdf = await PDFDocument.create(),
+      page = pdf.addPage([400, 800]);
+    page.drawText("ANNOTATED SOURCE");
+    const annot = pdf.context.register(
+      pdf.context.obj({
+        Type: "Annot",
+        Subtype: "Link",
+        Rect: [10, 20, 30, 40],
+        P: page.ref,
+      }),
+    );
+    page.node.set(PDFName.of("Annots"), pdf.context.obj([annot]));
+    let p = duplicatePages(
+      initialPlan(1, [0]),
+      ["source-1"],
+      () => "duplicate",
+    );
+    p = patchPages(p, ["duplicate"], { paper: "A5" });
+    const result = await processPdf(await pdf.save(), {
+      ...defaults,
+      visualPlan: p,
+    });
+    const final = await PDFDocument.load(result.bytes);
+    const rect = (i: number) => {
+      const r = final
+        .getPage(i)
+        .node.Annots()!
+        .lookup(0, PDFDict)
+        .lookup(PDFName.of("Rect"), PDFArray);
+      return [0, 1, 2, 3].map((k) => r.lookup(k, PDFNumber).asNumber());
+    };
+    expect(rect(0)).toEqual([10, 20, 30, 40]);
+    expect(rect(1)).not.toEqual(rect(0));
+  });
+  it("rejects ZIP requests before spawning a worker when cancelled or unsafe", async () => {
+    const c = new AbortController();
+    c.abort();
+    await expect(
+      buildZipBlob([{ name: "a", data: new Uint8Array() }], () => {}, c.signal),
+    ).rejects.toThrow();
+    for (const entries of [
+      [],
+      Array.from({ length: 12 }, () => ({ name: "a", data: new Uint8Array() })),
+      [{ name: "../bad", data: new Uint8Array() }],
+    ])
+      await expect(
+        buildZipBlob(entries, () => {}, new AbortController().signal),
+      ).rejects.toThrow(/ZIP needs/);
   });
 });

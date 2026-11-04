@@ -116,6 +116,32 @@ export default function PageAppearance({
           </label>
           {check("numbering", "Number selected pages")}
           {text("numberFormat", "Selected number template", 80)}
+          <label>
+            Selected number position
+            <select
+              value={value.position}
+              onChange={(e) =>
+                onPatch({ position: e.target.value as Settings["position"] })
+              }
+            >
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </label>
+          <label>
+            Selected number style
+            <select
+              value={value.numberStyle}
+              onChange={(e) =>
+                onPatch({
+                  numberStyle: e.target.value as Settings["numberStyle"],
+                })
+              }
+            >
+              <option value="arabic">Arabic</option>
+              <option value="roman">Roman</option>
+            </select>
+          </label>
           {check("backgroundEnabled", "Selected page background")}
           {color("backgroundColor", "Selected background colour")}
           <details>

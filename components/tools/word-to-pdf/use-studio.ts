@@ -171,6 +171,19 @@ export function useStudio() {
       setRedoCount(future.current.length);
     }
   };
+  const snapshotCurrent = (snapshot: StudioRow[]) =>
+    snapshot.every((row) => {
+      const current = rowsRef.current.find((r) => r.id === row.id),
+        settings =
+          prefsRef.current.individual[row.id] || prefsRef.current.global;
+      return (
+        !!current &&
+        current.bytes === row.bytes &&
+        current.status === "done" &&
+        current.outputKey === JSON.stringify(settings) &&
+        current.native === nativeKey(settings)
+      );
+    });
   async function extract(id: string, indices: number[]) {
     const row = rowsRef.current.find((r) => r.id === id);
     if (!row || !ready(row) || !row.bytes || active.current)
@@ -183,15 +196,7 @@ export function useStudio() {
       .then(() => extractPdfPages(row.bytes!, indices, control.signal));
     localChain.current = task;
     const bytes = await task;
-    const current = rowsRef.current.find((r) => r.id === id);
-    const currentSettings =
-      prefsRef.current.individual[id] || prefsRef.current.global;
-    if (
-      !current ||
-      current.bytes !== row.bytes ||
-      current.outputKey !== JSON.stringify(currentSettings) ||
-      current.status !== "done"
-    )
+    if (!snapshotCurrent([row]))
       throw new Error(
         "Document changed during extraction. Retry with synchronized output.",
       );
@@ -527,6 +532,7 @@ export function useStudio() {
     redoCount,
     redo,
     extract,
+    snapshotCurrent,
     cancelExtraction: () => extractionAbort.current?.abort(),
     cancelLocal: () => {
       localAbort.current?.abort();

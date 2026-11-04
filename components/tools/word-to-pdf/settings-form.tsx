@@ -297,7 +297,6 @@ export default function SettingsForm({
           </p>
         </div>
       </details>
-      <WatermarkSettings value={s} onChange={onChange} />
       <details>
         <summary>
           <span>05</span> PDF Metadata
@@ -313,6 +312,7 @@ export default function SettingsForm({
           </p>
         </div>
       </details>
+      <WatermarkSettings value={s} onChange={onChange} />
     </div>
   );
 }

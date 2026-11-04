@@ -5,6 +5,7 @@ import {
   PDFArray,
   PDFName,
   PDFNumber,
+  PDFDict,
   type PDFFont,
   type PDFImage,
 } from "@cantoo/pdf-lib";
@@ -54,15 +55,21 @@ export async function processPdf(
     indices.length === count && indices.every((p, i) => p === i);
   const pdf = unchanged ? original : await PDFDocument.create();
   if (!unchanged) {
+    // One copier shares immutable font/image streams; copying per occurrence can
+    // expand a single 50 MiB page into gigabytes when duplicated many times.
+    const copies = await pdf.copyPages(
+      original,
+      indices.filter((i): i is number => i !== null),
+    );
+    let copied = 0;
     for (const index of indices) {
       signal?.throwIfAborted();
-      // Separate copy operations give duplicates independent content/rotation dictionaries.
       if (index === null)
         pdf.addPage([
           original.getPage(0).getWidth(),
           original.getPage(0).getHeight(),
         ]);
-      else pdf.addPage((await pdf.copyPages(original, [index]))[0]);
+      else pdf.addPage(copies[copied++]);
     }
     if (original.getTitle()) pdf.setTitle(original.getTitle()!);
     if (original.getAuthor()) pdf.setAuthor(original.getAuthor()!);
@@ -86,6 +93,59 @@ export async function processPdf(
     signal?.throwIfAborted();
     const item = plan?.pages[index],
       overrides = item?.overrides || {};
+    // The batch copier returns distinct page dictionaries, but arrays and
+    // resource dictionaries can be shared. Clone mutable containers, not assets.
+    const contents = page.node.Contents();
+    if (contents instanceof PDFArray)
+      page.node.set(PDFName.of("Contents"), contents.clone(pdf.context));
+    const resources = page.node.Resources();
+    if (resources) {
+      const own = resources.clone(pdf.context);
+      for (const key of ["Font", "XObject", "ExtGState"]) {
+        const dict = own.lookupMaybe(PDFName.of(key), PDFDict);
+        if (dict) own.set(PDFName.of(key), dict.clone(pdf.context));
+      }
+      page.node.set(PDFName.of("Resources"), own);
+    }
+    if (!unchanged) {
+      const annots = page.node.Annots();
+      if (annots) {
+        const own = pdf.context.obj([]);
+        for (let i = 0; i < annots.size(); i++) {
+          const originalAnnot = annots.lookup(i);
+          if (!(originalAnnot instanceof PDFDict)) {
+            own.push(annots.get(i));
+            continue;
+          }
+          const annot = originalAnnot.clone(pdf.context);
+          for (const key of [
+            "RD",
+            "CL",
+            "Vertices",
+            "QuadPoints",
+            "L",
+            "Rect",
+            "InkList",
+          ]) {
+            const list = annot.lookup(PDFName.of(key));
+            if (list instanceof PDFArray) {
+              const copy = list.clone(pdf.context);
+              if (key === "InkList")
+                for (let j = 0; j < list.size(); j++) {
+                  const nested = list.lookup(j);
+                  if (nested instanceof PDFArray)
+                    copy.set(j, nested.clone(pdf.context));
+                }
+              annot.set(PDFName.of(key), copy);
+            }
+          }
+          annot.set(PDFName.of("P"), page.ref);
+          own.push(pdf.context.register(annot));
+        }
+        page.node.set(PDFName.of("Annots"), own);
+      }
+    }
+
     const v = { ...s, ...overrides };
     const geometryOverride = [
       "paper",
@@ -155,6 +215,24 @@ export async function processPdf(
       }
     }
     const { width, height } = page.getSize();
+    const rotation =
+      (((page.getRotation().angle + s.rotation + (item?.rotation || 0)) % 360) +
+        360) %
+      360;
+    if (![0, 90, 180, 270].includes(rotation))
+      throw new Error("Unsupported source PDF page rotation.");
+    const viewWidth = rotation % 180 ? height : width,
+      viewHeight = rotation % 180 ? width : height;
+    // Overlay controls use the displayed sheet, including native + visual rotation.
+    const point = (x: number, y: number) =>
+      rotation === 90
+        ? { x: width - y, y: x }
+        : rotation === 180
+          ? { x: width - x, y: height - y }
+          : rotation === 270
+            ? { x: y, y: height - x }
+            : { x, y };
+
     if (v.backgroundEnabled) {
       // Prepend a real PDF stream, behind existing content. Opaque source backgrounds remain opaque.
       const c = color(v.backgroundColor);
@@ -170,7 +248,7 @@ export async function processPdf(
       const draw = (text: string, y: number) => {
         if (!text) return;
         const textWidth = font.widthOfTextAtSize(text, v.fontSize);
-        if (textWidth > width - 36)
+        if (textWidth > viewWidth - 36)
           throw new Error(
             "Header/footer is too wide for the selected page and font size.",
           );
@@ -178,18 +256,18 @@ export async function processPdf(
           v.align === "left"
             ? 18
             : v.align === "right"
-              ? width - textWidth - 18
-              : (width - textWidth) / 2;
+              ? viewWidth - textWidth - 18
+              : (viewWidth - textWidth) / 2;
         page.drawText(text, {
-          x,
-          y,
+          ...point(x, y),
+          rotate: degrees(rotation),
           font,
           size: v.fontSize,
           color: color(v.color),
         });
       };
       if (overlaySet.has(indices[index]) || "header" in overrides)
-        draw(v.header, height - 22);
+        draw(v.header, viewHeight - 22);
       if (overlaySet.has(indices[index]) || "footer" in overrides)
         draw(v.footer, 18);
       if (
@@ -211,7 +289,7 @@ export async function processPdf(
                     v.numberStyle,
                   ),
           ),
-          v.position === "top" ? height - 40 : 36,
+          v.position === "top" ? viewHeight - 40 : 36,
         );
     }
     if (
@@ -219,22 +297,28 @@ export async function processPdf(
       v.watermarkText &&
       (watermarked.has(index) || "watermarkText" in overrides)
     ) {
+      const angle = (v.watermarkAngle * Math.PI) / 180,
+        unitWidth = font.widthOfTextAtSize(v.watermarkText, 1),
+        c = Math.abs(Math.cos(angle)),
+        sn = Math.abs(Math.sin(angle));
       const size = Math.min(
         v.watermarkSize,
-        (width * 0.8) / font.widthOfTextAtSize(v.watermarkText, 1),
+        (0.8 * viewWidth) / (unitWidth * c + sn),
+        (0.8 * viewHeight) / (unitWidth * sn + c),
       );
-      const tw = font.widthOfTextAtSize(v.watermarkText, size),
-        angle = (v.watermarkAngle * Math.PI) / 180;
+      const tw = font.widthOfTextAtSize(v.watermarkText, size);
       page.drawText(v.watermarkText, {
         font,
         size,
-        x:
-          width / 2 - (tw / 2) * Math.cos(angle) + (size / 2) * Math.sin(angle),
-        y:
-          height / 2 -
-          (tw / 2) * Math.sin(angle) -
-          (size / 2) * Math.cos(angle),
-        rotate: degrees(v.watermarkAngle),
+        ...point(
+          viewWidth / 2 -
+            (tw / 2) * Math.cos(angle) +
+            (size / 2) * Math.sin(angle),
+          viewHeight / 2 -
+            (tw / 2) * Math.sin(angle) -
+            (size / 2) * Math.cos(angle),
+        ),
+        rotate: degrees(v.watermarkAngle + rotation),
         opacity: v.watermarkOpacity,
         color: color(v.watermarkColor),
       });
@@ -251,22 +335,21 @@ export async function processPdf(
             : await pdf.embedJpg(asset.bytes);
       }
       const scale = Math.min(
-        (width * v.imageWatermarkWidth) / 100 / image.width,
-        (height * 0.8) / image.height,
+        (viewWidth * v.imageWatermarkWidth) / 100 / image.width,
+        (viewHeight * 0.8) / image.height,
       );
       const iw = image.width * scale,
         ih = image.height * scale;
       page.drawImage(image, {
-        x: (width - iw) / 2,
-        y: (height - ih) / 2,
+        ...point((viewWidth - iw) / 2, (viewHeight - ih) / 2),
+        rotate: degrees(rotation),
         width: iw,
         height: ih,
         opacity: v.imageWatermarkOpacity,
       });
     }
-    const rotation = (s.rotation + (item?.rotation || 0)) % 360;
-    if (rotation)
-      page.setRotation(degrees((page.getRotation().angle + rotation) % 360));
+    if (page.getRotation().angle !== rotation)
+      page.setRotation(degrees(rotation));
     onProgress?.(index + 1, indices.length);
     if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
   }

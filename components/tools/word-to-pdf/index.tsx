@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   ArrowDown,
@@ -26,7 +26,10 @@ import {
   nativeKey,
   orderedPages,
 } from "@/lib/tools/word-to-pdf/settings";
-import { createZip } from "@/lib/tools/zip";
+import {
+  buildZipBlob,
+  type ZipProgress,
+} from "@/lib/tools/word-to-pdf/export-zip";
 import { downloadBlob, downloadText, formatBytes } from "@/lib/tools/download";
 import { useStudio } from "./use-studio";
 import {
@@ -62,7 +65,13 @@ export default function WordToPdf() {
       ids: string[];
     }>({ file: "", ids: [] });
   const studio = useStudio();
-  const { rows, selected, selectedSettings, busy, ready } = studio;
+  const [zipBusy, setZipBusy] = useState(false),
+    [zipProgress, setZipProgress] = useState<ZipProgress | null>(null),
+    [zipName, setZipName] = useState("quickkit-pdfs.zip");
+  const zipAbort = useRef<AbortController | null>(null);
+  useEffect(() => () => zipAbort.current?.abort(), []);
+  const { rows, selected, selectedSettings, ready } = studio;
+  const busy = studio.busy || zipBusy;
   const [mobileTab, setMobileTab] = useState("files"),
     [showFiles, setShowFiles] = useState(true),
     [showSettings, setShowSettings] = useState(true),
@@ -102,28 +111,49 @@ export default function WordToPdf() {
       null,
       2,
     );
-  function exportZip() {
+  async function exportZip() {
+    if (zipAbort.current || !completed.length) return;
+    const control = new AbortController();
+    zipAbort.current = control;
+    setZipBusy(true);
+    setZipProgress(null);
+    studio.setError("");
+    const snapshot = [...completed];
     try {
-      downloadBlob(
-        new Blob(
-          [
-            createZip([
-              ...completed.map((r, i) => ({
-                name: `${i + 1}-${outputName(r.name)}`,
-                data: r.bytes!,
-              })),
-              {
-                name: "conversion-report.json",
-                data: new TextEncoder().encode(report()),
-              },
-            ]) as Uint8Array<ArrayBuffer>,
-          ],
-          { type: "application/zip" },
-        ),
-        "quickkit-pdfs.zip",
+      const blob = await buildZipBlob(
+        [
+          ...snapshot.map((r, i) => ({
+            name: `${i + 1}-${outputName(r.name)}`,
+            data: r.bytes!,
+          })),
+          {
+            name: "conversion-report.json",
+            data: new TextEncoder().encode(report()),
+          },
+        ],
+        setZipProgress,
+        control.signal,
       );
-    } catch {
-      studio.setError("ZIP export failed. Download individual PDFs instead.");
+      if (!studio.snapshotCurrent(snapshot))
+        throw new Error(
+          "Documents changed during ZIP export. Retry with synchronized output.",
+        );
+      downloadBlob(
+        blob,
+        outputName(zipName.replace(/\.zip$/i, "")).replace(/\.pdf$/i, ".zip"),
+      );
+    } catch (e) {
+      studio.setError(
+        control.signal.aborted
+          ? "ZIP export cancelled. Retry or download individual PDFs."
+          : e instanceof Error
+            ? e.message
+            : "ZIP export failed. Retry or download individual PDFs.",
+      );
+    } finally {
+      zipAbort.current = null;
+      setZipBusy(false);
+      setZipProgress(null);
     }
   }
   function previewFile(id: string) {
@@ -227,11 +257,13 @@ export default function WordToPdf() {
         </div>
         <div className={styles.toolbarActions}>
           <span className={styles.statusPill} role="status">
-            {busy
-              ? "Converting documents…"
-              : studio.localBusy
-                ? "Updating preview…"
-                : `${completed.length} of ${rows.length} ready`}
+            {zipBusy
+              ? "Packing ZIP…"
+              : busy
+                ? "Converting documents…"
+                : studio.localBusy
+                  ? "Updating preview…"
+                  : `${completed.length} of ${rows.length} ready`}
           </span>
           <button
             aria-label="Undo settings"
@@ -409,6 +441,20 @@ export default function WordToPdf() {
         </button>
         <span>Drag the lower corner of a sidebar to resize</span>
       </div>
+      {selected &&
+        (selected.status === "error" || selected.status === "cancelled") &&
+        (!showFiles ||
+          (!mobile && pageMode === "pages") ||
+          (mobile && mobileTab !== "files")) && (
+          <p role="alert" className={styles.error}>
+            {selected.message}
+          </p>
+        )}
+      {selected && studio.localBusy && (
+        <p role="status" className={styles.note}>
+          {selected.message}
+        </p>
+      )}
       <div
         className={styles.workspace}
         style={{
@@ -804,6 +850,15 @@ export default function WordToPdf() {
             </fieldset>
             <div className={styles.livePolicy}>
               <span className={styles.liveDot} />
+              <label>
+                ZIP filename
+                <input
+                  value={zipName}
+                  maxLength={100}
+                  disabled={busy}
+                  onChange={(e) => setZipName(e.target.value)}
+                />
+              </label>
               Local edits update after 400 ms.
               {studio.localBusy && (
                 <button onClick={studio.cancelLocal}>Cancel PDF update</button>
@@ -846,6 +901,18 @@ export default function WordToPdf() {
             I agree to upload these documents to this QUICKKIT server for
             conversion.
           </label>
+          {zipProgress && (
+            <p role="status" className={styles.zipProgress}>
+              ZIP entries {zipProgress.files}/{zipProgress.totalFiles} · packed
+              input {formatBytes(zipProgress.bytes)} /{" "}
+              {formatBytes(zipProgress.totalBytes)}
+              <progress
+                aria-label="ZIP packing progress"
+                value={zipProgress.bytes}
+                max={zipProgress.totalBytes || 1}
+              />
+            </p>
+          )}
           <span>
             {rows.length} documents · {completed.length} completed ·{" "}
             {failed.length} failed
@@ -853,7 +920,11 @@ export default function WordToPdf() {
           </span>
         </div>
         <div className={styles.exportActions}>
-          {busy ? (
+          {zipBusy ? (
+            <button onClick={() => zipAbort.current?.abort()}>
+              Cancel ZIP export
+            </button>
+          ) : studio.busy ? (
             <button onClick={studio.cancel}>Cancel batch</button>
           ) : (
             <button

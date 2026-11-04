@@ -1693,3 +1693,22 @@
     border-top: 1px solid var(--line);
   }
 }
+.zipProgress {
+  display: grid;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--plum);
+}
+.zipProgress progress {
+  width: 100%;
+  accent-color: var(--rose);
+}
+.livePolicy > label:not(.check) {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.pageAppearance .settings > details,
+.pageAppearance .settings > button {
+  grid-column: 1 / -1;
+}

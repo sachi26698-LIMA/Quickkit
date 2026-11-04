@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { unzipSync } from "fflate";
 import AxeBuilder from "@axe-core/playwright";
 import {
   PDFDocument,
@@ -420,8 +421,23 @@ test("V3 mobile touch page reordering, edit/preview panels and accessible export
     expect(pdf.getPages().map((p) => p.getRotation().angle)).toEqual([
       90, 90, 0, 0,
     ]);
-    await editor.evaluate((el) => el.scrollIntoView({ block: "start" }));
+    await page
+      .getByRole("navigation", { name: "Workspace panels" })
+      .evaluate((el) =>
+        el.scrollIntoView({ block: "start", behavior: "instant" }),
+      );
     await mkdir(dir, { recursive: true });
+    await page.screenshot({
+      path: `${dir}/mobile-edit-controls-mocked-engine.png`,
+    });
+    await editor
+      .getByRole("region", { name: "Scrollable PDF pages", exact: true })
+      .evaluate((el) =>
+        el.scrollIntoView({ block: "start", behavior: "instant" }),
+      );
+    await expect(
+      editor.getByRole("img", { name: "Page 1 thumbnail", exact: true }),
+    ).toBeVisible();
     await page.screenshot({
       path: `${dir}/mobile-touch-editor-mocked-engine.png`,
     });
@@ -444,6 +460,9 @@ test("V3 mobile touch page reordering, edit/preview panels and accessible export
       .tap();
     await expect(
       page.getByRole("dialog", { name: "PDF page preview" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "Converted PDF page 2", exact: true }),
     ).toBeVisible();
     await page.screenshot({
       path: `${dir}/mobile-fullscreen-mocked-engine.png`,
@@ -492,9 +511,14 @@ test("V3 actual 100-page browser fixture windows/revokes thumbnails and enforces
   await expect(
     editor.getByLabel("Select output page 1", { exact: true }),
   ).toBeVisible();
-  expect(await editor.locator("[data-page-id]").count()).toBeLessThanOrEqual(
-    10,
-  );
+  await editor
+    .getByRole("button", { name: "Go to page 1", exact: true })
+    .scrollIntoViewIfNeeded();
+  await expect(
+    editor.getByRole("img", { name: "Page 1 thumbnail", exact: true }),
+  ).toBeVisible();
+  const initialMountedRows = await editor.locator("[data-page-id]").count();
+  expect(initialMountedRows).toBeLessThanOrEqual(10);
   await editor
     .getByRole("region", { name: "Scrollable PDF pages", exact: true })
     .evaluate((el) => {
@@ -503,9 +527,14 @@ test("V3 actual 100-page browser fixture windows/revokes thumbnails and enforces
   await expect(
     editor.getByLabel("Select output page 100", { exact: true }),
   ).toBeVisible();
-  expect(await editor.locator("[data-page-id]").count()).toBeLessThanOrEqual(
-    10,
-  );
+  await editor
+    .getByRole("button", { name: "Go to page 100", exact: true })
+    .scrollIntoViewIfNeeded();
+  await expect(
+    editor.getByRole("img", { name: "Page 100 thumbnail", exact: true }),
+  ).toBeVisible();
+  const lastMountedRows = await editor.locator("[data-page-id]").count();
+  expect(lastMountedRows).toBeLessThanOrEqual(10);
   await expect
     .poll(() =>
       page.evaluate(() => {
@@ -536,7 +565,9 @@ test("V3 actual 100-page browser fixture windows/revokes thumbnails and enforces
         fixture:
           "Authored PDF, mocked native response; not a DOCX conversion stress test",
         outputPages: 100,
-        maximumMountedRows: 10,
+        maximumMountedRowsBound: 10,
+        initialMountedRows,
+        lastMountedRows,
         ...metrics,
       },
       null,
@@ -588,4 +619,172 @@ test("V3 real unavailable installation shows setup requirements, not fake pages"
   await expect(
     page.getByRole("img", { name: /Converted PDF page/ }),
   ).toHaveCount(0);
+});
+
+test("V3 changed native pagination blocks stale plans and reset recovers locally", async ({
+  page,
+}) => {
+  const posts = await engine(page);
+  await convert(page);
+  await page
+    .getByRole("button", { name: "Open page editor", exact: true })
+    .click();
+  const editor = page.getByRole("region", {
+    name: "Visual page editor",
+    exact: true,
+  });
+  await editor.getByLabel("Select output page 1", { exact: true }).check();
+  await editor
+    .getByRole("button", { name: "Duplicate pages", exact: true })
+    .click();
+  await synced(page);
+  const replacement = await sourcePdf(2);
+  let refreshes = 0;
+  await page.route("**/api/word-to-pdf", (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: { available: true } });
+    refreshes++;
+    return route.fulfill({
+      contentType: "application/x-ndjson",
+      body:
+        JSON.stringify({
+          result: replacement.toString("base64"),
+          pages: 2,
+          base: true,
+        }) + "\n",
+    });
+  });
+  await page
+    .getByRole("complementary", { name: "Export settings", exact: true })
+    .getByRole("combobox", { name: "Page size", exact: true })
+    .selectOption("A5");
+  await page
+    .getByRole("button", { name: "Refresh preview", exact: true })
+    .click();
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "Native pagination changed",
+  );
+  await expect(
+    page.getByRole("button", { name: "Export complete PDF", exact: true }),
+  ).toBeDisabled();
+  await editor
+    .getByRole("button", { name: "Reset visual page edits", exact: true })
+    .click();
+  await synced(page);
+  const output = await download(page);
+  expect((await PDFDocument.load(output.bytes)).getPageCount()).toBe(2);
+  expect(refreshes).toBe(1);
+  expect(posts).toHaveLength(1);
+});
+
+test("V3 local cancellation locks export; retry after consent revocation never uploads", async ({
+  page,
+}) => {
+  // Artificial yield latency makes the cancel control reachable; this is not a speed benchmark.
+  await page.addInitScript(() => {
+    const timer = window.setTimeout.bind(window);
+    window.setTimeout = ((
+      handler: TimerHandler,
+      delay = 0,
+      ...args: unknown[]
+    ) =>
+      timer(
+        handler,
+        delay === 0 ? 50 : delay,
+        ...args,
+      )) as typeof window.setTimeout;
+  });
+  const posts = await engine(page, 100);
+  await convert(page);
+  await page
+    .getByRole("button", { name: "Open page editor", exact: true })
+    .click();
+  const settings = page.getByRole("complementary", {
+    name: "Export settings",
+    exact: true,
+  });
+  await settings
+    .locator("summary")
+    .filter({ hasText: "Page Management" })
+    .click();
+  await settings
+    .getByLabel("Custom header", { exact: true })
+    .fill("Retried local update");
+  await settings
+    .getByRole("button", { name: "Cancel PDF update", exact: true })
+    .click();
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "Local PDF update cancelled",
+  );
+  await expect(
+    page.getByRole("button", { name: "Export complete PDF", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("I agree to upload").uncheck();
+  await settings
+    .getByRole("button", { name: "Retry PDF update", exact: true })
+    .click();
+  await synced(page);
+  const output = await download(page);
+  expect(contents(await PDFDocument.load(output.bytes), 99)).toContain(
+    Buffer.from("Retried local update").toString("hex").toUpperCase(),
+  );
+  expect(posts).toHaveLength(1);
+});
+
+test("V3 worker ZIP has real progress, cancellation, retry, custom names and unchanged PDF bytes", async ({
+  page,
+}) => {
+  // Delay only export-worker chunk delivery, not the ZIP algorithm, to exercise cancellation reliably.
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      terminated = false;
+      override terminate() {
+        this.terminated = true;
+        super.terminate();
+      }
+      override postMessage(
+        message: unknown,
+        transfer: Transferable[] | StructuredSerializeOptions = [],
+      ) {
+        const m = message as { type?: string };
+        if (m?.type === "chunk")
+          window.setTimeout(() => {
+            if (!this.terminated)
+              super.postMessage(message, transfer as Transferable[]);
+          }, 1000);
+        else super.postMessage(message, transfer as Transferable[]);
+      }
+    };
+  });
+  const posts = await engine(page);
+  await convert(page);
+  const original = await download(page);
+  let downloads = 0;
+  page.on("download", () => downloads++);
+  await page
+    .getByRole("button", { name: "Download all ZIP (1)", exact: true })
+    .click();
+  await expect(
+    page.getByRole("progressbar", {
+      name: "ZIP packing progress",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Cancel ZIP export", exact: true })
+    .click();
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "ZIP export cancelled",
+  );
+  await page
+    .getByLabel("ZIP filename", { exact: true })
+    .fill("custom review.zip");
+  const zip = await download(page, "Download all ZIP (1)");
+  expect(zip.file.suggestedFilename()).toBe("custom review.zip");
+  const entries = unzipSync(zip.bytes);
+  expect(Buffer.from(entries["1-v3-review.pdf"])).toEqual(original.bytes);
+  expect(entries["conversion-report.json"]).toBeTruthy();
+  expect(downloads).toBe(1);
+  expect(posts).toHaveLength(1);
 });
