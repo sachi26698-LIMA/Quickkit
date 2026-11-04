@@ -6,7 +6,6 @@ const routes = [
   "/saved",
   "/contact",
   "/help",
-  "/cookies",
   "/sitemap",
   "/category/pdf-tools",
   "/category/calculators",
@@ -30,6 +29,14 @@ const routes = [
   "/about",
   "/privacy",
   "/terms",
+  "/cookies",
+  "/disclaimer",
+  "/faq",
+  "/copyright",
+  "/accessibility",
+  "/security",
+  "/file-handling",
+  "/intellectual-property",
 ];
 for (const route of routes) {
   test(`accessible and error-free ${route}`, async ({ page }) => {
