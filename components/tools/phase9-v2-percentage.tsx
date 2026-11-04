@@ -6,7 +6,7 @@ import {
   originalFromDiscount,
   csvCell,
 } from "@/lib/tools/phase9-v2-advanced";
-import { downloadText } from "@/lib/tools/download";
+import { downloadText, downloadBlob } from "@/lib/tools/download";
 import {
   formatPercentageNumber as format,
   parsePercentageNumber,
@@ -218,6 +218,41 @@ export default function PercentageAdvanced() {
                   }}
                 >
                   Copy summary
+                </button>
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const { calculatorPdf } =
+                        await import("@/lib/tools/calculator-pdf");
+                      const ascii = (v: string) =>
+                        v
+                          .replaceAll("×", "x")
+                          .replaceAll("→", "->")
+                          .replaceAll("÷", "/")
+                          .replaceAll("−", "-");
+                      const bytes = await calculatorPdf(
+                        "Percentage calculation",
+                        [
+                          ascii(title),
+                          ...lines.map(ascii),
+                          "Rounded for display. Values are calculated using floating-point arithmetic.",
+                        ],
+                      );
+                      downloadBlob(
+                        new Blob([new Uint8Array(bytes)], {
+                          type: "application/pdf",
+                        }),
+                        "percentage-calculation.pdf",
+                      );
+                      setNotice("PDF downloaded.");
+                    } catch {
+                      setNotice("Could not create the PDF. Please try again.");
+                    }
+                  }}
+                >
+                  Download percentage PDF
                 </button>
                 <button
                   className="secondary"

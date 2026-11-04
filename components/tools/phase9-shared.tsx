@@ -10,6 +10,7 @@ export function Workspace({
   reset,
   snapshot,
   restore,
+  resultExport,
 }: {
   children: ReactNode;
   result: string;
@@ -18,6 +19,7 @@ export function Workspace({
   reset: () => void;
   snapshot?: string;
   restore?: (snapshot: string) => void;
+  resultExport?: { filename: string; rows: string[][] };
 }) {
   const [notice, setNotice] = useState("");
   const [history, setHistory] = useState<
@@ -62,6 +64,23 @@ export function Workspace({
             <>
               <output>{result}</output>
               <div>{detail}</div>
+              {resultExport && (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() =>
+                    downloadText(
+                      resultExport.rows
+                        .map((row) => row.map(csvCell).join(","))
+                        .join("\r\n"),
+                      resultExport.filename,
+                      "text/csv;charset=utf-8",
+                    )
+                  }
+                >
+                  Download result CSV
+                </button>
+              )}
               <button
                 className="secondary"
                 onClick={async () => {

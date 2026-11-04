@@ -5,12 +5,15 @@ import GSTInvoice from "@/components/tools/phase9-v2-gst";
 import PercentageAdvanced from "@/components/tools/phase9-v2-percentage";
 import DiscountAdvanced from "@/components/tools/phase9-v2-discount";
 import OfferComparison from "@/components/tools/phase9-v2-offers";
+import Profit from "@/components/tools/phase9-profit";
+import BMIComparison from "@/components/tools/phase9-bmi-comparison";
 import Dates from "@/components/tools/phase9-dates";
 import Loans from "@/components/tools/phase9-loans";
 import VariableLoan from "@/components/tools/phase9-v2-variable-loan";
 import Converters from "@/components/tools/phase9-converters";
 import Scientific from "@/components/tools/phase9-scientific";
 import TimeAdvanced from "@/components/tools/phase9-v2-time";
+import TimeZones from "@/components/tools/phase9-timezones";
 import CalendarTime from "@/components/tools/phase9-v2-calendar-time";
 import { pageMetadata } from "@/lib/seo";
 import { calculatorInfo } from "@/lib/calculator-info";
@@ -60,6 +63,7 @@ export default async function Page({
             <>
               <TimeAdvanced />
               <CalendarTime />
+              <TimeZones />
             </>
           )}
         </>
@@ -68,12 +72,14 @@ export default async function Page({
       ) : (
         <>
           <Calculator kind={calculator} />
+          {calculator === "bmi-calculator" && <BMIComparison />}
           {calculator === "gst-calculator" && <GSTInvoice />}
           {calculator === "percentage-calculator" && <PercentageAdvanced />}
           {calculator === "discount-calculator" && (
             <>
               <DiscountAdvanced />
               <OfferComparison />
+              <Profit />
             </>
           )}
         </>

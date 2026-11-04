@@ -40,7 +40,13 @@ export const units: Record<string, Record<string, number>> = {
     "Miles per hour": 0.44704,
     Knot: 0.5144444444444445,
   },
+  Acceleration: {
+    "Metres per second squared": 1,
+    "Feet per second squared": 0.3048,
+    "Standard gravity": 9.80665,
+  },
   Time: {
+    Millisecond: 0.001,
     Second: 1,
     Minute: 60,
     Hour: 3600,
@@ -137,23 +143,32 @@ export function convert(
 export function temperature(value: number, from: string, to: string) {
   if (
     !Number.isFinite(value) ||
-    !["Celsius", "Fahrenheit", "Kelvin"].includes(from) ||
-    !["Celsius", "Fahrenheit", "Kelvin"].includes(to)
+    !["Celsius", "Fahrenheit", "Kelvin", "Rankine"].includes(from) ||
+    !["Celsius", "Fahrenheit", "Kelvin", "Rankine"].includes(to)
   )
     throw new Error("Enter a valid temperature and units.");
-  const k =
+  const minimum =
+    from === "Celsius" ? -273.15 : from === "Fahrenheit" ? -459.67 : 0;
+  if (value < minimum)
+    throw new Error("Temperature cannot be below absolute zero.");
+  const k = Math.max(
+    0,
     from === "Celsius"
       ? value + 273.15
       : from === "Fahrenheit"
         ? ((value - 32) * 5) / 9 + 273.15
-        : value;
-  if (k < -1e-10) throw new Error("Temperature cannot be below absolute zero.");
+        : from === "Rankine"
+          ? (value * 5) / 9
+          : value,
+  );
   const result =
     to === "Celsius"
       ? k - 273.15
       : to === "Fahrenheit"
         ? ((k - 273.15) * 9) / 5 + 32
-        : k;
+        : to === "Rankine"
+          ? (k * 9) / 5
+          : k;
   if (!Number.isFinite(result))
     throw new Error("Result is outside the supported range.");
   return result;
