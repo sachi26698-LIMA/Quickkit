@@ -619,7 +619,7 @@ the updated Sections 4–5 above.
 
 ---
 
-## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G + H + E implemented)
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G + H + E + I implemented)
 
 Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
 creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
@@ -711,15 +711,27 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
   their server) and then encodes its public URL. QUICKKIT hosts nothing, has no analytics, and the
   printed QR cannot be edited later — there is no dynamic redirect. No backend was added.
 
-**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **748 passed / 41 files**
+**Stage 2 — Phase I (brand-colour preset retune) implemented and verified:**
+
+- The six off-brand quick presets (purple/ink/lavender/teal/crimson/amber) were replaced with six
+  drawn from the **exact brand palette** — Deep Plum `#3B1B4F`, Rose Pink `#D6598F`, Coral `#FF6B6B`,
+  Midnight `#1A0F2E`, Soft Blush `#F4D7D4`. Palette data now lives in `lib/tools/qr/palette.ts`.
+- **Every preset clears the "strong" contrast bar (≥ 4.5:1)**, so applying one never triggers a
+  contrast warning. Rose and Coral are mid-tones that cannot reach 4.5:1 on a light field, so they
+  are paired with Midnight (light-on-dark) where they scan cleanly; the four plum/midnight presets
+  stay dark-on-light for the premium light theme. The Phase D brand-swatch row is kept for tinted /
+  gradient variations. Premium light theme and page structure are unchanged.
+
+**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **754 passed / 42 files**
 (was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six framed /
 eye-colour / logo designs decoded by jsQR to the exact payload; every print layout reloads as a valid
 PDF at its promised millimetre size and DPI-stamped PNGs still decode; bulk per-row-type helpers and
 the preview/retry UI are tested; config rename/duplicate/export/import (merge, dedup, secret-stripping,
 foreign-file rejection) are tested; the landing page is escape-safe, scheme-safe and self-contained
-(tested), and the builder UI downloads a real HTML file; production build clean with
-`/tools/qr-generator` static; dev preview live on port 3000; **44 decode-verified PNG artifacts** +
-report in `docs/qr-studio-v3/evidence/` (regenerate:
+(tested), and the builder UI downloads a real HTML file; all six brand presets are contrast-checked
+and each is applied through the real UI and re-decoded to the exact payload; production build clean
+with `/tools/qr-generator` static; dev preview live on port 3000; **44 decode-verified PNG artifacts**
++ report in `docs/qr-studio-v3/evidence/` (regenerate:
 `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs run tests/qr-v3-evidence.test.ts`).
 Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
 
@@ -728,8 +740,9 @@ CDN + Debian repos unreachable) — live preview + engine-rendered QR evidence p
 Link remains static only (no backend, no dynamic editing/analytics claimed). The calendar-event sample
 embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is regenerated each time (still decoded).
 
-**Remaining:** I (retune the six off-brand preset swatches to the brand palette), J (browser e2e +
-screenshots). **Not merged, not deployed — awaiting owner approval.**
+**Remaining:** J (browser e2e + screenshots — blocked: no browser binary in this sandbox; the
+engine-rendered, decode-verified PNG evidence and the live preview stand in until a browser-enabled
+environment is available). **Not merged, not deployed — awaiting owner approval.**
 
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 

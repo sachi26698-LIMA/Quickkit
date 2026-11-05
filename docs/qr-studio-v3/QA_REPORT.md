@@ -1,4 +1,4 @@
-# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G + H + E)
+# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G + H + E + I)
 
 **Date:** 5 November 2026 (Stage 1: 3 November 2026)
 **Branch:** `arena/bc33caa6-quickkit` (continues the existing QR history — no rebuild)
@@ -6,8 +6,9 @@
 "Continue" go-ahead, Stage 2 adds **Phase D** (frames + labels, independent eye colours, brand
 palettes, logo background), **Phase F** (DPI metadata, custom-size export, print layouts, A4 cut
 sheet), **Phase G** (bulk preview, per-row content type, retry-failed), **Phase H** (history/preset
-rename, duplicate, validated config export/import) and **Phase E** (static Smart Link landing-page
-builder). Phase I (brand-swatch retune) follows; J (browser e2e) when a browser is available.
+rename, duplicate, validated config export/import), **Phase E** (static Smart Link landing-page
+builder) and **Phase I** (brand-colour preset retune). Only J (browser e2e) remains, pending a
+browser-enabled environment.
 **Baseline before changes:** 594 unit tests / 37 files passing, clean `npm ci`.
 
 ---
@@ -224,7 +225,27 @@ disabled-until-valid / 8-link-cap behaviour.
 
 ---
 
-## 8. Branding
+## 8. Phase I — Brand-colour preset retune (Stage 2)
+
+| Feature | What was built | Status |
+|---------|----------------|--------|
+| **Brand-true presets** | The six off-brand quick presets (purple/ink/lavender/teal/crimson/amber) replaced with six drawn from the exact brand palette; data moved to `lib/tools/qr/palette.ts` | **new, verified** |
+| **Strong contrast** | Every preset ≥ 4.5:1 (the "strong" bar) — applying one never triggers a contrast warning | **new, verified** |
+| **Full palette coverage** | All five brand colours used: Deep Plum `#3B1B4F`, Rose Pink `#D6598F`, Coral `#FF6B6B`, Midnight `#1A0F2E`, Soft Blush `#F4D7D4` | **new, verified** |
+| **Premium light theme** | Four plum/midnight presets stay dark-on-light; rose/coral (mid-tones) pair with Midnight to scan cleanly. Page chrome + structure unchanged; Phase D brand-swatch row kept | preserved |
+
+**The six presets (contrast):** Deep Plum/white 14.43 · Midnight/white 18.23 · Plum on blush 10.66 ·
+Midnight on blush 13.47 · Rose on midnight 4.94 · Coral on midnight 6.57.
+
+**Verification:** `tests/qr-palette.test.ts` (5 tests) asserts six presets, each ≥ GOOD_CONTRAST
+(4.5:1), each fg/bg an exact brand colour or white, all five brand colours represented, and the
+brand-row swatches never below the blocked floor. `tests/qr-studio.test.tsx` (+1 test) applies **every
+preset through the real UI** and re-decodes each to the exact payload (including the light-on-dark
+rose/coral pairs).
+
+---
+
+## 9. Branding
 
 Templates, the gallery **and now the Design Studio itself** use the requested QUICKKIT palette — Deep
 Plum `#3B1B4F`, Rose Pink `#D6598F` / deep rose `#B93A73`, Coral `#FF6B6B` / deep coral `#C93A3A`,
@@ -236,14 +257,14 @@ six folds (Colours / Pattern / Corners / Logo / **Frame** / Templates).
 
 ---
 
-## 9. Test & build evidence
+## 10. Test & build evidence
 
 | Gate | Result |
 |------|--------|
 | TypeScript (`tsc --noEmit`) | clean |
 | ESLint (changed files) | clean |
 | Prettier (changed files) | formatted |
-| Unit suite | **748 passing / 41 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H, +12 E) |
+| Unit suite | **754 passing / 42 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H, +12 E, +6 I) |
 | Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
 | Print layouts | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit |
 | Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
@@ -263,7 +284,7 @@ in a browser-enabled environment before final sign-off.
 
 ---
 
-## 10. Preserved functionality (no regressions)
+## 11. Preserved functionality (no regressions)
 
 All pre-existing studio UI tests pass (the layout test now expects six design folds / ten tabs; the
 picker label list covers 27 types). Wi-Fi secret redaction, history/presets storage, bulk CSV, the
@@ -274,11 +295,13 @@ style is chosen).
 
 ---
 
-## 11. Remaining stages (Stage 2 continues)
+## 12. Remaining stages
 
-- **Phase I:** retune the six off-brand preset swatches to the brand palette (Deep Plum, Rose Pink,
-  Coral, Midnight, Soft Blush) — premium light theme and page structure already preserved.
-- **Phase J:** full e2e + browser screenshots in a browser-enabled environment.
+- **Phase J:** full e2e + browser screenshots in a browser-enabled environment. **Blocked in this
+  sandbox** (no browser binary; Playwright/Chromium downloads are network-restricted). The
+  engine-rendered, decode-verified PNG evidence (44 artifacts) and the live dev preview stand in until
+  a browser-enabled environment is available. Every export path is already gated on an independent
+  jsQR decode in the unit suite.
 
-**Status: Stage 2 — Phases B + C + D + F + G + H + E implemented and verified; I in progress. Awaiting
-owner review. Not merged, not deployed.**
+**Status: Stage 2 — Phases B + C + D + F + G + H + E + I implemented and verified; only J (browser
+e2e) remains, pending a browser-enabled environment. Awaiting owner review. Not merged, not deployed.**

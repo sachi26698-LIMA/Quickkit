@@ -19,6 +19,7 @@ import "@testing-library/jest-dom/vitest";
 import QrGenerator from "../components/tools/qr-generator";
 import { QR_SAMPLE_URL } from "../components/tools/qr-generator/use-qr-studio";
 import { HISTORY_STORAGE_KEY } from "../lib/tools/qr/storage";
+import { PRESET_SWATCHES } from "../lib/tools/qr/palette";
 
 const VERIFIED = "Verified by an independent decoder";
 const BLOCKED = "Not scannable — export is blocked";
@@ -895,4 +896,27 @@ describe("qr studio — V3 Smart Link landing builder (Phase E)", () => {
     expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
   });
+});
+
+describe("qr studio — V3 brand colour presets (Phase I)", () => {
+  it(
+    "every quick preset applies and still decodes to the exact payload",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      typeUrl("https://example.com/brand");
+      await settle();
+      openDesignTab("Colours");
+      for (const swatch of PRESET_SWATCHES) {
+        fireEvent.click(
+          screen.getByRole("button", { name: `Apply ${swatch.name}` }),
+        );
+        // Each preset must keep the code independently verified — including the
+        // light-on-dark rose/coral pairs.
+        await settle();
+        expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+      }
+    },
+    TEST_TIMEOUT,
+  );
 });

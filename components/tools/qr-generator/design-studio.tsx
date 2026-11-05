@@ -24,6 +24,7 @@ import {
   effectiveContrast,
 } from "@/lib/tools/qr/style";
 import { logoOpacity } from "@/lib/tools/qr/logo";
+import { BRAND_SWATCHES, PRESET_SWATCHES } from "@/lib/tools/qr/palette";
 import {
   FRAME_PRESET_TEXT,
   type QrDotStyle,
@@ -41,15 +42,6 @@ import {
 } from "./shared";
 import type { QrStudio } from "./use-qr-studio";
 import TemplateGallery from "./template-gallery";
-
-const PRESET_SWATCHES = [
-  { name: "QUICKKIT purple", fg: "#4b19b8", bg: "#ffffff" },
-  { name: "Ink", fg: "#17152b", bg: "#ffffff" },
-  { name: "Grape on lavender", fg: "#2a1b5e", bg: "#ede3ff" },
-  { name: "Teal", fg: "#0f5f52", bg: "#f2fbf7" },
-  { name: "Crimson", fg: "#7f1d1d", bg: "#fff5f5" },
-  { name: "Amber", fg: "#78350f", bg: "#fffbeb" },
-];
 
 function dotPreview(style: QrDotStyle) {
   const cells = [0, 1, 2];
@@ -226,14 +218,6 @@ const DESIGN_TABS: { id: DesignTab; label: string }[] = [
 ];
 
 /** Brand palette quick-picks (Phase I) — fg on a light field. */
-const BRAND_SWATCHES = [
-  { name: "Deep Plum", fg: "#3b1b4f", bg: "#ffffff" },
-  { name: "Rose on blush", fg: "#d6598f", bg: "#fdf3f6" },
-  { name: "Coral on cream", fg: "#ff6b6b", bg: "#fff7f2" },
-  { name: "Midnight", fg: "#1a0f2e", bg: "#f4d7d4" },
-  { name: "Plum → rose", fg: "#3b1b4f", bg: "#ffffff", accent: "#d6598f" },
-];
-
 const FRAME_OPTIONS: { id: QrFrameStyle; label: string }[] = [
   { id: "none", label: "None" },
   { id: "scan", label: "Scan Me" },
