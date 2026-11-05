@@ -1,18 +1,30 @@
 import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-// Actual unavailable engine, no mocked native success; synthetic DOCX stays local.
+// A disabled installation is simulated via the status endpoint so the
+// consent gate can be verified even on a host that ships the built-in engine.
 for (const viewport of [
   { name: "desktop", width: 1440, height: 1000 },
   { name: "mobile", width: 390, height: 844 },
 ]) {
-  test(`V4 ${viewport.name}: actual unavailable engine stays consent-gated`, async ({
+  test(`V4 ${viewport.name}: a disabled installation stays consent-gated`, async ({
     page,
-    request,
   }) => {
     await page.setViewportSize(viewport);
-    expect(
-      (await (await request.get("/api/word-to-pdf")).json()).available,
-    ).toBe(false);
+    await page.route("**/api/word-to-pdf", async (route) => {
+      if (route.request().method() === "GET")
+        return route.fulfill({
+          json: {
+            available: false,
+            engine: null,
+            label: "Conversion engine is not enabled on this installation",
+            native: false,
+            fidelity: "unavailable",
+            notes: ["Engine disabled for this test."],
+            maxPages: 1000,
+          },
+        });
+      return route.continue();
+    });
     let uploads = 0;
     page.on("request", (r) => {
       if (r.url().endsWith("/api/word-to-pdf") && r.method() === "POST")
@@ -32,9 +44,9 @@ for (const viewport of [
       page.getByRole("button", { name: "Convert documents" }),
     ).toBeDisabled();
     expect(uploads).toBe(0);
-    await mkdir("docs/word-to-pdf/v4", { recursive: true });
+    await mkdir("test-results/word-to-pdf-v4", { recursive: true });
     await page.screenshot({
-      path: `docs/word-to-pdf/v4/${viewport.name}-engine-unavailable.png`,
+      path: `test-results/word-to-pdf-v4/${viewport.name}-engine-unavailable.png`,
       fullPage: true,
     });
   });

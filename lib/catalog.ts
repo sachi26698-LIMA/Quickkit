@@ -28,7 +28,7 @@ export const categoryMeta: CategoryMeta[] = [
     slug: "pdf-tools",
     blurb: "Merge, split, convert, lock and manage PDF files.",
     description:
-      "Everything you need to work with PDFs — combine documents, export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption locally. Word to PDF is a separately disclosed, opt-in self-hosted conversion workflow.",
+      "Everything you need to work with PDFs — combine documents, export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption locally. Word to PDF is a separately disclosed, consent-gated server conversion workflow.",
     tint: "tint-pdf",
     icon: "pdf",
   },
@@ -282,7 +282,7 @@ export const tools = [
     name: "Word to PDF Converter",
     category: "PDF Tools",
     description:
-      "Convert DOCX documents with opt-in self-hosted LibreOffice processing. Requires an enabled server engine; files are not converted in your browser.",
+      "Convert DOCX documents on this server after explicit consent, with real page previews and per-page editing. Uses the bundled renderer or a native LibreOffice engine; nothing is converted in your browser.",
     keywords: "word docx pdf office document batch convert",
     icon: "word",
     color: "purple",

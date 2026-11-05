@@ -9,12 +9,27 @@ const docx = (name = "report.docx") => ({
   buffer: Buffer.from("mock DOCX input — transport tests only"),
 });
 
-test("real installation fails closed and never uploads without an engine", async ({
+test("an installation without an engine fails closed and never uploads", async ({
   page,
   request,
 }) => {
-  const status = await request.get("/api/word-to-pdf");
-  expect((await status.json()).available).toBe(false);
+  // The host now ships the built-in renderer, so simulate an operator that has
+  // disabled every engine to exercise the fail-closed path deterministically.
+  await page.route("**/api/word-to-pdf", async (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({
+        json: {
+          available: false,
+          engine: null,
+          label: "Conversion engine is not enabled on this installation",
+          native: false,
+          fidelity: "unavailable",
+          notes: ["No engine configured for this test."],
+          maxPages: 1000,
+        },
+      });
+    return route.continue();
+  });
   let posts = 0;
   page.on("request", (r) => {
     if (r.url().endsWith("/api/word-to-pdf") && r.method() === "POST") posts++;
@@ -29,7 +44,7 @@ test("real installation fails closed and never uploads without an engine", async
     .getByLabel("Choose DOCX files")
     .setInputFiles([docx(), docx("unsupported.doc")]);
   await expect(
-    page.getByText("Only DOCX is supported.", { exact: false }),
+    page.getByText("Only .docx documents", { exact: false }),
   ).toBeVisible();
   await page.getByLabel("I agree to upload").check();
   await expect(

@@ -9,7 +9,12 @@ import {
   validateSettings,
   type Settings,
 } from "@/lib/tools/word-to-pdf/settings";
-import { requestConversion } from "@/lib/tools/word-to-pdf/client-convert";
+import {
+  fetchEngineInfo,
+  requestConversion,
+  type ConversionStage,
+  type EngineInfo,
+} from "@/lib/tools/word-to-pdf/client-convert";
 import {
   processPdf,
   extractPdfPages,
@@ -18,8 +23,12 @@ export type StudioRow = {
   id: string;
   file: File;
   name: string;
-  status: "queued" | "converting" | "done" | "error" | "cancelled";
+  status: "queued" | "checking" | "converting" | "done" | "error" | "cancelled";
   message: string;
+  stage?: string;
+  progress?: { done: number; total: number } | null;
+  warnings?: string[];
+  engine?: string;
   base?: Uint8Array<ArrayBuffer>;
   bytes?: Uint8Array<ArrayBuffer>;
   pages?: number;
@@ -34,19 +43,62 @@ const LIMIT = 120 * 1024 * 1024;
 const retained = (rows: StudioRow[]) =>
   rows.reduce((n, r) => n + (r.base?.length || 0) + (r.bytes?.length || 0), 0);
 export const fileProblem = (file: File) =>
-  !/\.docx$/i.test(file.name)
-    ? "Only DOCX is supported. Legacy DOC, RTF and DOCM are not accepted."
+  !/\.(docx|doc)$/i.test(file.name)
+    ? "Only .docx documents (and .doc files that are really DOCX packages) are accepted."
     : file.size > MAX_FILE
       ? "File exceeds the 20 MiB limit."
       : !file.size
         ? "This file is empty."
         : "";
+
+/**
+ * Reads the first bytes of a local file to tell a DOCX package apart from a
+ * legacy .doc binary, an encrypted (password-protected) package, or junk.
+ * Nothing is uploaded: the check runs in the browser.
+ */
+export async function probeFile(file: File) {
+  if (!file.size) return { ok: false, message: "This file is empty." } as const;
+  const head = new Uint8Array(await file.slice(0, 8192).arrayBuffer());
+  const zip =
+    head[0] === 0x50 &&
+    head[1] === 0x4b &&
+    head[2] === 0x03 &&
+    head[3] === 0x04;
+  const cfb =
+    head[0] === 0xd0 &&
+    head[1] === 0xcf &&
+    head[2] === 0x11 &&
+    head[3] === 0xe0;
+  if (zip)
+    return {
+      ok: true,
+      message: /\.doc$/i.test(file.name)
+        ? "DOCX package detected (safe to convert despite the .doc name)."
+        : "Valid DOCX package · not yet uploaded.",
+    } as const;
+  if (cfb) {
+    const text = new TextDecoder("latin1").decode(head);
+    const wordName = /\.docx?$/i.test(file.name);
+    return {
+      ok: false,
+      message:
+        /EncryptedPackage/i.test(text) || wordName
+          ? "This is a password-protected or legacy binary Word file. Re-save it as .docx without a password."
+          : "This OLE container is not a DOCX document.",
+    } as const;
+  }
+  return {
+    ok: false,
+    message:
+      "This is not a DOCX package (no ZIP signature). The file may be renamed, corrupted or truncated.",
+  } as const;
+}
 const newRow = (file: File): StudioRow => ({
   id: crypto.randomUUID(),
   file,
   name: outputName(file.name.replace(/\.docx$/i, "")),
-  status: fileProblem(file) ? "error" : "queued",
-  message: fileProblem(file) || "Ready — not uploaded",
+  status: fileProblem(file) ? "error" : "checking",
+  message: fileProblem(file) || "Checking document…",
   version: 0,
 });
 export function useStudio() {
@@ -66,7 +118,8 @@ export function useStudio() {
   const [activeId, setActiveId] = useState("");
   const [consent, setConsent] = useState(false),
     [auto, setAuto] = useState(false);
-  const [available, setAvailable] = useState<boolean | null>(null),
+  const [engine, setEngine] = useState<EngineInfo | null>(null),
+    [engineError, setEngineError] = useState(""),
     [busy, setBusy] = useState(false),
     [localBusy, setLocalBusy] = useState(false),
     [error, setError] = useState("");
@@ -102,13 +155,18 @@ export function useStudio() {
   useEffect(() => {
     mounted.current = true;
     const controller = new AbortController();
-    void fetch("/api/word-to-pdf", { signal: controller.signal })
-      .then((r) => r.json())
-      .then((v) => {
-        if (!controller.signal.aborted) setAvailable(v.available === true);
+    void fetchEngineInfo(controller.signal)
+      .then((info) => {
+        if (controller.signal.aborted) return;
+        setEngine(info);
+        setEngineError("");
       })
       .catch(() => {
-        if (!controller.signal.aborted) setAvailable(false);
+        if (controller.signal.aborted) return;
+        setEngine(null);
+        setEngineError(
+          "Could not read the conversion engine status from this server. Check your connection, then retry.",
+        );
       });
     return () => {
       mounted.current = false;
@@ -217,7 +275,20 @@ export function useStudio() {
     }
     const additions = incoming.map(newRow);
     updateRows((all) => [...all, ...additions]);
+    for (const row of additions) void validate(row.id, row.file);
     if (!activeId && additions[0]) setActiveId(additions[0].id);
+  }
+  async function validate(id: string, file: File) {
+    if (fileProblem(file)) return;
+    const probe = await probeFile(file);
+    if (!mounted.current) return;
+    const current = rowsRef.current.find((row) => row.id === id);
+    if (!current || current.file !== file || current.status !== "checking")
+      return;
+    patch(id, {
+      status: probe.ok ? "queued" : "error",
+      message: probe.message,
+    });
   }
   function replace(id: string, file: File) {
     if (active.current) return;
@@ -235,6 +306,7 @@ export function useStudio() {
         r.id === id ? { ...replacement, id, version: r.version + 1 } : r,
       ),
     );
+    void validate(id, file);
   }
   function pruneFileSettings(ids: string[]) {
     const prune = (value: Preferences): Preferences => {
@@ -266,6 +338,20 @@ export function useStudio() {
       return next;
     });
   }
+  const available = engine?.available ?? null;
+  const refreshEngine = useCallback(async () => {
+    setEngineError("");
+    try {
+      const info = await fetchEngineInfo();
+      if (mounted.current) setEngine(info);
+    } catch {
+      if (mounted.current)
+        setEngineError(
+          "Could not read the conversion engine status from this server. Check your connection, then retry.",
+        );
+    }
+  }, []);
+  const maxPages = engine?.maxPages ?? 1000;
   async function run(only?: string, force = false) {
     if (active.current || !consent || !available) return;
     const jobs = rowsRef.current.filter(
@@ -344,14 +430,27 @@ export function useStudio() {
           bytes: undefined,
           base: undefined,
           outputKey: undefined,
+          stage: "Uploading document",
+          progress: null,
+          warnings: [],
           message: "Uploading to this QUICKKIT server",
         });
         try {
+          const onStage = (event: ConversionStage) =>
+            patch(row.id, {
+              stage: event.stage,
+              progress:
+                event.total && event.total > 0
+                  ? { done: event.done ?? 0, total: event.total }
+                  : null,
+              message: event.stage,
+            });
           const result = await requestConversion(
             row.file,
             settings,
             control.signal,
-            (message) => patch(row.id, { message }),
+            onStage,
+            maxPages,
           );
           control.signal.throwIfAborted();
           if (
@@ -392,11 +491,19 @@ export function useStudio() {
             outputKey: JSON.stringify(settings),
             outputSettings: settings,
             version: row.version + 1,
-            message: "Completed · review formatting before use",
+            stage: undefined,
+            progress: null,
+            warnings: result.warnings,
+            engine: result.engine,
+            message: result.warnings.length
+              ? `Completed with ${result.warnings.length} fidelity note${result.warnings.length > 1 ? "s" : ""} · review before use`
+              : "Completed · review before export",
           });
         } catch (e) {
           patch(row.id, {
             status: control.signal.aborted ? "cancelled" : "error",
+            stage: undefined,
+            progress: null,
             message: control.signal.aborted
               ? "Conversion cancelled; temporary server files are cleaned up"
               : e instanceof Error
@@ -528,6 +635,10 @@ export function useStudio() {
     activeId,
     setActiveId,
     available,
+    engine,
+    engineError,
+    refreshEngine,
+    maxPages,
     consent,
     setConsent,
     auto,

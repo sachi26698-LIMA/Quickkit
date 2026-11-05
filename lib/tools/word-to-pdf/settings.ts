@@ -117,6 +117,20 @@ export const defaults: Settings = {
   subject: "",
   keywords: "",
 };
+
+// Overlay text is drawn with a PDF standard font (WinAnsi), so validation must
+// reject exactly what the font cannot encode: everything outside Latin-1 plus
+// the WinAnsi typographic extras that users routinely paste (— · ’ “ ” € …).
+const WIN_ANSI_EXTRA =
+  "\u20ac\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\u017d\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\u017e\u0178";
+const UNSAFE_OVERLAY = new RegExp(
+  `[^\\x20-\\x7e\\u00a0-\\u00ff${WIN_ANSI_EXTRA}]`,
+  "u",
+);
+
+export const overlayTextSupported = (value: string) =>
+  !UNSAFE_OVERLAY.test(value);
+
 export function validateSettings(input: unknown): Settings {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid page settings.");
@@ -164,10 +178,10 @@ export function validateSettings(input: unknown): Settings {
     !/^#[0-9a-f]{6}$/i.test(s.color) ||
     s.header.length > 120 ||
     s.footer.length > 120 ||
-    /[^\x20-\x7e]/.test(s.header + s.footer)
+    !overlayTextSupported(s.header + s.footer)
   )
     throw new Error(
-      "Overlay text supports up to 120 basic Latin characters. Existing document text is not restricted.",
+      "Overlay text supports up to 120 Latin characters (letters, digits, accents and common punctuation). Existing document text is not restricted.",
     );
   if (
     s.pages.length > 400 ||
@@ -239,21 +253,21 @@ export function validateSettings(input: unknown): Settings {
     typeof s.numberFormat !== "string" ||
     s.numberFormat.length > 80 ||
     !s.numberFormat.includes("{n}") ||
-    /[^\x20-\x7e]/.test(s.numberFormat) ||
+    !overlayTextSupported(s.numberFormat) ||
     /[{}]/.test(s.numberFormat.replace(/\{(?:n|total|section)\}/g, ""))
   )
     throw new Error(
-      "Number format needs {n}; optional {total} and {section}, up to 80 basic Latin characters.",
+      "Number format needs {n}; optional {total} and {section}, up to 80 Latin characters.",
     );
   if (
     typeof s.watermarkText !== "string" ||
     s.watermarkText.length > 80 ||
-    /[^\x20-\x7e]/.test(s.watermarkText) ||
+    !overlayTextSupported(s.watermarkText) ||
     typeof s.watermarkColor !== "string" ||
     !/^#[0-9a-f]{6}$/i.test(s.watermarkColor)
   )
     throw new Error(
-      "Watermark needs up to 80 basic Latin characters and a valid colour.",
+      "Watermark needs up to 80 Latin characters and a valid colour.",
     );
   for (const [key, min, max] of [
     ["watermarkSize", 12, 96],

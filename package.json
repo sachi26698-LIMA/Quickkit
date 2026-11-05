@@ -15,15 +15,18 @@
     "test:e2e": "playwright test",
     "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"components/**/*.tsx\" \"lib/**/*.ts\" \"tests/**/*.{ts,tsx}\" \"workers/**/*.ts\" \"scripts/**/*.mjs\" \"*config.{ts,mjs}\" package.json tsconfig.json",
     "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"components/**/*.tsx\" \"lib/**/*.ts\" \"tests/**/*.{ts,tsx}\" \"workers/**/*.ts\" \"scripts/**/*.mjs\" \"*config.{ts,mjs}\" package.json tsconfig.json",
-    "prepare:ocr": "node scripts/copy-ocr-assets.mjs"
+    "prepare:ocr": "node scripts/copy-ocr-assets.mjs",
+    "fixture:word-to-pdf": "node scripts/word-to-pdf-v5-fixture.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "UNLICENSED",
   "description": "Seven privacy-conscious browser utilities. Handy tools. Zero hassle.",
   "dependencies": {
+    "@cantoo/fontkit": "^2.0.12",
     "@cantoo/pdf-lib": "2.11.1",
     "@neslinesli93/qpdf-wasm": "0.3.1",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@tesseract.js-data/eng": "^1.0.0",
     "@tesseract.js-data/guj": "^1.0.0",
     "@tesseract.js-data/hin": "^1.0.0",
