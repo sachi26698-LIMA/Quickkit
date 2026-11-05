@@ -210,8 +210,25 @@ describe("server gates", () => {
     expect(acquire()).toBe(true);
     release();
   });
-  it("fails closed without engine opt-in and rejects missing consent", async () => {
-    const previous = process.env.WORD_TO_PDF_ENABLED;
+  it("reports the built-in engine and rejects missing consent", async () => {
+    const previous = process.env.WORD_TO_PDF_ENGINE;
+    process.env.WORD_TO_PDF_ENGINE = "auto";
+    try {
+      expect(await engineAvailable()).toBe(true);
+      const status = await (await GET()).json();
+      expect(status.available).toBe(true);
+      expect(status.engine).toBe("builtin");
+      expect(status.maxPages).toBe(1000);
+      expect(status.fidelity).toBe("quickkit-renderer");
+    } finally {
+      if (previous === undefined) delete process.env.WORD_TO_PDF_ENGINE;
+      else process.env.WORD_TO_PDF_ENGINE = previous;
+    }
+  });
+  it("fails closed when the native engine is required but not enabled", async () => {
+    const previousEngine = process.env.WORD_TO_PDF_ENGINE;
+    const previousEnabled = process.env.WORD_TO_PDF_ENABLED;
+    process.env.WORD_TO_PDF_ENGINE = "native";
     process.env.WORD_TO_PDF_ENABLED = "false";
     try {
       expect(await engineAvailable()).toBe(false);
@@ -233,6 +250,17 @@ describe("server gates", () => {
           )
         ).status,
       ).toBe(503);
+      const blocked = await POST(
+        new Request("http://localhost/api/word-to-pdf", {
+          method: "POST",
+          headers: {
+            "x-quickkit-consent": "server-conversion",
+            "content-type": "application/octet-stream",
+          },
+        }),
+      );
+      expect(blocked.status).toBe(503);
+      expect((await blocked.json()).error).toMatch(/No document was processed/);
       expect(
         (
           await POST(
@@ -247,8 +275,10 @@ describe("server gates", () => {
         ).status,
       ).toBe(403);
     } finally {
-      if (previous === undefined) delete process.env.WORD_TO_PDF_ENABLED;
-      else process.env.WORD_TO_PDF_ENABLED = previous;
+      if (previousEngine === undefined) delete process.env.WORD_TO_PDF_ENGINE;
+      else process.env.WORD_TO_PDF_ENGINE = previousEngine;
+      if (previousEnabled === undefined) delete process.env.WORD_TO_PDF_ENABLED;
+      else process.env.WORD_TO_PDF_ENABLED = previousEnabled;
     }
   });
 });

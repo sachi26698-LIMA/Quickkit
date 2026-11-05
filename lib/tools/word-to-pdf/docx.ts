@@ -29,10 +29,14 @@ export function prepareDocx(bytes: Uint8Array, s: Settings): Uint8Array {
         file.originalSize > 40 * 1024 * 1024
       )
         throw new Error("DOCX expands beyond the safe processing limit.");
+      if (file.name.includes("..") || file.name.startsWith("/"))
+        throw new Error("DOCX contains an unsafe part path.");
+      // Macros and binary OLE payloads are refused; embedded chart workbooks
+      // (word/embeddings/*.xlsx) are inert data and must not block conversion.
       if (
-        file.name.includes("..") ||
-        file.name.startsWith("/") ||
-        /vbaProject|embeddings\//i.test(file.name)
+        /vbaProject|activeX|oleObject/i.test(file.name) ||
+        (/embeddings\//i.test(file.name) &&
+          /\.(bin|exe|dll|docm)$/i.test(file.name))
       )
         throw new Error(
           "Macros and embedded executable/OLE objects are unsupported.",

@@ -18,6 +18,7 @@ import { exportFilter, jobArgs } from "../scripts/word-worker/policy.mjs";
 const token = "test_only_not_a_real_secret_0123456789";
 beforeEach(() => {
   vi.stubEnv("WORD_TO_PDF_ENABLED", "true");
+  vi.stubEnv("WORD_TO_PDF_ENGINE", "worker");
   vi.stubEnv("WORD_TO_PDF_WORKER_URL", "https://private.invalid/");
   vi.stubEnv("WORD_TO_PDF_WORKER_TOKEN", token);
 });
@@ -130,8 +131,8 @@ describe("private native worker transport", () => {
       ),
     );
   });
-  it("retains 100-page downstream guard on worker output", async () => {
-    const bytes = await pdf(101);
+  it("retains the downstream page guard on worker output", async () => {
+    const bytes = await pdf(1001);
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation(
@@ -143,8 +144,8 @@ describe("private native worker transport", () => {
     );
     await expect(
       convert(await upload(), defaults, signal(), () => {}),
-    ).rejects.toThrow(/100-page/);
-  });
+    ).rejects.toThrow(/1000-page/);
+  }, 120_000);
   it.each([429, 503, 302])(
     "does not retry/fallback on worker status %s",
     async (status) => {

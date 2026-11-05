@@ -10,6 +10,11 @@ import {
   type PDFImage,
 } from "@cantoo/pdf-lib";
 import {
+  MAX_FINAL_PDF_BYTES,
+  MAX_NATIVE_PDF_BYTES,
+  MAX_PAGES,
+} from "./page-limits";
+import {
   orderedPages,
   decodeWatermark,
   pageNumber,
@@ -35,13 +40,13 @@ export async function processPdf(
 ) {
   const s = validateSettings(input);
   signal?.throwIfAborted();
-  if (source.length > 50 * 1024 * 1024)
+  if (source.length > MAX_NATIVE_PDF_BYTES)
     throw new Error("Source PDF exceeds 50 MiB.");
   const original = await PDFDocument.load(source);
   const count = original.getPageCount();
-  if (!count || count > 100)
+  if (!count || count > MAX_PAGES)
     throw new Error(
-      "This document exceeds the provisional 100-page limit. 1,000-page support is not stress-tested or enabled.",
+      `This document exceeds the ${MAX_PAGES}-page limit for this workspace.`,
     );
   const plan = s.visualPlan;
   if (plan && plan.sourceCount !== count)
@@ -186,6 +191,19 @@ export async function processPdf(
         b = v.margins ? (v.bottom * 72) / 25.4 : 0;
       if (w - l - r < 20 || h - t - b < 20)
         throw new Error("Margins leave no usable page area.");
+      // The base renderer may already have produced pages at the requested
+      // size (page-geometry rewrite happens before rendering). Scaling those
+      // again would shrink the content twice, so only resize what differs.
+      const alreadyApplied =
+        Math.abs(before.width - w) < 1.5 &&
+        Math.abs(before.height - h) < 1.5 &&
+        s.layoutScope === "all";
+      if (alreadyApplied) {
+        onProgress?.(index + 1, indices.length);
+        if (index % 4 === 3)
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        continue;
+      }
       const scale = Math.min(
         (w - l - r) / before.width,
         (h - t - b) / before.height,
@@ -366,7 +384,7 @@ export async function processPdf(
     );
   const bytes = await pdf.save();
   signal?.throwIfAborted();
-  if (bytes.length > 50 * 1024 * 1024)
+  if (bytes.length > MAX_FINAL_PDF_BYTES)
     throw new Error("Final PDF exceeds the 50 MiB output limit.");
   return { bytes, pages: pdf.getPageCount(), sourcePages: count, indices };
 }
@@ -378,14 +396,15 @@ export async function extractPdfPages(
   signal?: AbortSignal,
 ) {
   signal?.throwIfAborted();
-  if (source.length > 50 * 1024 * 1024) throw new Error("PDF exceeds 50 MiB.");
+  if (source.length > MAX_NATIVE_PDF_BYTES)
+    throw new Error("PDF exceeds 50 MiB.");
   const original = await PDFDocument.load(source),
     count = original.getPageCount();
   if (
     !count ||
-    count > 100 ||
+    count > MAX_PAGES ||
     !indices.length ||
-    indices.length > 100 ||
+    indices.length > MAX_PAGES ||
     new Set(indices).size !== indices.length ||
     indices.some((i) => !Number.isInteger(i) || i < 0 || i >= count)
   )
@@ -399,7 +418,7 @@ export async function extractPdfPages(
   }
   const bytes = await pdf.save();
   signal?.throwIfAborted();
-  if (bytes.length > 50 * 1024 * 1024)
+  if (bytes.length > MAX_FINAL_PDF_BYTES)
     throw new Error("Selected PDF exceeds 50 MiB.");
   return bytes;
 }

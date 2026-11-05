@@ -547,9 +547,13 @@ export default function StudioPreview({
         <span>
           {bytes
             ? "PDF.js · actual PDF rendering"
-            : "Preview appears after successful conversion"}
+            : "Preview appears after a successful conversion"}
         </span>
-        <span>Native cap: 100 pages · not 1,000-page tested</span>
+        <span>
+          {bytes
+            ? "Selectable text · same bytes as download"
+            : "Page limit enforced by the conversion engine"}
+        </span>
       </div>
     </div>
   );

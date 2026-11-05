@@ -4,7 +4,7 @@
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
-**Current active tool:** Word to PDF Converter V5 — production-completion continuation from V4 `7d760e8`, 4 November 2026. **Hosting audit started; native deployment/access/approval BLOCKED.** No production provider/approved private-worker endpoint was supplied; local LibreOffice/Docker/socket/cached packages are unavailable. Existing V3/V4 tool and 100-page cap are preserved. Native 100/250/500/750/1000 evidence, fidelity, real conversion demo, workspace improvements and final V5 QA remain outstanding. No production deployment was attempted and no 1000-page/readiness claim is made. See `docs/WORD_TO_PDF_V5_AUDIT.md`. V4 test counts below remain historical, not fresh V5 results.
+**Current active tool:** Word to PDF Converter V5.3 — 5 November 2026, branch `arena/32354d68-quickkit`. **The compressed/overlapping-text defect is fixed at the root and proven on the produced PDFs.** Root causes: `w:spacing w:line="276" w:lineRule="auto"` was consumed as 13.8 pt of absolute leading instead of a 1.15 multiplier; table borders/shading were read only from direct formatting; `w:tr`/`w:tc` inside `w:sdt` were invisible to the parser (invoice rows silently vanished); numbering-level indentation and tab stops were ignored; text boxes were dropped on the body path. All fixed and covered by regression tests. Measured on the new A–K acceptance corpus plus three real Word documents (`invoice2013`, `sample-docx`, `textbox`): **0 overlapping line pairs, 0 blank pages, text coverage 1.00, fonts 8–36 pt, images preserved, landscape/mixed-orientation sections at 595→842→595, 100 pages in 1.4 s, 1000 pages in 4.6 s at 367 MB peak RSS**. Full suite **73 files / 1,170 tests PASS**; tsc, ESLint and `next build` clean. HTTP end-to-end on a production build: 4-page resume in 0.75 s, 101-page stress in 1.45 s, `403` without consent, `415` for wrong content type, `400` for a non-DOCX upload. **Browser E2E still unexecuted** (Playwright's Chromium download fails here) and **LibreOffice is still absent** (`soffice` missing, `deb.debian.org` unreachable), so no native-engine or Word-fidelity claim is made. No merge, deployment or approval change. Reports: `docs/WORD_TO_PDF_V5_2_QA.md`, `docs/WORD_TO_PDF_V5_3_RESEARCH.md`, `docs/WORD_TO_PDF_V5_3_ENGINES.md`, `docs/WORD_TO_PDF_V5_3_RCA.md`, `docs/WORD_TO_PDF_V5_3_IMPLEMENTATION.md`.
 
 **Previous V4 checkpoint (historical):** Word to PDF Converter V4 — native-engine / production-readiness continuation of the completed V3 editor at `/tools/word-to-pdf` (4 November 2026). **Private-worker infrastructure implemented for review; native execution/fidelity/production acceptance BLOCKED, NOT production-ready.** Same V3 editor and 100-page cap preserved. Added fail-closed private transport, container-per-job broker/recipe, bounded resource/cancellation/cleanup policy, real engine version probes, synthetic source fixtures and operator benchmark/setup tooling. LibreOffice and Docker are absent; approved native repository/artifact access is unavailable under this session's outbound policy (namespace isolation itself works). No genuine native demo or native 100/500/1000 metrics exists; no 1000-page editing claim. Final checks: 1057 unit tests, type/lint/build PASS; Word Chromium 17 PASS; selected wider Chromium 39 PASS. See `docs/WORD_TO_PDF_V4_QA.md`, setup, fidelity and benchmark reports. No merge/deployment or approval-state change for other tools.
 
@@ -1946,6 +1946,80 @@ Infrastructure reviewed/tested in place on `arena/15621ae8-quickkit`, preserving
 - Real native complex/100/500/1000 conversion, font/chart/layout fidelity, aggregate peak RAM/CPU/output, real native browser preview/edit performance and real-host sandbox/failure/retention operations **BLOCKED / NOT RUN**. Cap stays **100**. Fonts/OLE-workbook limitations disclosed; no 1000-page production support claim.
 - Delivery: `docs/WORD_TO_PDF_V4_{AUDIT,SETUP,QA,FIDELITY,BENCHMARK,CHANGED_FILES}.md` and `docs/word-to-pdf/v4/README.md`. Full operator release gates remain mandatory; no merge, deployment or owner-approval claim.
 
+## Word to PDF V5 — 4 November 2026, owner-directed repair (branch `arena/32354d68-quickkit`)
+
+The V5 mandate was executed as repair work, not as another audit. The previous V5 note
+concluded "hosting blocked"; that was wrong in the decisive respect — the repository
+already contained a complete in-process DOCX renderer, but the engine gate demanded a
+native binary, so the tool reported "unavailable" on every stock deployment.
+
+### Root cause and fix
+
+`engineAvailable()` required `WORD_TO_PDF_ENABLED==="true"` **and** (`soffice` or a healthy
+worker). `resolveEngine()` replaces it with a ladder `worker → libreoffice → builtin` for
+`auto`; explicit `native`/`worker` still fail closed. `engineStatus()` exposes
+`{available, engine, label, native, fidelity, notes, maxPages}`, no longer throws on bad
+worker config, and treats empty worker env vars as unset.
+
+### Repaired defects (all with code changes)
+
+Double-applied page geometry; overlay validation stricter than the font (now WinAnsi-
+accurate, `— · ’ “ ”` accepted, `₹` refused with a clear message); dropped
+`PAGE`/`NUMPAGES` complex fields in Word headers/footers; sections after the first losing
+their header/footer parts (OOXML inheritance); Indic vowel signs splitting from their base
+consonant; password-protected `.docx` showing the wrong error; engine status hanging in
+the UI with no retry; marketing copy promising LibreOffice on hosts without it; bundled
+Noto fonts missing from traced/standalone builds (`outputFileTracingIncludes`).
+
+### Executed conversion evidence (production build, `next start` on port 3001)
+
+- `GET /api/word-to-pdf` → `available:true, engine:"builtin", maxPages:1000`.
+- `POST` `docs/word-to-pdf/v4/fixtures/complex.docx` → 5 pages / 79,903 B / 0.47 s with the
+  full stage sequence; with A4 + 25 mm, header, footer, `Page {n} of {total}`, DRAFT
+  watermark, metadata and background → 5 pages / 83,934 B, every value re-parsed from the
+  returned PDF.
+- `POST` `docs/word-to-pdf/v5/fixtures/quality.docx` → 3 pages (incl. landscape), live
+  header fields `page 1 of 3`, tables, lists, PNG, Gujarati and Devanagari all present;
+  with overlays → header/footer/numbering/watermark/metadata confirmed on all 3 pages.
+- Page-management settings re-parsed from the output: `rotation:90` → `/Rotate 90` on every
+  page; `pages:"1-2"` → 2 pages; `pageOrder:"3,1-2"` → landscape page first;
+  `excludePages:"2"` → 2 pages; `startNumber:5, numberStyle:"roman"` → footer `V`.
+- Rendered proof: `docs/word-to-pdf/v5/evidence/*.png` (engine output and API-exported
+  output, both produced by the shipped code path).
+
+### Stress ladder (real conversions, `test-results/word-to-pdf-v5-stress.json`)
+
+| Pages | Convert  | Export | PDF         | maxRSS    |
+| ----- | -------- | ------ | ----------- | --------- |
+| 100   | 771 ms   | 151 ms | 367,840 B   | 169.8 MiB |
+| 250   | 881 ms   | 207 ms | 829,172 B   | 221.7 MiB |
+| 500   | 1,409 ms | 410 ms | 1,601,627 B | 277.5 MiB |
+| 750   | 2,031 ms | 598 ms | 2,373,179 B | 332.1 MiB |
+| 1000  | 2,528 ms | 798 ms | 3,147,207 B | 367.5 MiB |
+
+1001 pages is rejected. The advertised cap is therefore 1000 and is backed by executed
+conversions on this host; another host must re-run the ladder before repeating the claim.
+
+### Verification
+
+`npx vitest run` → **71 files / 1,159 tests PASS** (93 s). `npx tsc --noEmit`, `npm run
+lint` and `npm run build` PASS. Rebuilt `.nft.json` for the route lists 1,173 traced files
+including all 13 `assets/noto/*.ttf`. New suites: `tests/word-to-pdf-render.test.ts`,
+`-v5-engine.test.ts`, `-v5-ui.test.tsx`, `-v5-stress.test.ts`.
+
+### Open blockers (explicit)
+
+1. **Playwright browsers cannot be installed here** (`install chromium` → code=1), so
+   `tests/e2e/word-to-pdf-v5.spec.ts` and the updated V1–V4 specs are **written and
+   statically reviewed but unexecuted**; no browser screenshots or axe results exist.
+2. **LibreOffice is absent** (no `soffice`, no `deb.debian.org`); the native backend is
+   implemented and unit-tested against fixtures but has never converted a document here.
+3. Built-in renderer fidelity limits (charts, SmartArt, text boxes, footnotes, floating
+   objects, exact Word line breaking) are surfaced as user-visible warnings.
+4. No physical-device or assistive-technology QA was possible in this sandbox.
+
+No merge, deployment, indexability change or approval-state change for any tool.
+
 ---
 
 ## Legal & information architecture upgrade (4 November 2026, branch `arena/90233e12-quickkit`)
@@ -2090,3 +2164,42 @@ independent accessibility and security review, and legal review of liability, go
 carve-outs and the DMCA position. None of these are invented on any page; each appears as a marked
 placeholder or a flagged provision. Full checklist: `docs/LEGAL_PAGES.md` §7 and
 `docs/OWNER_INPUTS.md`.
+
+## Word to PDF V5.2 / V5.3 — 5 November 2026, fidelity repair + engine research (branch `arena/32354d68-quickkit`)
+
+**Mandate.** Fix the compressed/overlapping text at the root, prove it on real PDFs,
+run acceptance cases A–J, and back every architectural decision with research.
+
+**Root causes fixed** (details in `docs/WORD_TO_PDF_V5_3_RCA.md`): line-spacing
+semantics (`auto` = multiplier, `exact|atLeast` = twips); OLE/macro intake filter
+matching on ZIP paths; table borders/shading resolved through the style chain;
+`tableParts()` recursion so rows inside `w:sdt` are parsed (`invoice2013.docx` line
+items recovered); numbering-level indentation; a token-stream paragraph layout that
+supports `\t`, left/centre/right tab stops and hanging-indent list labels; text
+boxes on the body path.
+
+**New measurement.** `tests/word-to-pdf-v5.2-quality.test.ts` converts 18 documents
+and asserts output geometry (overlap pairs, blank pages, font-size range, image
+count, text coverage, per-section page size, 100-page budget); it writes
+`test-results/word-to-pdf-v5.2/quality-report.json`.
+`tests/word-to-pdf-v5.2-text.test.ts` requires every `<w:t>` run to appear in the
+PDF (two documented extraction artefacts excepted, Indic runs excluded because PDF
+extraction re-orders vowel signs — the glyphs are drawn). Results: **0 overlaps,
+0 blank pages, coverage 1.00 on all 18 documents**.
+
+**Research decisions** (`docs/WORD_TO_PDF_V5_3_RESEARCH.md`,
+`docs/WORD_TO_PDF_V5_3_ENGINES.md`): keep the built-in renderer as the measured
+default; keep LibreOffice as the opt-in fidelity path (documented binary, remote
+worker and Gotenberg deployment); reject HTML-based renderers (`docx-preview`,
+`mammoth`) as PDF engines because their own documentation says they cannot paginate
+or preserve typography. Competitor workflows (Adobe, CloudConvert, iLovePDF, PDF24,
+Smallpdf, Sejda, Word export) were reviewed with real sources; none of the online
+services disclose their engine, and all of them upload the document — the reason
+QUICKKIT keeps the browser path first.
+
+**Benchmarks.** 100 p 1.37 s / 188 MB · 250 p 2.33 s / 272 MB · 500 p 2.21 s /
+336 MB · 1000 p 4.60 s / 367 MB peak RSS. HTTP: 101 pages in 1.45 s.
+
+**Still blocked.** No LibreOffice binary and no downloadable browser in this
+sandbox, so the native engine and real-browser UI remain unverified and are
+described as such everywhere. No merge, push or deploy was performed.

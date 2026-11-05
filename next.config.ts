@@ -41,6 +41,12 @@ const devAllowedOrigins = [
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // The built-in DOCX renderer reads its bundled Noto fonts from disk at
+  // request time. Without this the fonts are missing from a traced/standalone
+  // deployment and every conversion would fail its engine health check.
+  outputFileTracingIncludes: {
+    "/api/word-to-pdf": ["./assets/noto/**"],
+  },
   ...(enforcing ? {} : { allowedDevOrigins: devAllowedOrigins }),
   async redirects() {
     return [

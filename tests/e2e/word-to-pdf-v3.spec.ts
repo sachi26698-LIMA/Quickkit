@@ -587,9 +587,24 @@ test("V3 actual 100-page browser fixture windows/revokes thumbnails and enforces
   expect(posts).toHaveLength(1);
 });
 
-test("V3 real unavailable installation shows setup requirements, not fake pages", async ({
+test("V3 unavailable installation shows setup requirements, not fake pages", async ({
   page,
 }) => {
+  await page.route("**/api/word-to-pdf", async (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({
+        json: {
+          available: false,
+          engine: null,
+          label: "Conversion engine is not enabled on this installation",
+          native: false,
+          fidelity: "unavailable",
+          notes: ["Engine disabled for this test."],
+          maxPages: 1000,
+        },
+      });
+    return route.continue();
+  });
   await page.goto("/tools/word-to-pdf");
   await expect(
     page.getByText("Conversion engine is not enabled on this installation", {

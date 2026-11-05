@@ -2,14 +2,18 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowUp,
   ArrowRight,
   Check,
   ChevronRight,
+  Cpu,
   Download,
   FileText,
   HelpCircle,
+  Info,
+  Loader2,
   PanelLeftClose,
   Settings2,
   ShieldCheck,
@@ -76,7 +80,9 @@ export default function WordToPdf() {
     [showFiles, setShowFiles] = useState(true),
     [showSettings, setShowSettings] = useState(true),
     [help, setHelp] = useState(false),
-    [scope, setScope] = useState("global");
+    [scope, setScope] = useState("global"),
+    [dragging, setDragging] = useState(false),
+    [engineOpen, setEngineOpen] = useState(false);
   const viewerAnchor = useRef<HTMLDivElement>(null);
   const fileScope =
     scope === "file" && !!selected && !!studio.prefs.individual[selected.id];
@@ -253,7 +259,7 @@ export default function WordToPdf() {
             </nav>
             <h1>Word to PDF Converter</h1>
           </div>
-          <span className={styles.version}>STUDIO V3</span>
+          <span className={styles.version}>STUDIO V5</span>
         </div>
         <div className={styles.toolbarActions}>
           <span className={styles.statusPill} role="status">
@@ -340,10 +346,20 @@ export default function WordToPdf() {
             confidence.
           </p>
         </div>
-        <span className={styles.privateBadge}>
-          <ShieldCheck size={16} />
-          Consent-first processing
-        </span>
+        <div className={styles.introBadges}>
+          <span className={styles.privateBadge}>
+            <ShieldCheck size={16} />
+            Consent-first processing
+          </span>
+          <span className={styles.engineBadge}>
+            <Cpu size={15} />
+            {studio.available
+              ? studio.engine?.native
+                ? "Native engine"
+                : "Built-in engine"
+              : "Engine offline"}
+          </span>
+        </div>
       </div>
       {help && (
         <section className={styles.help} aria-label="Workspace help">
@@ -352,19 +368,24 @@ export default function WordToPdf() {
           </strong>
           <p>
             Add DOCX files, choose settings and consent to server processing.
-            Click Convert documents. Local overlays, page edits and metadata
-            refresh after a short debounce without uploading again.
-            Full-document layout, tagging and image export changes need
-            LibreOffice: click Refresh preview or opt in separately to automatic
-            re-uploads. Download is enabled only for synchronized output.
+            Click Convert documents and the server reports every real stage:
+            package reading, layout, page rendering and export settings. Local
+            overlays, page edits and metadata refresh after a short debounce
+            without uploading again. Page size, margins and image quality are
+            applied by the conversion engine, so those need a new upload — click
+            Refresh preview or opt in separately to automatic re-uploads.
+            Download is enabled only for synchronized output.
           </p>
           <p>
             Original DOCX comparison renders the actual package with an
-            approximate browser layout; it is not Microsoft Word pagination.
-            Before/after PDF compares native PDF bytes to exact final export
-            bytes. Use the preview toolbar for zoom, text search, thumbnails and
-            fullscreen. Native rendering may change charts, complex tables and
-            missing fonts. No lossless or certified print-ready claim.
+            approximate browser layout; it is not Word pagination. Before/after
+            PDF compares the converted base PDF with the exact export bytes. Use
+            the preview toolbar for zoom, text search, thumbnails and
+            fullscreen. The built-in renderer keeps real, selectable text and
+            embeds Noto fonts (Latin, Devanagari, Gujarati, Bengali, Tamil,
+            Telugu, Kannada, Malayalam, Gurmukhi); charts, text boxes, SmartArt,
+            footnotes and floating objects are reported as fidelity notes rather
+            than silently dropped. No lossless or certified print-ready claim.
           </p>
           <button onClick={() => setHelp(false)}>Close help</button>
         </section>
@@ -375,31 +396,59 @@ export default function WordToPdf() {
           <strong>Your documents. Your decision.</strong>
           <span>
             {" "}
-            LibreOffice on this operator’s QUICKKIT server or private worker
-            handles conversion—not your browser. Uploads require consent and
-            Convert, Refresh, or separately enabled automatic re-upload. No
-            third-party conversion API. Temporary server files are deleted after
-            processing; local results remain in this tab until cleared or
-            closed.
+            Conversion happens on this QUICKKIT server (or an operator’s private
+            LibreOffice worker) — never in a third-party conversion API, and
+            never silently. Uploads require your consent plus Convert, Refresh,
+            or separately enabled automatic re-upload. Temporary server files
+            are deleted after processing; results stay in this tab until you
+            clear them or close it.
           </span>
         </div>
       </div>
       <div className={styles.engine} role="status">
-        <span className={styles.dot} />
-        <span>
-          {studio.available === null
-            ? "Checking conversion engine…"
-            : studio.available
-              ? "Self-hosted LibreOffice is available"
-              : "Conversion engine is not enabled on this installation"}
-        </span>
-        {studio.available === false && (
-          <span>
-            {" "}
-            · No files will be uploaded. An operator must configure a private
-            isolated worker, or install and isolate the native engine.
+        <span
+          className={`${styles.dot} ${studio.available ? styles.dotLive : ""}`}
+        />
+        <div className={styles.engineBody}>
+          <strong>
+            {studio.engineError
+              ? "Conversion engine status unavailable"
+              : studio.engine === null
+                ? "Checking conversion engine…"
+                : studio.available
+                  ? studio.engine.label
+                  : studio.engine.label || "No conversion engine available"}
+          </strong>
+          <span className={styles.engineMeta}>
+            {studio.engineError
+              ? studio.engineError
+              : studio.available
+                ? studio.engine?.native
+                  ? "Native Office layout · selectable text · real PDF"
+                  : "Built-in DOCX renderer · selectable text · real PDF"
+                : "No files will be uploaded until an engine is available."}
+            {studio.available
+              ? ` · up to ${studio.maxPages.toLocaleString("en-US")} pages`
+              : ""}
           </span>
-        )}
+          {studio.engine && studio.engine.notes.length > 0 && (
+            <button
+              className={styles.engineMore}
+              aria-expanded={engineOpen}
+              onClick={() => setEngineOpen((value) => !value)}
+            >
+              <Info size={13} />{" "}
+              {engineOpen ? "Hide engine details" : "Engine details"}
+            </button>
+          )}
+          {engineOpen && studio.engine && (
+            <ul className={styles.engineNotes}>
+              {studio.engine.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       <nav className={styles.mobileTabs} aria-label="Workspace panels">
         {["files", "preview", "edit"].map((tab) => (
@@ -497,10 +546,15 @@ export default function WordToPdf() {
                 </div>
                 <fieldset disabled={busy} className={styles.fieldset}>
                   <label
-                    className={styles.drop}
-                    onDragOver={(e) => e.preventDefault()}
+                    className={`${styles.drop} ${dragging ? styles.dropActive : ""}`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragging(true);
+                    }}
+                    onDragLeave={() => setDragging(false)}
                     onDrop={(e) => {
                       e.preventDefault();
+                      setDragging(false);
                       studio.add(e.dataTransfer.files);
                     }}
                   >
@@ -512,7 +566,7 @@ export default function WordToPdf() {
                       aria-label="Choose DOCX files"
                       type="file"
                       multiple
-                      accept=".docx"
+                      accept=".docx,.doc"
                       onChange={(e) => {
                         if (e.target.files) studio.add(e.target.files);
                         e.target.value = "";
@@ -541,8 +595,10 @@ export default function WordToPdf() {
                               <small>
                                 {formatBytes(r.file.size)} ·{" "}
                                 {r.sourcePages
-                                  ? `${r.sourcePages} source pages`
-                                  : "Pages unknown"}
+                                  ? `${r.sourcePages} pages`
+                                  : r.pages
+                                    ? `${r.pages} pages`
+                                    : "Page count after conversion"}
                               </small>
                             </span>
                           </button>
@@ -568,9 +624,55 @@ export default function WordToPdf() {
                               : r.message}
                         </p>
                         {r.status === "converting" && (
-                          <progress
-                            aria-label={`Conversion progress for ${r.file.name}`}
-                          />
+                          <div className={styles.stageLine}>
+                            <strong>
+                              <Loader2 size={13} className={styles.spin} />
+                              {r.stage || "Converting"}
+                            </strong>
+                            {r.progress ? (
+                              <div
+                                className={styles.progressTrack}
+                                role="progressbar"
+                                aria-label={`Conversion progress for ${r.file.name}`}
+                                aria-valuemin={0}
+                                aria-valuemax={r.progress.total}
+                                aria-valuenow={r.progress.done}
+                              >
+                                <span
+                                  className={styles.progressFill}
+                                  style={{
+                                    width: `${Math.min(100, Math.round((r.progress.done / Math.max(1, r.progress.total)) * 100))}%`,
+                                  }}
+                                />
+                              </div>
+                            ) : null}
+                            {r.progress ? (
+                              <small>
+                                {r.progress.done.toLocaleString("en-US")} /{" "}
+                                {r.progress.total.toLocaleString("en-US")} ·{" "}
+                                {Math.round(
+                                  (r.progress.done /
+                                    Math.max(1, r.progress.total)) *
+                                    100,
+                                )}
+                                %
+                              </small>
+                            ) : null}
+                          </div>
+                        )}
+                        {!!r.warnings?.length && (
+                          <details className={styles.warningList}>
+                            <summary>
+                              <AlertTriangle size={13} /> {r.warnings.length}{" "}
+                              fidelity note
+                              {r.warnings.length > 1 ? "s" : ""}
+                            </summary>
+                            <ul>
+                              {r.warnings.map((warning) => (
+                                <li key={warning}>{warning}</li>
+                              ))}
+                            </ul>
+                          </details>
                         )}
                         <label className={styles.filename}>
                           Output filename
@@ -601,7 +703,7 @@ export default function WordToPdf() {
                             <input
                               type="file"
                               aria-label={`Replace ${r.file.name}`}
-                              accept=".docx"
+                              accept=".docx,.doc"
                               onChange={(e) => {
                                 const f = e.target.files?.[0];
                                 if (f) studio.replace(r.id, f);
@@ -844,6 +946,7 @@ export default function WordToPdf() {
             <fieldset disabled={busy} className={styles.fieldset}>
               <SettingsForm
                 value={formSettings}
+                native={studio.engine?.native === true}
                 onChange={(s) =>
                   studio.changeSettings(s, fileScope ? selected?.id : undefined)
                 }
@@ -919,6 +1022,24 @@ export default function WordToPdf() {
             {failed.length} failed
             {stale.length ? ` · ${stale.length} need update` : ""}
           </span>
+          {!studio.available && studio.engineError && (
+            <span role="alert" className={styles.exportHint}>
+              Conversion is unavailable until the engine status loads.
+            </span>
+          )}
+          {studio.available === false && (
+            <span role="alert" className={styles.exportHint}>
+              {studio.engine?.notes[0] ||
+                "An operator must enable a conversion engine on this server."}
+            </span>
+          )}
+          {studio.available === true &&
+            !studio.consent &&
+            rows.some((row) => !ready(row)) && (
+              <span className={styles.exportHint}>
+                Tick the consent box to enable Convert documents.
+              </span>
+            )}
         </div>
         <div className={styles.exportActions}>
           {zipBusy ? (
@@ -969,9 +1090,12 @@ export default function WordToPdf() {
         </p>
       )}
       <div className={styles.bottomNotes}>
-        <span>Real workflow stages, not simulated page progress.</span>
         <span>
-          DOCX only · provisional 100-page native cap · no 1,000-page claim
+          Real conversion stages reported by the server, not fake progress.
+        </span>
+        <span>
+          DOCX in · real PDF out · {studio.maxPages.toLocaleString("en-US")}
+          -page ceiling covered by the stress suite
         </span>
         <button onClick={() => setHelp(true)}>
           How this workspace works <HelpCircle size={13} />

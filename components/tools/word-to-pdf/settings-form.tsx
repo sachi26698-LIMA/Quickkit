@@ -4,9 +4,12 @@ import WatermarkSettings from "./watermark-settings";
 import styles from "./word-to-pdf.module.css";
 export default function SettingsForm({
   value: s,
+  native = true,
   onChange,
 }: {
   value: Settings;
+  /** The built-in renderer embeds images losslessly and ignores native export knobs. */
+  native?: boolean;
   onChange: (s: Settings) => void;
 }) {
   const set = (key: keyof Settings, value: string | number | boolean) =>
@@ -114,7 +117,7 @@ export default function SettingsForm({
             ))}
           <p className={styles.note}>
             {s.layoutScope === "all"
-              ? "Original preserves section sizes. All-page size and margin changes reflow in LibreOffice and require a new consented upload."
+              ? "Original preserves section sizes. All-page size and margin changes reflow inside the conversion engine and require a new consented upload."
               : "Selected-page layout scales the already-paginated PDF into the new size/margins; it does not selectively reflow Word text. Annotation placement and structure may change."}
           </p>
         </div>
@@ -244,6 +247,13 @@ export default function SettingsForm({
             />
           </label>
           {check("tagged", "Request tagged native PDF (requires conversion)")}
+          {!native && (
+            <p className={styles.note}>
+              Tags and PDF structure come from the native engine only. The
+              built-in renderer keeps real text and fonts, but does not emit a
+              tagged PDF.
+            </p>
+          )}
           <label>
             Text rendering
             <select disabled>
@@ -285,10 +295,9 @@ export default function SettingsForm({
           {!s.preserveResolution &&
             number("imageDpi", "Maximum image DPI", 72, 600)}
           <p className={styles.note}>
-            Image transparency and resolution depend on native support.
-            High/Print use lossless image encoding in Automatic mode; this is
-            not a lossless-conversion promise. Print is not PDF/X, CMYK, bleed
-            or press certification.
+            {native
+              ? "Image transparency and resolution depend on native support. High/Print use lossless image encoding in Automatic mode; this is not a lossless-conversion promise. Print is not PDF/X, CMYK, bleed or press certification."
+              : "The built-in renderer keeps every source image losslessly, so JPEG quality, DPI limiting and tagging here apply to the native LibreOffice engine only. Page size, margins, overlays, numbering, watermarks and metadata do apply to your output."}
           </p>
           <p className={styles.note}>
             Output estimate: unavailable before native rendering. DOCX size is

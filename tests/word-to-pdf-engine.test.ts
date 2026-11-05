@@ -12,7 +12,11 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { Document, Packer, Paragraph } from "docx";
 import { PDFDocument } from "@cantoo/pdf-lib";
-import { convert, engineAvailable } from "../lib/tools/word-to-pdf/engine";
+import {
+  convert,
+  engineAvailable,
+  engineStatus,
+} from "../lib/tools/word-to-pdf/engine";
 import { defaults } from "../lib/tools/word-to-pdf/settings";
 
 let dir: string, previous: string | undefined;
@@ -34,17 +38,19 @@ async function source() {
     ),
   );
 }
-async function executable(pageCount = 2, hang = false) {
+async function executable(pageCount = 2, hang = false, identify = true) {
   const pdf = await PDFDocument.create();
   for (let i = 0; i < pageCount; i++) pdf.addPage([595, 842]);
   const script = join(dir, "fake-soffice.cjs"),
     record = join(dir, "args.json");
   await writeFile(
     script,
-    `#!${process.execPath}\nconst fs = require('node:fs'); fs.writeFileSync(${JSON.stringify(record + ".environment.json")}, JSON.stringify({secret:process.env.QUICKKIT_NATIVE_TEST_SECRET,home:process.env.HOME,lang:process.env.LANG})); const path = require('node:path'); fs.writeFileSync(${JSON.stringify(record)}, JSON.stringify(process.argv.slice(2))); ${hang ? "setInterval(() => {}, 1000);" : `fs.writeFileSync(path.join(path.dirname(process.argv.at(-1)), 'input.pdf'), Buffer.from(${JSON.stringify(Buffer.from(await pdf.save()).toString("base64"))}, 'base64'));`}`,
+    `#!${process.execPath}\nconst fs = require('node:fs'); if (${identify} && process.argv.includes('--version')) { process.stdout.write('LibreOffice 24.2.0.3 fake-test-build\\n'); process.exit(0); } fs.writeFileSync(${JSON.stringify(record + ".environment.json")}, JSON.stringify({secret:process.env.QUICKKIT_NATIVE_TEST_SECRET,home:process.env.HOME,lang:process.env.LANG})); const path = require('node:path'); fs.writeFileSync(${JSON.stringify(record)}, JSON.stringify(process.argv.slice(2))); ${hang ? "setInterval(() => {}, 1000);" : `fs.writeFileSync(path.join(path.dirname(process.argv.at(-1)), 'input.pdf'), Buffer.from(${JSON.stringify(Buffer.from(await pdf.save()).toString("base64"))}, 'base64'));`}`,
     { mode: 0o700 },
   );
   process.env.WORD_TO_PDF_SOFFICE = script;
+  process.env.WORD_TO_PDF_ENGINE = "native";
+  process.env.WORD_TO_PDF_ENABLED = "true";
   return record;
 }
 describe("native-process adapter with a fake executable (not rendering QA)", () => {
@@ -62,7 +68,7 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
         quality: "high",
       },
       new AbortController().signal,
-      (stage) => stages.push(stage),
+      (event) => stages.push(event.stage),
     );
     expect(result.pages).toBe(1);
     const pdf = await PDFDocument.load(result.bytes);
@@ -72,7 +78,8 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
     expect(args.find((a) => a.startsWith("pdf:writer_pdf_Export:"))).toContain(
       '"ReduceImageResolution":{"type":"boolean","value":"false"}',
     );
-    expect(stages).toHaveLength(3);
+    expect(stages.length).toBeGreaterThanOrEqual(3);
+    expect(stages.at(-1)).toMatch(/settings/i);
     await expect(access(dirname(args.at(-1)!))).rejects.toThrow();
   });
   it("does not inherit web secrets into the local child (still not an OS sandbox)", async () => {
@@ -96,21 +103,36 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
     }
   });
   it("does not equate executable access with actual LibreOffice identity", async () => {
-    await executable();
+    await executable(2, false, false);
     vi.stubEnv("WORD_TO_PDF_ENABLED", "true");
+    vi.stubEnv("WORD_TO_PDF_ENGINE", "native");
     vi.stubEnv("WORD_TO_PDF_WORKER_URL", undefined);
     vi.stubEnv("WORD_TO_PDF_WORKER_TOKEN", undefined);
     try {
       expect(await engineAvailable()).toBe(false);
     } finally {
       vi.unstubAllEnvs();
+      process.env.WORD_TO_PDF_ENGINE = "native";
+    }
+  });
+  it("falls back to the bundled renderer in auto mode instead of failing", async () => {
+    await executable(2, false, false);
+    vi.stubEnv("WORD_TO_PDF_ENABLED", "true");
+    vi.stubEnv("WORD_TO_PDF_ENGINE", "auto");
+    try {
+      const status = await engineStatus();
+      expect(status.available).toBe(true);
+      expect(status.engine).toBe("builtin");
+      expect(status.native).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
     }
   });
   it("rejects over-limit native output and still cleans up", async () => {
-    const record = await executable(101);
+    const record = await executable(1001);
     await expect(
       convert(await source(), defaults, new AbortController().signal, () => {}),
-    ).rejects.toThrow(/100-page/);
+    ).rejects.toThrow(/1000-page/);
     const args = JSON.parse(await readFile(record, "utf8"));
     await expect(access(dirname(args.at(-1)))).rejects.toThrow();
   });

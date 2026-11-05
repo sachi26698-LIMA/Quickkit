@@ -104,15 +104,27 @@ describe("V3 identity-based page plan", () => {
     expect(p.pages[1].overrides).toEqual({ backgroundEnabled: true });
     expect(p.pages[2].overrides).toEqual({});
   });
-  it("rejects zero pages, more than 100 pages, duplicate ids and invalid source references", () => {
-    expect(() => deletePages(plan(), ids)).toThrow(/1–100/);
+  it("rejects zero pages, more than 1000 pages, duplicate ids and invalid source references", () => {
+    expect(() => deletePages(plan(), ids)).toThrow(/1–1000/);
     const p = initialPlan(
-      100,
-      Array.from({ length: 100 }, (_, i) => i),
+      1000,
+      Array.from({ length: 1000 }, (_, i) => i),
     );
     expect(() => duplicatePages(p, ["source-1"], () => "copy")).toThrow(
-      /1–100/,
+      /1–1000/,
     );
+    expect(() =>
+      validatePlan({
+        sourceCount: 1001,
+        pages: Array.from({ length: 1001 }, (_, i) => ({
+          id: `source-${i + 1}`,
+          source: i,
+          rotation: 0,
+          section: "Main",
+          overrides: {},
+        })),
+      }),
+    ).toThrow(/1–1000/);
     expect(() =>
       validatePlan({ ...plan(), pages: [plan().pages[0], plan().pages[0]] }),
     ).toThrow(/unique/);
