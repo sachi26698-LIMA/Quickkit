@@ -6,6 +6,8 @@ import {
   PAGE_RENDER_DPI,
   PAGE_SIZES,
   buildOutputName,
+  estimatePdfImageBytes,
+  expandNameTemplate,
   buildPdfName,
   buildPdfPageName,
   clampDpi,
@@ -22,7 +24,21 @@ import {
   keepsAlpha,
   linkedDimension,
   mimeFor,
+  cropForAspect,
+  cropIsWhole,
+  cropPixels,
+  describeImageEdits,
+  editedSize,
+  hasImageEdits,
   parsePageRange,
+  placeForFit,
+  presetById,
+  printSize,
+  printSummary,
+  pixelsForPrint,
+  RESIZE_DPI,
+  RESIZE_PRESETS,
+  upscaleInfo,
   placeImage,
   planOutputSize,
   resolvePage,
@@ -72,6 +88,20 @@ describe("image converter formats", () => {
     expect(inputFormatFromName("photo.jpeg", "image/jpeg")).toBe("jpeg");
     expect(inputFormatFromName("logo.PNG", "")).toBe("png");
     expect(inputFormatFromName("shot.webp", "")).toBe("webp");
+    expect(inputFormatFromName("IMG_0001.HEIC", "")).toBe("heic");
+    expect(inputFormatFromName("photo.heif", "image/heif")).toBe("heic");
+    expect(inputFormatFromName("scan.tif", "")).toBe("tiff");
+    expect(inputFormatFromName("notes.txt", "text/plain")).toBeNull();
+  });
+
+  it("accepts HEIC input without offering it as an output format", () => {
+    // Reading is browser-dependent; writing HEIC is never promised.
+    expect(
+      CONVERT_FORMATS.some((format) => (format.id as string) === "heic"),
+    ).toBe(false);
+    expect(INPUT_ACCEPT).toContain(".heic");
+    expect(INPUT_ACCEPT).toContain("image/heif");
+    expect(inputLabel("heic")).toBe("HEIC");
     expect(inputFormatFromName("art.avif", "")).toBe("avif");
     expect(inputFormatFromName("loop.gif", "")).toBe("gif");
     expect(inputFormatFromName("old.bmp", "")).toBe("bmp");
@@ -99,10 +129,11 @@ describe("image converter formats", () => {
     expect(CONVERT_LIMITS.maxPagePixels).toBeGreaterThan(
       CONVERT_LIMITS.maxPixels,
     );
-    expect(PAGE_RENDER_DPI).toEqual([96, 150, 200, 300]);
+    expect(PAGE_RENDER_DPI).toEqual([96, 150, 200, 300, 400, 600]);
     expect(PAGE_SIZES.map((page) => page.id)).toEqual([
       "a4",
       "a3",
+      "a5",
       "letter",
       "legal",
       "custom",
@@ -241,6 +272,8 @@ describe("output sizing", () => {
         percent: 50,
         longest: 100,
         lock: true,
+        fit: "stretch",
+        dpi: 96,
       }),
     ).toEqual({ width: 1200, height: 800, resized: false });
   });
@@ -253,6 +286,8 @@ describe("output sizing", () => {
       percent: 25,
       longest: 1,
       lock: true,
+      fit: "stretch",
+      dpi: 96,
     });
     expect(plan).toEqual({ width: 250, height: 125, resized: true });
   });
@@ -265,6 +300,8 @@ describe("output sizing", () => {
       percent: 100,
       longest: 1000,
       lock: true,
+      fit: "stretch",
+      dpi: 96,
     });
     expect(plan.width).toBe(1000);
     expect(plan.height).toBe(500);
@@ -276,6 +313,8 @@ describe("output sizing", () => {
       percent: 100,
       longest: 800,
       lock: true,
+      fit: "stretch",
+      dpi: 96,
     });
     expect(upscale.width).toBe(800);
     expect(upscale.height).toBe(400);
@@ -289,6 +328,8 @@ describe("output sizing", () => {
       percent: 100,
       longest: 1000,
       lock: true,
+      fit: "stretch",
+      dpi: 96,
     });
     expect(locked.width).toBe(800);
     expect(locked.height).toBe(400);
@@ -300,6 +341,8 @@ describe("output sizing", () => {
       percent: 100,
       longest: 1000,
       lock: false,
+      fit: "stretch",
+      dpi: 96,
     });
     expect(unlocked.width).toBe(800);
     expect(unlocked.height).toBe(999);
@@ -313,6 +356,8 @@ describe("output sizing", () => {
       percent: 100,
       longest: 1000,
       lock: false,
+      fit: "stretch" as const,
+      dpi: 96,
     };
     expect(() => planOutputSize(100, 100, { ...base, width: 0 })).toThrow();
     expect(() => planOutputSize(100, 100, { ...base, width: 9000 })).toThrow();
@@ -438,5 +483,552 @@ describe("defaults and summaries", () => {
     expect(bmp).toBeGreaterThan(png);
     expect(jpegHigh).toBeGreaterThan(jpegLow);
     expect(estimateConvertedBytes(0, 0, "png", 90)).toBeGreaterThan(0);
+  });
+});
+
+/* --------------------- Phase 3: resize, fit, DPI, print --------------------- */
+
+describe("fit placement", () => {
+  it("stretches the whole source into the box", () => {
+    expect(placeForFit(1000, 500, 800, 800, "stretch")).toEqual({
+      sx: 0,
+      sy: 0,
+      sw: 1000,
+      sh: 500,
+      dx: 0,
+      dy: 0,
+      dw: 800,
+      dh: 800,
+    });
+  });
+
+  it("contains the whole image and centres it", () => {
+    const placement = placeForFit(1000, 500, 800, 800, "contain");
+    // Width is the limiting side: 800 wide, 400 tall, 200px of margin top/bottom.
+    expect(placement.dw).toBe(800);
+    expect(placement.dh).toBe(400);
+    expect(placement.dy).toBe(200);
+    expect(placement.dx).toBe(0);
+    // Nothing is cropped: the full source is sampled.
+    expect(placement.sw).toBe(1000);
+    expect(placement.sh).toBe(500);
+  });
+
+  it("covers the box and crops the overflow symmetrically", () => {
+    const placement = placeForFit(1000, 500, 800, 800, "cover");
+    expect(placement.dx).toBe(0);
+    expect(placement.dy).toBe(0);
+    expect(placement.dw).toBe(800);
+    expect(placement.dh).toBe(800);
+    // Source is cropped to a square, centred horizontally.
+    expect(placement.sw).toBe(500);
+    expect(placement.sx).toBe(250);
+    expect(placement.sh).toBe(500);
+  });
+
+  it("is an identity for a box that already matches the source ratio", () => {
+    for (const fit of ["stretch", "contain", "cover"] as const) {
+      const placement = placeForFit(1000, 500, 500, 250, fit);
+      expect(placement.dw).toBe(500);
+      expect(placement.dh).toBe(250);
+      expect(placement.sw).toBe(1000);
+      expect(placement.sh).toBe(500);
+      expect(placement.dx).toBe(0);
+      expect(placement.dy).toBe(0);
+    }
+  });
+
+  it("never produces a zero-size rectangle", () => {
+    const placement = placeForFit(3, 4000, 4000, 3, "contain");
+    expect(placement.dw).toBeGreaterThan(0);
+    expect(placement.dh).toBeGreaterThan(0);
+    expect(placement.sw).toBeGreaterThan(0);
+    expect(placement.sh).toBeGreaterThan(0);
+  });
+});
+
+describe("print size", () => {
+  it("reports inches, centimetres and millimetres together", () => {
+    const size = printSize(300, 300, 300);
+    expect(size.inches).toEqual({ width: 1, height: 1 });
+    expect(size.cm.width).toBeCloseTo(2.54, 5);
+    expect(size.mm.width).toBeCloseTo(25.4, 5);
+  });
+
+  it("scales with DPI as a print size must", () => {
+    const low = printSize(1200, 600, 72);
+    const high = printSize(1200, 600, 300);
+    expect(low.inches.width).toBeCloseTo(16.67, 1);
+    expect(high.inches.width).toBe(4);
+  });
+
+  it("summarises all three units in one line", () => {
+    expect(printSummary(1200, 600, 150)).toBe(
+      "8.00 × 4.00 in · 20.3 × 10.2 cm · 203 × 102 mm at 150 DPI",
+    );
+  });
+
+  it("falls back to 96 DPI instead of dividing by zero", () => {
+    const size = printSize(96, 96, 0);
+    expect(size.inches.width).toBe(1);
+  });
+
+  it("converts a physical size back to pixels", () => {
+    expect(pixelsForPrint(2.54, 2.54, 300)).toEqual({
+      width: 300,
+      height: 300,
+    });
+  });
+
+  it("offers the requested DPI steps", () => {
+    expect([...RESIZE_DPI]).toEqual([72, 96, 150, 200, 300]);
+  });
+});
+
+describe("upscaling is disclosed", () => {
+  it("stays quiet when the output is not larger", () => {
+    expect(upscaleInfo(1000, 500, 800, 400).upscaling).toBe(false);
+    expect(upscaleInfo(1000, 500, 1000, 500).warning).toBeNull();
+  });
+
+  it("warns and quantifies a real enlargement", () => {
+    const info = upscaleInfo(1000, 500, 2000, 1000);
+    expect(info.upscaling).toBe(true);
+    expect(info.factor).toBe(2);
+    expect(info.warning).toMatch(/100% larger/);
+    expect(info.warning).toMatch(/cannot restore detail/);
+  });
+
+  it("ignores a partial enlargement on one axis only", () => {
+    // The limiting side decides: this fits inside the source on one axis.
+    expect(upscaleInfo(1000, 500, 2000, 500).upscaling).toBe(false);
+  });
+});
+
+describe("resize presets", () => {
+  it("exposes a reusable catalogue", () => {
+    expect(RESIZE_PRESETS.length).toBeGreaterThan(5);
+    for (const preset of RESIZE_PRESETS) {
+      expect(preset.width).toBeGreaterThan(0);
+      expect(preset.height).toBeGreaterThan(0);
+      expect(preset.label.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("looks a preset up by id and returns null for an unknown one", () => {
+    const first = RESIZE_PRESETS[0];
+    expect(presetById(first.id)?.width).toBe(first.width);
+    expect(presetById("not-a-preset")).toBeNull();
+  });
+
+  it("defaults new settings to no resize at 96 DPI", () => {
+    const settings = defaultSettings("image");
+    expect(settings.image.resize.mode).toBe("none");
+    expect(settings.image.resize.dpi).toBe(96);
+    expect(settings.image.resize.fit).toBe("stretch");
+  });
+});
+
+/* -------------------- Phase 3: crop, rotate, straighten --------------------- */
+
+describe("crop fractions", () => {
+  it("treats a full-frame crop as no crop at all", () => {
+    expect(cropIsWhole(null)).toBe(true);
+    expect(cropIsWhole({ x: 0, y: 0, width: 1, height: 1 })).toBe(true);
+    expect(cropIsWhole({ x: 0.5, y: 0, width: 0.5, height: 1 })).toBe(false);
+  });
+
+  it("centres a ratio crop on the long axis only", () => {
+    const crop = cropForAspect(1, 1600, 900);
+    expect(crop).not.toBeNull();
+    expect(crop!.y).toBe(0);
+    expect(crop!.height).toBe(1);
+    expect(crop!.width).toBeCloseTo(900 / 1600, 5);
+    expect(crop!.x).toBeCloseTo((1 - 900 / 1600) / 2, 5);
+  });
+
+  it("centres a portrait crop on a landscape source by trimming the sides", () => {
+    // 1600 × 900 cropped to 9:16 keeps the full height and narrows the width.
+    const crop = cropForAspect(9 / 16, 1600, 900);
+    expect(crop!.y).toBe(0);
+    expect(crop!.height).toBe(1);
+    const expectedWidth = (900 * 9) / 16 / 1600;
+    expect(crop!.width).toBeCloseTo(expectedWidth, 5);
+    expect(crop!.x).toBeCloseTo((1 - expectedWidth) / 2, 5);
+  });
+
+  it("centres a wide crop on a portrait source by trimming top and bottom", () => {
+    const crop = cropForAspect(16 / 9, 900, 1600);
+    expect(crop!.x).toBe(0);
+    expect(crop!.width).toBe(1);
+    const expectedHeight = (900 * 9) / 16 / 1600;
+    expect(crop!.height).toBeCloseTo(expectedHeight, 5);
+    expect(crop!.y).toBeCloseTo((1 - expectedHeight) / 2, 5);
+  });
+
+  it("returns null when the source already has that ratio", () => {
+    expect(cropForAspect(1, 800, 800)).toBeNull();
+    expect(cropForAspect(null, 800, 600)).toBeNull();
+  });
+
+  it("converts fractions to clamped source pixels", () => {
+    expect(
+      cropPixels({ x: 0.25, y: 0.25, width: 0.5, height: 0.5 }, 1000, 800),
+    ).toEqual({ x: 250, y: 200, width: 500, height: 400 });
+  });
+
+  it("clamps a crop that runs off the edge", () => {
+    const rect = cropPixels(
+      { x: 0.9, y: 0.9, width: 0.5, height: 0.5 },
+      1000,
+      1000,
+    );
+    expect(rect.x + rect.width).toBeLessThanOrEqual(1000);
+    expect(rect.y + rect.height).toBeLessThanOrEqual(1000);
+    expect(rect.width).toBeGreaterThan(0);
+    expect(rect.height).toBeGreaterThan(0);
+  });
+
+  it("clamps nonsense fractions instead of producing a broken rectangle", () => {
+    const rect = cropPixels(
+      { x: Number.NaN, y: -3, width: 9, height: Number.POSITIVE_INFINITY },
+      1000,
+      1000,
+    );
+    expect(rect.x).toBe(0);
+    expect(rect.y).toBe(0);
+    expect(rect.width).toBe(1000);
+    expect(rect.height).toBe(1000);
+  });
+});
+
+describe("edited size", () => {
+  const none = defaultSettings("image").image.edits;
+
+  it("leaves the size alone with no edits", () => {
+    expect(editedSize(none, 1200, 800)).toEqual({ width: 1200, height: 800 });
+  });
+
+  it("applies the crop first", () => {
+    expect(
+      editedSize(
+        { ...none, crop: { x: 0, y: 0, width: 0.5, height: 1 } },
+        1200,
+        800,
+      ),
+    ).toEqual({ width: 600, height: 800 });
+  });
+
+  it("swaps the sides on a 90° rotation", () => {
+    expect(editedSize({ ...none, rotate: 90 }, 1200, 800)).toEqual({
+      width: 800,
+      height: 1200,
+    });
+    expect(editedSize({ ...none, rotate: 270 }, 1200, 800)).toEqual({
+      width: 800,
+      height: 1200,
+    });
+    expect(editedSize({ ...none, rotate: 180 }, 1200, 800)).toEqual({
+      width: 1200,
+      height: 800,
+    });
+  });
+
+  it("grows the box to hold a straightened image", () => {
+    const straight = editedSize({ ...none, straighten: 45 }, 1000, 1000);
+    // A 45° turn of a square needs a √2 box, rounded.
+    expect(straight.width).toBeGreaterThan(1400);
+    expect(straight.width).toBeLessThan(1420);
+    expect(straight.height).toBe(straight.width);
+  });
+
+  it("chains crop, straighten and rotation in that order", () => {
+    const size = editedSize(
+      {
+        ...none,
+        crop: { x: 0, y: 0, width: 0.5, height: 1 },
+        straighten: 0,
+        rotate: 90,
+      },
+      1200,
+      800,
+    );
+    expect(size).toEqual({ width: 800, height: 600 });
+  });
+
+  it("flips do not change the size", () => {
+    expect(
+      editedSize({ ...none, flipH: true, flipV: true }, 1200, 800),
+    ).toEqual({
+      width: 1200,
+      height: 800,
+    });
+  });
+});
+
+describe("edit reporting", () => {
+  const none = defaultSettings("image").image.edits;
+
+  it("says nothing when nothing was done", () => {
+    expect(hasImageEdits(none)).toBe(false);
+    expect(describeImageEdits(none)).toEqual([]);
+  });
+
+  it("does not count a full-frame crop as an edit", () => {
+    expect(
+      hasImageEdits({ ...none, crop: { x: 0, y: 0, width: 1, height: 1 } }),
+    ).toBe(false);
+  });
+
+  it("lists every edit in words", () => {
+    expect(
+      describeImageEdits({
+        ...none,
+        crop: { x: 0.1, y: 0, width: 0.8, height: 1 },
+        straighten: -2.5,
+        rotate: 90,
+        flipH: true,
+        flipV: true,
+      }),
+    ).toEqual([
+      "cropped",
+      "straightened -2.5°",
+      "rotated 90°",
+      "flipped horizontally",
+      "flipped vertically",
+    ]);
+  });
+
+  it("surfaces edits in the settings summary", () => {
+    const settings = defaultSettings("image");
+    const summary = describeImageSettings({
+      ...settings.image,
+      edits: { ...none, rotate: 180 },
+    });
+    expect(summary).toContain("rotated 180°");
+  });
+
+  it("reports the DPI once a resize is in play", () => {
+    const settings = defaultSettings("image");
+    expect(
+      describeImageSettings({
+        ...settings.image,
+        resize: { ...settings.image.resize, mode: "exact", dpi: 300 },
+      }),
+    ).toContain("300 DPI");
+    // With no resize the source DPI is carried, so nothing is claimed.
+    expect(describeImageSettings(settings.image).join(" ")).not.toContain(
+      "DPI",
+    );
+  });
+});
+
+describe("output name templates", () => {
+  const FIXED_DATE = new Date(2026, 10, 3); // 2026-11-03 local
+
+  it("keeps the historical naming when no template is set", () => {
+    expect(
+      buildOutputName(
+        "Holiday Photo.JPG",
+        { baseName: "", suffix: "" },
+        "webp",
+      ),
+    ).toBe("Holiday-Photo-converted.webp");
+  });
+
+  it("expands every documented token", () => {
+    expect(
+      expandNameTemplate("{name}-{index}-{date}.{ext}", {
+        originalName: "Holiday Photo.JPG",
+        extension: "webp",
+        index: 7,
+        date: FIXED_DATE,
+      }),
+    ).toBe("Holiday-Photo-7-2026-11-03.webp");
+  });
+
+  it("is case-insensitive and ignores unknown tokens", () => {
+    expect(
+      expandNameTemplate("{NAME}_{nope}{ext}", {
+        originalName: "a.png",
+        extension: "jpg",
+        index: 1,
+      }),
+    ).toBe("a_jpg");
+  });
+
+  it("never lets a template inject a path separator or stray braces", () => {
+    const out = expandNameTemplate("../../etc/{name}", {
+      originalName: "passwd",
+      extension: "png",
+      index: 1,
+    });
+    expect(out).not.toContain("/");
+    expect(out).not.toContain("{");
+    expect(out).not.toContain("..");
+    // sanitizeFragment deletes "/" rather than replacing it, so the traversal
+    // collapses into one safe token.
+    expect(out).toBe("etcpasswd");
+  });
+
+  it("returns null for a blank or fully-unknown template so callers fall back", () => {
+    expect(
+      expandNameTemplate("   ", {
+        originalName: "a.png",
+        extension: "png",
+        index: 1,
+      }),
+    ).toBeNull();
+    expect(
+      expandNameTemplate("{bogus}", {
+        originalName: "a.png",
+        extension: "png",
+        index: 1,
+      }),
+    ).toBeNull();
+  });
+
+  it("does not double the extension when the template already ends with it", () => {
+    expect(
+      buildOutputName(
+        "shot.png",
+        { baseName: "", suffix: "", nameTemplate: "{name}.{ext}" },
+        "webp",
+      ),
+    ).toBe("shot.webp");
+  });
+
+  it("adds the extension when the template omits it", () => {
+    expect(
+      buildOutputName(
+        "shot.png",
+        { baseName: "", suffix: "", nameTemplate: "{name}-final" },
+        "avif",
+      ),
+    ).toBe("shot-final.avif");
+  });
+
+  it("numbers a batch in template order", () => {
+    const names = ["a.jpg", "b.jpg", "c.jpg"].map((n, i) =>
+      buildOutputName(
+        n,
+        { baseName: "", suffix: "", nameTemplate: "img-{index}" },
+        "png",
+        i + 1,
+      ),
+    );
+    expect(names).toEqual(["img-1.png", "img-2.png", "img-3.png"]);
+  });
+});
+
+describe("PDF page render size estimate", () => {
+  // A4 portrait is 595 × 842 pt.
+  const a4 = { widthPt: 595, heightPt: 842 };
+
+  it("scales pixel dimensions with DPI", () => {
+    const at96 = estimatePdfImageBytes({
+      ...a4,
+      dpi: 96,
+      format: "png",
+      quality: 90,
+      pageCount: 1,
+    });
+    const at300 = estimatePdfImageBytes({
+      ...a4,
+      dpi: 300,
+      format: "png",
+      quality: 90,
+      pageCount: 1,
+    });
+    expect(at96.pixelsWide).toBeLessThan(at300.pixelsWide);
+    // 595 pt at 300 DPI is 595 / 72 * 300 = 2479 px.
+    expect(at300.pixelsWide).toBe(2479);
+    expect(at300.pixelsHigh).toBe(3508);
+  });
+
+  it("multiplies the estimate by the page count", () => {
+    const one = estimatePdfImageBytes({
+      ...a4,
+      dpi: 150,
+      format: "jpeg",
+      quality: 80,
+      pageCount: 1,
+    });
+    const ten = estimatePdfImageBytes({
+      ...a4,
+      dpi: 150,
+      format: "jpeg",
+      quality: 80,
+      pageCount: 10,
+    });
+    expect(ten.bytes).toBe(one.bytes * 10);
+    expect(ten.low).toBe(one.low * 10);
+    expect(ten.high).toBe(one.high * 10);
+  });
+
+  it("clamps an out-of-range DPI instead of trusting it", () => {
+    const clamped = estimatePdfImageBytes({
+      ...a4,
+      dpi: 5000,
+      format: "png",
+      quality: 90,
+      pageCount: 1,
+    });
+    const atMax = estimatePdfImageBytes({
+      ...a4,
+      dpi: CONVERT_LIMITS.maxDpi,
+      format: "png",
+      quality: 90,
+      pageCount: 1,
+    });
+    expect(clamped.pixelsWide).toBe(atMax.pixelsWide);
+    // Prove the ceiling does real work rather than merely matching itself: an
+    // unclamped 5000 DPI A4 render would be 41,339 px wide, so the clamped
+    // result must be dramatically smaller.
+    const unclamped = (5000 / 72) * 595.28;
+    expect(clamped.pixelsWide).toBeLessThan(unclamped / 4);
+  });
+
+  it("reports a spread rather than a single promised number", () => {
+    const estimate = estimatePdfImageBytes({
+      ...a4,
+      dpi: 150,
+      format: "jpeg",
+      quality: 80,
+      pageCount: 3,
+    });
+    expect(estimate.low).toBeLessThan(estimate.bytes);
+    expect(estimate.high).toBeGreaterThan(estimate.bytes);
+  });
+
+  it("never returns zero for a fractional or missing page count", () => {
+    for (const pageCount of [0, -1, 1.7]) {
+      const estimate = estimatePdfImageBytes({
+        ...a4,
+        dpi: 96,
+        format: "png",
+        quality: 90,
+        pageCount,
+      });
+      expect(estimate.bytes, `pageCount ${pageCount}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("estimates PNG below JPEG for document pages, not above", () => {
+    // Counter-intuitive but correct: PDF pages are text and line art, which
+    // deflate compresses better than DCT. At quality 80 the model gives JPEG
+    // ~0.30 bytes/px against PNG's 0.17 for the "document" kind. Asserting the
+    // usual "lossy is smaller" intuition here would lock in a wrong estimate.
+    const common = { ...a4, dpi: 150, quality: 80, pageCount: 1 };
+    const png = estimatePdfImageBytes({ ...common, format: "png" });
+    const jpeg = estimatePdfImageBytes({ ...common, format: "jpeg" });
+    expect(png.bytes).toBeLessThan(jpeg.bytes);
+  });
+
+  it("estimates WebP below JPEG at the same quality", () => {
+    const common = { ...a4, dpi: 150, quality: 80, pageCount: 1 };
+    const webp = estimatePdfImageBytes({ ...common, format: "webp" });
+    const jpeg = estimatePdfImageBytes({ ...common, format: "jpeg" });
+    expect(webp.bytes).toBeLessThan(jpeg.bytes);
   });
 });

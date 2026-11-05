@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight, Clock } from "lucide-react";
 import CategoryIcon from "@/components/category-icon";
 import ToolCard from "@/components/tool-card";
+import CalculatorCategoryGrid from "@/components/calculator-category-grid";
 import { categoryMeta, metaBySlug, toolsByCategory } from "@/lib/catalog";
 import { pageMetadata } from "@/lib/seo";
 
@@ -61,7 +62,9 @@ export default async function CategoryPage({
           </span>
         </header>
 
-        {list.length ? (
+        {list.length && meta.slug === "calculators" ? (
+          <CalculatorCategoryGrid tools={list} />
+        ) : list.length ? (
           <div className="tool-grid category-tools">
             {list.map((tool) => (
               <ToolCard key={tool.slug} tool={tool} category={meta.name} />
@@ -73,8 +76,8 @@ export default async function CategoryPage({
             <h2>Coming soon</h2>
             <p>
               We’re building {meta.name} for the toolkit. In the meantime,
-              explore the tools that are ready today — every one is free and
-              runs in your browser.
+              explore the tools that are ready today — tools are free, with
+              processing details disclosed on each tool page.
             </p>
             <Link className="primary" href="/tools">
               Explore All Tools <ArrowRight size={16} aria-hidden="true" />

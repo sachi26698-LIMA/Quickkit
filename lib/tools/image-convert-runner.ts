@@ -11,29 +11,66 @@
  * No blob ever leaves the page: there is no fetch, no upload and no logging of
  * file contents.
  */
-import { decodeTiff, inspectTiff, tiffDpi } from "@/lib/tools/image-codec";
+import {
+  decodeTiff,
+  inspectGif,
+  inspectTiff,
+  tiffDpi,
+} from "@/lib/tools/image-codec";
+import { METADATA_SCAN_LIMIT, scanMetadata } from "@/lib/tools/exif";
+import {
+  runSizeSearch,
+  targetBytes,
+  validateTarget,
+  type SizeReport,
+} from "@/lib/tools/image-size";
 import {
   buildOutputName,
   buildPdfName,
   buildPdfPageName,
   clampDpi,
   CONVERT_LIMITS,
+  cropPixels,
+  cropIsWhole,
   dpiToPixels,
   formatById,
+  hasImageEdits,
   inputFormatFromName,
   keepsAlpha,
   mmToPt,
   parsePageRange,
+  placeForFit,
   placeImage,
   planOutputSize,
   resolvePage,
   type ConvertFormat,
   type ConvertSettings,
+  type ImageEditsSettings,
   type FitMode,
+  uniqueName,
   type InputFormat,
   type InputKind,
   type Placement,
 } from "@/lib/tools/image-convert";
+import { rotatedSize } from "@/lib/tools/image-edits";
+import {
+  keptPages,
+  pageNumberLabel,
+  pageNumberPlacement,
+  parseKeywords,
+  watermarkPlacement,
+  splitGroups,
+  studioOutputName,
+  type PdfPageOp,
+  type PdfSourceSummary,
+  type PdfStudioAction,
+  type PdfStudioSettings,
+} from "@/lib/tools/pdf-studio";
+import {
+  PDF_COMPRESSION_PRESETS,
+  presetSettings,
+} from "@/lib/tools/pdf/compress-pdf-logic";
+import { compressPdfBytes } from "@/lib/tools/pdf/compress-engine";
 import {
   encodeSpecial,
   resetImageEncoder,
@@ -51,6 +88,13 @@ export type InputDetails = {
   height?: number;
   pages?: number;
   dpi?: number | null;
+  /** GIF only: real frame count, so animations are never silently flattened. */
+  frames?: number;
+  animated?: boolean;
+  /** An embedded ICC profile was found; output is written as sRGB. */
+  colorProfile?: boolean;
+  /** Embedded metadata found in the source (never copied to the output). */
+  metadata?: { exif: boolean; gps: boolean; xmp: boolean };
 };
 
 export type ConversionOutput = {
@@ -63,6 +107,8 @@ export type ConversionOutput = {
   pages?: number;
   /** Honest caveat shown under the result, e.g. GIF first frame. */
   note?: string;
+  /** What the size engine actually did. Absent in fixed-quality mode. */
+  size?: SizeReport;
 };
 
 export type PdfPageOutput = {
@@ -81,6 +127,8 @@ export const UNSUPPORTED_AVIF_EXPORT =
   "This browser cannot encode AVIF. Choose PNG, JPEG or WebP instead.";
 export const UNSUPPORTED_WEBP_EXPORT =
   "This browser cannot encode WebP. Choose PNG or JPEG instead.";
+export const UNSUPPORTED_HEIC =
+  "This browser has no HEIC/HEIF decoder. Open the file in Safari or convert it on the device that took it, then try again.";
 export const PASSWORD_PDF =
   "Password-protected PDFs are not supported yet. Remove the password and try again.";
 
@@ -118,6 +166,34 @@ function releaseCanvas(canvas: HTMLCanvasElement | null) {
   if (!canvas) return;
   canvas.width = 0;
   canvas.height = 0;
+}
+
+/** Snap any angle to the nearest clockwise quarter turn. */
+export function normalizeRotation(value: number): 0 | 90 | 180 | 270 {
+  if (!Number.isFinite(value)) return 0;
+  const steps = Math.round((((value % 360) + 360) % 360) / 90) % 4;
+  return ([0, 90, 180, 270] as const)[steps];
+}
+
+/**
+ * Rotate a canvas by a quarter turn and return the new canvas. Quarter turns
+ * map pixels one-to-one, so the caller loses nothing beyond the single
+ * resample it was already about to do when placing the image on a page.
+ */
+function rotateCanvasBy(
+  source: HTMLCanvasElement,
+  degrees: 90 | 180 | 270,
+): HTMLCanvasElement {
+  const swap = degrees !== 180;
+  const width = swap ? source.height : source.width;
+  const height = swap ? source.width : source.height;
+  const { canvas, context } = makeCanvas(width, height);
+  context.save();
+  context.translate(width / 2, height / 2);
+  context.rotate((degrees * Math.PI) / 180);
+  context.drawImage(source, -source.width / 2, -source.height / 2);
+  context.restore();
+  return canvas;
 }
 
 function readBmpSize(bytes: Uint8Array) {
@@ -217,20 +293,56 @@ export async function inspectInput(file: File): Promise<InputDetails> {
   }
 
   if (format === "gif") {
-    return {
-      format,
-      kind: "image",
-      ...readGifSize(new Uint8Array(await file.slice(0, 64).arrayBuffer())),
-    };
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    try {
+      const gif = inspectGif(bytes);
+      return {
+        format,
+        kind: "image",
+        ...checkImageSize(gif.width, gif.height),
+        frames: gif.frames,
+        animated: gif.animated,
+      };
+    } catch {
+      // A truncated GIF still reports its header size, so fall back to that.
+      return {
+        format,
+        kind: "image",
+        ...readGifSize(bytes.subarray(0, 64)),
+        frames: 1,
+        animated: false,
+      };
+    }
+  }
+
+  if (format === "heic") {
+    // Only engines with a HEIF codec can decode this; say so plainly.
+    let bitmap: ImageBitmap | null = null;
+    try {
+      bitmap = await decodeBitmap(file, "auto");
+      return {
+        format,
+        kind: "image",
+        ...checkImageSize(bitmap.width, bitmap.height),
+      };
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Images must"))
+        throw error;
+      throw new Error(UNSUPPORTED_HEIC);
+    } finally {
+      bitmap?.close();
+    }
   }
 
   let bitmap: ImageBitmap | null = null;
   try {
     bitmap = await decodeBitmap(file, "auto");
+    const details = await scanSourceMetadata(file, format);
     return {
       format,
       kind: "image",
       ...checkImageSize(bitmap.width, bitmap.height),
+      ...details,
     };
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("Images must"))
@@ -241,6 +353,33 @@ export async function inspectInput(file: File): Promise<InputDetails> {
     );
   } finally {
     bitmap?.close();
+  }
+}
+
+/**
+ * Report what the source carries (EXIF, GPS, XMP, ICC). Only the first
+ * 256 KB is read and the bytes are never retained; output is always written
+ * clean, so this is disclosure, not a copy.
+ */
+async function scanSourceMetadata(
+  file: File,
+  format: InputFormat,
+): Promise<Pick<InputDetails, "colorProfile" | "metadata">> {
+  if (format !== "jpeg" && format !== "png" && format !== "webp") return {};
+  try {
+    const bytes = new Uint8Array(
+      await file.slice(0, METADATA_SCAN_LIMIT).arrayBuffer(),
+    );
+    const report = scanMetadata(bytes, formatById(format).mime);
+    const found = report.hasExif || report.hasGps || report.hasXmp;
+    return {
+      colorProfile: report.hasIcc,
+      metadata: found
+        ? { exif: report.hasExif, gps: report.hasGps, xmp: report.hasXmp }
+        : undefined,
+    };
+  } catch {
+    return {};
   }
 }
 
@@ -259,6 +398,25 @@ export async function decodeImage(
   format: Exclude<InputFormat, "pdf">,
   orientation: "auto" | "ignore",
 ): Promise<DecodedImage> {
+  if (format === "heic") {
+    // Reachable only when the engine actually has a HEIF codec.
+    let bitmap: ImageBitmap | null = null;
+    try {
+      bitmap = await decodeBitmap(file, orientation);
+      const { width, height } = checkImageSize(bitmap.width, bitmap.height);
+      const { canvas, context } = makeCanvas(width, height);
+      context.imageSmoothingQuality = "high";
+      context.drawImage(bitmap, 0, 0, width, height);
+      return { canvas, width, height, dpi: null };
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Images must"))
+        throw error;
+      throw new Error(UNSUPPORTED_HEIC);
+    } finally {
+      bitmap?.close();
+    }
+  }
+
   if (format === "tiff") {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const pixels = decodeTiff(bytes);
@@ -393,17 +551,64 @@ export type ConvertImageOptions = {
   settings: ConvertSettings;
   details?: InputDetails;
   signal?: AbortSignal;
+  /** 1-based position in the batch, for the `{index}` name template token. */
+  index?: number;
 };
 
+/** True when a GIF can be copied through byte-for-byte. */
+function canPreserveGif(
+  details: InputDetails,
+  format: ConvertFormat,
+  settings: ConvertSettings,
+): boolean {
+  if (details.format !== "gif" || !details.animated) return false;
+  if (format !== "gif") return false;
+  if (settings.image.resize.mode !== "none") return false;
+  // Any pixel work — crop, rotate, flip — means the bytes cannot be copied.
+  if (hasImageEdits(settings.image.edits)) return false;
+  // Flattening would rewrite pixels, which a byte copy cannot do.
+  return settings.image.alpha === "keep";
+}
+
+function gifNote(
+  details: InputDetails,
+  format: ConvertFormat,
+): string | undefined {
+  if (details.format !== "gif" || !details.animated) return undefined;
+  if (format === "gif")
+    return `Animation preserved — all ${details.frames} frames copied unchanged.`;
+  return `This GIF has ${details.frames} frames; only the first frame is exported. Choose GIF as the output to keep the animation.`;
+}
+
+function metadataNote(details: InputDetails): string | undefined {
+  const found: string[] = [];
+  if (details.metadata?.exif) found.push("EXIF");
+  if (details.metadata?.gps) found.push("GPS location");
+  if (details.metadata?.xmp) found.push("XMP");
+  if (details.colorProfile) found.push("colour profile");
+  if (!found.length) return undefined;
+  return `Removed from the output: ${found.join(", ")}. Colours are written as sRGB.`;
+}
+
+/** Join the honest caveats into one readable note. */
+function joinNotes(
+  ...notes: (string | undefined | null)[]
+): string | undefined {
+  const kept = notes.filter((note): note is string => Boolean(note));
+  return kept.length ? kept.join(" ") : undefined;
+}
+
 /**
- * Convert one image file. Honours per-file format overrides, quality, alpha
- * handling, optional resize and EXIF orientation.
+ * Convert one image file. Honours per-file format overrides, quality or a
+ * target file size, alpha handling, optional resize and EXIF orientation.
+ *
+ * The source `File` is only ever read — nothing here writes back to it.
  */
 export async function convertImageFile(
   file: File,
   options: ConvertImageOptions,
 ): Promise<ConversionOutput> {
-  const { format, settings, signal } = options;
+  const { settings, signal } = options;
   const details = options.details ?? (await inspectInput(file));
   if (details.format === "pdf")
     throw new Error(
@@ -411,55 +616,313 @@ export async function convertImageFile(
     );
   assertNotAborted(signal);
 
+  const requested = options.format;
+  const size = settings.image.size;
+  const targetMode = size.mode === "target";
+  const target = targetMode
+    ? targetBytes(Number(size.targetValue), size.targetUnit)
+    : 0;
+  if (targetMode) {
+    const invalid = validateTarget(size.targetValue, size.targetUnit);
+    if (invalid) throw new Error(invalid);
+  }
+
+  // An animated GIF that needs no pixel work is copied, not re-encoded: every
+  // frame, delay and loop survives and nothing is lost to a palette rebuild.
+  if (canPreserveGif(details, requested, settings)) {
+    const blob = file.slice(0, file.size, formatById("gif").mime);
+    return {
+      name: buildOutputName(file.name, settings, requested, options.index),
+      blob,
+      format: requested,
+      width: details.width,
+      height: details.height,
+      note: gifNote(details, requested),
+      size: {
+        lossless: true,
+        quality: 100,
+        probes: 0,
+        targetMet: !targetMode || blob.size <= target,
+        downscaled: false,
+        target: targetMode ? target : undefined,
+      },
+    };
+  }
+
   const decoded = await decodeImage(
     file,
     details.format,
     settings.image.orientation,
   );
+  const edited = applyEdits(decoded, settings.image.edits);
   try {
     assertNotAborted(signal);
-    const transparent = keepsAlpha(format) && settings.image.alpha === "keep";
+    const keepAlpha = settings.image.alpha === "keep";
+    const transparent = keepsAlpha(requested) && keepAlpha;
     const plan = planOutputSize(
-      decoded.width,
-      decoded.height,
+      edited.width,
+      edited.height,
       settings.image.resize,
     );
     checkImageSize(plan.width, plan.height);
+    // A chosen resolution wins; otherwise the source's own DPI is carried over
+    // so a 300 DPI scan does not silently become a 96 DPI one.
+    const dpi =
+      settings.image.resize.mode === "none"
+        ? (decoded.dpi ?? 96)
+        : settings.image.resize.dpi;
+    // Fit only means something against an exact box; the other modes keep the
+    // source ratio, where every fit mode is identical anyway.
+    const fit =
+      settings.image.resize.mode === "exact"
+        ? settings.image.resize.fit
+        : "stretch";
 
-    const { canvas, context } = makeCanvas(plan.width, plan.height);
-    try {
+    const drawAt = (width: number, height: number) => {
+      const { canvas, context } = makeCanvas(width, height);
       context.imageSmoothingEnabled = true;
       context.imageSmoothingQuality = "high";
       if (!transparent) {
         context.fillStyle = settings.image.background;
-        context.fillRect(0, 0, plan.width, plan.height);
+        context.fillRect(0, 0, width, height);
       }
-      context.drawImage(decoded.canvas, 0, 0, plan.width, plan.height);
-
-      const dpi = decoded.dpi ?? 96;
-      const blob = await encodeCanvas(canvas, format, settings.image.quality, {
+      const placement = placeForFit(
+        edited.width,
+        edited.height,
+        width,
+        height,
+        fit,
+      );
+      context.drawImage(
+        edited.canvas,
+        placement.sx,
+        placement.sy,
+        placement.sw,
+        placement.sh,
+        placement.dx,
+        placement.dy,
+        placement.dw,
+        placement.dh,
+      );
+      return canvas;
+    };
+    const encodeAt = (
+      canvas: HTMLCanvasElement,
+      format: ConvertFormat,
+      quality: number,
+    ) =>
+      encodeCanvas(canvas, format, quality, {
         background: settings.image.background,
-        transparent,
+        transparent: keepsAlpha(format) && keepAlpha,
         compression: settings.image.compression,
         dpi,
       });
-      return {
-        name: buildOutputName(file.name, settings, format),
-        blob,
-        format,
-        width: plan.width,
-        height: plan.height,
-        note:
-          details.format === "gif"
-            ? "Animated GIFs are exported as a single (first) frame."
-            : undefined,
-      };
-    } finally {
-      releaseCanvas(canvas);
+
+    if (!targetMode) {
+      const canvas = drawAt(plan.width, plan.height);
+      try {
+        const blob = await encodeAt(canvas, requested, settings.image.quality);
+        return {
+          name: buildOutputName(file.name, settings, requested, options.index),
+          blob,
+          format: requested,
+          width: plan.width,
+          height: plan.height,
+          note: joinNotes(
+            gifNote(details, requested),
+            largerThanSource(file.size, blob.size, plan.resized)
+              ? `Re-encoding made this file larger than the original (${formatKb(blob.size)} vs ${formatKb(file.size)}). The source was already well compressed.`
+              : undefined,
+            metadataNote(details),
+          ),
+        };
+      } finally {
+        releaseCanvas(canvas);
+      }
     }
+
+    // The whole decision procedure lives in the pure, unit-tested engine;
+    // this module only supplies the canvas, the encoder and the abort check.
+    const support = await canvasEncodeSupport();
+    const outcome = await runSizeSearch<HTMLCanvasElement>({
+      drawAt: (width, height) => {
+        checkImageSize(width, height);
+        return drawAt(width, height);
+      },
+      encodeAt,
+      release: releaseCanvas,
+      assertNotAborted: () => assertNotAborted(signal),
+      format: requested,
+      width: plan.width,
+      height: plan.height,
+      settings: {
+        ...size,
+        keepAlpha,
+        supported: (candidate) =>
+          !formatById(candidate).canvas ||
+          support[candidate as keyof CanvasSupport],
+      },
+      ceiling: settings.image.quality,
+      target,
+    });
+    // The engine already freed every render it created, winner included.
+    const warning = outcome.report.warning;
+
+    return {
+      name: buildOutputName(file.name, settings, outcome.format, options.index),
+      blob: outcome.blob,
+      format: outcome.format,
+      width: outcome.width,
+      height: outcome.height,
+      note: joinNotes(
+        gifNote(details, outcome.format),
+        outcome.report.switchedFrom
+          ? `Switched ${formatById(outcome.report.switchedFrom).label} → ${formatById(outcome.format).label} to reach the target.`
+          : undefined,
+        outcome.report.downscaled
+          ? `Dimensions reduced to ${outcome.width} × ${outcome.height} px to reach the target.`
+          : undefined,
+        largerThanSource(file.size, outcome.blob.size, true)
+          ? `The output is larger than the original (${formatKb(outcome.blob.size)} vs ${formatKb(file.size)}).`
+          : undefined,
+        metadataNote(details),
+      ),
+      size: {
+        ...outcome.report,
+        target: targetMode ? target : undefined,
+        warning,
+      },
+    };
   } finally {
-    releaseCanvas(decoded.canvas);
+    releaseCanvas(edited.canvas);
+    // The edit step may have produced a new canvas; free both when they differ.
+    if (edited.canvas !== decoded.canvas) releaseCanvas(decoded.canvas);
   }
+}
+
+/**
+ * Apply crop, straighten, quick rotation and flips, in that order.
+ *
+ * Returns the decoded canvas untouched when there is nothing to do, so the
+ * common path never pays for an extra canvas.
+ */
+function applyEdits(
+  decoded: { canvas: HTMLCanvasElement; width: number; height: number },
+  edits: ImageEditsSettings,
+): { canvas: HTMLCanvasElement; width: number; height: number } {
+  if (!hasImageEdits(edits)) return decoded;
+
+  let canvas = decoded.canvas;
+  let width = decoded.width;
+  let height = decoded.height;
+  const scratch: HTMLCanvasElement[] = [];
+
+  const draw = (
+    next: HTMLCanvasElement,
+    paint: (ctx: CanvasRenderingContext2D) => void,
+  ) => {
+    const context = next.getContext("2d");
+    if (!context)
+      throw new Error("Canvas rendering is unavailable in this browser.");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    paint(context);
+    return next;
+  };
+
+  try {
+    // 1 — crop, in source pixel space.
+    if (!cropIsWhole(edits.crop) && edits.crop) {
+      const rect = cropPixels(edits.crop, width, height);
+      const cropped = draw(makeCanvas(rect.width, rect.height).canvas, (ctx) =>
+        ctx.drawImage(
+          canvas,
+          rect.x,
+          rect.y,
+          rect.width,
+          rect.height,
+          0,
+          0,
+          rect.width,
+          rect.height,
+        ),
+      );
+      if (canvas !== decoded.canvas) scratch.push(canvas);
+      canvas = cropped;
+      width = rect.width;
+      height = rect.height;
+    }
+
+    // 2 — straighten: an arbitrary angle, so the box grows to hold the corners.
+    if (Math.abs(edits.straighten) > 0.01) {
+      const box = rotatedSize(width, height, edits.straighten);
+      const radians = (edits.straighten * Math.PI) / 180;
+      const straightened = draw(
+        makeCanvas(box.width, box.height).canvas,
+        (ctx) => {
+          ctx.translate(box.width / 2, box.height / 2);
+          ctx.rotate(radians);
+          ctx.drawImage(canvas, -width / 2, -height / 2, width, height);
+        },
+      );
+      if (canvas !== decoded.canvas) scratch.push(canvas);
+      canvas = straightened;
+      width = box.width;
+      height = box.height;
+    }
+
+    // 3 — quick rotation in 90° steps.
+    if (edits.rotate === 90 || edits.rotate === 270 || edits.rotate === 180) {
+      const swapped = edits.rotate !== 180;
+      const target = swapped
+        ? { width: height, height: width }
+        : { width, height };
+      const rotated = draw(
+        makeCanvas(target.width, target.height).canvas,
+        (ctx) => {
+          ctx.translate(target.width / 2, target.height / 2);
+          ctx.rotate((edits.rotate * Math.PI) / 180);
+          ctx.drawImage(canvas, -width / 2, -height / 2, width, height);
+        },
+      );
+      if (canvas !== decoded.canvas) scratch.push(canvas);
+      canvas = rotated;
+      width = target.width;
+      height = target.height;
+    }
+
+    // 4 — flips.
+    if (edits.flipH || edits.flipV) {
+      const flipped = draw(makeCanvas(width, height).canvas, (ctx) => {
+        ctx.translate(edits.flipH ? width : 0, edits.flipV ? height : 0);
+        ctx.scale(edits.flipH ? -1 : 1, edits.flipV ? -1 : 1);
+        ctx.drawImage(canvas, 0, 0, width, height);
+      });
+      if (canvas !== decoded.canvas) scratch.push(canvas);
+      canvas = flipped;
+    }
+
+    // The caller frees the canvas we hand back; free the intermediates now.
+    for (const entry of scratch)
+      if (entry !== canvas && entry !== decoded.canvas) releaseCanvas(entry);
+    return { canvas, width, height };
+  } catch (error) {
+    for (const entry of scratch)
+      if (entry !== decoded.canvas) releaseCanvas(entry);
+    throw error;
+  }
+}
+
+function formatKb(bytes: number) {
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function largerThanSource(
+  sourceBytes: number,
+  outputBytes: number,
+  ignore: boolean,
+) {
+  return !ignore && outputBytes > sourceBytes;
 }
 
 /* ----------------------------- images → PDF ------------------------------ */
@@ -532,6 +995,12 @@ export function coverCrop(
 export type PdfFromImagesOptions = {
   signal?: AbortSignal;
   onPage?: (done: number, total: number) => void;
+  /**
+   * Clockwise quarter turns per image, matched to `files` by index. Anything
+   * absent or out of range is treated as 0, so callers that do not care about
+   * rotation keep working unchanged.
+   */
+  rotations?: readonly number[];
 };
 
 /**
@@ -589,6 +1058,13 @@ export async function imagesToPdf(
       details.format,
       settings.image.orientation,
     );
+    const rotation = normalizeRotation(options.rotations?.[index] ?? 0);
+    const source =
+      rotation === 0
+        ? decoded.canvas
+        : rotateCanvasBy(decoded.canvas, rotation);
+    const sourceWidth = source.width;
+    const sourceHeight = source.height;
     try {
       const fit: FitMode = settings.pdfMake.fit;
       const placementBox = {
@@ -600,14 +1076,19 @@ export async function imagesToPdf(
       const crop =
         fit === "cover"
           ? coverCrop(
-              decoded.width,
-              decoded.height,
+              sourceWidth,
+              sourceHeight,
               placementBox.width,
               placementBox.height,
             )
-          : { x: 0, y: 0, width: decoded.width, height: decoded.height };
+          : { x: 0, y: 0, width: sourceWidth, height: sourceHeight };
 
-      const plan = planPdfEmbedSize(crop.width, crop.height, placementBox);
+      const plan = planPdfEmbedSize(
+        crop.width,
+        crop.height,
+        placementBox,
+        clampDpi(settings.pdfMake.dpi),
+      );
       const { canvas, context } = makeCanvas(plan.width, plan.height);
       let jpeg: Uint8Array;
       try {
@@ -617,7 +1098,7 @@ export async function imagesToPdf(
         context.fillStyle = settings.pdfMake.background;
         context.fillRect(0, 0, plan.width, plan.height);
         context.drawImage(
-          decoded.canvas,
+          source,
           crop.x,
           crop.y,
           crop.width,
@@ -665,6 +1146,8 @@ export async function imagesToPdf(
       options.onPage?.(index + 1, files.length);
       await yieldToUi();
     } finally {
+      // A quarter turn allocates a second canvas; give it back too.
+      if (source !== decoded.canvas) releaseCanvas(source);
       releaseCanvas(decoded.canvas);
     }
   }
@@ -739,17 +1222,40 @@ async function openPdf(blob: Blob) {
   }
 }
 
-export async function readPdfPageCount(blob: Blob): Promise<number> {
+export type PdfDocInfo = {
+  pageCount: number;
+  /** First page size in PDF points, for pre-render output estimates. */
+  widthPt: number;
+  heightPt: number;
+};
+
+/**
+ * Page count plus the first page's size, from a single document load. Pages in
+ * one PDF can differ in size, so this is the first page only — enough to
+ * estimate output size, and labelled as an estimate in the UI.
+ */
+export async function readPdfDocInfo(blob: Blob): Promise<PdfDocInfo> {
   const { doc, task } = await openPdf(blob);
   try {
     if (doc.numPages > CONVERT_LIMITS.maxPdfPages)
       throw new Error(
         `This PDF has ${doc.numPages} pages. The limit is ${CONVERT_LIMITS.maxPdfPages} pages per document.`,
       );
-    return doc.numPages;
+    const page = await doc.getPage(1);
+    const viewport = page.getViewport({ scale: 1 });
+    return {
+      pageCount: doc.numPages,
+      widthPt: Math.round(viewport.width),
+      heightPt: Math.round(viewport.height),
+    };
   } finally {
     await task.destroy().catch(() => undefined);
   }
+}
+
+export async function readPdfPageCount(blob: Blob): Promise<number> {
+  const info = await readPdfDocInfo(blob);
+  return info.pageCount;
 }
 
 function yieldToUi() {
@@ -968,4 +1474,243 @@ export async function zipOutputs(
   return new Blob([new Uint8Array(createZip(entries))], {
     type: "application/zip",
   });
+}
+
+/* ------------------------------ PDF studio ------------------------------- */
+
+export type PdfStudioRunOptions = {
+  /** Source PDFs, in the order shown in the queue. */
+  files: File[];
+  pages: PdfPageOp[];
+  action: PdfStudioAction;
+  settings: PdfStudioSettings;
+  sources: PdfSourceSummary[];
+  signal?: AbortSignal;
+  onProgress?: ProgressReporter;
+};
+
+export type PdfStudioOutput = {
+  name: string;
+  blob: Blob;
+  pages: number;
+  label?: string;
+  /** Bytes of the source this output came from, for a savings comparison. */
+  sourceBytes: number;
+  notices: string[];
+};
+
+/**
+ * Rebuild a PDF from an explicit page plan: order, rotation and removal are
+ * applied here, so the source documents are only ever read.
+ */
+export async function runPdfStudio(
+  options: PdfStudioRunOptions,
+): Promise<PdfStudioOutput[]> {
+  const { files, pages, action, settings, sources, signal, onProgress } =
+    options;
+  const pdfLib = await loadPdfLib();
+  const kept = keptPages(pages);
+  if (!kept.length)
+    throw new Error("Every page is removed. Keep at least one.");
+
+  const documents = await Promise.all(
+    files.map(async (file) => {
+      assertNotAborted(signal);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      try {
+        return await pdfLib.PDFDocument.load(bytes, {
+          ignoreEncryption: false,
+        });
+      } catch (error) {
+        // Only a genuine encryption failure may be reported as a password
+        // problem. A corrupt or truncated file also lands here, and blaming a
+        // password that the document does not have sends the user off to remove
+        // something that was never there.
+        if (error instanceof pdfLib.EncryptedPDFError) {
+          throw new Error(PASSWORD_PDF);
+        }
+        throw new Error(
+          `${file.name} could not be opened as a PDF. It may be corrupt or truncated.`,
+        );
+      }
+    }),
+  );
+
+  const buildDocument = async (
+    selected: PdfPageOp[],
+  ): Promise<{ bytes: Uint8Array; count: number }> => {
+    const output = await pdfLib.PDFDocument.create();
+    for (const [index, page] of selected.entries()) {
+      assertNotAborted(signal);
+      const source = documents[page.sourceIndex];
+      if (!source)
+        throw new Error(
+          `Page ${page.page} refers to a file that is not loaded.`,
+        );
+      const [copied] = await output.copyPages(source, [page.page - 1]);
+      if (page.rotation)
+        copied.setRotation(
+          pdfLib.degrees(
+            (copied.getRotation().angle + page.rotation + 360) % 360,
+          ),
+        );
+      output.addPage(copied);
+      onProgress?.(index + 1, selected.length);
+    }
+
+    // Page numbers are stamped after every page is placed, so the total is
+    // known and numbering is sequential in the written document regardless of
+    // the source page numbers they came from.
+    if (settings.pageNumbers && output.getPageCount() > 0) {
+      const font = await output.embedFont(pdfLib.StandardFonts.Helvetica);
+      const total = output.getPageCount();
+      const colour = pdfLib.rgb(0.25, 0.25, 0.25);
+      output.getPages().forEach((stamped, index) => {
+        const label = pageNumberLabel(
+          settings.pageNumberFormat,
+          index + 1,
+          total,
+        );
+        if (!label) return;
+        const { widthPt, heightPt } = (() => {
+          const size = stamped.getSize();
+          return { widthPt: size.width, heightPt: size.height };
+        })();
+        const placement = pageNumberPlacement(
+          settings.pageNumberPosition,
+          widthPt,
+          heightPt,
+        );
+        const textWidth = font.widthOfTextAtSize(
+          label,
+          settings.pageNumberSize,
+        );
+        const x =
+          placement.align === "center"
+            ? placement.x - textWidth / 2
+            : placement.align === "right"
+              ? placement.x - textWidth
+              : placement.x;
+        // A top position sits the text below the margin so it is not clipped.
+        const y =
+          placement.y > heightPt / 2
+            ? placement.y - settings.pageNumberSize
+            : placement.y;
+        stamped.drawText(label, {
+          x,
+          y,
+          size: settings.pageNumberSize,
+          font,
+          color: colour,
+        });
+      });
+    }
+
+    // The watermark is drawn after page numbers so it sits on top, and only
+    // when there is text to draw - an empty field writes nothing at all.
+    if (settings.watermarkText.trim() && output.getPageCount() > 0) {
+      const font = await output.embedFont(pdfLib.StandardFonts.HelveticaBold);
+      const text = settings.watermarkText.trim();
+      const size = settings.watermarkSize;
+      const opacity =
+        Math.min(100, Math.max(0, settings.watermarkOpacity)) / 100;
+      const textWidth = font.widthOfTextAtSize(text, size);
+      const textHeight = font.heightAtSize(size);
+      output.getPages().forEach((stamped) => {
+        const { width, height } = stamped.getSize();
+        const placement = watermarkPlacement(
+          width,
+          height,
+          textWidth,
+          textHeight,
+          settings.watermarkAngle,
+        );
+        stamped.drawText(text, {
+          x: placement.x,
+          y: placement.y,
+          size,
+          font,
+          color: pdfLib.rgb(0.35, 0.35, 0.35),
+          opacity,
+          rotate: pdfLib.degrees(placement.angle),
+        });
+      });
+    }
+
+    if (settings.title.trim()) output.setTitle(settings.title.trim());
+    if (settings.author.trim()) output.setAuthor(settings.author.trim());
+    if (settings.subject.trim()) output.setSubject(settings.subject.trim());
+    const keywords = parseKeywords(settings.keywords);
+    if (keywords.length) output.setKeywords(keywords);
+    output.setProducer("QUICKKIT");
+    return { bytes: await output.save(), count: output.getPageCount() };
+  };
+
+  const totalSourceBytes = files.reduce((sum, file) => sum + file.size, 0);
+
+  if (action === "split") {
+    const groups = splitGroups(pages, settings.ranges, sources);
+    if (!groups.length) throw new Error("No page matches that range.");
+    const outputs: PdfStudioOutput[] = [];
+    const used = new Set<string>();
+    for (const [index, group] of groups.entries()) {
+      assertNotAborted(signal);
+      const built = await buildDocument(group.pages);
+      const name = uniqueName(
+        studioOutputName(settings.filename, group.label),
+        used,
+      );
+      outputs.push({
+        name,
+        blob: new Blob([new Uint8Array(built.bytes)], {
+          type: "application/pdf",
+        }),
+        pages: built.count,
+        label: group.label,
+        sourceBytes: totalSourceBytes / groups.length,
+        notices: [],
+      });
+      onProgress?.(index + 1, groups.length);
+    }
+    return outputs;
+  }
+
+  const built = await buildDocument(kept);
+  const baseName = studioOutputName(settings.filename, null);
+
+  if (action === "compress") {
+    assertNotAborted(signal);
+    const preset =
+      PDF_COMPRESSION_PRESETS.find(
+        (entry) => entry.id === settings.compressPresetId,
+      ) ?? PDF_COMPRESSION_PRESETS[0];
+    const result = await compressPdfBytes(
+      built.bytes,
+      presetSettings(preset.id),
+      { entryId: "studio" },
+    );
+    return [
+      {
+        name: baseName,
+        blob: new Blob([new Uint8Array(result.bytes)], {
+          type: "application/pdf",
+        }),
+        pages: result.pageCount,
+        sourceBytes: built.bytes.byteLength,
+        notices: result.notices,
+      },
+    ];
+  }
+
+  return [
+    {
+      name: baseName,
+      blob: new Blob([new Uint8Array(built.bytes)], {
+        type: "application/pdf",
+      }),
+      pages: built.count,
+      sourceBytes: totalSourceBytes,
+      notices: [],
+    },
+  ];
 }

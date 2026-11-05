@@ -26,9 +26,9 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "PDF Tools",
     slug: "pdf-tools",
-    blurb: "Merge, split, convert and manage PDF files.",
+    blurb: "Merge, split, convert, lock and manage PDF files.",
     description:
-      "Everything you need to work with PDFs — combine documents, export pages as images and turn photos into a PDF, all in your browser with nothing uploaded.",
+      "Everything you need to work with PDFs — combine documents, export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption locally. Word to PDF is a separately disclosed, opt-in self-hosted conversion workflow.",
     tint: "tint-pdf",
     icon: "pdf",
   },
@@ -126,6 +126,18 @@ export const tools = [
     phase: 2,
   },
   {
+    slug: "image-to-text",
+    name: "Image to Text (OCR)",
+    category: "Text & Writing",
+    description:
+      "Turn photos, screenshots, receipts and scanned PDFs into editable text — English, Hindi, Gujarati, Marathi, Bengali, Tamil, Telugu and Urdu, read on your device.",
+    keywords:
+      "ocr image to text text from image extract text scan scanned document photo screenshot receipt invoice handwriting handwritten notes table extraction columns structured data key value form copy paste editable english hindi gujarati marathi bengali tamil telugu urdu devanagari multi language detect language confidence batch rotate crop deskew enhance privacy offline local",
+    icon: "ocr",
+    color: "rose",
+    phase: 7,
+  },
+  {
     slug: "json-formatter",
     name: "JSON Formatter",
     category: "Developer Tools",
@@ -158,6 +170,18 @@ export const tools = [
     icon: "qr",
     color: "mint",
     phase: 2,
+  },
+  {
+    slug: "qr-code-scanner",
+    name: "QR Code Scanner",
+    category: "QR & Barcode",
+    description:
+      "Scan QR codes with your camera, an uploaded image or a whole folder of screenshots — decode every code in a picture, identify its content type and inspect the destination before you open it.",
+    keywords:
+      "scan scanner reader decode camera webcam upload image screenshot batch multiple codes wifi vcard contact url link payment upi crypto security phishing inspect history export csv json txt offline free qrcode",
+    icon: "scan",
+    color: "blue",
+    phase: 14,
   },
   {
     slug: "image-compressor",
@@ -196,15 +220,50 @@ export const tools = [
     phase: 3,
   },
   {
-    slug: "image-converter",
-    name: "Image & PDF Converter",
+    slug: "image-to-image",
+    name: "Image to Image Converter",
     category: "Image Tools",
-    categories: ["Image Tools", "PDF Tools"],
     description:
-      "Convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF, turn images into multi-page PDFs, and export PDF pages as JPG, PNG or WEBP — all on your device.",
+      "Convert JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF in batch, with quality-first compression, target file sizes, resizing and a real before/after preview.",
     keywords:
-      "convert conversion format jpg jpeg png webp avif gif bmp tiff pdf images to pdf pdf to image export dpi page range batch zip transparency",
+      "convert conversion format jpg jpeg png webp avif gif bmp tiff heic heif batch zip quality target kb mb lossless lossy transparency background resize aspect ratio crop rotate flip straighten exif orientation metadata prefix suffix",
     icon: "convert",
+    color: "blue",
+    phase: 3,
+  },
+  {
+    slug: "images-to-pdf",
+    name: "Images to PDF Converter",
+    category: "PDF Tools",
+    description:
+      "Turn your pictures into one PDF, one image per page. Drag to order pages, rotate them, pick A4, A3, A5, Letter or a custom size, set margins and fit, and download a real PDF.",
+    keywords:
+      "images to pdf pictures photos to pdf jpg png webp to pdf create build make pdf page order drag drop reorder rotate remove a4 a3 a5 letter custom size portrait landscape margin contain cover fill background quality dpi title filename preview page count",
+    icon: "imagesToPdf",
+    color: "purple",
+    phase: 3,
+  },
+  {
+    slug: "pdf-to-image",
+    name: "PDF to Image Converter",
+    category: "PDF Tools",
+    description:
+      "Export PDF pages as JPG, PNG or WEBP images. Choose every page or a custom range, set the resolution up to 300 DPI, preview the real rendered pages, and download single pages or one ZIP.",
+    keywords:
+      "pdf to image pdf to jpg pdf to png pdf to webp convert pdf pages export render extract pages as pictures screenshots dpi resolution quality page range background thumbnail preview zip download batch",
+    icon: "pdfToImage",
+    color: "blue",
+    phase: 3,
+  },
+  {
+    slug: "pdf-studio",
+    name: "PDF Studio",
+    category: "PDF Tools",
+    description:
+      "Merge PDFs, extract or split page ranges, delete, rotate and reorder individual pages, and compress the result — with live thumbnails and page counts, all processed on your device.",
+    keywords:
+      "pdf studio merge combine join pdf split extract pages delete remove rotate reorder drag drop page order compress shrink organize arrange thumbnails page count batch multiple pdfs",
+    icon: "pdfStudio",
     color: "purple",
     phase: 3,
   },
@@ -243,6 +302,17 @@ export const tools = [
     phase: 5,
   },
   {
+    slug: "word-to-pdf",
+    name: "Word to PDF Converter",
+    category: "PDF Tools",
+    description:
+      "Convert DOCX documents with opt-in self-hosted LibreOffice processing. Requires an enabled server engine; files are not converted in your browser.",
+    keywords: "word docx pdf office document batch convert",
+    icon: "word",
+    color: "purple",
+    phase: 6,
+  },
+  {
     slug: "pdf-to-word",
     name: "PDF to Word",
     category: "PDF Tools",
@@ -252,6 +322,18 @@ export const tools = [
     icon: "word",
     color: "blue",
     phase: 6,
+  },
+  {
+    slug: "pdf-lock-unlock",
+    name: "PDF Lock & Unlock",
+    category: "PDF Tools",
+    description:
+      "Protect PDFs with AES-256 encryption, open and permissions passwords, and reader permission controls — or unlock them with the correct existing password. Batch processing and verified ZIP downloads, all on your device.",
+    keywords:
+      "pdf lock unlock password protect encrypt decrypt permissions aes aes-256 aes-128 security batch zip open password owner password restrict printing copying editing",
+    icon: "pdfLock",
+    color: "purple",
+    phase: 10,
   },
   {
     slug: "percentage-calculator",
@@ -429,7 +511,7 @@ export function relatedTools(tool: Tool, limit = 3): Tool[] {
 
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();
-  return tools.filter(
+  const matches = tools.filter(
     (tool) =>
       (category === "All tools" ||
         toolCategoriesOf(tool).includes(category as ToolCategory)) &&
@@ -437,4 +519,14 @@ export function filterTools(query: string, category: Category) {
         .toLocaleLowerCase()
         .includes(search),
   );
+  if (!search) return matches;
+  // A tool whose *name* contains the query outranks one that only matched a
+  // keyword, so typing "JSON" still lands on JSON Formatter even though other
+  // tools mention JSON in their keyword list. Stable within each group.
+  const byName = matches.filter((tool) =>
+    tool.name.toLocaleLowerCase().includes(search),
+  );
+  return byName.length
+    ? [...byName, ...matches.filter((tool) => !byName.includes(tool))]
+    : matches;
 }

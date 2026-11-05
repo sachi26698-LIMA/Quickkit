@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { bmi, discount, gst, percentage } from "@/lib/tools/calculators";
-import { downloadText } from "@/lib/tools/download";
+import { downloadText, downloadBlob } from "@/lib/tools/download";
 import { csvCell } from "@/lib/tools/phase9-v2-advanced";
 import {
   formatPercentageNumber,
@@ -32,13 +32,18 @@ export default function Calculator({ kind }: { kind: string }) {
       currency: string;
       targetBmi: string;
       previousWeight: string;
+      ageGroup: string;
+      favorite: boolean;
       summary: string;
     }[]
   >([]);
   const [notice, setNotice] = useState("");
+  const [confirmClear, setConfirmClear] = useState(false);
   const [targetBmi, setTargetBmi] = useState("");
   const [previousWeight, setPreviousWeight] = useState("");
+  const [ageGroup, setAgeGroup] = useState("unknown");
   const [currency, setCurrency] = useState("INR");
+  let discountReport: string[] | undefined;
   let bmiValue: number | undefined;
   let targetWeight = "";
   let result = "";
@@ -64,7 +69,7 @@ export default function Calculator({ kind }: { kind: string }) {
       if (kind === "bmi-calculator") {
         const r = bmi(x, y, toggle);
         bmiValue = r.value;
-        if (targetBmi !== "") {
+        if (targetBmi !== "" && ageGroup === "adult") {
           const target = Number(targetBmi);
           if (!Number.isFinite(target) || target <= 0 || target > 100)
             throw new Error(
@@ -73,15 +78,37 @@ export default function Calculator({ kind }: { kind: string }) {
           const metres = toggle ? x * 0.0254 : x / 100;
           targetWeight = `${format(target * metres ** 2 * (toggle ? 1 / 0.45359237 : 1))} ${toggle ? "lb" : "kg"}`;
         }
-        result = `${format(r.value)} · ${r.category}`;
-        detail = `Healthy weight range: ${format(r.low)}–${format(r.high)} ${toggle ? "lb" : "kg"}. BMI = kg ÷ m².`;
+        result = `${format(r.value)}${ageGroup === "adult" ? ` · ${r.category}` : ""}`;
+        detail =
+          ageGroup === "adult"
+            ? `Adult healthy weight range estimate: ${format(r.low)}–${format(r.high)} ${toggle ? "lb" : "kg"}. BMI = kg ÷ m².`
+            : "BMI = kg ÷ m². Adult categories and weight ranges are not shown without confirmation of age 20 or older. For children and teens, interpretation requires age- and sex-specific growth charts and clinical guidance.";
       }
       if (kind === "discount-calculator") {
         const rates = b.split(",").map((v) => {
-          if (!v.trim()) throw new Error("Enter each discount rate.");
-          return Number(v);
+          if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(v.trim()))
+            throw new Error(
+              "Enter decimal discount rates separated by commas.",
+            );
+          const rate = Number(v);
+          if (rate === 0 && /[1-9]/.test(v.trim().split(/[eE]/)[0]))
+            throw new Error(
+              "A discount rate is too small to represent accurately.",
+            );
+          return rate;
         });
         const r = discount(x, rates, extra === "" ? 0 : Number(extra), toggle);
+        discountReport = [
+          `Input price: ${currency} ${format(x)} (${toggle ? "after discounts, before tax" : "original before tax"})`,
+          `Discount rates applied in order: ${rates.map(String).join(", ")}%`,
+          `Tax after discount: ${format(extra === "" ? 0 : Number(extra))}%`,
+          `Original before discounts: ${currency} ${format(r.original)}`,
+          `After discounts: ${currency} ${format(r.discounted)}`,
+          `Savings: ${currency} ${format(r.saved)}`,
+          `Tax: ${currency} ${format(r.taxAmount)}`,
+          `Final price: ${currency} ${format(r.total)}`,
+          "Amounts are estimates, rounded to four decimal places in this report. No currency conversion is performed.",
+        ];
         result = money(r.total, currency);
         detail = `Original: ${money(r.original, currency)} · After discounts: ${money(r.discounted, currency)} · Saved: ${money(r.saved, currency)} · Tax: ${money(r.taxAmount, currency)}. Discounts are applied sequentially, then tax.`;
       }
@@ -104,7 +131,7 @@ export default function Calculator({ kind }: { kind: string }) {
   ) {
     try {
       const previous = bmi(Number(a), Number(previousWeight), toggle);
-      comparison = `Previous BMI: ${format(previous.value)} · ${previous.category}. Change: ${format(bmiValue - previous.value)} BMI points (same height).`;
+      comparison = `Previous BMI: ${format(previous.value)}${ageGroup === "adult" ? ` · ${previous.category}` : ""}. Change: ${format(bmiValue - previous.value)} BMI points (same height).`;
     } catch (e) {
       comparisonError =
         e instanceof Error ? e.message : "Invalid previous weight.";
@@ -119,6 +146,7 @@ export default function Calculator({ kind }: { kind: string }) {
     setNotice("");
     setTargetBmi("");
     setPreviousWeight("");
+    setAgeGroup("unknown");
     setCurrency("INR");
   }
   const isPercentage = kind === "percentage-calculator",
@@ -219,6 +247,19 @@ export default function Calculator({ kind }: { kind: string }) {
             />
           </label>
           {isBmi && (
+            <label>
+              Age group
+              <select
+                value={ageGroup}
+                onChange={(e) => setAgeGroup(e.target.value)}
+              >
+                <option value="unknown">Not specified</option>
+                <option value="minor">Under 20 years</option>
+                <option value="adult">20 years or older</option>
+              </select>
+            </label>
+          )}
+          {isBmi && ageGroup === "adult" && (
             <details>
               <summary>Target BMI</summary>
               <label>
@@ -297,6 +338,8 @@ export default function Calculator({ kind }: { kind: string }) {
                       currency,
                       targetBmi,
                       previousWeight,
+                      ageGroup,
+                      favorite: false,
                       summary:
                         result +
                         " — " +
@@ -333,26 +376,56 @@ export default function Calculator({ kind }: { kind: string }) {
               )}
               {isBmi && bmiValue !== undefined && (
                 <>
-                  <div
-                    className="bmi-scale"
-                    role="img"
-                    aria-label={`BMI ${format(bmiValue)}; categories underweight below 18.5, healthy 18.5 to 24.9, overweight 25 to 29.9 and obesity 30 or more.`}
-                  >
-                    <span
-                      style={{
-                        left: `${Math.max(0, Math.min(100, (bmiValue / 40) * 100))}%`,
-                      }}
-                    />
-                  </div>
+                  {ageGroup === "adult" && (
+                    <div
+                      className="bmi-scale"
+                      role="img"
+                      aria-label={`BMI ${format(bmiValue)}; categories underweight below 18.5, healthy 18.5 to 24.9, overweight 25 to 29.9 and obesity 30 or more.`}
+                    >
+                      <span
+                        style={{
+                          left: `${Math.max(0, Math.min(100, (bmiValue / 40) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                  )}
                   {comparisonError && (
                     <p className="calculator-error">{comparisonError}</p>
                   )}
                   {comparison && <p>{comparison}</p>}
                   <p>
-                    Scale 0–40 (higher values shown at the edge).{" "}
+                    {ageGroup === "adult" &&
+                      "Adult scale 0–40 (higher values shown at the edge). "}
                     {targetWeight && `Weight at target BMI: ${targetWeight}.`}
                   </p>
                 </>
+              )}
+              {isDiscount && discountReport && (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={async () => {
+                    try {
+                      const { calculatorPdf } =
+                        await import("@/lib/tools/calculator-pdf");
+                      const bytes = await calculatorPdf(
+                        "Discount calculation",
+                        discountReport!,
+                      );
+                      downloadBlob(
+                        new Blob([new Uint8Array(bytes)], {
+                          type: "application/pdf",
+                        }),
+                        "discount-calculation.pdf",
+                      );
+                      setNotice("PDF downloaded.");
+                    } catch {
+                      setNotice("Could not create the PDF. Please try again.");
+                    }
+                  }}
+                >
+                  Download discount PDF
+                </button>
               )}
               <button
                 type="button"
@@ -408,15 +481,71 @@ export default function Calculator({ kind }: { kind: string }) {
             <button
               type="button"
               className="secondary"
-              onClick={() => setHistory([])}
+              onClick={() => {
+                if (isDiscount) setConfirmClear(true);
+                else setHistory([]);
+              }}
             >
               Clear history
             </button>
+            {isDiscount && confirmClear && (
+              <div role="group" aria-label="Confirm clear history">
+                <p>Delete all saved calculations, including favorites?</p>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    setHistory([]);
+                    setConfirmClear(false);
+                    setNotice("History cleared.");
+                  }}
+                >
+                  Confirm clear history
+                </button>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setConfirmClear(false)}
+                >
+                  Cancel clear history
+                </button>
+              </div>
+            )}
           </div>
           <ol>
             {history.map((entry, i) => (
               <li key={i}>
                 {entry.summary}{" "}
+                {isDiscount && (
+                  <>
+                    <button
+                      type="button"
+                      className="secondary"
+                      aria-pressed={entry.favorite}
+                      onClick={() =>
+                        setHistory((h) =>
+                          h.map((item, index) =>
+                            index === i
+                              ? { ...item, favorite: !item.favorite }
+                              : item,
+                          ),
+                        )
+                      }
+                    >
+                      {entry.favorite ? "Unfavorite" : "Favorite"} calculation{" "}
+                      {i + 1}
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        setHistory((h) => h.filter((_, index) => index !== i))
+                      }
+                    >
+                      Delete calculation {i + 1}
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   className="secondary"
@@ -429,6 +558,7 @@ export default function Calculator({ kind }: { kind: string }) {
                     setCurrency(entry.currency);
                     setTargetBmi(entry.targetBmi);
                     setPreviousWeight(entry.previousWeight);
+                    setAgeGroup(entry.ageGroup);
                     setNotice("Calculation restored.");
                   }}
                 >

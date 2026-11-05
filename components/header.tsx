@@ -49,9 +49,18 @@ export default function Header() {
     }
   };
 
-  const current = (page: string | null) =>
+  /**
+   * Active-state helper. `Page` is the route the nav item owns; `section`
+   * additionally matches everything below it, so /about stays current on the
+   * legal/information pages a visitor reaches from the About section.
+   */
+  const current = (page: string | null, section?: string[]) =>
     page &&
-    (pathname === page || (page === "/tools" && pathname.startsWith("/tools/")))
+    (pathname === page ||
+      (page === "/tools" && pathname.startsWith("/tools/")) ||
+      section?.some(
+        (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
+      ))
       ? ("page" as const)
       : undefined;
 
@@ -128,11 +137,26 @@ export default function Header() {
           <Link
             href="/about"
             onClick={closeAll}
-            aria-current={current("/about")}
+            aria-current={current("/about", [
+              "/terms",
+              "/privacy",
+              "/cookies",
+              "/disclaimer",
+              "/copyright",
+              "/intellectual-property",
+              "/security",
+              "/accessibility",
+              "/file-handling",
+              "/contact",
+            ])}
           >
             About
           </Link>
-          <Link href="/help" onClick={closeAll} aria-current={current("/help")}>
+          <Link
+            href="/help"
+            onClick={closeAll}
+            aria-current={current("/help", ["/faq"])}
+          >
             Help
           </Link>
           <Link onClick={closeAll} href="/tools" className="header-cta">

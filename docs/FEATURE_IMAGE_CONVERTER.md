@@ -17,7 +17,7 @@ Three independent modes share one queue, one settings panel and one preview work
    A4/A3/Letter/Legal/custom page sizes, portrait or landscape, 0–60 mm margins, contain/cover/fill
    placement, page background, embedded JPEG quality, document title and a configurable filename.
    Pages are raster; the tool never claims editable text.
-3. **PDF to image** — render selected pages as JPG, PNG or WEBP at 72–300 DPI, with a page range
+3. **PDF to image** — render selected pages as JPG, PNG or WEBP at 72–600 DPI, with a page range
    (`1-3, 5`), page background, zero-padded filenames, page navigation, per-page downloads and a ZIP.
    PDF previews are rendered from the real uploaded PDF; source↔converted comparison is available.
 
@@ -72,7 +72,7 @@ broken file.
 | PDF pages                 | 100                               |
 | Batch size                | 150 MB                            |
 | Rendered PDF page         | 36 MP cap                         |
-| PDF render DPI            | 72–300                            |
+| PDF render DPI            | 72–600                            |
 | JPEG/WEBP/AVIF quality    | 10–100                            |
 | PDF margin                | 0–60 mm                           |
 | Custom page               | 20–2,000 mm per side              |

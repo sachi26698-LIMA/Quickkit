@@ -42,6 +42,18 @@ const devAllowedOrigins = [
 const config: NextConfig = {
   poweredByHeader: false,
   ...(enforcing ? {} : { allowedDevOrigins: devAllowedOrigins }),
+  async redirects() {
+    return [
+      {
+        // The combined Image & PDF Converter was split into four separate
+        // tools. Existing bookmarks, saved cards and inbound links keep
+        // working instead of hitting a 404.
+        source: "/tools/image-converter",
+        destination: "/tools/image-to-image",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -62,6 +74,20 @@ const config: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        // The QR Code Scanner is the one page that needs a camera. A
+        // Permissions-Policy on `/:path*` would otherwise be inherited by it
+        // and the browser would refuse getUserMedia even after the visitor
+        // granted permission, so this rule — which wins for the exact path —
+        // re-allows the camera for this page only. Nothing else is widened.
+        source: "/tools/qr-code-scanner",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
           },
         ],
       },

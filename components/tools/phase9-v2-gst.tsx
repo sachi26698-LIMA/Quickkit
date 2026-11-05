@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { gstInvoice, csvCell } from "@/lib/tools/phase9-v2-advanced";
-import { downloadText } from "@/lib/tools/download";
+import { downloadText, downloadBlob } from "@/lib/tools/download";
 type Item = {
   name: string;
   quantity: string;
@@ -379,6 +379,46 @@ export default function GSTInvoice() {
                 }}
               >
                 Copy invoice summary
+              </button>
+              <button
+                className="secondary"
+                type="button"
+                onClick={async () => {
+                  try {
+                    const { calculatorPdf } =
+                      await import("@/lib/tools/calculator-pdf");
+                    const lines = [
+                      `Price basis: ${inclusive ? "GST inclusive" : "GST exclusive"}. Supply: ${supply === "intra" ? "intra-state" : "inter-state"}.`,
+                      ...result!.lines.flatMap((item, i) => [
+                        `${i + 1}. ${item.name || `Item ${i + 1}`} - quantity ${item.quantity}, unit price INR ${item.unitPrice}, discount ${item.discount}%, GST ${item.rate}%`,
+                        `Taxable INR ${item.taxable.toFixed(2)}, GST INR ${item.tax.toFixed(2)}, total INR ${item.total.toFixed(2)}`,
+                      ]),
+                      `Taxable total INR ${result!.taxable.toFixed(2)}; GST total INR ${result!.tax.toFixed(2)}.`,
+                      supply === "intra"
+                        ? `CGST INR ${(result!.tax / 2).toFixed(2)}; SGST INR ${(result!.tax / 2).toFixed(2)}.`
+                        : `IGST INR ${result!.tax.toFixed(2)}.`,
+                      `Invoice total INR ${result!.total.toFixed(2)}.`,
+                      "Estimate only; amounts summed before display rounding. Not tax or filing advice.",
+                    ];
+                    const bytes = await calculatorPdf(
+                      "GST invoice estimate",
+                      lines,
+                    );
+                    downloadBlob(
+                      new Blob([new Uint8Array(bytes)], {
+                        type: "application/pdf",
+                      }),
+                      "gst-invoice-estimate.pdf",
+                    );
+                    setNotice("Invoice PDF downloaded.");
+                  } catch {
+                    setNotice(
+                      "Could not create the PDF. PDF item names must use basic Latin characters and fit the page; use CSV for other names.",
+                    );
+                  }
+                }}
+              >
+                Download invoice PDF
               </button>
               <button className="secondary" type="button" onClick={exportCSV}>
                 Download invoice CSV

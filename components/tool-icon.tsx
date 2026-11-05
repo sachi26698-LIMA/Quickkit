@@ -13,6 +13,12 @@ import {
   Scaling,
   Crop,
   ArrowRightLeft,
+  FileImage,
+  ImageDown,
+  Layers,
+  ScanLine,
+  ScanText,
+  LockKeyhole,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -29,6 +35,12 @@ const icons = {
   resize: Scaling,
   crop: Crop,
   convert: ArrowRightLeft,
+  imagesToPdf: FileImage,
+  pdfToImage: ImageDown,
+  pdfStudio: Layers,
+  ocr: ScanText,
+  scan: ScanLine,
+  pdfLock: LockKeyhole,
 };
 export default function ToolIcon({
   icon,

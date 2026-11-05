@@ -12,11 +12,17 @@ export default function ToolShell({
   slug,
   children,
   content,
+  variant = "default",
+  headingDescription,
 }: {
   slug: string;
   children: React.ReactNode;
   content: ToolContent;
+  /** Compact chrome for document-workspace tools. Default preserves existing pages. */
+  variant?: "default" | "compact";
+  headingDescription?: string;
 }) {
+  const compact = variant === "compact";
   const tool = tools.find((t) => t.slug === slug)!;
   const toolCategories = toolCategoriesOf(tool);
   const primaryCategory =
@@ -26,7 +32,9 @@ export default function ToolShell({
     .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta));
   const related = relatedTools(tool);
   return (
-    <div className="container tool-page">
+    <div
+      className={`container tool-page${compact ? " tool-page-compact" : ""}`}
+    >
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <ChevronRight size={13} />
@@ -38,14 +46,25 @@ export default function ToolShell({
         <ChevronRight size={13} />
         <span>{tool.name}</span>
       </nav>
-      <header className="tool-title">
-        <ToolIcon icon={tool.icon} color={tool.color} />
-        <span className="eyebrow">
-          {toolCategories.join(" · ")} · Free browser tool
-        </span>
-        <h1>{tool.name}</h1>
-        <p>{tool.description}</p>
-      </header>
+      {compact ? (
+        <header className="tool-title tool-title-compact">
+          <ToolIcon icon={tool.icon} color={tool.color} />
+          <div className="tool-title-copy">
+            <h1>{tool.name}</h1>
+            <p>{headingDescription ?? tool.description}</p>
+          </div>
+          <span className="local-badge">Local processing</span>
+        </header>
+      ) : (
+        <header className="tool-title">
+          <ToolIcon icon={tool.icon} color={tool.color} />
+          <span className="eyebrow">
+            {toolCategories.join(" · ")} · Free browser tool
+          </span>
+          <h1>{tool.name}</h1>
+          <p>{tool.description}</p>
+        </header>
+      )}
       {categories.length > 1 ? (
         <nav className="tool-categories" aria-label="Tool categories">
           <span>Filed under</span>
@@ -61,11 +80,15 @@ export default function ToolShell({
         </nav>
       ) : null}
       {children}
-      <p className="privacy-inline">
-        <ShieldCheck size={17} /> Processed on your device. Tool inputs are not
-        uploaded or saved by QUICKKIT.
-      </p>
-      <div className="tool-guidance">
+      {!compact ? (
+        <p className="privacy-inline">
+          <ShieldCheck size={17} /> Processed on your device. Tool inputs are
+          not uploaded or saved by QUICKKIT.
+        </p>
+      ) : null}
+      <div
+        className={`tool-guidance${compact ? " tool-guidance-compact" : ""}`}
+      >
         <section>
           <span className="eyebrow">A quick walkthrough</span>
           <h2>How to use it</h2>

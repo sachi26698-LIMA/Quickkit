@@ -19,12 +19,13 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Free browser tools for everyday tasks",
-  "Free browser tools that run entirely on your device: merge, split and compress PDFs, convert PDF to Word, compress images, generate QR codes, format JSON and more.",
+  "Free browser tools that run entirely on your device: merge, split, compress, lock and unlock PDFs, convert PDF to Word, compress images, generate QR codes, format JSON and more.",
   "/",
 );
 
 const popularSlugs = [
   "merge-pdf",
+  "pdf-lock-unlock",
   "image-compressor",
   "qr-generator",
   "word-counter",

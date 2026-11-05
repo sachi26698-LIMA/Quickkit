@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-11-04",
+  "source": "actual local final-build GET /api/word-to-pdf; no mock",
+  "response": {
+    "available": false,
+    "method": "Self-hosted LibreOffice",
+    "maxPages": 100
+  }
+}

@@ -1,0 +1,47 @@
+# Word to PDF V3 — visual editor and operator guide
+
+4 November 2026. Upgrade of `/tools/word-to-pdf`, not a new tool. [QA/results](WORD_TO_PDF_V3_QA.md) · [native blockers](WORD_TO_PDF_V3_ENGINE_STATUS.md).
+
+## Workflow
+
+1. Choose DOCX files in **File queue**. Nothing uploads at selection. Up to 10 / 20 MiB each / 80 MiB total. Consent and Convert authorize this server's native conversion only when an operator has enabled the engine.
+2. The center remains a real PDF.js canvas. Search reads real text (no OCR); page/zoom/fit/fullscreen/refresh/rotation and native-before/final comparison remain available. The download uses the same final byte array. Invalid/native-stale/processing output is locked.
+3. Open **Page editor**, or desktop **Pages**. On mobile use **Files / Preview / Edit**; Edit includes the manager and settings, Files remains the source queue. Desktop retains left page thumbnails, center viewer, right inspector; side panels can resize/toggle.
+4. Check pages or enter a range such as `1-3, 5`, then Select range; blank range selects all. Selection follows stable IDs, not changing positions. Select/deselect all are explicit. Preview page jumps to the actual output page.
+5. Drag a page before another page; dragging a selected page moves that selected block. Edge dragging scrolls the windowed list; the dragged row stays mounted. Touch/keyboard users have labelled up/down buttons (44 px touch controls), so reordering does not depend on unsupported touch HTML drag events.
+6. Duplicate keeps source content/appearance/rotation but gives the new page its own identity. Blank inserts after the last selection, or at the end; it is a real blank PDF page with first-source media geometry, not an invented thumbnail. Existing global overlays/numbering may intentionally print on it. Delete must leave at least one output page. All source and output PDFs stay capped at 100 pages.
+7. Enter **Editor section** and Move to section to relocate selected output pages after that section's last page, or append a new section. Labels use up to 40 basic Latin characters. These groups affect order and `{section}` numbering; they are not source Word section editing or guaranteed PDF outline entries.
+8. **Selected page appearance** shows the first selected page's values. Editing one control patches only that property across the selected set. Unchanged properties on other pages are preserved. Clear selected overrides restores file/global values. Selected watermarks and PDF geometry are expandable groups. Rotating selected pages is independent of global output rotation.
+9. Visual actions create active-file settings overrides and switch the inspector scope to **Active file only**. Global options still apply to files without overrides. Settings are snapshot overrides, not field-by-field inheritance; switching a file back to global also drops its visual plan. Explicit Reset visual page edits drops the plan but retains file-level appearance and restores the V2 source-range/order controls.
+10. Undo/Redo cover the bounded 30 settings/plan snapshots, including blank/duplicate/delete/section/appearance edits. New edits clear redo. They do not undo file replacement/removal/download or store native PDF versions. Native setting changes can require consented refresh, including when undone.
+
+## Appearance and comparison
+
+Headers/footer/numbering support the existing Helvetica, Times-Roman and Courier overlay fonts, size 6–36, colour and alignment. Existing source text/fonts are not converted to these overlay fonts. New overlay text/section labels are basic Latin; source text is unrestricted. Numbering supports start 1–3,900, Arabic/Roman, top/bottom, skip first, output ranges and `{n}` / `{total}` / `{section}` templates. Output-position numbering can intentionally leave gaps where printing is disabled. Explicit per-page header/footer/number settings can override their global range gates; global skip-first still applies.
+
+A local image watermark is PNG/JPEG, ≤256 KiB, ≤4 MP, ≤4,096 pixels per edge, one asset per document. Global/file Watermarks controls accept it; per-page controls enable/disable or change width/opacity. Text and image watermarks can coexist, use output ranges and regenerate from immutable native bytes. No remote URLs, SVG or native upload of the asset. Removing an asset disables its page overrides. These are overlays, not redaction/security.
+
+Per-page backgrounds prepend a PDF background stream; an opaque source image/white background can cover it. Per-page margins/size/orientation are PDF scaling after pagination, **not selective Word reflow** and not removal of native source margins. Original keeps media geometry; choose preset/custom to change geometry, then rotation applies to the sheet. Overlay placement is mapped to the displayed rotated sheet. Scaling annotations is best effort; document structure, forms, outlines and links can degrade when pages are copied/subset/reordered.
+
+Approximate DOCX comparison renders the validated real DOCX locally (≤5 MiB), with linked source-page navigation and zoom controls. Duplicate pages map to their source; inserted blanks explicitly have no source. DOCX scroll can navigate to the first matching output source page. Omitted source pages cannot invent an output page. Approximate counts/layout can differ from native PDF; an out-of-range source request is labelled and clamped to the last approximate page. Fit modes fit each pane; equal numeric zoom is a shared percentage, not proof of identical pagination.
+
+The comparison displays DOCX/native/edited page counts and potential font/layout/unsupported-element warnings. It does not detect every missing font, table shift, chart or layout defect, and it cannot certify fidelity without Word/native reference review. No fake similarity score or “perfect conversion” badge.
+
+## Export, progress and cancellation
+
+- Complete PDF: exact synchronized bytes; existing custom file names, metadata and Standard/High/Print native settings remain. Quality changes require a native refresh; Print is not PDF/X/CMYK/bleed certification and “lossless” refers only to image encoding where available.
+- Extract selected PDF: copies selected **final** pages in output order, without applying overlays again or renumbering them. The name adds `-selected`; source complete PDF remains unchanged. Cancellation and post-work synchronization checks prevent stale downloads.
+- Batch ZIP: synchronized successes only, plus the conversion report. One worker streams 1 MiB input copies, preserves the preview buffers, computes actual input-byte/entry progress and terminates on Cancel ZIP export. It does not claim OS/browser download progress. ZIP filename is editable; cancelled/failed packing can retry or use individual downloads. The ZIP entries are verified byte-identical to the final PDFs.
+- Local PDF edits debounce 400 ms and run through the existing serialized transform chain. Actual processed page counts are reported; Cancel PDF update aborts/discards the task and keeps export locked. Retry PDF update uses retained base bytes, even after upload consent is revoked. It does not upload. Individual PDF downloads hand off existing bytes and have no fabricated conversion/progress phase.
+- Native progress remains truthful workflow stages, not invented LibreOffice percentages. Native and pending batch cancellation remain available. Automatic native re-upload is a separately enabled, revocable opt-in; normal local changes never authorize it.
+- A changed native page count blocks the old visual plan instead of silently pointing edits at nonexistent pages. Explicit reset uses the retained new base, so another upload is not needed. Even with equal page counts, native layout reflow can move content across source indices: inspect the comparison before export.
+
+## Resource/lifecycle boundaries
+
+Both thumbnail rails are windowed, not “lazy until visited and then retained forever.” Offscreen thumbnail URLs revoke on unmount; selected/dragged rows are handled without mounting all pages. Rendering is serialized by the existing shared preview helper; 8 MP main/compare canvases, 700k-pixel thumbnails and 16,384 px edge bounds remain.
+
+One native base plus final PDFs share a 120 MiB retained byte budget. Bounded settings history contains no PDF buffers and one ≤350,000-character image string per settings object; unchanged snapshots share strings. Parsing, source DOCX buffers, DOCX DOM, multiple PDF.js handles, images, canvases, ZIP parts/Blob and history are **additional memory**, not covered by a peak-RSS promise. Native 100-page and image-heavy/mobile memory validation remains a release gate.
+
+PDF page copying now shares immutable embedded font/image streams while isolating mutable page content/resource dictionaries and annotation geometry. The 100-copy actual image-PDF test prevents multiplicative embedded-asset output growth. Worker ZIP input is copied per 1 MiB chunk, not by duplicating every retained PDF at once; final ZIP parts/Blob still require archive-size memory. Cancel/unmount terminates workers and drops temporary parts. Original/base/final bytes are never detached to a worker while preview/export needs them.
+
+The 100/500/1,000 authored PDF tests do not certify native DOCX handling. Large native PDFs can consume host resources before the post-render page guard; operating-system quotas and isolation remain mandatory. See the engine gate document before enabling anything.

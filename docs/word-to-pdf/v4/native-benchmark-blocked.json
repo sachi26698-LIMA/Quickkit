@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-04T11:49:49.267Z",
+  "status": "BLOCKED",
+  "reason": "Explicit --isolated-host --consent-server-processing flags required; no upload attempted.",
+  "kind": "Real private-worker DOCX conversion only; no browser/native fallback",
+  "cap": 100,
+  "results": [
+    {
+      "input": "complex",
+      "status": "NOT_RUN",
+      "wallMs": null,
+      "outputBytes": null,
+      "actualPages": null,
+      "elapsedSeconds": null,
+      "userSeconds": null,
+      "systemSeconds": null,
+      "peakRssKiB": null,
+      "containerPeakBytes": null,
+      "containerCpuUsec": null,
+      "previewMs": null,
+      "editingMs": null
+    },
+    {
+      "input": 100,
+      "status": "NOT_RUN",
+      "wallMs": null,
+      "outputBytes": null,
+      "actualPages": null,
+      "elapsedSeconds": null,
+      "userSeconds": null,
+      "systemSeconds": null,
+      "peakRssKiB": null,
+      "containerPeakBytes": null,
+      "containerCpuUsec": null,
+      "previewMs": null,
+      "editingMs": null
+    },
+    {
+      "input": 500,
+      "status": "NOT_RUN",
+      "wallMs": null,
+      "outputBytes": null,
+      "actualPages": null,
+      "elapsedSeconds": null,
+      "userSeconds": null,
+      "systemSeconds": null,
+      "peakRssKiB": null,
+      "containerPeakBytes": null,
+      "containerCpuUsec": null,
+      "previewMs": null,
+      "editingMs": null
+    },
+    {
+      "input": 1000,
+      "status": "NOT_RUN",
+      "wallMs": null,
+      "outputBytes": null,
+      "actualPages": null,
+      "elapsedSeconds": null,
+      "userSeconds": null,
+      "systemSeconds": null,
+      "peakRssKiB": null,
+      "containerPeakBytes": null,
+      "containerCpuUsec": null,
+      "previewMs": null,
+      "editingMs": null
+    }
+  ],
+  "notes": [
+    "500/1000 are raw native capacity probes, not supported browser editing sizes. App cap remains 100.",
+    "peakRssKiB is maximum child-process RSS, NOT simultaneous aggregate job RAM. containerPeakBytes includes tmpfs and all processes when cgroup v2 memory.peak is readable.",
+    "CPU usec is container usage observed after native conversion; wallMs includes upload, startup and cleanup. Native elapsedSeconds excludes container startup.",
+    "Browser preview/edit metrics require a separate consented real-native browser run and are never inferred from PDF parse time."
+  ],
+  "environmentBlocker": "LibreOffice and Docker/Podman absent; no cached approved native artifact; Debian/image registry downloads outside session outbound policy. No native execution attempted."
+}
