@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { loan } from "@/lib/tools/phase9-loans";
 import { Workspace } from "./phase9-shared";
-import { downloadText } from "@/lib/tools/download";
+import { downloadText, downloadBlob } from "@/lib/tools/download";
 import { loanAffordability } from "@/lib/tools/phase9-v2-advanced";
 const money = (n: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -24,6 +24,7 @@ export default function Loans({ kind }: { kind: string }) {
   const [income, setIncome] = useState("");
   const [existingDebt, setExistingDebt] = useState("");
   const [ratio, setRatio] = useState("36");
+  const [exportNotice, setExportNotice] = useState("");
   let r: ReturnType<typeof loan> | undefined,
     error = "";
   try {
@@ -86,6 +87,20 @@ export default function Loans({ kind }: { kind: string }) {
       );
   } catch (e) {
     helperError = e instanceof Error ? e.message : "Invalid inputs.";
+  }
+  let maxLoan: number | undefined;
+  if (affordability && rate !== "" && tenure !== "") {
+    try {
+      const factor = loan(
+        1,
+        Number(rate),
+        Number(tenure) * (years ? 12 : 1),
+      ).payment;
+      const value = affordability.budget / factor;
+      if (Number.isFinite(value) && value <= 1e12) maxLoan = value;
+    } catch {
+      /* Invalid rate or tenure is reported by the main calculation. */
+    }
   }
   return (
     <>
@@ -275,7 +290,9 @@ export default function Loans({ kind }: { kind: string }) {
             )}
             {financed !== undefined && (
               <p>
-                Financed amount: {money(financed)}{" "}
+                Financed amount: {money(financed)}. Loan-to-value ratio:{" "}
+                {((financed / Number(purchasePrice)) * 100).toFixed(2)}% of the
+                purchase price (not a lender valuation).{" "}
                 <button
                   type="button"
                   className="secondary"
@@ -283,6 +300,14 @@ export default function Loans({ kind }: { kind: string }) {
                 >
                   Use as principal
                 </button>
+              </p>
+            )}
+            {maxLoan !== undefined && (
+              <p>
+                Estimated maximum affordable loan: {money(maxLoan)} using the
+                selected fixed annual rate and tenure, monthly payments and the
+                available debt budget; excludes taxes, fees, prepayments and
+                lender underwriting.
               </p>
             )}
             {affordability && (
@@ -339,6 +364,44 @@ export default function Loans({ kind }: { kind: string }) {
           >
             Download schedule CSV
           </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={async () => {
+              try {
+                const { calculatorPdf } =
+                  await import("@/lib/tools/calculator-pdf");
+                const rows = [
+                  `Principal INR ${principal}; annual rate ${rate}%; tenure ${tenure} ${years ? "years" : "months"}.`,
+                  `Monthly payment INR ${r.payment.toFixed(2)}; total paid INR ${r.total.toFixed(2)}; interest INR ${r.interest.toFixed(2)}.`,
+                  `Extra each month INR ${extra || "0"}; one-time payment INR ${oneTimeAmount || "0"}${oneTimeMonth ? ` in month ${oneTimeMonth}` : ""}.`,
+                  "Monthly estimates; displayed amounts rounded to two decimals; no fees or taxes.",
+                  ...r.schedule.map(
+                    (row) =>
+                      `Month ${row.month}: payment ${row.payment.toFixed(2)}, principal ${row.principal.toFixed(2)}, interest ${row.interest.toFixed(2)}, balance ${row.balance.toFixed(2)} INR.`,
+                  ),
+                ];
+                const bytes = await calculatorPdf(
+                  "Amortization schedule",
+                  rows,
+                );
+                downloadBlob(
+                  new Blob([new Uint8Array(bytes)], {
+                    type: "application/pdf",
+                  }),
+                  "amortization.pdf",
+                );
+                setExportNotice("Schedule PDF downloaded.");
+              } catch {
+                setExportNotice(
+                  "Could not create the schedule PDF. Please try again.",
+                );
+              }
+            }}
+          >
+            Download schedule PDF
+          </button>
+          <p role="status">{exportNotice}</p>
           <details>
             <summary>Yearly repayment summary</summary>
             <div

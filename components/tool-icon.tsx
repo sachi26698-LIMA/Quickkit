@@ -17,6 +17,7 @@ import {
   ImageDown,
   Layers,
   ScanText,
+  LockKeyhole,
 } from "lucide-react";
 const icons = {
   text: Type,
@@ -37,6 +38,7 @@ const icons = {
   pdfToImage: ImageDown,
   pdfStudio: Layers,
   ocr: ScanText,
+  pdfLock: LockKeyhole,
 };
 export default function ToolIcon({
   icon,

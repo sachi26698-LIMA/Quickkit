@@ -70,7 +70,7 @@ const guides = [
   {
     Icon: ShieldCheck,
     title: "Stay private by design",
-    text: "Your inputs never leave your device. Read exactly how in our Privacy Policy, including what ordinary page requests involve.",
+    text: "Most tools keep inputs on your device. Word to PDF requires explicit consent to server processing. Read the Privacy Policy for processing and hosting details.",
   },
 ];
 

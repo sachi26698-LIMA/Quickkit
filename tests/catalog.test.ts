@@ -45,7 +45,9 @@ describe("catalog discovery", () => {
       "merge-pdf",
       "split-pdf",
       "compress-pdf",
+      "word-to-pdf",
       "pdf-to-word",
+      "pdf-lock-unlock",
     ]);
   });
   it("finds the PDF compressor by size-reduction intent", () => {
@@ -110,7 +112,7 @@ describe("catalog discovery", () => {
   it("groups tools by category, with future categories empty", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(3);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
-    expect(toolsByCategory("PDF Tools")).toHaveLength(7);
+    expect(toolsByCategory("PDF Tools")).toHaveLength(9);
     expect(toolsByCategory("QR & Barcode")).toHaveLength(1);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);

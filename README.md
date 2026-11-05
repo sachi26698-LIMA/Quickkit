@@ -9,6 +9,7 @@
 - CSS-variable design system, bundled Geist Variable font, Lucide icons and optimized WebP 3D hero illustration. No dark theme, external font requests or decorative fake controls.
 - 29 tools on distinct `/tools/...` routes — Word Counter, Case Converter, JSON Formatter, Password Generator, QR Code Generator, Image Compressor, Image Resizer, Image Cropper, Image & PDF Converter, Image to Text (OCR), PDF Merger, PDF to Word and more, plus a `/tools` explorer and `/category/<slug>` pages. PDF to Word additionally previews the original PDF and the converted Word file side by side in the browser, converts selected page ranges, issues a per-file quality report, and ships optional on-device OCR (self-hosted tesseract.js, English/Hindi/Gujarati, lazy-loaded only for scanned pages) plus an opt-in browser-local history of converted files — still no uploads.
 - Tool logic: `lib/tools/`. Workspaces: `components/tools/`. Shared content shell: `components/tool-shell.tsx`. Catalog: `lib/catalog.ts`.
+- Legal & information pages: one independent route each — `/terms`, `/privacy`, `/cookies`, `/disclaimer`, `/about`, `/contact`, `/faq`, `/copyright`, `/accessibility`, `/security`, `/file-handling`, `/intellectual-property`. Registry: `lib/legal.ts` (drives the footer, sitemap page and XML sitemap). Shared shell: `components/legal-page-shell.tsx`. Owner-specific details: `ownerDetails` in `lib/site.ts`. Implementation record and the route/link check: `docs/LEGAL_PAGES.md`.
 - Source of truth: **`QUICKKIT_AGENT_BRAIN_FINAL.md`**. Earlier Brain and original uploads are preserved; the FINAL specification supersedes the old one. Reference and screenshot evidence: `docs/`.
 
 ## Setup
@@ -32,11 +33,13 @@ npm run build
 npm run typecheck
 npx playwright install --with-deps chromium firefox webkit
 npm run test:e2e
+# link and route census against a running build (no browser needed)
+node scripts/check-site-links.mjs http://127.0.0.1:3001
 ```
 
 Playwright starts the built production server on port 3001 automatically (or reuses a local server). `TEST_BASE_URL` can target another already-running preview. The quality suite intentionally expects an unconfigured, noindex preview. The CI workflow runs the same checks; it has not been executed on a remote repository in this environment.
 
-Verification: **129 unit/component/config/compatibility tests; 253 Chromium browser tests passed on 2026-11-02 (including axe + overflow sweeps at 9 widths for every audited route, plus an end-to-end OCR conversion test)**. Chromium covers accessibility, all routes, links, headers and core workflows. The Playwright configuration also defines Firefox and WebKit projects covering the tool workflows in CI. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
+Unit/component/config coverage at the legal-pages upgrade: **942 tests across 50 files** (4 November 2026), including a registry/SEO/footer integrity suite and a site-wide certification-claim guard. Browser suites were extended for the twelve legal routes but were not executed in the sandbox that produced this change — Playwright binaries could not be downloaded there; run them in CI before merge. Earlier recorded result: **129 unit/component/config/compatibility tests; 253 Chromium browser tests passed on 2026-11-02 (including axe + overflow sweeps at 9 widths for every audited route, plus an end-to-end OCR conversion test)**. Chromium covers accessibility, all routes, links, headers and core workflows. The Playwright configuration also defines Firefox and WebKit projects covering the tool workflows in CI. Real clipboard success is verified in Chromium; denied/unavailable clipboard fallback is also tested. WebKit is not a claim of testing every Safari/iOS device, and Edge has not been separately tested.
 
 ## Processing and limits
 
@@ -54,9 +57,32 @@ Verification: **129 unit/component/config/compatibility tests; 253 Chromium brow
 
 Canvas re-encoding may remove metadata and alter color profiles. Output can be larger; compare sizes. PNG quality is lossless and the quality slider is disabled for PNG. Preview URLs are revoked on replacement, reset and unmount. File decode/encode support depends on the browser.
 
+## Legal & information pages
+
+Twelve separately addressable pages, each with its own title, meta description, canonical, Open Graph data, breadcrumbs, table of contents, related-page links and back-to-top control. Nothing is folded into one long document.
+
+| Route | Purpose |
+|---|---|
+| `/terms` | Terms and Conditions — acceptable use, responsibilities, IP, liability, governing law |
+| `/privacy` | Privacy Policy — what is collected, local processing evidence, storage, rights |
+| `/cookies` | Cookie Policy — zero cookies, full local-storage and IndexedDB inventory |
+| `/disclaimer` | Accuracy limits per tool class, estimate-vs-guarantee table, no professional advice |
+| `/about` | Mission, categories, how privacy is designed in, roadmap |
+| `/contact` | Five routed request types, response targets, form |
+| `/faq` | 25 answers across six topics |
+| `/copyright` | Ownership, DMCA notice and counter-notification process |
+| `/accessibility` | Implemented features, how it is tested, known limitations |
+| `/security` | Model, headers, dependencies, responsible disclosure |
+| `/file-handling` | Tool-by-tool processing, retention and deletion |
+| `/intellectual-property` | Brand, open-source licences, permitted use |
+
+Every page states plainly that it is a draft pending owner details and legal review. No company name, registration number, address, jurisdiction or email is invented: missing values are rendered as a marked *Owner to supply* placeholder from `lib/site.ts`, and provisions that need a lawyer (liability cap, governing law, DMCA position, hosting retention) are flagged in place. The site makes **no** compliance or certification claim.
+
+`node scripts/check-site-links.mjs [baseUrl]` crawls a running build and fails on any non-200 route, dead in-page anchor, `#` placeholder href, missing title/description or multiple `<h1>`s.
+
 ## Security and privacy
 
-Tool inputs remain in browser memory; no uploads, persistent tool storage, accounts, payment handling, ad SDK or analytics. Fonts are bundled. Copying and downloading use the device clipboard/filesystem; these have their own privacy implications. Hosting still receives ordinary page/asset requests. Legal pages accurately mark operator identity/contact, jurisdiction and provider retention details as owner-supplied launch requirements.
+Tool inputs remain in browser memory; no uploads, persistent tool storage, accounts, payment handling, ad SDK or analytics. Storage is limited to `localStorage` preferences (saved tools, QR presets/history, retention choices) and opt-in IndexedDB conversion history that holds converted outputs only; the site sets no cookies and no analytics, so there is no consent banner. Legal pages accurately mark operator identity/contact, jurisdiction and provider retention details as owner-supplied launch requirements. Fonts are bundled. Copying and downloading use the device clipboard/filesystem; these have their own privacy implications. Hosting still receives ordinary page/asset requests. Legal pages accurately mark operator identity/contact, jurisdiction and provider retention details as owner-supplied launch requirements.
 
 Security headers include CSP, HSTS, nosniff, referrer policy and permissions policy. CSP permits inline framework scripts/styles because the current static Next.js shell requires them; it forbids eval, objects and remote script sources. A future nonce-based CSP would require reviewing dynamic rendering/cache implications. Framing restrictions are not added because the Arena preview needs embedding; review `frame-ancestors` for the actual standalone deployment.
 

@@ -47,7 +47,10 @@ describe("catalogue entry", () => {
   });
 
   it("keeps the catalogue counts self-consistent", () => {
-    expect(tools).toHaveLength(29);
+    // Adding another tool must not require editing this file: assert that this
+    // tool is counted once and that the category tallies add up to the whole.
+    expect(tools.filter((tool) => tool.slug === SLUG)).toHaveLength(1);
+    expect(tools.length).toBeGreaterThanOrEqual(29);
     const sum = categoryMeta.reduce(
       (total, category) => total + toolsByCategory(category.name).length,
       0,

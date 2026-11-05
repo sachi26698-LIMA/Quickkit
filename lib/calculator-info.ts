@@ -25,7 +25,7 @@ export const calculatorInfo: Record<
   "temperature-converter": {
     name: "Temperature Converter",
     description:
-      "Convert Celsius, Fahrenheit and Kelvin with absolute-zero validation.",
+      "Convert between Celsius, Fahrenheit and Kelvin with absolute-zero validation, worked in your browser.",
     steps: [
       "Enter a temperature and select source and destination units.",
       "Review the result and its assumptions.",
@@ -39,7 +39,8 @@ export const calculatorInfo: Record<
   },
   "unit-converter": {
     name: "Unit Converter",
-    description: "Convert common units of length, mass, energy, data and more.",
+    description:
+      "Convert common units of length, mass, area, volume, speed, energy, data, pressure and time, with searchable unit lists.",
     steps: [
       "Choose a category, value and units; use search and swap as needed.",
       "Review the result and its assumptions.",
@@ -69,7 +70,7 @@ export const calculatorInfo: Record<
   "loan-calculator": {
     name: "Loan Calculator",
     description:
-      "Estimate loan payments, compare scenarios and review amortization.",
+      "Estimate loan payments, compare scenarios and review a full amortization schedule — calculated locally in your browser.",
     steps: [
       "Enter loan details and add scenarios to compare.",
       "Review the result and its assumptions.",
@@ -84,7 +85,7 @@ export const calculatorInfo: Record<
   "emi-calculator": {
     name: "EMI Calculator",
     description:
-      "Estimate monthly installments and see a complete repayment schedule.",
+      "Estimate monthly EMIs and total interest, and see a complete month-by-month repayment schedule, calculated on your device.",
     steps: [
       "Enter principal, annual rate and tenure. Add an optional extra monthly payment.",
       "Review the result and its assumptions.",
@@ -99,7 +100,7 @@ export const calculatorInfo: Record<
   "date-difference-calculator": {
     name: "Date Difference Calculator",
     description:
-      "Find calendar and business-day differences or add and subtract days.",
+      "Find calendar-day and business-day differences between two dates, or add and subtract days, weeks, months or years.",
     steps: [
       "Choose a start and end date; optionally include the end date.",
       "Review the result and its assumptions.",
@@ -114,7 +115,7 @@ export const calculatorInfo: Record<
   "age-calculator": {
     name: "Age Calculator",
     description:
-      "Calculate exact age on any date and count down to a birthday.",
+      "Calculate exact age in years, months and days on any date, and count down the days to the next birthday.",
     steps: [
       "Choose a date of birth and the date to calculate age on.",
       "Review the result and its assumptions.",
