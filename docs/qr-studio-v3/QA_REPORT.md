@@ -304,21 +304,26 @@ six folds (Colours / Pattern / Corners / Logo / **Frame** / Templates).
 
 ## 11. Test & build evidence
 
-| Gate                                  | Result                                                                                                                                                      |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript (`tsc --noEmit`)           | clean                                                                                                                                                       |
-| ESLint (changed files + `tests/e2e`)  | clean                                                                                                                                                       |
-| Prettier (changed files)              | formatted                                                                                                                                                   |
-| Unit suite                            | **754 passing / 42 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H, +12 E, +6 I)                                                 |
-| **Playwright Chromium E2E (Phase J)** | **66 passing / 0 failed / 0 flaky** against a production build                                                                                              |
-| Responsive screenshots                | 6 genuine captures, 5 widths, no overflow/clipping                                                                                                          |
-| Console / network / hydration         | 0 errors / 0 genuine failures / 0 hydration errors                                                                                                          |
-| Routes                                | 11/11 HTTP 200                                                                                                                                              |
-| Independent decode                    | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
-| Print layouts                         | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit                                                                   |
-| Production build (`npm run build`)    | clean; `/tools/qr-generator` prerendered static                                                                                                             |
-| Dev preview                           | running on port 3000 (live preview)                                                                                                                         |
-| Rendered artifacts                    | 44 real PNGs + `report.json` in `docs/qr-studio-v3/evidence/`                                                                                               |
+| Gate                                  | Result                                                                                                      |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| TypeScript (`tsc --noEmit`)           | clean                                                                                                       |
+| ESLint (changed files + `tests/e2e`)  | clean                                                                                                       |
+| Prettier (changed files)              | formatted                                                                                                   |
+| Unit suite                            | **754 passing / 42 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H, +12 E, +6 I) |
+| **Playwright Chromium E2E (Phase J)** | **66 passing / 0 failed / 0 flaky** against a production build                                              |
+| Responsive screenshots                | 6 genuine captures, 5 widths, no overflow/clipping                                                          |
+| Console / network / hydration         | 0 errors / 0 genuine failures / 0 hydration errors                                                          |
+| Routes                                | 11/11 HTTP 200                                                                                              |
+
+**Post-merge re-verification (PR #24):** after merging `origin/main` into the branch (single
+`TOOL_DEVELOPMENT_STATUS.md` conflict resolved in favour of main's tool table), the combined unit
+suite passes **1555 / 85 files**, the QR Chromium E2E was re-run at **66 / 66 (0 flaky)** with
+screenshots and `e2e-results.json` regenerated, and `tsc` + the production build are clean.
+| Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
+| Print layouts | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit |
+| Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
+| Dev preview | running on port 3000 (live preview) |
+| Rendered artifacts | 44 real PNGs + `report.json` in `docs/qr-studio-v3/evidence/` |
 
 **CSP:** untouched. No production policy was weakened.
 

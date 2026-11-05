@@ -1813,6 +1813,12 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
 (66 expected / 0 unexpected / 0 flaky), plus the earlier **44 decode-verified PNG artifacts** in
 `docs/qr-studio-v3/evidence/`. Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
 
+**Post-merge re-verification (PR #24):** `origin/main` (QR Scanner + OCR + calculator work) was merged
+into this branch to resolve the single `TOOL_DEVELOPMENT_STATUS.md` conflict (kept main's tool table
+including the `qr-code-scanner` row). On the merged tree: combined unit suite **1555 passed / 85
+files**, QR Chromium E2E re-run **66 passed / 0 failed / 0 flaky** (screenshots + `e2e-results.json`
+regenerated), `tsc` clean, production build clean. No regressions from the merge.
+
 **Honest limitations:** Smart Link remains static only (no backend, no dynamic editing/analytics
 claimed). The calendar-event sample embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is
 regenerated each time (still decoded). Firefox/WebKit E2E projects were not run (only Chromium was
@@ -1890,7 +1896,6 @@ contract. Three checks in this workstream therefore touched files outside the QR
 **Owner gate.** Not merged, not deployed, not indexed. The owner must open the live preview, use
 every feature, inspect the responsive layouts and approve the design before anything else happens.
 
-
 ## 4 November 2026 — Word to PDF Converter (owner-directed)
 
 **State: implementation for review / gated — not production-ready, live-approved, merged or deployed.** Earlier tool approval notes remain historical and unchanged.
@@ -1903,7 +1908,6 @@ every feature, inspect the responsive layouts and approve the design before anyt
 - Minimal shared copy changes were necessary to remove site-wide “all inputs stay local” claims after introducing the explicit server-processing exception. Catalog/sitemap count assertions updated for exactly one added tool; no existing conversion logic changed.
 - Evidence: `docs/WORD_TO_PDF_AUDIT.md`, `docs/WORD_TO_PDF_OPERATIONS.md`, `docs/WORD_TO_PDF_QA.md`, screenshots under `docs/word-to-pdf/screenshots/`.
 - Release blockers: native rendering corpus (including charts and long documents), container/network/resource isolation verification, actual-host cancellation/crash retention tests, Firefox/WebKit and owner review. Do not mark production-ready based on mocked tests.
-
 
 ## 4 November 2026 — Word to PDF Converter V2 (same route, owner-directed upgrade)
 
@@ -1918,7 +1922,6 @@ every feature, inspect the responsive layouts and approve the design before anyt
 - Source queue remains 80 MiB; native + edited PDF retention is bounded to 120 MiB combined. Canvas area/edge bounds, serialized transforms/thumbnails, cancellation and resource cleanup are implemented; no peak-RSS guarantee.
 - Evidence: `docs/WORD_TO_PDF_V2_AUDIT.md`, `docs/WORD_TO_PDF_V2_QA.md`, `docs/WORD_TO_PDF_V2_OPERATIONS.md`, screenshots in `docs/word-to-pdf/v2/`. Existing operator container/network/quota and privacy release gates still apply.
 
-
 ## Word to PDF V3 — owner-directed visual editor upgrade (4 November 2026)
 
 **Implemented for owner review — NOT native/production-approved.** Continues V2 on `/tools/word-to-pdf`; does not create a separate tool. Existing uncommitted V2 work was preserved first in checkpoint `1807951`; V3 implementation checkpoints `3abf9e1`, `e1a86e8`, `c10e848`, `ec1e3aa` preserve the audited plan/model, integrated studio and resource/export hardening. All work stays on `arena/15621ae8-quickkit`; no reset, branch switch, push, merge or deployment.
@@ -1931,7 +1934,6 @@ every feature, inspect the responsive layouts and approve the design before anyt
 - Native engine still absent/disabled. Native Word fonts, tables/charts/images, headers/footer/page breaks and real 100-page peak memory/cancellation/fidelity remain release gates, as do physical devices/cross-browser/manual assistive-technology QA. Comparison warnings are honest review indicators, not automatic substitution/layout-difference detection.
 
 Delivery: `docs/WORD_TO_PDF_V3_QA.md`, `WORD_TO_PDF_V3_EDITOR_REPORT.md`, `WORD_TO_PDF_V3_ENGINE_STATUS.md`, `WORD_TO_PDF_V3_CHANGED_FILES.md`; screenshots, clearly labelled actual edited PDF demonstration and measured/blocked stress reports in `docs/word-to-pdf/v3/`. The original V1/V2 reports remain historical. No other tool approval state is changed.
-
 
 ## Word to PDF V4 — 4 November 2026, owner-directed continuation
 
