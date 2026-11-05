@@ -6,7 +6,12 @@ import {
   toolCategoriesOf,
   tools,
 } from "@/lib/catalog";
+import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import { ToolIcon3D, toolTone } from "./icon-3d";
+// Tool-page-only styling (scoped to .tool-page[data-tool]); the generated
+// sheet carries the lifted type scale, the hand-written one the glass UI.
+import "@/app/tool-pages.generated.css";
+import "@/app/tool-pages.css";
 export type ToolContent = { steps: string[]; faqs: { q: string; a: string }[] };
 export default function ToolShell({
   slug,
@@ -31,9 +36,12 @@ export default function ToolShell({
     .map((name) => categoryMeta.find((c) => c.name === name))
     .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta));
   const related = relatedTools(tool);
+  const theme = toolTheme(tool.slug, tool.category);
   return (
     <div
       className={`container tool-page${compact ? " tool-page-compact" : ""}`}
+      data-tool={tool.slug}
+      style={toolThemeStyle(theme)}
     >
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
