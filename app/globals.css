@@ -514,36 +514,20 @@ h2 {
 
 /* ---------- Hero ---------- */
 .hero {
-  display: grid;
-  grid-template-columns: 1.04fr 0.96fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 44px;
-  padding: 44px 0 40px;
+  text-align: center;
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 12px 0 0;
 }
-.hero-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11.5px;
-  letter-spacing: 0.4px;
-  font-weight: 650;
-  color: var(--purple-deep);
-  background: #fff;
-  border: 1px solid var(--border);
-  padding: 8px 13px;
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgb(59 27 79 / 0.06);
-}
-.hero-label svg {
-  color: var(--coral-deep);
-}
-.hero-description {
-  font-size: 16px;
-  color: var(--secondary);
-  line-height: 1.7;
-  margin: 0;
-  max-width: 520px;
-}
+.hero-search-zone, .hero-copy { width: min(1000px, calc(100% - 36px)); }
+.hero-search-zone { position: relative; z-index: 5; margin-top: clamp(12px, 1.5vw, 20px); }
+.hero .search-area { width: 100%; max-width: 1000px; margin: 0 auto; }
+.hero .popular-row, .hero .hero-actions, .hero .hero-benefits { justify-content: center; }
+.hero-copy { padding-bottom: 28px; }
 .search-area {
   position: relative;
   max-width: 560px;
@@ -744,39 +728,6 @@ h2 {
   color: var(--purple);
 }
 
-/* ---------- Hero illustration (3D render asset) ---------- */
-.hero-art {
-  --px: 0;
-  --py: 0;
-  position: relative;
-}
-.hero-art-inner {
-  transform: translate3d(calc(var(--px) * 10px), calc(var(--py) * 8px), 0)
-    rotate(calc(var(--px) * 1.1deg));
-  transition: transform 0.4s ease-out;
-  will-change: transform;
-}
-.hero-art img {
-  display: block;
-  width: 100%;
-  height: auto;
-  pointer-events: none;
-  user-select: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hero-art img {
-    animation: art-drift 9s ease-in-out infinite;
-  }
-}
-@keyframes art-drift {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
 /* Shared keyframes (also used by the CTA banner) */
 @keyframes spin-slow {
   to {
@@ -1897,18 +1848,11 @@ a.contact-card:hover {
 /* ---------- Homepage responsive ---------- */
 @media (min-width: 1440px) {
   .hero {
-    padding-top: 68px;
-    padding-bottom: 60px;
+    padding-top: 16px;
+    padding-bottom: 0;
   }
 }
 @media (max-width: 1080px) {
-  .hero {
-    gap: 22px;
-  }
-  .hero-art {
-    width: min(540px, 100%);
-    margin-inline: auto;
-  }
   .category-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1924,13 +1868,7 @@ a.contact-card:hover {
 }
 @media (max-width: 860px) {
   .hero {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 42px 0 40px;
-    text-align: center;
-  }
-  .hero-description {
-    margin-inline: auto;
+    padding: 10px 0 0;
   }
   .search-area {
     margin-inline: auto;
@@ -1940,10 +1878,6 @@ a.contact-card:hover {
   .hero-actions,
   .hero-benefits {
     justify-content: center;
-  }
-  .hero-art {
-    width: min(540px, 96%);
-    margin: 12px auto 0;
   }
   .category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2055,20 +1989,7 @@ a.contact-card:hover {
     margin-top: 56px;
   }
   .hero {
-    padding: 34px 0 34px;
-  }
-  .hero-label {
-    font-size: 10.5px;
-    letter-spacing: 0.3px;
-  }
-  .hero h1 {
-    font-size: clamp(34px, 10vw, 44px);
-    letter-spacing: -1.6px;
-    margin: 18px 0 14px;
-  }
-  .hero-description {
-    font-size: 14.5px;
-    max-width: 400px;
+    padding: 8px 0 0;
   }
   .search-area {
     margin-top: 24px;
@@ -2231,10 +2152,6 @@ a.contact-card:hover {
   }
 }
 @media (max-width: 479px) {
-  .hero-art {
-    width: 100%;
-    margin-top: 4px;
-  }
   .trust-strip {
     grid-template-columns: 1fr 1fr;
     gap: 18px 14px;

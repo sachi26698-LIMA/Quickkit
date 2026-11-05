@@ -1,0 +1,152 @@
+.mobileTrigger {
+  display: none;
+  margin: 16px auto 0;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid #b9cfe5;
+  border-radius: 999px;
+  background: #fff;
+  color: #263b67;
+  font-weight: 700;
+}
+@media (max-width: 900px) {
+  .mobileTrigger {
+    display: block;
+  }
+}
+.dialog {
+  width: min(480px, calc(100% - 32px));
+  max-height: min(90dvh, 720px);
+  overflow-y: auto;
+  border: 1px solid #cbdfee;
+  border-radius: 24px;
+  padding: clamp(22px, 5vw, 32px);
+  color: #202b48;
+  background: linear-gradient(150deg, #fff 0%, #edf7ff 100%);
+  box-shadow: 0 28px 90px #1a0f2e55;
+}
+.dialog::backdrop {
+  background: #10152999;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+.eyebrow {
+  color: #586ca1;
+  letter-spacing: 0.13em;
+  font-size: 11px;
+  font-weight: 800;
+}
+.heading h2 {
+  margin: 7px 0 0;
+  font-size: clamp(24px, 5vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+.close {
+  border: 1px solid #d5e0ec;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  color: #27395c;
+  font-size: 27px;
+  line-height: 1;
+  flex: none;
+}
+.intro {
+  margin: 16px 0 22px;
+  color: #4b5d76;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.dialog form {
+  display: grid;
+  gap: 9px;
+}
+.dialog label {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.dialog label span {
+  font-weight: 400;
+  color: #63748b;
+}
+.dialog input,
+.dialog textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #bfd0e2;
+  border-radius: 12px;
+  background: #fff;
+  color: #202b48;
+  font-size: 16px;
+}
+.dialog textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+.error {
+  margin: 4px 0;
+  color: #a2193e;
+  font-size: 14px;
+}
+.submit {
+  margin-top: 10px;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #263e75, #9360a8);
+  color: white;
+  font-weight: 800;
+}
+.submit span {
+  margin-left: 8px;
+}
+.saved {
+  margin-top: 24px;
+  border-top: 1px solid #d5e5ef;
+  padding-top: 14px;
+}
+.saved h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.saved ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.saved li {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid #d5e5ef;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+}
+.saved li div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.saved li p {
+  margin: 4px 0 0;
+  color: #4b5d76;
+}
+.saved li button {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: #87365c;
+  font-weight: 700;
+  padding: 4px;
+}
