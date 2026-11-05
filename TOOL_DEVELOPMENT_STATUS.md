@@ -1678,6 +1678,155 @@ the shipped pdf-studio bundle.
 No merge, deploy or push has been performed.
 ---
 
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 complete: Phases B + C + D + F + G + H + E + I + J implemented and verified)
+
+Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
+creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
+eye colours, print layouts, DPI metadata, bulk retry/preview/per-row types, history/preset
+rename/duplicate/export/import, static multi-link landing pages). Branch `arena/bc33caa6-quickkit`,
+continuing the existing QR history — no rebuild. The owner chose a **staged** rollout: content types
+
+- templates first, then design/exports/bulk/history.
+
+**Phase A (audit) complete** — inventory, gap analysis and plan in `docs/qr-studio-v3/AUDIT_AND_PLAN.md`.
+**Stage 1 (Phases B + C) implemented and verified:**
+
+- **27 content types** (12 preserved + 15 new: Instagram, Facebook page, YouTube channel,
+  Spotify/music, Google Maps, Google Review, business website+contact vCard, product, booking,
+  event/ticket, PDF/document, gallery, video, multi-social, multi-link landing). Each has validated
+  fields and a real payload builder; destination types encode user-provided https URLs only.
+- **55 templates across 11 categories** with a real gallery: search, category filter, rendered
+  previews, one-click Apply, customize-after, save-custom, duplicate, delete, reset. Templates carry
+  colour/pattern/eye/logo-position + caption + print layout/size metadata that pre-fill the real PDF
+  options. Custom templates persist under a new localStorage key; presets/history untouched.
+- Brand palette (Deep Plum / Rose / Coral / Midnight / Blush) applied to templates + gallery on the
+  existing light theme; page structure unchanged.
+
+**Stage 2 — Phase D (frames, labels, eye colours, brand palettes, logo background) implemented and verified:**
+
+- **Frames + stroke-font labels:** six presets (Scan Me / Menu / Follow Us / Contact / Visit) plus a
+  custom-text frame. A rounded plum border + bottom call-to-action banner are drawn _outside_ the
+  symbol's quiet zone; the label uses a new built-in single-stroke font (`lib/tools/qr/font.ts`, pure
+  polyline geometry shared by the rasterizer, SVG and tests — no canvas, no network font), uppercased
+  and auto-fitted to the banner. The square symbol shrinks into a code region above the banner and the
+  logo re-centres on it. New `line` shape rendered analytically in the rasterizer and as round-cap
+  `<line>` strokes in SVG. Every framed design is decode-verified before export.
+- **Independent finder colours:** optional `eyeFrame` / `eyeBall` fill overrides (ring + centre) with
+  toggles + HEX pickers in the Colours fold; the safety audit blocks/cautions a finder colour that
+  loses contrast against the field, since scanners lock onto the finders first.
+- **Brand palette quick-picks:** Deep Plum / Rose on blush / Coral on cream / Midnight / Plum→rose
+  gradient swatches in the Colours fold (Phase I palette applied to the studio, not just templates).
+- **Logo background colour:** optional halo-colour override (`logo.bg`) with a toggle + HEX picker in
+  the Logo fold; defaults to the field colour as before.
+- Frame / eye / logo-bg state is clamped from untrusted input (`readFrame`, `readOptionalFill`),
+  carried in share links, and preserved by presets/history. The design card now has six folds
+  (Colours / Pattern / Corners / Logo / Frame / Templates).
+
+**Stage 2 — Phase F (exports: DPI, custom size, print layouts, A4 sheet) implemented and verified:**
+
+- **PNG DPI metadata:** a standard `pHYs` chunk stamps the chosen print resolution (72/150/300/600 DPI)
+  into every PNG export. It is metadata only — the verified pixels are untouched, so the file still
+  decodes exactly as checked (`withPngDpi`/`readPngDpi` in `png.ts`, round-trip + decode tested).
+- **Custom-size export:** a 64–4096 px input in the Download fold re-renders at the requested size and
+  re-verifies before saving (the high-res button now also carries the chosen DPI).
+- **Print layouts (`lib/tools/qr/layouts.ts`):** real physical PDFs built with pdf-lib from the same
+  verified PNG — Business card (85×55 mm), Sticker (50×50 mm), Product label (70×40 mm), Poster (A4,
+  130 mm code), Table tent (A4 landscape, fold guide, one face printed inverted so both read upright),
+  plus the original Single-on-paper. A layout selector + caption toggle drive the PDF button.
+- **A4 cut sheet:** a cols×rows grid of identical codes with light cut guides, clamped to fit A4 with a
+  margin (`clampSheet`); columns/rows/code-width/gap controls appear when the sheet layout is chosen.
+
+**Stage 2 — Phase G (bulk CSV: preview, per-row type, retry-failed) implemented and verified:**
+
+- **Pre-generation preview:** a "Preview rows" button validates every row's payload and flags
+  duplicates _without rendering pixels_, so you can fix the column mapping before generating.
+- **Per-row content type:** an optional "type" column lets one CSV mix types (url / wifi / email …);
+  each row resolves its own type and re-guesses its field mapping. The type column is excluded from
+  field guessing (a "type" header is also a Wi-Fi-encryption synonym, so it must not map onto a field).
+  Unknown/empty cells fall back to the batch default; the results table and ZIP manifest show per-row
+  types.
+- **Retry-failed:** re-validates and re-renders only the failed rows, keeping the successful codes
+  (carried over by matching payload). Also fixed a latent V2 issue where the "skip duplicates" toggle
+  had no effect — duplicates now render when the toggle is off.
+- Column mapping, per-item errors, progress, cancel, dedup, decode-verify and ZIP are preserved.
+
+**Stage 2 — Phase H (history/presets: rename, duplicate, export/import) implemented and verified:**
+
+- **Rename + duplicate** for both presets and history (inline rename with Enter/Escape; duplicate
+  makes an editable "… copy" with a new id). Restore/apply already existed and is preserved.
+- **Config export/import:** "Export config" downloads presets + history as a portable JSON file
+  (secrets stripped); "Import config" validates the file (app marker + version), then **merges** it
+  into existing data — items already present (by id) are skipped, invalid rows are skipped and
+  counted, and storage caps are respected. **Existing data is never cleared or overwritten.** Loading
+  existing storage stays lenient so a legacy row is never silently dropped.
+
+**Stage 2 — Phase E (static Smart Link landing-page builder) implemented and verified:**
+
+- A "Build a Smart Link page" fold appears for the **Multi-link landing page** and **Multi-social
+  links** types: title, optional bio, accent colour and up to **8 links**, with a live preview.
+- **Download HTML** produces one self-contained file — inline CSS, system fonts, **no JavaScript, no
+  external requests, no tracking**. Every text field is HTML-escaped and every link is run through the
+  same http(s)-only validator the QR payloads use (javascript:/data: refused).
+- **Static by design, stated plainly:** the user hosts the file themselves (GitHub Pages, Netlify,
+  their server) and then encodes its public URL. QUICKKIT hosts nothing, has no analytics, and the
+  printed QR cannot be edited later — there is no dynamic redirect. No backend was added.
+
+**Stage 2 — Phase I (brand-colour preset retune) implemented and verified:**
+
+- The six off-brand quick presets (purple/ink/lavender/teal/crimson/amber) were replaced with six
+  drawn from the **exact brand palette** — Deep Plum `#3B1B4F`, Rose Pink `#D6598F`, Coral `#FF6B6B`,
+  Midnight `#1A0F2E`, Soft Blush `#F4D7D4`. Palette data now lives in `lib/tools/qr/palette.ts`.
+- **Every preset clears the "strong" contrast bar (≥ 4.5:1)**, so applying one never triggers a
+  contrast warning. Rose and Coral are mid-tones that cannot reach 4.5:1 on a light field, so they
+  are paired with Midnight (light-on-dark) where they scan cleanly; the four plum/midnight presets
+  stay dark-on-light for the premium light theme. The Phase D brand-swatch row is kept for tinted /
+  gradient variations. Premium light theme and page structure are unchanged.
+
+**Stage 2 — Phase J (final browser E2E + visual verification) implemented and verified:**
+
+- A **real Chromium** was provisioned in this restricted sandbox via `@sparticuz/chromium` from the npm
+  registry (the Playwright CDN and Debian repos are unreachable). `scripts/setup-e2e-browser.mjs`
+  reproduces this; in an unrestricted environment `npx playwright install chromium` works instead.
+- **66 Playwright E2E tests pass (0 failed, 0 flaky)** in `tests/e2e/qr-studio-v3.spec.ts` +
+  `qr-studio-v3-visual.spec.ts`, run against a production `next start` build:
+  - all **27 content types** export a PNG that an **independent jsQR decode** reads back to the exact
+    payload (calendar event asserted structurally, its UID/DTSTAMP being time-stamped);
+  - all **55 templates** (11 categories × 5) apply through the real gallery and decode;
+  - colours/gradients, transparency, frames, every eye style, a logo overlay and all six brand presets
+    stay scannable;
+  - **PNG, high-res PNG (2048px), SVG and PDF** exports each decode independently (SVG rasterised by
+    Chromium, PDF rasterised by pdf.js + @napi-rs/canvas, then jsQR);
+  - **bulk CSV → ZIP** (mixed url + Wi-Fi rows) unzips and every PNG decodes, README present;
+  - **history** restore and **preset** save/rename/duplicate + config export/import round-trip work;
+  - **responsive screenshots** captured at 1440 / 1280 / 768 / 430 / 375 px with **no horizontal
+    overflow** and no clipped primary control; **zero console errors, zero uncaught page errors, zero
+    hydration errors, zero genuine network failures** (only benign Next.js RSC prefetch aborts);
+  - **11 routes** return HTTP 200.
+- The independent decoder resamples to scanner-like module sizes (as any camera pipeline does) before
+  jsQR, so large/gradient exports are judged the way a phone would judge them — never trusting the
+  app's own badge.
+
+**Verification (Stage 2 final):** `tsc`/ESLint/Prettier clean; unit suite **754 passed / 42 files**;
+**Playwright Chromium E2E 66 passed / 0 failed**; production build clean (51 pages,
+`/tools/qr-generator` static); dev preview live on port 3000. Deliverables:
+`docs/qr-studio-v3/screenshots/` (6 genuine captures), `docs/qr-studio-v3/e2e-results.json`
+(66 expected / 0 unexpected / 0 flaky), plus the earlier **44 decode-verified PNG artifacts** in
+`docs/qr-studio-v3/evidence/`. Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
+
+**Post-merge re-verification (PR #24):** `origin/main` (QR Scanner + OCR + calculator work) was merged
+into this branch to resolve the single `TOOL_DEVELOPMENT_STATUS.md` conflict (kept main's tool table
+including the `qr-code-scanner` row). On the merged tree: combined unit suite **1555 passed / 85
+files**, QR Chromium E2E re-run **66 passed / 0 failed / 0 flaky** (screenshots + `e2e-results.json`
+regenerated), `tsc` clean, production build clean. No regressions from the merge.
+
+**Honest limitations:** Smart Link remains static only (no backend, no dynamic editing/analytics
+claimed). The calendar-event sample embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is
+regenerated each time (still decoded). Firefox/WebKit E2E projects were not run (only Chromium was
+provisioned); the Chromium project covers the full QR surface.
+
+**Remaining:** none — all V3 phases (B, C, D, F, G, H, E, I, J) are implemented and verified.
+**Not merged, not deployed — awaiting owner approval.**
+
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 
 Requested directly by the owner on 2 November 2026 with an attached reference image; it does not
@@ -1747,7 +1896,6 @@ contract. Three checks in this workstream therefore touched files outside the QR
 **Owner gate.** Not merged, not deployed, not indexed. The owner must open the live preview, use
 every feature, inspect the responsive layouts and approve the design before anything else happens.
 
-
 ## 4 November 2026 — Word to PDF Converter (owner-directed)
 
 **State: implementation for review / gated — not production-ready, live-approved, merged or deployed.** Earlier tool approval notes remain historical and unchanged.
@@ -1760,7 +1908,6 @@ every feature, inspect the responsive layouts and approve the design before anyt
 - Minimal shared copy changes were necessary to remove site-wide “all inputs stay local” claims after introducing the explicit server-processing exception. Catalog/sitemap count assertions updated for exactly one added tool; no existing conversion logic changed.
 - Evidence: `docs/WORD_TO_PDF_AUDIT.md`, `docs/WORD_TO_PDF_OPERATIONS.md`, `docs/WORD_TO_PDF_QA.md`, screenshots under `docs/word-to-pdf/screenshots/`.
 - Release blockers: native rendering corpus (including charts and long documents), container/network/resource isolation verification, actual-host cancellation/crash retention tests, Firefox/WebKit and owner review. Do not mark production-ready based on mocked tests.
-
 
 ## 4 November 2026 — Word to PDF Converter V2 (same route, owner-directed upgrade)
 
@@ -1775,7 +1922,6 @@ every feature, inspect the responsive layouts and approve the design before anyt
 - Source queue remains 80 MiB; native + edited PDF retention is bounded to 120 MiB combined. Canvas area/edge bounds, serialized transforms/thumbnails, cancellation and resource cleanup are implemented; no peak-RSS guarantee.
 - Evidence: `docs/WORD_TO_PDF_V2_AUDIT.md`, `docs/WORD_TO_PDF_V2_QA.md`, `docs/WORD_TO_PDF_V2_OPERATIONS.md`, screenshots in `docs/word-to-pdf/v2/`. Existing operator container/network/quota and privacy release gates still apply.
 
-
 ## Word to PDF V3 — owner-directed visual editor upgrade (4 November 2026)
 
 **Implemented for owner review — NOT native/production-approved.** Continues V2 on `/tools/word-to-pdf`; does not create a separate tool. Existing uncommitted V2 work was preserved first in checkpoint `1807951`; V3 implementation checkpoints `3abf9e1`, `e1a86e8`, `c10e848`, `ec1e3aa` preserve the audited plan/model, integrated studio and resource/export hardening. All work stays on `arena/15621ae8-quickkit`; no reset, branch switch, push, merge or deployment.
@@ -1788,7 +1934,6 @@ every feature, inspect the responsive layouts and approve the design before anyt
 - Native engine still absent/disabled. Native Word fonts, tables/charts/images, headers/footer/page breaks and real 100-page peak memory/cancellation/fidelity remain release gates, as do physical devices/cross-browser/manual assistive-technology QA. Comparison warnings are honest review indicators, not automatic substitution/layout-difference detection.
 
 Delivery: `docs/WORD_TO_PDF_V3_QA.md`, `WORD_TO_PDF_V3_EDITOR_REPORT.md`, `WORD_TO_PDF_V3_ENGINE_STATUS.md`, `WORD_TO_PDF_V3_CHANGED_FILES.md`; screenshots, clearly labelled actual edited PDF demonstration and measured/blocked stress reports in `docs/word-to-pdf/v3/`. The original V1/V2 reports remain historical. No other tool approval state is changed.
-
 
 ## Word to PDF V4 — 4 November 2026, owner-directed continuation
 

@@ -86,6 +86,8 @@ async function shapeMarkup(shape: Shape, doc: SvgDoc): Promise<string> {
       const d = `${circlePath(shape.cx, shape.cy, shape.rOuter)}${circlePath(shape.cx, shape.cy, shape.rInner)}`;
       return `<path d="${d}" fill="${paintRef(shape.paint, doc)}" fill-rule="evenodd"/>`;
     }
+    case "line":
+      return `<line x1="${num(shape.x1)}" y1="${num(shape.y1)}" x2="${num(shape.x2)}" y2="${num(shape.y2)}" stroke="${paintRef(shape.paint, doc)}" stroke-width="${num(shape.thickness)}" stroke-linecap="round"/>`;
     case "image": {
       const bytes = await encodePng({
         width: shape.src.width,

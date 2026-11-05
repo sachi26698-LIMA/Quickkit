@@ -19,6 +19,7 @@ import "@testing-library/jest-dom/vitest";
 import QrGenerator from "../components/tools/qr-generator";
 import { QR_SAMPLE_URL } from "../components/tools/qr-generator/use-qr-studio";
 import { HISTORY_STORAGE_KEY } from "../lib/tools/qr/storage";
+import { PRESET_SWATCHES } from "../lib/tools/qr/palette";
 
 const VERIFIED = "Verified by an independent decoder";
 const BLOCKED = "Not scannable — export is blocked";
@@ -103,7 +104,7 @@ describe("qr studio — empty state", () => {
     );
   });
 
-  it("offers all twelve content types in one compact picker", () => {
+  it("offers all twenty-seven content types in one compact picker", () => {
     render(<QrGenerator />);
     const select = screen.getByLabelText(
       "QR content type",
@@ -124,6 +125,21 @@ describe("qr studio — empty state", () => {
       "Calendar event",
       "Social profile",
       "App download",
+      "Instagram profile",
+      "Facebook page",
+      "YouTube channel",
+      "Spotify / music",
+      "Google Maps location",
+      "Google Review link",
+      "Business website + contact",
+      "Product / shopping link",
+      "Appointment booking",
+      "Event / ticket link",
+      "PDF / document link",
+      "Image gallery link",
+      "Video link",
+      "Multi-social links",
+      "Multi-link landing page",
     ]);
     expect(select.value).toBe("url");
   });
@@ -407,9 +423,9 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
     ).toBe("Download");
   });
 
-  it("splits the workspace into four tabs and the design card into five", () => {
+  it("splits the workspace into four tabs and the design card into six", () => {
     render(<QrGenerator />);
-    expect(screen.getAllByRole("tab")).toHaveLength(9);
+    expect(screen.getAllByRole("tab")).toHaveLength(10);
     for (const name of [/Create QR/, /Bulk \(CSV\)/, /^History/, /^Presets/])
       expect(screen.getByRole("tab", { name })).toBeInTheDocument();
     for (const name of [
@@ -417,6 +433,7 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
       /^Pattern/,
       /^Corners/,
       /^Logo/,
+      /^Frame/,
       /^Templates/,
     ])
       expect(screen.getByRole("tab", { name })).toBeInTheDocument();
@@ -510,4 +527,396 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
     );
     expect(screen.getByText(/left alone/i)).toBeInTheDocument();
   });
+});
+
+describe("qr studio — V3 design controls (frame, finder colours)", () => {
+  it(
+    "applies a labelled frame from the Frame tab and stays verified",
+    async () => {
+      render(<QrGenerator />);
+      fireEvent.click(screen.getByRole("button", { name: "512 px" }));
+      typeUrl("https://example.com/menu");
+      await settle();
+      openDesignTab("Frame");
+      const group = screen.getByRole("group", { name: "Frame style" });
+      fireEvent.click(within(group).getByRole("button", { name: "Scan Me" }));
+      expect(screen.getByLabelText("Banner text")).toHaveValue("SCAN ME");
+      await settle();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "custom frame text is editable and re-verifies",
+    async () => {
+      render(<QrGenerator />);
+      fireEvent.click(screen.getByRole("button", { name: "512 px" }));
+      typeUrl("https://example.com");
+      await settle();
+      openDesignTab("Frame");
+      fireEvent.click(
+        within(screen.getByRole("group", { name: "Frame style" })).getByRole(
+          "button",
+          { name: "Custom" },
+        ),
+      );
+      const input = screen.getByLabelText("Banner text");
+      fireEvent.change(input, { target: { value: "ORDER HERE" } });
+      expect(input).toHaveValue("ORDER HERE");
+      await settle();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "enables an independent finder colour from the Colours tab",
+    async () => {
+      render(<QrGenerator />);
+      typeUrl("https://example.com");
+      await settle();
+      openDesignTab("Colours");
+      fireEvent.click(screen.getByLabelText("Ring override"));
+      expect(
+        screen.getByLabelText("Ring colour hex value"),
+      ).toBeInTheDocument();
+      await settle();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+});
+
+describe("qr studio — V3 export controls (DPI, custom px, print layouts)", () => {
+  function openExportMore() {
+    const summary = document.querySelector("#qr-export-more summary");
+    fireEvent.click(summary as HTMLElement);
+  }
+
+  it("exposes DPI, custom-size and print-layout controls", () => {
+    render(<QrGenerator />);
+    openExportMore();
+    const dpi = screen.getByLabelText("Print resolution (DPI metadata)");
+    expect(dpi).toHaveValue("300");
+    fireEvent.change(dpi, { target: { value: "600" } });
+    expect(dpi).toHaveValue("600");
+    expect(screen.getByLabelText("Custom size (px)")).toBeInTheDocument();
+    expect(screen.getByLabelText("PDF layout")).toHaveValue("single");
+  });
+
+  it("reveals the grid controls for the A4 cut sheet and hides the paper picker", () => {
+    render(<QrGenerator />);
+    openExportMore();
+    fireEvent.change(screen.getByLabelText("PDF layout"), {
+      target: { value: "a4-sheet" },
+    });
+    expect(screen.getByRole("slider", { name: /Columns/ })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: /Rows/ })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Paper")).toBeNull();
+  });
+
+  it("a fixed layout hides the paper picker and explains its size", () => {
+    render(<QrGenerator />);
+    openExportMore();
+    fireEvent.change(screen.getByLabelText("PDF layout"), {
+      target: { value: "business-card" },
+    });
+    expect(screen.queryByLabelText("Paper")).toBeNull();
+    expect(
+      screen.getByText(/prints on a fixed 85 × 55 mm/),
+    ).toBeInTheDocument();
+  });
+
+  it("guards the custom-size export button against an out-of-range value", () => {
+    render(<QrGenerator />);
+    typeUrl("https://example.com");
+    openExportMore();
+    const input = screen.getByLabelText("Custom size (px)");
+    const button = screen.getByRole("button", { name: /Export/ });
+    fireEvent.change(input, { target: { value: "10" } });
+    expect(button).toBeDisabled();
+    fireEvent.change(input, { target: { value: "1024" } });
+    expect(button).not.toBeDisabled();
+  });
+});
+
+describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => {
+  function openBulk() {
+    fireEvent.click(screen.getByRole("tab", { name: /Bulk \(CSV\)/ }));
+  }
+  function bulkCard() {
+    return within(document.getElementById("qr-bulk") as HTMLElement);
+  }
+  async function loadCsv(text: string, name = "test.csv") {
+    const file = new File([text], name, { type: "text/csv" });
+    const input = document.getElementById("qr-bulk-file") as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() =>
+      expect(screen.getByText("Column mapping")).toBeInTheDocument(),
+    );
+  }
+
+  it(
+    "previews rows without rendering any pixels",
+    async () => {
+      render(<QrGenerator />);
+      openBulk();
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load the sample file" }),
+      );
+      fireEvent.click(bulkCard().getByRole("button", { name: /Preview rows/ }));
+      await waitFor(() =>
+        expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+          /0 rendered/,
+        ),
+      );
+      expect(document.querySelector(".qr-row-status.queued")).not.toBeNull();
+      expect(
+        bulkCard().getByRole("button", { name: /Download ZIP/ }),
+      ).toBeDisabled();
+      expect(screen.getByText(/Preview only/)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "a per-row type column reveals a Type column in the results",
+    async () => {
+      render(<QrGenerator />);
+      openBulk();
+      await loadCsv(
+        "type,url\nurl,https://quickkit.tools\nurl,https://example.com",
+      );
+      fireEvent.change(
+        screen.getByLabelText("Per-row type column (optional)"),
+        {
+          target: { value: "0" },
+        },
+      );
+      fireEvent.click(bulkCard().getByRole("button", { name: /Preview rows/ }));
+      await waitFor(() =>
+        expect(document.querySelector(".qr-bulk-rows")).toBeInTheDocument(),
+      );
+      expect(
+        screen.getByRole("columnheader", { name: "Type" }),
+      ).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "offers Retry failed when a row is invalid and re-runs on click",
+    async () => {
+      render(<QrGenerator />);
+      openBulk();
+      await loadCsv("name,url\nBad,not-a-valid-url\nGood,https://example.com");
+      fireEvent.click(
+        bulkCard().getByRole("button", { name: /Generate 2 codes/ }),
+      );
+      await waitFor(
+        () =>
+          expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+            /1 failed/,
+          ),
+        { timeout: TEST_TIMEOUT },
+      );
+      await waitFor(
+        () =>
+          expect(
+            bulkCard().getByRole("button", { name: /Retry failed \(1\)/ }),
+          ).toBeEnabled(),
+        { timeout: TEST_TIMEOUT },
+      );
+      fireEvent.click(
+        bulkCard().getByRole("button", { name: /Retry failed \(1\)/ }),
+      );
+      await waitFor(
+        () =>
+          expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+            /1 rendered/,
+          ),
+        { timeout: TEST_TIMEOUT },
+      );
+      // The good row is kept; the bad row still fails (data unchanged).
+      expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+        /1 failed/,
+      );
+    },
+    TEST_TIMEOUT * 2,
+  );
+});
+
+describe("qr studio — V3 history & preset management (Phase H)", () => {
+  it("renames and duplicates a preset from the Presets tab", () => {
+    render(<QrGenerator />);
+    fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
+    fireEvent.change(screen.getByLabelText("Save the design you have now"), {
+      target: { value: "Cafe look" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Save design/ }));
+    expect(screen.getByText("Cafe look")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Rename the Cafe look preset" }),
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Rename the Cafe look preset",
+    });
+    fireEvent.change(input, { target: { value: "Menu look" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save the new name" }));
+    expect(screen.getByText("Menu look")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Duplicate the Menu look preset" }),
+    );
+    expect(screen.getByText("Menu look copy")).toBeInTheDocument();
+    expect(screen.getByText("Menu look")).toBeInTheDocument();
+  });
+
+  it(
+    "renames a history entry from the History tab",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      typeUrl("https://example.com");
+      await settle();
+      fireEvent.click(screen.getByRole("tab", { name: /^History/ }));
+      const renameButtons = screen.getAllByRole("button", {
+        name: /Rename the/,
+      });
+      fireEvent.click(renameButtons[0]);
+      const input = screen.getByRole("textbox", {
+        name: /Rename the .* entry/,
+      });
+      fireEvent.change(input, { target: { value: "My renamed code" } });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save the new label" }),
+      );
+      expect(screen.getByText("My renamed code")).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it("offers config export and import on the Presets tab", () => {
+    render(<QrGenerator />);
+    fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
+    expect(
+      screen.getByRole("button", { name: /Export config/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Import config/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Import a QUICKKIT QR config file"),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("qr studio — V3 Smart Link landing builder (Phase E)", () => {
+  function openLandingBuilder() {
+    pickType("landing");
+    const summary = screen
+      .getByText("Build a Smart Link page")
+      .closest("summary") as HTMLElement;
+    fireEvent.click(summary);
+  }
+
+  it("shows the static-page limitation notice for the landing type", () => {
+    render(<QrGenerator />);
+    openLandingBuilder();
+    expect(
+      screen.getByText(/static HTML page you host yourself/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/no dynamic redirect/i)).toBeInTheDocument();
+  });
+
+  it(
+    "builds and downloads a self-contained HTML page from the builder",
+    async () => {
+      let captured: Blob | null = null;
+      vi.stubGlobal(
+        "URL",
+        Object.assign(window.URL, {
+          createObjectURL: vi.fn((blob: Blob) => {
+            captured = blob;
+            return "blob:stub";
+          }),
+          revokeObjectURL: vi.fn(),
+        }),
+      );
+      const clickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(() => {});
+
+      render(<QrGenerator />);
+      openLandingBuilder();
+      fireEvent.change(screen.getByLabelText("Page title"), {
+        target: { value: "Cafe Aroma" },
+      });
+      fireEvent.change(screen.getByLabelText("Link 1 label"), {
+        target: { value: "Menu" },
+      });
+      fireEvent.change(screen.getByLabelText("Link 1 URL"), {
+        target: { value: "https://example.com/menu" },
+      });
+
+      const download = screen.getByRole("button", {
+        name: /Download HTML page/,
+      });
+      expect(download).toBeEnabled();
+      fireEvent.click(download);
+
+      expect(clickSpy).toHaveBeenCalled();
+      expect(captured).not.toBeNull();
+      const html = await (captured as unknown as Blob).text();
+      expect(html).toContain("<!DOCTYPE html>");
+      expect(html).toContain("Cafe Aroma");
+      expect(html).toContain('href="https://example.com/menu"');
+      expect(html).not.toContain("<script");
+    },
+    TEST_TIMEOUT,
+  );
+
+  it("keeps download disabled until a valid link is present, and caps links at 8", () => {
+    render(<QrGenerator />);
+    openLandingBuilder();
+    // Default config has one empty link -> invalid -> disabled.
+    expect(
+      screen.getByRole("button", { name: /Download HTML page/ }),
+    ).toBeDisabled();
+
+    // Add links up to the cap; the Add link button then disables.
+    for (let i = 0; i < 10; i++) {
+      const add = screen.getByRole("button", { name: /Add link/ });
+      if ((add as HTMLButtonElement).disabled) break;
+      fireEvent.click(add);
+    }
+    expect(screen.getByLabelText("Link 8 label")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
+  });
+});
+
+describe("qr studio — V3 brand colour presets (Phase I)", () => {
+  it(
+    "every quick preset applies and still decodes to the exact payload",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      typeUrl("https://example.com/brand");
+      await settle();
+      openDesignTab("Colours");
+      for (const swatch of PRESET_SWATCHES) {
+        fireEvent.click(
+          screen.getByRole("button", { name: `Apply ${swatch.name}` }),
+        );
+        // Each preset must keep the code independently verified — including the
+        // light-on-dark rose/coral pairs.
+        await settle();
+        expect(screen.getByText(VERIFIED)).toBeInTheDocument();
+      }
+    },
+    TEST_TIMEOUT,
+  );
 });

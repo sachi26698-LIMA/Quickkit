@@ -5,7 +5,12 @@
  * nothing here needs a spreadsheet engine, and nothing that came out of a
  * spreadsheet is ever executed.
  */
-import { contentTypeDef, type QrField, type QrValues } from "./payload";
+import {
+  contentTypeDef,
+  isKnownContentType,
+  type QrField,
+  type QrValues,
+} from "./payload";
 import { fitQr, utf8Length } from "./capacity";
 import { QrUserError, type QrContentTypeId } from "./types";
 
@@ -328,6 +333,53 @@ export function buildRowPayload(
     payload,
     label: String(labelSource).trim().slice(0, 60) || `Row ${def.label}`,
   };
+}
+
+/**
+ * Resolve a row's content type. When a "type" column is mapped and the cell
+ * holds a known content-type id, that row uses it; otherwise the batch default
+ * applies. Unknown / empty cells never throw — they fall back to the default.
+ */
+export function resolveRowType(
+  typeColumn: number,
+  cells: string[],
+  fallbackType: QrContentTypeId,
+): QrContentTypeId {
+  if (typeColumn < 0) return fallbackType;
+  const raw = (cells[typeColumn] ?? "").trim().toLowerCase();
+  return isKnownContentType(raw) ? (raw as QrContentTypeId) : fallbackType;
+}
+
+/**
+ * Mapping for a row's effective type. The batch mapping is reused when the row
+ * shares the batch type; otherwise the columns are re-guessed for that type so
+ * a mixed-type CSV still maps each row's fields sensibly. The type column itself
+ * is excluded from the guess — a header like "type" is also a synonym for some
+ * fields (e.g. Wi-Fi encryption) and must not be mapped onto one.
+ */
+export function mappingForRow(
+  rowType: QrContentTypeId,
+  batchType: QrContentTypeId,
+  batchMapping: ColumnMapping,
+  headers: string[],
+  excludeColumn = -1,
+): ColumnMapping {
+  if (rowType === batchType) return batchMapping;
+  const effective =
+    excludeColumn >= 0
+      ? headers.map((header, index) => (index === excludeColumn ? "" : header))
+      : headers;
+  return guessMapping(effective, contentTypeDef(rowType).fields);
+}
+
+/** Headers with the per-row type column blanked, for guessing field mappings. */
+export function headersWithoutTypeColumn(
+  headers: string[],
+  typeColumn: number,
+): string[] {
+  return typeColumn >= 0
+    ? headers.map((header, index) => (index === typeColumn ? "" : header))
+    : headers;
 }
 
 /** Row numbers that produced the same payload as an earlier row. */

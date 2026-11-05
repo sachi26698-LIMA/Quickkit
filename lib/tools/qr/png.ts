@@ -143,6 +143,92 @@ export async function bitmapToPngBlob(bitmap: QrBitmap) {
   return pngBlob(await encodePng(bitmap));
 }
 
+/** Read a big-endian uint32 from a byte array. */
+function readUint32(bytes: Uint8Array, offset: number) {
+  return (
+    ((bytes[offset] << 24) |
+      (bytes[offset + 1] << 16) |
+      (bytes[offset + 2] << 8) |
+      bytes[offset + 3]) >>>
+    0
+  );
+}
+
+const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+
+function isPng(bytes: Uint8Array) {
+  return (
+    bytes.length >= 8 && PNG_SIGNATURE.every((byte, i) => bytes[i] === byte)
+  );
+}
+
+/** Walk PNG chunks, yielding each whole chunk (length+type+data+crc). */
+function* pngChunks(bytes: Uint8Array) {
+  let offset = 8; // skip signature
+  while (offset + 12 <= bytes.length) {
+    const length = readUint32(bytes, offset);
+    const end = offset + 12 + length;
+    if (end > bytes.length) break;
+    const type = String.fromCharCode(
+      bytes[offset + 4],
+      bytes[offset + 5],
+      bytes[offset + 6],
+      bytes[offset + 7],
+    );
+    yield { type, bytes: bytes.subarray(offset, end) };
+    offset = end;
+    if (type === "IEND") break;
+  }
+}
+
+/**
+ * Stamp a print resolution into a PNG via the standard `pHYs` chunk (pixels per
+ * metre, unit = metre). This is metadata only — the pixel data is untouched, so
+ * a decode-verified PNG stays decode-verified. Any existing pHYs is replaced.
+ * Returns the input unchanged for a non-positive DPI or a non-PNG input.
+ */
+export function withPngDpi(png: Uint8Array, dpi: number): Uint8Array {
+  if (!isPng(png) || !Number.isFinite(dpi) || dpi <= 0) return png;
+  const ppm = Math.round(dpi / 0.0254); // 1 inch = 0.0254 m
+  const data = new Uint8Array(9);
+  const view = new DataView(data.buffer);
+  view.setUint32(0, ppm);
+  view.setUint32(4, ppm);
+  data[8] = 1; // unit specifier: metre
+  const phys = chunk("pHYs", data);
+  const parts: Uint8Array[] = [png.subarray(0, 8)];
+  let inserted = false;
+  for (const { type, bytes } of pngChunks(png)) {
+    if (type === "pHYs") continue; // drop any existing resolution chunk
+    parts.push(bytes);
+    if (type === "IHDR" && !inserted) {
+      parts.push(phys); // pHYs must precede the first IDAT
+      inserted = true;
+    }
+  }
+  const total = parts.reduce((sum, part) => sum + part.length, 0);
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+  return out;
+}
+
+/** Read the print resolution (DPI) from a PNG's pHYs chunk, or null if absent. */
+export function readPngDpi(png: Uint8Array): number | null {
+  if (!isPng(png)) return null;
+  for (const { type, bytes } of pngChunks(png)) {
+    if (type !== "pHYs" || bytes.length < 8 + 9) continue;
+    const unit = bytes[8 + 8];
+    if (unit !== 1) return null; // only metre-based resolution is DPI
+    const ppm = readUint32(bytes, 8);
+    return Math.round(ppm * 0.0254);
+  }
+  return null;
+}
+
 /** Standard base64, chunked so huge images do not blow the argument limit. */
 export function base64FromBytes(bytes: Uint8Array) {
   let binary = "";

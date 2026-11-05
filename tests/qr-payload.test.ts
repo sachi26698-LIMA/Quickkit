@@ -94,6 +94,70 @@ const CASES: Record<
     values: { store: "android", packageName: "com.example.app" },
     payload: "https://play.google.com/store/apps/details?id=com.example.app",
   },
+  instagram: {
+    values: { username: "@quickkit.tools" },
+    payload: "https://www.instagram.com/quickkit.tools/",
+  },
+  facebook: {
+    values: { page: "quickkit.tools" },
+    payload: "https://www.facebook.com/quickkit.tools",
+  },
+  youtube: {
+    values: { channel: "@quickkit" },
+    payload: "https://www.youtube.com/@quickkit",
+  },
+  spotify: {
+    values: { url: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M" },
+    payload: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+  },
+  gmaps: {
+    values: { mode: "place", place: "Gateway of India, Mumbai" },
+    payload:
+      "https://www.google.com/maps/search/?api=1&query=Gateway%20of%20India%2C%20Mumbai",
+  },
+  greview: {
+    values: { placeId: "ChIJN1t_tDeuEmsRUsoyG83frY4" },
+    payload:
+      "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",
+  },
+  business: {
+    values: { company: "Aurora Cafe", website: "auroracafe.example.com" },
+    payload:
+      "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Aurora Cafe;;;;\r\nFN:Aurora Cafe\r\n" +
+      "ORG:Aurora Cafe\r\nURL:https://auroracafe.example.com/\r\nEND:VCARD",
+  },
+  product: {
+    values: { url: "https://store.example.com/product/123" },
+    payload: "https://store.example.com/product/123",
+  },
+  booking: {
+    values: { url: "https://calendly.com/quickkit/consult" },
+    payload: "https://calendly.com/quickkit/consult",
+  },
+  ticket: {
+    values: { url: "https://tickets.example.com/event/launch" },
+    payload: "https://tickets.example.com/event/launch",
+  },
+  document: {
+    values: { url: "https://example.com/menu.pdf" },
+    payload: "https://example.com/menu.pdf",
+  },
+  gallery: {
+    values: { url: "https://photos.example.com/album" },
+    payload: "https://photos.example.com/album",
+  },
+  video: {
+    values: { url: "https://youtu.be/dQw4w9WgXcQ" },
+    payload: "https://youtu.be/dQw4w9WgXcQ",
+  },
+  socials: {
+    values: { url: "https://linktr.ee/quickkit" },
+    payload: "https://linktr.ee/quickkit",
+  },
+  landing: {
+    values: { url: "https://quickkit.tools/links" },
+    payload: "https://quickkit.tools/links",
+  },
 };
 
 describe("payload builders — one case per content type", () => {
@@ -267,8 +331,8 @@ describe("payload validation and escaping", () => {
 });
 
 describe("content type registry", () => {
-  it("has twelve types, each with fields and a builder", () => {
-    expect(QR_CONTENT_TYPES).toHaveLength(12);
+  it("has twenty-seven types, each with fields and a builder", () => {
+    expect(QR_CONTENT_TYPES).toHaveLength(27);
     for (const type of QR_CONTENT_TYPES) {
       expect(type.fields.length).toBeGreaterThan(0);
       expect(typeof type.build).toBe("function");
@@ -332,4 +396,109 @@ describe("every content type renders and decodes", () => {
       expect(output.verification?.decoded).toBe(payload);
     }, 30_000);
   }
+});
+
+describe("V3 destination types validate their inputs", () => {
+  it("Google Maps builds coordinates, place and pasted-link variants", () => {
+    expect(
+      buildPayload("gmaps", {
+        mode: "coords",
+        latitude: "19.076",
+        longitude: "72.8777",
+      }),
+    ).toBe("https://www.google.com/maps/search/?api=1&query=19.076%2C72.8777");
+    expect(() =>
+      buildPayload("gmaps", {
+        mode: "coords",
+        latitude: "999",
+        longitude: "0",
+      }),
+    ).toThrow(/Latitude/);
+    expect(() =>
+      buildPayload("gmaps", {
+        mode: "url",
+        url: "https://evil.example.com/maps",
+      }),
+    ).toThrow(/Google Maps link/);
+    expect(
+      buildPayload("gmaps", {
+        mode: "url",
+        url: "https://maps.app.goo.gl/abc123",
+      }),
+    ).toBe("https://maps.app.goo.gl/abc123");
+  });
+
+  it("Google Review needs a Place ID or a Google review link", () => {
+    expect(() => buildPayload("greview", {})).toThrow(/Place ID or paste/);
+    expect(() => buildPayload("greview", { placeId: "bad id!" })).toThrow(
+      /Place ID/,
+    );
+    expect(() =>
+      buildPayload("greview", { url: "https://evil.example.com/review" }),
+    ).toThrow(/Google review link/);
+    expect(
+      buildPayload("greview", { url: "https://g.page/aurora/review" }),
+    ).toBe("https://g.page/aurora/review");
+  });
+
+  it("Spotify accepts music links and rejects non-content Spotify paths", () => {
+    expect(
+      buildPayload("spotify", { url: "https://open.spotify.com/track/abc" }),
+    ).toBe("https://open.spotify.com/track/abc");
+    expect(() =>
+      buildPayload("spotify", { url: "https://open.spotify.com/search/abc" }),
+    ).toThrow(/track, album, playlist/);
+    // A non-Spotify https music page is allowed through.
+    expect(
+      buildPayload("spotify", { url: "https://music.example.com/album/1" }),
+    ).toBe("https://music.example.com/album/1");
+  });
+
+  it("Instagram, Facebook and YouTube normalize handles and URLs", () => {
+    expect(buildPayload("instagram", { username: "@ada" })).toBe(
+      "https://www.instagram.com/ada/",
+    );
+    expect(
+      buildPayload("facebook", { page: "https://www.facebook.com/ada" }),
+    ).toBe("https://www.facebook.com/ada");
+    expect(
+      buildPayload("youtube", { channel: "UC1234567890123456789012" }),
+    ).toBe("https://www.youtube.com/channel/UC1234567890123456789012");
+  });
+
+  it("Business card requires a name and website and escapes vCard text", () => {
+    expect(() => buildPayload("business", { website: "x.com" })).toThrow(
+      /Business name/,
+    );
+    expect(() => buildPayload("business", { company: "X" })).toThrow(/Website/);
+    const card = buildPayload("business", {
+      company: "Café, Aurora",
+      website: "aurora.example.com",
+      phone: "+91 98765 43210",
+      email: "hi@aurora.example.com",
+    });
+    expect(card).toContain("ORG:Café\\, Aurora");
+    expect(card).toContain("TEL;TYPE=WORK,VOICE:+919876543210");
+    expect(card).toContain("EMAIL;TYPE=WORK:hi@aurora.example.com");
+    expect(card.startsWith("BEGIN:VCARD")).toBe(true);
+    expect(card.endsWith("END:VCARD")).toBe(true);
+  });
+
+  it("destination-link types refuse dangerous schemes", () => {
+    for (const id of [
+      "product",
+      "booking",
+      "ticket",
+      "document",
+      "gallery",
+      "video",
+      "socials",
+      "landing",
+    ] as const) {
+      expect(() => buildPayload(id, { url: "javascript:alert(1)" })).toThrow();
+      expect(buildPayload(id, { url: "example.com/page" })).toBe(
+        "https://example.com/page",
+      );
+    }
+  });
 });

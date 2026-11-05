@@ -80,7 +80,7 @@ export async function renderQr(request: RenderRequest): Promise<RenderOutput> {
   const verification =
     request.verify && full
       ? verifyBitmap(full, payload, {
-          totalModules: matrix.size + design.margin * 2,
+          totalModules: Math.round(scene.size / scene.modulePx),
         })
       : null;
   return {
@@ -124,7 +124,7 @@ export async function renderQrPng(
   const png = await encodePng(bitmap);
   const verification = options.verify
     ? verifyBitmap(bitmap, payload, {
-        totalModules: matrix.size + design.margin * 2,
+        totalModules: Math.round(scene.size / scene.modulePx),
       })
     : null;
   return {

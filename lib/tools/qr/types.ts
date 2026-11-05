@@ -14,7 +14,22 @@ export type QrContentTypeId =
   | "location"
   | "event"
   | "social"
-  | "app";
+  | "app"
+  | "instagram"
+  | "facebook"
+  | "youtube"
+  | "spotify"
+  | "gmaps"
+  | "greview"
+  | "business"
+  | "product"
+  | "booking"
+  | "ticket"
+  | "document"
+  | "gallery"
+  | "video"
+  | "socials"
+  | "landing";
 
 /** How a fill (foreground modules or the background) is painted. */
 export type QrFillKind = "solid" | "linear" | "radial";
@@ -32,6 +47,26 @@ export type QrDotStyle =
 export type QrEyeStyle = "square" | "rounded" | "dots" | "classy" | "circle";
 export type QrLogoShape = "square" | "rounded" | "circle";
 
+/** Frame styles shipped with Design Studio V3. "custom" uses free text. */
+export type QrFrameStyle =
+  "none" | "scan" | "menu" | "follow" | "contact" | "visit" | "custom";
+
+/**
+ * A decorative frame drawn *outside* the symbol's quiet zone: a rounded border
+ * plus a bottom banner carrying a label. Rendered in the shared scene so the
+ * PNG, SVG and preview are identical and the decode gate verifies the framed
+ * artwork. Text uses the built-in stroke font (no network font, no canvas).
+ */
+export type QrFrame = {
+  style: QrFrameStyle;
+  /** Banner label. Preset styles seed this; "custom" edits it freely. */
+  text: string;
+  /** Border + label colour (hex). */
+  fg: string;
+  /** Banner fill colour (hex). */
+  bg: string;
+};
+
 export type QrLogoSettings = {
   /** Side length as a fraction of the code size (kept ≤ 0.30 for scannability). */
   scale: number;
@@ -43,6 +78,8 @@ export type QrLogoSettings = {
   shape: QrLogoShape;
   /** Paint the halo even when the background is transparent. */
   halo: boolean;
+  /** Halo colour override (hex). null = use the field colour automatically. */
+  bg: string | null;
 };
 
 /** Decoded logo pixels. Held in memory only — never written to storage. */
@@ -74,6 +111,24 @@ export type QrDesign = {
   /** Flip dark/light. Useful for inverted codes; scanners tolerate it less. */
   invert: boolean;
   logo: QrLogoSettings;
+  /** Decorative frame + label around the symbol (V3). */
+  frame: QrFrame;
+  /** Independent finder-ring colour override. null = use the module fill. */
+  eyeFrame: QrFill | null;
+  /** Independent finder-centre colour override. null = use the module fill. */
+  eyeBall: QrFill | null;
+};
+
+/** Default banner text for each preset frame style. */
+export const FRAME_PRESET_TEXT: Record<
+  Exclude<QrFrameStyle, "none" | "custom">,
+  string
+> = {
+  scan: "SCAN ME",
+  menu: "SCAN FOR MENU",
+  follow: "FOLLOW US",
+  contact: "CONTACT US",
+  visit: "VISIT WEBSITE",
 };
 
 /** A generated QR: the symbol itself plus everything needed to re-render it. */

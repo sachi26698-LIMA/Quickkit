@@ -10,24 +10,38 @@ import { useState } from "react";
 import {
   AppWindow,
   Bookmark,
+  Briefcase,
   Calendar,
+  CalendarCheck,
+  Camera,
   ChevronDown,
   Contact,
+  FileText,
+  Images,
+  LayoutTemplate,
   Link,
   Mail,
   MapPin,
   MessageSquare,
+  MonitorPlay,
+  Music,
   Phone,
   QrCode,
   Share2,
+  ShoppingBag,
   Sparkles,
+  Star,
+  Ticket,
   Type,
+  Users,
+  Video,
   Wifi,
 } from "lucide-react";
 import { MAX_QR_PAYLOAD_BYTES, utf8Length } from "@/lib/tools/qr/capacity";
 import { QR_CONTENT_TYPES, redactForDisplay } from "@/lib/tools/qr/payload";
 import type { QrContentTypeId } from "@/lib/tools/qr/types";
 import { QrDisclosure, QrFieldGrid } from "./shared";
+import LandingBuilder from "./landing-builder";
 import type { QrStudio } from "./use-qr-studio";
 
 const ICONS: Record<string, typeof QrCode> = {
@@ -44,6 +58,19 @@ const ICONS: Record<string, typeof QrCode> = {
   share: Share2,
   app: AppWindow,
   bookmark: Bookmark,
+  instagram: Camera,
+  facebook: Users,
+  youtube: MonitorPlay,
+  music: Music,
+  star: Star,
+  briefcase: Briefcase,
+  "shopping-bag": ShoppingBag,
+  "calendar-check": CalendarCheck,
+  ticket: Ticket,
+  "file-text": FileText,
+  images: Images,
+  video: Video,
+  layout: LayoutTemplate,
 };
 
 export default function ContentPanel({ studio }: { studio: QrStudio }) {
@@ -138,6 +165,10 @@ export default function ContentPanel({ studio }: { studio: QrStudio }) {
         error={hasContent ? formError : null}
         onChange={studio.setValue}
       />
+
+      {typeId === "landing" || typeId === "socials" ? (
+        <LandingBuilder studio={studio} />
+      ) : null}
 
       <div className="qr-payload-bar">
         <button

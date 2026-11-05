@@ -103,6 +103,14 @@ function shapeBounds(
       x1 = shape.cx + shape.rOuter;
       y1 = shape.cy + shape.rOuter;
       break;
+    case "line": {
+      const half = shape.thickness / 2;
+      x0 = Math.min(shape.x1, shape.x2) - half;
+      y0 = Math.min(shape.y1, shape.y2) - half;
+      x1 = Math.max(shape.x1, shape.x2) + half;
+      y1 = Math.max(shape.y1, shape.y2) + half;
+      break;
+    }
   }
   return {
     x0: Math.max(0, Math.floor(x0 - pad)),
@@ -156,6 +164,21 @@ function shapeCoverage(shape: Shape, px: number, py: number) {
       const distance = Math.hypot(px - shape.cx, py - shape.cy);
       return coverageFromDistance(
         Math.max(distance - shape.rOuter, shape.rInner - distance),
+      );
+    }
+    case "line": {
+      // Distance to a capsule (segment + round caps) gives clean stroke text.
+      const dx = shape.x2 - shape.x1;
+      const dy = shape.y2 - shape.y1;
+      const lenSq = dx * dx + dy * dy;
+      const t =
+        lenSq === 0
+          ? 0
+          : clamp01(((px - shape.x1) * dx + (py - shape.y1) * dy) / lenSq);
+      const nx = shape.x1 + t * dx;
+      const ny = shape.y1 + t * dy;
+      return coverageFromDistance(
+        Math.hypot(px - nx, py - ny) - shape.thickness / 2,
       );
     }
     case "image":
