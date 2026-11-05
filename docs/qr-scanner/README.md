@@ -235,6 +235,11 @@ All commands were run in this workspace; results are what they printed.
 
 ### 8.1 Final real-device verification pass (4 November 2026)
 
+A note on the word "device": no device was used. The checklist was executed
+against the shipping UI in headless Chromium, with the camera replaced by a
+canvas capture stream and every QR symbol encoded at run time. Section 8.1.2
+lists precisely what that cannot prove.
+
 The twelve-item device checklist was run against the running app as a purpose-built
 suite, `tests/e2e/qr-scanner-verification.spec.ts` (**23 cases**). Every symbol it
 scans is encoded **at run time** by the suite itself with the `qrcode` package and
@@ -262,7 +267,7 @@ scanner stops reading a payload, the suite fails.
 | 15  | Accessibility       | axe-core scan against WCAG 2.1 A/AA: **zero serious or critical violations**.                                                                                                                                                                                                                                                                                   |
 | 16  | Keyboard            | Arrow keys move the tab selection and focus together; tabs expose the full label as their accessible name even when the visible text shortens on a phone.                                                                                                                                                                                                       |
 
-**Actual bugs found and fixed in this pass** (code changed, not tests):
+#### 8.1.1 Actual bugs found and fixed in this pass (code changed, not tests)
 
 1. **The camera would have been blocked in production.** `next.config.ts` sent
    `Permissions-Policy: camera=()` on every path, which overrides a user's own
@@ -285,7 +290,7 @@ scanner stops reading a payload, the suite fails.
 5. **Wi-Fi field order** put Security before Hidden network; the SSID now leads,
    then the hidden flag, then security, which is how the network card reads.
 
-**Blocked by browser/device limitations — not verified, and not claimed:**
+#### 8.1.2 Blocked by browser/device limitations — not verified, and not claimed
 
 - **No physical Android or iOS device, no real camera, no printer, no second
   screen exists in this environment.** Every "real sensor scanning printed paper"
