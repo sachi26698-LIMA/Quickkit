@@ -226,6 +226,23 @@ test.describe("image resizer audit", () => {
       image: await image.evaluate((el) => el.getBoundingClientRect().height),
     });
 
+    // The stage is measured by ResizeObserver after the upload. Wait for the
+    // decoded, correctly sized image and its fitted layout rather than reading
+    // the transient initial 320px stage estimate on the first render.
+    await expect
+      .poll(async () =>
+        image.evaluate((el: HTMLImageElement) => [
+          el.naturalWidth,
+          el.naturalHeight,
+        ]),
+      )
+      .toEqual([900, 1200]);
+    await expect
+      .poll(async () => {
+        const { stage: height, image: rendered } = await read();
+        return rendered <= height;
+      })
+      .toBe(true);
     const fitted = await read();
     expect(fitted.image).toBeLessThanOrEqual(fitted.stage);
 

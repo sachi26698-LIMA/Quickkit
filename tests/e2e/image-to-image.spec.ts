@@ -18,6 +18,7 @@ async function imageFixture(
     type?: string;
     transparent?: boolean;
     quality?: number;
+    noise?: boolean;
   },
 ): Promise<Upload> {
   const {
@@ -27,9 +28,10 @@ async function imageFixture(
     type = "image/png",
     transparent,
     quality,
+    noise,
   } = options;
   const base64 = await page.evaluate(
-    async ([w, h, mime, alpha, q]) => {
+    async ([w, h, mime, alpha, q, noisy]) => {
       const canvas = document.createElement("canvas");
       canvas.width = w;
       canvas.height = h;
@@ -46,6 +48,23 @@ async function imageFixture(
       ctx.beginPath();
       ctx.arc(w / 2, h / 2, Math.min(w, h) / 3, 0, Math.PI * 2);
       ctx.fill();
+      if (noisy) {
+        // A deterministic textured photo cannot accidentally fit a tiny
+        // target just because a smooth gradient compresses extremely well.
+        const pixels = ctx.getImageData(0, 0, w, h);
+        let seed = 0x12345678;
+        for (let index = 0; index < pixels.data.length; index += 4) {
+          seed ^= seed << 13;
+          seed ^= seed >>> 17;
+          seed ^= seed << 5;
+          const value = seed & 255;
+          pixels.data[index] = value;
+          pixels.data[index + 1] = value;
+          pixels.data[index + 2] = value;
+          pixels.data[index + 3] = 255;
+        }
+        ctx.putImageData(pixels, 0, 0);
+      }
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob((value) => resolve(value!), mime, q),
       );
@@ -54,7 +73,14 @@ async function imageFixture(
       for (const byte of bytes) binary += String.fromCharCode(byte);
       return btoa(binary);
     },
-    [width, height, type, Boolean(transparent), quality] as const,
+    [
+      width,
+      height,
+      type,
+      Boolean(transparent),
+      quality,
+      Boolean(noise),
+    ] as const,
   );
   return { name, mimeType: type, buffer: Buffer.from(base64, "base64") };
 }
@@ -729,7 +755,7 @@ test.describe("Image to Image Converter", () => {
 
 test.describe("Image to Image Converter — target file size", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/tools/image-to-image");
+    await page.goto("/tools/image-to-image", { waitUntil: "networkidle" });
   });
 
   async function enableTarget(page: Page) {
@@ -744,9 +770,9 @@ test.describe("Image to Image Converter — target file size", () => {
     await expect(
       page.getByRole("radiogroup", { name: /compression style/i }),
     ).toBeVisible();
-    await expect(page.getByTestId("converter-size-estimate")).toContainText(
-      /Add an image to see an estimated output size/,
-    );
+    await expect(
+      page.getByText(/Add an image to see an estimated output size/),
+    ).toBeVisible();
 
     const photo = await imageFixture(page, {
       width: 2400,
@@ -804,7 +830,7 @@ test.describe("Image to Image Converter — target file size", () => {
     );
     // The promise in the UI must match the bytes the user receives.
     expect(file.buffer.length).toBeLessThanOrEqual(200 * 1024);
-    expect(file.name).toBe("landscape.jpg");
+    expect(file.name).toBe("landscape-converted.jpg");
     const jpeg = jpegSize(file.buffer);
     expect(jpeg.width).toBeGreaterThan(0);
     expect(jpeg.height).toBeGreaterThan(0);
@@ -837,7 +863,7 @@ test.describe("Image to Image Converter — target file size", () => {
       page,
       card.getByRole("button", { name: /^Download / }),
     );
-    expect(file.name).toBe("logo.png");
+    expect(file.name).toBe("logo-converted.png");
     const png = PNG.sync.read(file.buffer);
     expect(png.width).toBe(400);
     expect(png.height).toBe(300);
@@ -857,6 +883,7 @@ test.describe("Image to Image Converter — target file size", () => {
       width: 2000,
       height: 1400,
       name: "unreachable.jpg",
+      noise: true,
       type: "image/jpeg",
       quality: 0.9,
     });
@@ -870,13 +897,16 @@ test.describe("Image to Image Converter — target file size", () => {
     await runConversion(page);
     const report = page.getByTestId("converter-size-report");
     await expect(report).toHaveClass(/warning/);
-    await expect(report).toContainText(/Could not reach 5 KB/);
+    await expect(report).toContainText(/Closest achievable to 5 KB/);
 
     const card = page.getByTestId("converter-result");
     const file = await downloadFrom(
       page,
       card.getByRole("button", { name: /^Download / }),
     );
+    expect(file.buffer.length).toBeGreaterThan(5 * 1024);
+    // A missed target must never be described as having been reached.
+    await expect(report).toContainText(/Could not reach 5 KB/);
     // Dimensions are untouched because the user forbade shrinking them.
     const jpeg = jpegSize(file.buffer);
     expect(jpeg.width).toBe(2000);
@@ -895,6 +925,7 @@ test.describe("Image to Image Converter — target file size", () => {
       width: 2400,
       height: 1600,
       name: "shrink-me.jpg",
+      noise: true,
       type: "image/jpeg",
       quality: 0.95,
     });
@@ -918,7 +949,7 @@ test.describe("Image to Image Converter — target file size", () => {
     page,
   }) => {
     await enableTarget(page);
-    await page.getByRole("button", { name: "150 KB", exact: true }).click();
+    await page.getByLabel("Target file size").fill("150");
     await page.getByLabel(/Balanced Compression/).check();
     await page.getByLabel(/Try lossless first/).uncheck();
     await page.locator("#converter-format").selectOption("jpeg");
@@ -949,7 +980,10 @@ test.describe("Image to Image Converter — target file size", () => {
       page.getByTestId("converter-zip-results"),
     );
     const entries = unzipSync(new Uint8Array(zip.buffer));
-    expect(Object.keys(entries).sort()).toEqual(["batch-a.jpg", "batch-b.jpg"]);
+    expect(Object.keys(entries).sort()).toEqual([
+      "batch-a-converted.jpg",
+      "batch-b-converted.jpg",
+    ]);
     for (const name of Object.keys(entries))
       expect(entries[name].length, `${name} over target`).toBeLessThanOrEqual(
         150 * 1024,
@@ -983,23 +1017,28 @@ test.describe("Image to Image Converter — target file size", () => {
 
 test.describe("Image to Image Converter — resize and edit", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/tools/image-to-image");
+    await page.goto("/tools/image-to-image", { waitUntil: "networkidle" });
   });
+
+  async function enableExactResize(page: Page) {
+    // SSR controls can be visible before React handlers attach. Repeat the
+    // user action until the conditional controls really render.
+    await expect
+      .poll(async () => {
+        await page.getByLabel("Resize mode").selectOption("exact");
+        return page.getByLabel("Output width in pixels").count();
+      })
+      .toBe(1);
+  }
 
   test("exact resize keeps the requested pixels and shows a print size", async ({
     page,
   }) => {
-    await page
-      .locator('select[aria-label="Resize mode"]')
-      .selectOption("exact");
+    await enableExactResize(page);
+    await page.getByLabel("Lock aspect ratio").uncheck();
     await page.getByLabel("Output width in pixels").fill("640");
     await page.getByLabel("Output height in pixels").fill("480");
-    await page.getByLabel("Lock aspect ratio").uncheck();
     await page.locator("#converter-format").selectOption("jpeg");
-
-    await expect(page.getByTestId("converter-print-size")).toContainText(
-      /in · .* cm · .* mm at 96 DPI/,
-    );
 
     const photo = await imageFixture(page, {
       width: 2000,
@@ -1009,6 +1048,9 @@ test.describe("Image to Image Converter — resize and edit", () => {
       quality: 0.9,
     });
     await upload(page, [photo]);
+    await expect(page.getByTestId("converter-print-size")).toContainText(
+      /in · .* cm · .* mm at 96 DPI/,
+    );
     await runConversion(page);
 
     const card = page.getByTestId("converter-result");
@@ -1025,9 +1067,7 @@ test.describe("Image to Image Converter — resize and edit", () => {
   test("preset dimensions fill the width and height fields", async ({
     page,
   }) => {
-    await page
-      .locator('select[aria-label="Resize mode"]')
-      .selectOption("exact");
+    await enableExactResize(page);
     await page.getByRole("button", { name: "Full HD" }).click();
     await expect(page.getByLabel("Output width in pixels")).toHaveValue("1920");
     await expect(page.getByLabel("Output height in pixels")).toHaveValue(
@@ -1036,9 +1076,7 @@ test.describe("Image to Image Converter — resize and edit", () => {
   });
 
   test("warns that upscaling cannot restore detail", async ({ page }) => {
-    await page
-      .locator('select[aria-label="Resize mode"]')
-      .selectOption("exact");
+    await enableExactResize(page);
     const photo = await imageFixture(page, {
       width: 400,
       height: 300,
@@ -1060,12 +1098,10 @@ test.describe("Image to Image Converter — resize and edit", () => {
   test("contain placement letterboxes and cover crops to the same box", async ({
     page,
   }) => {
-    await page
-      .locator('select[aria-label="Resize mode"]')
-      .selectOption("exact");
+    await enableExactResize(page);
+    await page.getByLabel("Lock aspect ratio").uncheck();
     await page.getByLabel("Output width in pixels").fill("800");
     await page.getByLabel("Output height in pixels").fill("800");
-    await page.getByLabel("Lock aspect ratio").uncheck();
     await page.locator("#converter-format").selectOption("png");
     await page
       .locator('select[aria-label="Image placement"]')
@@ -1089,9 +1125,10 @@ test.describe("Image to Image Converter — resize and edit", () => {
     let png = PNG.sync.read(file.buffer);
     expect(png.width).toBe(800);
     expect(png.height).toBe(800);
-    // Contain keeps the whole banner, so the top-left corner is background.
+    // With the default transparency setting, contain leaves a transparent
+    // letterbox rather than filling it with an opaque background.
     const corner = png.data.slice(0, 4);
-    expect(corner[3]).toBe(255);
+    expect(corner[3]).toBe(0);
 
     // The same box in cover mode must crop instead of letterbox.
     await page
@@ -1106,6 +1143,7 @@ test.describe("Image to Image Converter — resize and edit", () => {
     png = PNG.sync.read(file.buffer);
     expect(png.width).toBe(800);
     expect(png.height).toBe(800);
+    expect(png.data[3]).toBe(255);
   });
 
   test("rotation, flips and crop change the output pixels", async ({
@@ -1131,7 +1169,7 @@ test.describe("Image to Image Converter — resize and edit", () => {
     await runConversion(page);
 
     let card = page.getByTestId("converter-result");
-    await expect(card).toContainText("800 × 1200 px");
+    await expect(card).toContainText("800 × 1,200 px");
 
     // A square crop of a landscape image, then rotate back.
     await page.getByRole("button", { name: "1:1 square" }).click();
@@ -1146,12 +1184,10 @@ test.describe("Image to Image Converter — resize and edit", () => {
   test("DPI is stored in TIFF output and reported for formats that cannot", async ({
     page,
   }) => {
-    await page
-      .locator('select[aria-label="Resize mode"]')
-      .selectOption("exact");
+    await enableExactResize(page);
+    await page.getByLabel("Lock aspect ratio").uncheck();
     await page.getByLabel("Output width in pixels").fill("300");
     await page.getByLabel("Output height in pixels").fill("300");
-    await page.getByLabel("Lock aspect ratio").uncheck();
     await page
       .locator('select[aria-label="Resolution in DPI"]')
       .selectOption("300");

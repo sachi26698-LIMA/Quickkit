@@ -254,7 +254,7 @@ test.describe("Images to PDF Converter", () => {
   }) => {
     await expect(page.getByTestId("converter-item")).toHaveCount(0);
     await expect(page.getByTestId("converter-run")).toBeDisabled();
-    await expect(page.getByTestId("converter-preview-panel")).toContainText(
+    await expect(page.locator("#converter-preview-panel")).toContainText(
       /add images/i,
     );
   });
@@ -420,8 +420,8 @@ test.describe("Images to PDF Converter — page setup", () => {
     );
     const size = pdf.getPage(0).getSize();
     // A5 is 148 x 210 mm; landscape swaps the two.
-    expect(size.width).toBeCloseTo(589.6, 0);
-    expect(size.height).toBeCloseTo(419.5, 0);
+    expect(size.width).toBeCloseTo((210 * 72) / 25.4, 0);
+    expect(size.height).toBeCloseTo((148 * 72) / 25.4, 0);
   });
 
   test("accepts a custom page size in millimetres", async ({ page }) => {
@@ -757,7 +757,7 @@ test.describe("Images to PDF Converter — preview workspace", () => {
     );
 
     await runConversion(page);
-    await page.getByRole("button", { name: "PDF" }).click();
+    await page.getByRole("button", { name: "PDF", exact: true }).click();
     // The gallery renders the file that was actually written.
     await expect(page.getByTestId("converter-pdf-page")).toBeVisible({
       timeout: 15000,

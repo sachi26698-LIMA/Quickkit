@@ -4,7 +4,13 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   await page.goto("/tools");
   await expect(page.locator(".tool-card")).toHaveCount(tools.length);
   await page.getByRole("searchbox").fill("json");
-  await expect(page.locator(".tool-card")).toHaveCount(1);
+  await expect(page.locator(".tool-card")).toHaveCount(2);
+  await expect(page.locator(".tool-card").first()).toContainText(
+    "JSON Formatter",
+  );
+  await expect(page.locator(".tool-card").nth(1)).toContainText(
+    "QR Code Scanner",
+  );
   await page
     .getByRole("button", { name: "Text & Writing", exact: true })
     .click();
@@ -28,7 +34,13 @@ test("hero search suggests tools and opens results in All Tools", async ({
   ).toBeVisible();
   await page.getByRole("searchbox").press("Enter");
   await expect(page).toHaveURL(/\/tools\?q=json$/);
-  await expect(page.locator(".tool-card")).toHaveCount(1);
+  await expect(page.locator(".tool-card")).toHaveCount(2);
+  await expect(page.locator(".tool-card").first()).toContainText(
+    "JSON Formatter",
+  );
+  await expect(page.locator(".tool-card").nth(1)).toContainText(
+    "QR Code Scanner",
+  );
 });
 test("saving a tool adds it to the Saved page", async ({ page }) => {
   await page.goto("/tools");
