@@ -1,6 +1,6 @@
 # Owner review — Image to Text (OCR), PR #19
 
-Prepared 5 November 2026. Branch `arena/cac1764b-quickkit`, head `12b133b`.
+Prepared 5 November 2026. Branch `arena/cac1764b-quickkit`, head `23df75c`.
 **PR #19 is open, mergeable, and has not been merged or deployed.** Nothing was merged to `main` and
 nothing was promoted to production by this work.
 
@@ -17,7 +17,7 @@ This is a public Vercel preview, not localhost. Evidence that it is current:
 | Evidence                                       | Value                                     |
 | ---------------------------------------------- | ----------------------------------------- |
 | Vercel reports for every commit on this branch | `success` (5 deployments, one per commit) |
-| Latest deployment status on head `12b133b`     | success, 5 Nov 2026                       |
+| Latest deployment status on head `23df75c`     | success, 5 Nov 2026                       |
 | Vercel "Preview" link in the PR bot comment    | resolves to the URL above                 |
 
 Caveat I must state plainly: this sandbox's network is allow-listed to GitHub/npm/PyPI, so **I could not
@@ -87,7 +87,7 @@ Against `main` as it stands now (`origin/main` = `9946479`). The branch was **5 
 
 ### New — page and docs
 
-`app/tools/image-to-text/page.tsx` (80), `docs/QA_IMAGE_TO_TEXT.md` (213), 8 screenshots (2.3 MB).
+`app/tools/image-to-text/page.tsx` (80), `docs/QA_IMAGE_TO_TEXT.md` (213), 11 screenshots (2.8 MB).
 
 ### New — tests (2,726 lines)
 
@@ -149,39 +149,44 @@ tools mention JSON. A guard test asserts this. This is the only behavioural chan
 
 ---
 
-## 6. The 19/20 remaining E2E failures, compared with `main`
+## 6. The remaining E2E failures, compared with `main`
 
-The number moved because `main` moved. The honest, current comparison, both runs from the same CI
-configuration:
+The number moved because `main` moved and because one of these tests is flaky. Here is the current,
+settled comparison — both runs from the same CI configuration, on the final head:
 
-|                                        | `main` (`9946479`)                                                                             | This branch (`dbdcdbe`, merge commit)                                          |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Failing E2E tests in CI                | **21**                                                                                         | **20**                                                                         |
-| OCR (`image-to-text.spec.ts`) failures | 0                                                                                              | **0**                                                                          |
-| Files affected                         | `image-to-image`, `images-to-pdf`, `legal-pages`, `pdf-splitter`, `pdf-studio`, `pdf-to-image` | `image-to-image`, `images-to-pdf`, `legal-pages`, `pdf-studio`, `pdf-to-image` |
+|                                        | `main` (`9946479`) | This branch (`23df75c`, final) |
+| -------------------------------------- | ------------------ | ------------------------------ |
+| Failing E2E tests in CI                | **21**             | **21**                         |
+| Are the two failure sets identical?    | —                  | **Yes, test for test**         |
+| Failures unique to this branch         | —                  | **0**                          |
+| OCR (`image-to-text.spec.ts`) failures | 0                  | **0**                          |
 
-Test-by-test set comparison of the two CI runs:
+Distribution of the 21 (identical on both):
 
-- **Failures unique to this branch: 0.**
-- **Failures only on `main`: 1** (`pdf-splitter.spec.ts:207`).
+| Spec                     | Tests | Tool                                                                  |
+| ------------------------ | ----- | --------------------------------------------------------------------- |
+| `image-to-image.spec.ts` | 10    | Image to Image (target file size)                                     |
+| `images-to-pdf.spec.ts`  | 3     | Images to PDF (page setup, live preview)                              |
+| `pdf-studio.spec.ts`     | 3     | PDF Studio                                                            |
+| `pdf-to-image.spec.ts`   | 3     | PDF to Image                                                          |
+| `legal-pages.spec.ts`    | 1     | Legal pages                                                           |
+| `pdf-splitter.spec.ts`   | 1     | PDF Splitter (flaky — it passed on the previous run of both branches) |
 
-So this branch is one failure better than its base and introduces none. Every remaining failure is in a tool
-this PR does not touch. They are CI-only: they need a real browser environment and, from the assertion text,
-distinct rendering/timing behaviour on the runner (image target-size accuracy and paper-orientation
-geometry). Making them green is a separate piece of work on those tools; doing it inside an OCR PR would
-mean editing five unrelated tools, which is exactly what the brief asked me not to do.
+So: **this PR introduces no failing test, changes no other tool's result, and leaves the suite exactly as
+green as `main` is.** Every remaining failure needs a real browser and, judging by the assertions, runner
+rendering/timing behaviour; fixing them means editing five unrelated tools, which belongs in its own PR.
 
-The earlier 19 figure referred to the pre-merge branch against the then-current `main` (21). Both numbers
-were real, at different times; this table is the current one.
+Numbers quoted earlier during this review (19, then 20) were real at the time: they were measured against
+`main` before `main` gained the PDF Lock & Unlock tool, and the `pdf-splitter` test is intermittently red.
+This table is the current, reproducible one. I would rather show you the moving number and its cause than a
+single tidy figure.
 
-Also worth recording, because it explains why honest local greens were not enough:
+Two failures this branch _did_ cause were found and fixed on the way here:
 
-- CI's `npm test` used to fail because the OCR accuracy suite shelled out to ImageMagick. Fixed by decoding
-  the JPEG fixture with `jpeg-js`.
-- This branch briefly made CI worse (23 failures) by listing output formats as search keywords. Fixed, with
-  a regression test.
-
----
+- CI's `npm test` failed because the OCR accuracy suite shelled out to ImageMagick. Fixed by decoding the
+  JPEG fixture with `jpeg-js`; the suite has no system-binary dependency now.
+- Listing output formats as OCR keywords made `json` return two tools and broke `foundation.spec.ts`.
+  Fixed, with a regression test in both directions.
 
 ## 7. No existing tool was modified unintentionally
 
@@ -216,7 +221,7 @@ panel footnote and the page FAQ.
   clean renders. No handwriting guarantee is made anywhere in the UI.
 - In the PDF, the invisible layer is Helvetica, so a viewer's selection _rectangles_ can differ slightly from
   the drawn script. Search, copy and screen readers get correct Unicode.
-- **21 → 20** CI E2E failures remain, all pre-existing, all in other tools (see §6).
+- **21** CI E2E failures remain, exactly the same 21 as `main`, all in other tools (see §6).
 - Local `npm run test:e2e` cannot complete here (727 tests, sandbox too slow); CI is the source of truth for
   those numbers, and its logs/artifacts are not reachable from this sandbox, so failure names come from the
   `github` reporter's annotations, which is why the comparison is per test rather than per log line.
