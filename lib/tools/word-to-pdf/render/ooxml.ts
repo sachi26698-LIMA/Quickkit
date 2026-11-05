@@ -1229,7 +1229,6 @@ function parseTable(context: Context, el: XmlElement): Table {
   };
 }
 
-
 /**
  * Text boxes (DrawingML wps:txbx and legacy VML v:textbox) carry real document
  * text. Word floats them; a linear PDF writer cannot reproduce the float, so
