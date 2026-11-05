@@ -23,9 +23,7 @@ export type Script =
   | "gurmukhi"
   | "other";
 
-type FontKey = `${Face}${"-bold" | ""}${"-italic" | "-bolditalic"}` | "script";
-
-const FILES: Record<string, string> = {
+const FILES = {
   sans: "NotoSans-Regular.ttf",
   "sans-bold": "NotoSans-Bold.ttf",
   "sans-italic": "NotoSans-Italic.ttf",
@@ -54,17 +52,46 @@ const FILES: Record<string, string> = {
   "malayalam-bold": "NotoSansMalayalam-Regular.ttf",
   gurmukhi: "NotoSansGurmukhi-Regular.ttf",
   "gurmukhi-bold": "NotoSansGurmukhi-Regular.ttf",
-};
+} as const;
 
-export const FONT_DIRECTORY =
-  process.env.QUICKKIT_DOCX_FONT_DIR || join(process.cwd(), "assets", "noto");
+export type FontKey = keyof typeof FILES;
+export type FontFile = (typeof FILES)[FontKey];
 
-const bytes = new Map<string, Promise<Uint8Array>>();
+export const BUNDLED_FONT_FILES = [
+  "NotoSans-Regular.ttf",
+  "NotoSans-Bold.ttf",
+  "NotoSans-Italic.ttf",
+  "NotoSans-BoldItalic.ttf",
+  "NotoSerif-Regular.ttf",
+  "NotoSerif-Bold.ttf",
+  "NotoSansMono-Regular.ttf",
+  "NotoSansGujarati-Regular.ttf",
+  "NotoSansGujarati-Bold.ttf",
+  "NotoSansDevanagari-Regular.ttf",
+  "NotoSansDevanagari-Bold.ttf",
+  "NotoSansBengali-Regular.ttf",
+  "NotoSansTamil-Regular.ttf",
+  "NotoSansTelugu-Regular.ttf",
+  "NotoSansKannada-Regular.ttf",
+  "NotoSansMalayalam-Regular.ttf",
+  "NotoSansGurmukhi-Regular.ttf",
+] as const satisfies readonly FontFile[];
 
-function fontBytes(file: string) {
+const ALLOWED_FONT_FILES: ReadonlySet<string> = new Set<string>(
+  BUNDLED_FONT_FILES,
+);
+
+export const FONT_DIRECTORY = join(process.cwd(), "assets", "noto");
+
+const bytes = new Map<FontFile, Promise<Uint8Array>>();
+
+export function fontBytes(file: FontFile): Promise<Uint8Array> {
+  if (!ALLOWED_FONT_FILES.has(file)) {
+    return Promise.reject(new Error(`Unsupported bundled font: ${file}`));
+  }
   let pending = bytes.get(file);
   if (!pending) {
-    pending = readFile(join(FONT_DIRECTORY, file)).then(
+    pending = readFile(join(process.cwd(), "assets", "noto", file)).then(
       (buffer) => new Uint8Array(buffer),
     );
     bytes.set(file, pending);
@@ -84,20 +111,29 @@ export class FontBook {
 
   face(name: string): Face {
     const value = name.toLowerCase();
-    if (/courier|mono|consol/.test(value)) return "mono";
+    if (/courier|mono|consol|menlo/.test(value)) return "mono";
     if (/times|serif|georgia|garamond|cambria|book|minion|palatino/.test(value))
       return "serif";
     return "sans";
   }
 
-  key(face: Face, bold: boolean, italic: boolean, script: Script): string {
-    if (script === "latin" || script === "other")
-      return face + (bold ? "-bold" : "") + (italic ? "-italic" : "");
-    return script + (bold ? "-bold" : "");
+  key(face: Face, bold: boolean, italic: boolean, script: Script): FontKey {
+    if (script === "latin" || script === "other") {
+      const style =
+        bold && italic
+          ? "-bolditalic"
+          : bold
+            ? "-bold"
+            : italic
+              ? "-italic"
+              : "";
+      return `${face}${style}`;
+    }
+    return `${script}${bold ? "-bold" : ""}`;
   }
 
   get(face: Face, bold: boolean, italic: boolean, script: Script) {
-    const key = this.key(face, bold, italic, script) as FontKey;
+    const key = this.key(face, bold, italic, script);
     const file = FILES[key] || FILES["sans"];
     let pending = this.cache.get(key);
     if (!pending) {
