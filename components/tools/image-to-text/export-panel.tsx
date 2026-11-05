@@ -322,9 +322,10 @@ export default function ExportPanel({
       )}
       <p className="i2t-help">
         Exports are built here in your browser. DOCX keeps headings and real
-        tables editable; PDF keeps Latin text selectable and renders Indic or
-        RTL pages as page images so every character stays correct; CSV is UTF-8
-        with a BOM so Excel opens Hindi, Gujarati and Tamil correctly.
+        tables editable; PDF writes Latin text as real text and draws Indic and
+        RTL pages with a selectable Unicode layer over every line, so the
+        letters look right and still copy and search; CSV is UTF-8 with a BOM so
+        Excel opens Hindi, Gujarati and Tamil correctly.
       </p>
     </section>
   );
