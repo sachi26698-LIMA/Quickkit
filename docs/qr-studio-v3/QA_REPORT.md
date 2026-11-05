@@ -1,12 +1,13 @@
-# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G)
+# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G + H)
 
 **Date:** 5 November 2026 (Stage 1: 3 November 2026)
 **Branch:** `arena/bc33caa6-quickkit` (continues the existing QR history — no rebuild)
 **Scope:** Stage 1 delivered Phase B (content types) + Phase C (template library). On the owner's
 "Continue" go-ahead, Stage 2 adds **Phase D** (frames + labels, independent eye colours, brand
 palettes, logo background), **Phase F** (DPI metadata, custom-size export, print layouts, A4 cut
-sheet) and **Phase G** (bulk preview, per-row content type, retry-failed). Phases H / E follow;
-J (browser e2e) when a browser is available.
+sheet), **Phase G** (bulk preview, per-row content type, retry-failed) and **Phase H** (history/preset
+rename, duplicate, validated config export/import). Phase E follows; J (browser e2e) when a browser is
+available.
 **Baseline before changes:** 594 unit tests / 37 files passing, clean `npm ci`.
 
 ---
@@ -177,7 +178,31 @@ the good row is kept) through the real UI in jsdom.
 
 ---
 
-## 6. Branding
+## 6. Phase H — History & presets: rename, duplicate, export/import (Stage 2)
+
+| Feature | What was built | Status |
+|---------|----------------|--------|
+| **Preset rename** | Inline rename (Enter saves, Escape cancels); empty name keeps the old one | **new, verified** |
+| **Preset duplicate** | Editable "… copy" with a new id; original kept | **new, verified** |
+| **History rename** | Inline label rename | **new, verified** |
+| **History duplicate** | Fresh row (new id + timestamp), secrets re-sanitized | **new, verified** |
+| **Config export** | Presets + history → portable JSON (secrets stripped, designs clamped) | **new, verified** |
+| **Config import** | Validates app marker + version, then **merges**: dedup by id, invalid rows skipped + counted, caps respected. **Never clears or overwrites existing data** | **new, verified** |
+| **Restore / apply** | Pre-existing preset apply + history "edit and regenerate" preserved | preserved |
+
+**Never silently clear:** import is additive only; loading existing storage stays lenient (a legacy
+row with a missing/unknown type is kept with its design clamped, not dropped). The "Clear all" and
+"delete my data" controls remain explicit user actions.
+
+**Verification:** `tests/qr-bulk-export.test.ts` (+7 tests) covers preset/history rename + duplicate,
+export round-trip with secret-stripping, import merge (keeps existing), dedup-by-id, foreign/malformed/
+newer-version rejection without touching storage, and skipping invalid history rows while keeping valid
+ones. `tests/qr-studio.test.tsx` (+3 tests) drives preset rename/duplicate, history rename and the
+export/import controls through the real UI.
+
+---
+
+## 7. Branding
 
 Templates, the gallery **and now the Design Studio itself** use the requested QUICKKIT palette — Deep
 Plum `#3B1B4F`, Rose Pink `#D6598F` / deep rose `#B93A73`, Coral `#FF6B6B` / deep coral `#C93A3A`,
@@ -189,14 +214,14 @@ six folds (Colours / Pattern / Corners / Logo / **Frame** / Templates).
 
 ---
 
-## 7. Test & build evidence
+## 8. Test & build evidence
 
 | Gate | Result |
 |------|--------|
 | TypeScript (`tsc --noEmit`) | clean |
 | ESLint (changed files) | clean |
 | Prettier (changed files) | formatted |
-| Unit suite | **726 passing / 40 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G) |
+| Unit suite | **736 passing / 40 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H) |
 | Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
 | Print layouts | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit |
 | Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
@@ -216,7 +241,7 @@ in a browser-enabled environment before final sign-off.
 
 ---
 
-## 8. Preserved functionality (no regressions)
+## 9. Preserved functionality (no regressions)
 
 All pre-existing studio UI tests pass (the layout test now expects six design folds / ten tabs; the
 picker label list covers 27 types). Wi-Fi secret redaction, history/presets storage, bulk CSV, the
@@ -227,11 +252,10 @@ style is chosen).
 
 ---
 
-## 9. Remaining stages (Stage 2 continues)
+## 10. Remaining stages (Stage 2 continues)
 
-- **Phase H:** history/preset rename, duplicate, JSON export/import with validation.
 - **Phase E:** static multi-link landing-page builder (downloadable HTML) — no backend, no analytics.
 - **Phase J:** full e2e + browser screenshots in a browser-enabled environment.
 
-**Status: Stage 2 — Phases B + C + D + F + G implemented and verified; H / E in progress. Awaiting
+**Status: Stage 2 — Phases B + C + D + F + G + H implemented and verified; E in progress. Awaiting
 owner review. Not merged, not deployed.**

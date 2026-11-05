@@ -619,7 +619,7 @@ the updated Sections 4–5 above.
 
 ---
 
-## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G implemented)
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G + H implemented)
 
 Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
 creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
@@ -690,12 +690,23 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
   had no effect — duplicates now render when the toggle is off.
 - Column mapping, per-item errors, progress, cancel, dedup, decode-verify and ZIP are preserved.
 
-**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **726 passed / 40 files**
+**Stage 2 — Phase H (history/presets: rename, duplicate, export/import) implemented and verified:**
+
+- **Rename + duplicate** for both presets and history (inline rename with Enter/Escape; duplicate
+  makes an editable "… copy" with a new id). Restore/apply already existed and is preserved.
+- **Config export/import:** "Export config" downloads presets + history as a portable JSON file
+  (secrets stripped); "Import config" validates the file (app marker + version), then **merges** it
+  into existing data — items already present (by id) are skipped, invalid rows are skipped and
+  counted, and storage caps are respected. **Existing data is never cleared or overwritten.** Loading
+  existing storage stays lenient so a legacy row is never silently dropped.
+
+**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **736 passed / 40 files**
 (was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six framed /
 eye-colour / logo designs decoded by jsQR to the exact payload; every print layout reloads as a valid
 PDF at its promised millimetre size and DPI-stamped PNGs still decode; bulk per-row-type helpers and
-the preview/retry UI are tested; production build clean with `/tools/qr-generator` static; dev preview
-live on port 3000; **44 decode-verified PNG artifacts** + report in `docs/qr-studio-v3/evidence/`
+the preview/retry UI are tested; config rename/duplicate/export/import (merge, dedup, secret-stripping,
+foreign-file rejection) are tested; production build clean with `/tools/qr-generator` static; dev
+preview live on port 3000; **44 decode-verified PNG artifacts** + report in `docs/qr-studio-v3/evidence/`
 (regenerate: `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs run tests/qr-v3-evidence.test.ts`).
 Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
 
@@ -704,8 +715,8 @@ CDN + Debian repos unreachable) — live preview + engine-rendered QR evidence p
 Link remains static only (no backend, no dynamic editing/analytics claimed). The calendar-event sample
 embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is regenerated each time (still decoded).
 
-**Remaining:** H (history/preset rename/duplicate/export/import), E (static landing-page builder),
-J (browser e2e + screenshots). **Not merged, not deployed — awaiting owner approval.**
+**Remaining:** E (static landing-page builder), J (browser e2e + screenshots). **Not merged, not
+deployed — awaiting owner approval.**
 
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 

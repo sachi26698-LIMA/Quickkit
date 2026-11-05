@@ -58,12 +58,18 @@ import {
   deleteCustomTemplate as deleteCustomTemplateStore,
   deletePreset as deletePresetStore,
   duplicateCustomTemplate as duplicateCustomTemplateStore,
+  duplicateHistory as duplicateHistoryStore,
+  duplicatePreset as duplicatePresetStore,
+  exportConfig,
+  importConfig,
   loadCustomTemplates,
   loadHistory,
   loadHistoryMode,
   loadPresets,
   recordHistory,
   removeHistory,
+  renameHistory as renameHistoryStore,
+  renamePreset as renamePresetStore,
   saveCustomTemplate as saveCustomTemplateStore,
   saveHistoryMode,
   savePreset as savePresetStore,
@@ -551,6 +557,18 @@ export function useQrStudio() {
     setPresets(deletePresetStore(id, loadPresets()));
   }, []);
 
+  const renamePreset = useCallback((id: string, name: string) => {
+    setPresets(renamePresetStore(id, name, loadPresets()));
+  }, []);
+
+  const duplicatePreset = useCallback((id: string) => {
+    setPresets(duplicatePresetStore(id, loadPresets()));
+    setFlash({
+      kind: "info",
+      text: "Preset duplicated — edit the copy freely.",
+    });
+  }, []);
+
   const resetDesign = useCallback(() => {
     setDesignState(defaultDesign());
     setTemplateId("");
@@ -876,6 +894,53 @@ export function useQrStudio() {
     setHistory(removeHistory(id, loadHistory()));
   }, []);
 
+  const renameHistory = useCallback((id: string, label: string) => {
+    setHistory(renameHistoryStore(id, label, loadHistory()));
+  }, []);
+
+  const duplicateHistory = useCallback((id: string) => {
+    setHistory(duplicateHistoryStore(id, loadHistory()));
+  }, []);
+
+  /** Download presets + history as a portable JSON config file. */
+  const exportConfigFile = useCallback(() => {
+    const json = exportConfig(loadPresets(), loadHistory());
+    downloadBlob(
+      new Blob([json], { type: "application/json;charset=utf-8" }),
+      `quickkit-qr-config-${new Date().toISOString().slice(0, 10)}.json`,
+    );
+    setFlash({
+      kind: "info",
+      text: "Config exported — presets and history saved to a JSON file on this device.",
+    });
+  }, []);
+
+  /** Merge a config file into existing data; never clears what is already saved. */
+  const importConfigFile = useCallback(
+    async (file: File | undefined | null) => {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const result = importConfig(text, loadPresets(), loadHistory());
+        setPresets(result.presets);
+        setHistory(result.history);
+        setFlash({
+          kind: result.ok ? "info" : "error",
+          text: result.message,
+        });
+      } catch (error) {
+        setFlash({
+          kind: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "That config could not be read.",
+        });
+      }
+    },
+    [],
+  );
+
   return {
     typeId,
     def,
@@ -924,6 +989,10 @@ export function useQrStudio() {
     applyPreset,
     savePreset,
     deletePreset,
+    renamePreset,
+    duplicatePreset,
+    exportConfigFile,
+    importConfigFile,
     resetDesign,
     makeSafe,
     regenerate,
@@ -938,6 +1007,8 @@ export function useQrStudio() {
     toggleHistoryMode,
     clearAllHistory,
     removeOne,
+    renameHistory,
+    duplicateHistory,
   };
 }
 

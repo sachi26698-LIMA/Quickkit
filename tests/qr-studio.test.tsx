@@ -745,3 +745,69 @@ describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => 
     TEST_TIMEOUT * 2,
   );
 });
+
+describe("qr studio — V3 history & preset management (Phase H)", () => {
+  it("renames and duplicates a preset from the Presets tab", () => {
+    render(<QrGenerator />);
+    fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
+    fireEvent.change(screen.getByLabelText("Save the design you have now"), {
+      target: { value: "Cafe look" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Save design/ }));
+    expect(screen.getByText("Cafe look")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Rename the Cafe look preset" }),
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Rename the Cafe look preset",
+    });
+    fireEvent.change(input, { target: { value: "Menu look" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save the new name" }));
+    expect(screen.getByText("Menu look")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Duplicate the Menu look preset" }),
+    );
+    expect(screen.getByText("Menu look copy")).toBeInTheDocument();
+    expect(screen.getByText("Menu look")).toBeInTheDocument();
+  });
+
+  it(
+    "renames a history entry from the History tab",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      typeUrl("https://example.com");
+      await settle();
+      fireEvent.click(screen.getByRole("tab", { name: /^History/ }));
+      const renameButtons = screen.getAllByRole("button", {
+        name: /Rename the/,
+      });
+      fireEvent.click(renameButtons[0]);
+      const input = screen.getByRole("textbox", {
+        name: /Rename the .* entry/,
+      });
+      fireEvent.change(input, { target: { value: "My renamed code" } });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save the new label" }),
+      );
+      expect(screen.getByText("My renamed code")).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it("offers config export and import on the Presets tab", () => {
+    render(<QrGenerator />);
+    fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
+    expect(
+      screen.getByRole("button", { name: /Export config/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Import config/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Import a QUICKKIT QR config file"),
+    ).toBeInTheDocument();
+  });
+});

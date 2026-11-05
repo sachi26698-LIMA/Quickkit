@@ -41,13 +41,19 @@ import {
   PRESET_STORAGE_KEY,
   clearHistory,
   deletePreset,
+  duplicateHistory,
+  duplicatePreset,
+  exportConfig,
   formatWhen,
+  importConfig,
   loadHistory,
   loadHistoryMode,
   loadPresets,
   purgeAllLocalData,
   recordHistory,
   removeHistory,
+  renameHistory,
+  renamePreset,
   sanitizeValues,
   saveHistoryMode,
   savePreset,
@@ -583,5 +589,141 @@ describe("bulk per-row content type (Phase G)", () => {
     expect(wifiOutcome.ok).toBe(true);
     expect(wifiOutcome.payload).toContain("WIFI:");
     expect(wifiOutcome.payload).toContain("S:CafeNet");
+  });
+});
+
+describe("config rename, duplicate, export and import (Phase H)", () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  const design = { ...defaultDesign(), dotStyle: "dots" as const };
+
+  it("renames and duplicates a preset without losing the original", () => {
+    let list = savePreset("Original", design, loadPresets());
+    const id = list[0].id;
+    list = renamePreset(id, "Renamed", list);
+    expect(list[0].name).toBe("Renamed");
+    expect(loadPresets()[0].name).toBe("Renamed");
+    list = duplicatePreset(id, list);
+    expect(list).toHaveLength(2);
+    expect(list[0].name).toBe("Renamed copy");
+    expect(list[0].id).not.toBe(id);
+    expect(list[1].name).toBe("Renamed"); // original kept
+    // Empty rename keeps the existing name.
+    list = renamePreset(id, "   ", list);
+    expect(list.find((p) => p.id === id)?.name).toBe("Renamed");
+  });
+
+  it("renames and duplicates a history entry", () => {
+    let list = recordHistory(
+      {
+        typeId: "url",
+        label: "Site",
+        bytes: 10,
+        version: 1,
+        design,
+        values: { url: "https://quickkit.tools" },
+      },
+      "full",
+      [],
+    );
+    const id = list[0].id;
+    list = renameHistory(id, "My site", list);
+    expect(list[0].label).toBe("My site");
+    list = duplicateHistory(id, list);
+    expect(list).toHaveLength(2);
+    expect(list[0].label).toBe("My site copy");
+    expect(list[0].id).not.toBe(id);
+    expect(loadHistory()).toHaveLength(2);
+  });
+
+  it("exports a config that strips secrets and round-trips through import", () => {
+    const presets = savePreset("Look", design, loadPresets());
+    const history = recordHistory(
+      {
+        typeId: "wifi",
+        label: "Net",
+        bytes: 10,
+        version: 1,
+        design,
+        values: { ssid: "Studio", password: "hunter2", encryption: "WPA" },
+      },
+      "full",
+      [],
+    );
+    const json = exportConfig(presets, history);
+    expect(json).not.toContain("hunter2");
+    expect(json).toContain("quickkit-qr-studio");
+
+    // Import into a fresh browser keeps nothing prior, adds the exported items.
+    localStorage.clear();
+    const result = importConfig(json, loadPresets(), loadHistory());
+    expect(result.ok).toBe(true);
+    expect(result.addedPresets).toBe(1);
+    expect(result.addedHistory).toBe(1);
+    expect(loadPresets()[0].name).toBe("Look");
+    expect(loadHistory()[0].values).toEqual({
+      ssid: "Studio",
+      encryption: "WPA",
+    });
+  });
+
+  it("import merges and never clears existing data", () => {
+    const existingPresets = savePreset("Keep me", design, loadPresets());
+    const json = exportConfig(savePreset("Incoming", design, []), []);
+    const result = importConfig(json, existingPresets, loadHistory());
+    expect(result.ok).toBe(true);
+    expect(result.addedPresets).toBe(1);
+    const names = loadPresets().map((p) => p.name);
+    expect(names).toContain("Keep me");
+    expect(names).toContain("Incoming");
+  });
+
+  it("import skips items already present (by id) rather than duplicating", () => {
+    const presets = savePreset("Once", design, loadPresets());
+    const json = exportConfig(presets, []);
+    const result = importConfig(json, presets, loadHistory());
+    expect(result.addedPresets).toBe(0);
+    expect(result.skipped).toBe(1);
+    expect(loadPresets()).toHaveLength(1);
+  });
+
+  it("import rejects a foreign or malformed file without touching storage", () => {
+    const presets = savePreset("Safe", design, loadPresets());
+    expect(importConfig("not json", presets, []).ok).toBe(false);
+    expect(importConfig(JSON.stringify({ app: "other" }), presets, []).ok).toBe(
+      false,
+    );
+    expect(
+      importConfig(
+        JSON.stringify({ app: "quickkit-qr-studio", version: 99 }),
+        presets,
+        [],
+      ).ok,
+    ).toBe(false);
+    expect(loadPresets()).toHaveLength(1);
+    expect(loadPresets()[0].name).toBe("Safe");
+  });
+
+  it("import skips invalid history rows but keeps valid ones", () => {
+    const json = JSON.stringify({
+      app: "quickkit-qr-studio",
+      version: 1,
+      presets: [],
+      history: [
+        {
+          typeId: "url",
+          label: "Good",
+          design,
+          values: { url: "https://quickkit.tools" },
+        },
+        { typeId: "not-a-real-type", label: "Bad", design, values: {} },
+      ],
+    });
+    const result = importConfig(json, [], []);
+    expect(result.ok).toBe(true);
+    expect(result.addedHistory).toBe(1);
+    expect(result.skipped).toBe(1);
+    expect(loadHistory()).toHaveLength(1);
   });
 });

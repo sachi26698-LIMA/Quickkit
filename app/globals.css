@@ -12068,6 +12068,30 @@ select:focus {
   flex: 1 1 180px;
   min-width: 0;
 }
+.qr-config-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  padding: 10px;
+  border: 1px dashed #e8e0fa;
+  border-radius: 12px;
+  background: #fdfbff;
+}
+.qr-config-note {
+  font-size: 11px;
+  color: #6f6787;
+}
+.qr-rename-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.qr-rename-row .qr-input {
+  flex: 1;
+  min-width: 0;
+}
 .qr-preset-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
