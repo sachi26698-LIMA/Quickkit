@@ -169,6 +169,9 @@ describe("scan history", () => {
     expect(withheld.redacted).toBe(true);
     expect(withheld.summary).toContain("withheld");
     expect(JSON.stringify(withheld)).not.toContain("hunter2");
+    // The network name is not a secret, so the entry stays recognisable and
+    // searchable instead of becoming one of twenty identical "withheld" rows.
+    expect(withheld.summary).toContain("Home");
 
     const kept = record({
       type: "wifi",

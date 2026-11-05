@@ -84,6 +84,34 @@ describe("content recognition", () => {
     expect(result.summary).toContain("John Doe");
   });
 
+  it("names the contact grammar that was actually read", () => {
+    // "Contact card" for both would be a small lie, and the distinction is
+    // visible to the user: a MECARD has no line-mode fields to lose.
+    const mecard = recognize("MECARD:N:Doe,John;;");
+    const vcard = recognize("BEGIN:VCARD\nFN:Ada Lovelace\nEND:VCARD");
+    expect(mecard.label).toBe("Contact card (MECARD)");
+    expect(vcard.label).toBe("Contact card");
+  });
+
+  it("reads hidden, security and password out of a Wi-Fi payload", () => {
+    // Escaped `;` inside the password, which is how a phone writes one.
+    const result = recognize("WIFI:S:The Cafe;H:true;T:WPA;P:pa55\\;word;;");
+    const value = (label: string) =>
+      result.fields.find((field) => field.label === label)?.value;
+    expect(value("Network name (SSID)")).toBe("The Cafe");
+    expect(value("Hidden network")).toBe("Yes");
+    expect(value("Security")).toBe("WPA");
+    expect(value("Password")).toBe("pa55;word");
+    expect(result.sensitive).toBe(true);
+  });
+
+  it("does not invent a hidden-network field when the flag is absent", () => {
+    const result = recognize("WIFI:S:Home;T:WPA;P:hunter2;;");
+    expect(
+      result.fields.some((field) => field.label === "Hidden network"),
+    ).toBe(false);
+  });
+
   it("parses an email with subject and body", () => {
     const result = recognize(
       "mailto:hello@example.com?subject=Hello%20there&body=Short%20note",

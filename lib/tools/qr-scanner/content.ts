@@ -291,14 +291,15 @@ function recognizeWifi(payload: string): Recognition | null {
   if (!ssid) return null;
   const security = (fields.T || "nopass").toUpperCase();
   const hidden = /^(true|1|yes)$/i.test(fields.H || "");
-  const details: Field[] = [
-    { label: "Network name (SSID)", value: ssid },
-    {
-      label: "Security",
-      value: security === "NOPASS" ? "Open (no password)" : security,
-    },
-  ];
+  // Order follows how a person reads the network: name, whether it is hidden,
+  // then the security type. Leading with the SSID keeps the first line of the
+  // card useful even when the record is later shown redacted.
+  const details: Field[] = [{ label: "Network name (SSID)", value: ssid }];
   if (hidden) details.push({ label: "Hidden network", value: "Yes" });
+  details.push({
+    label: "Security",
+    value: security === "NOPASS" ? "Open (no password)" : security,
+  });
   if (fields.P)
     details.push({ label: "Password", value: fields.P, sensitive: true });
   if (fields.I) details.push({ label: "Identity", value: fields.I });
@@ -441,7 +442,10 @@ function recognizeVcard(payload: string): Recognition | null {
   ].filter(Boolean);
   return {
     type: vcard ? "vcard" : "mecard",
-    label: LABELS.vcard,
+    // MECARD and vCard are told apart by name: a MECARD is a collapsed
+    // one-line card, and saying so is the difference between "your phone read
+    // this as a contact" and "this is a vCard 3.0 payload".
+    label: mecard ? LABELS.mecard : LABELS.vcard,
     summary: summaryParts.join(" · ") || "Contact card",
     primary: name || payload,
     fields,

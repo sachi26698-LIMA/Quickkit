@@ -110,8 +110,15 @@ export function useScanner() {
 
   useEffect(() => {
     if (!ready || typeof window === "undefined") return;
+    // "History off" means nothing is kept: the stored list is removed rather
+    // than replaced with an empty array, so a later look at localStorage cannot
+    // even tell that this device used the scanner.
+    if (!settings.history) {
+      clearHistory(window.localStorage);
+      return;
+    }
     saveHistory(window.localStorage, history);
-  }, [ready, history]);
+  }, [ready, history, settings.history]);
 
   // Revoke every object URL when the tool unmounts.
   useEffect(() => {

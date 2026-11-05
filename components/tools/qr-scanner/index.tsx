@@ -86,6 +86,9 @@ export default function QrScanner() {
               id={`scanner-tab-${entry.id}`}
               aria-selected={active}
               aria-controls={`scanner-panel-${entry.id}`}
+              /* The visible label collapses to a short word on phones; the
+                 accessible name has to stay the full one. */
+              aria-label={entry.label}
               tabIndex={active ? 0 : -1}
               className={active ? "scanner-tab active" : "scanner-tab"}
               onClick={() => setTab(entry.id)}

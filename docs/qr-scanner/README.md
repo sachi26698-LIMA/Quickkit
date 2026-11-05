@@ -233,14 +233,88 @@ No dependency was added. `jsqr` and `qrcode` were already present.
 
 All commands were run in this workspace; results are what they printed.
 
+### 8.1 Final real-device verification pass (4 November 2026)
+
+The twelve-item device checklist was run against the running app as a purpose-built
+suite, `tests/e2e/qr-scanner-verification.spec.ts` (**23 cases**). Every symbol it
+scans is encoded **at run time** by the suite itself with the `qrcode` package and
+fed through the shipping UI, so nothing here depends on a stale fixture: if the
+scanner stops reading a payload, the suite fails.
+
+**Verified features (23/23 passing, plus the 10 pre-existing cases):**
+
+| #   | Area                | What the suite actually did                                                                                                                                                                                                                                                                                                                                     |
+| --- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Content recognition | 17 payloads uploaded as genuine PNGs → 16 recognised types, each with the correct badge (`Contact card` vs `Contact card (MECARD)` told apart), plus one honestly reported as unrecognised. Wi-Fi fields parsed incl. an escaped `;` in the password; password masked on screen.                                                                                |
+| 2   | Product check digit | `4006381333931` accepted, `4006381333932` rejected as `Invalid` — the length is not trusted.                                                                                                                                                                                                                                                                    |
+| 3   | Security inspection | Every hostile payload raises its documented warning; a clean HTTPS URL is never labelled safe; `javascript:`/`data:` never produce an open button.                                                                                                                                                                                                              |
+| 4   | Open flow           | Opening requires a confirmation step, and the new window is created with `noopener`/`noreferrer`; no scan ever navigates on its own.                                                                                                                                                                                                                            |
+| 5   | Multi-code images   | A four-code collage yields four cards.                                                                                                                                                                                                                                                                                                                          |
+| 6   | Degraded capture    | A QR photographed badly on purpose — Gaussian blur, JPEG quality 0.32, downscaled — still decodes.                                                                                                                                                                                                                                                              |
+| 7   | Batch               | Real files scanned with live progress, per-file status and export.                                                                                                                                                                                                                                                                                              |
+| 8   | Honest failure      | A blank image produces "no code found" with no invented payload and a history entry marked `no code`.                                                                                                                                                                                                                                                           |
+| 9   | History             | Persists across a reload, redacts the Wi-Fi password from `localStorage` while keeping the SSID, supports search, single delete and clear-all. Turning history off **removes the storage key** rather than leaving `[]` behind.                                                                                                                                 |
+| 10  | Export              | CSV (BOM, CRLF, quote doubling, `=cmd\|calc"` neutralised as text), JSON and TXT all round-trip; formula injection neutralised.                                                                                                                                                                                                                                 |
+| 11  | Duplicates          | Repeats are suppressed, and clearing the results releases the valve so a deliberate rescan still records.                                                                                                                                                                                                                                                       |
+| 12  | Camera lifecycle    | Rear/front listed as selectable devices; torch and zoom reach `applyConstraints`; zoom label and resolution read back from the track; the track is **stopped** on Stop, on navigating away, and on `visibilitychange` → hidden. Permission denial explains itself and upload stays usable; an insecure origin disables Start instead of showing a dead preview. |
+| 13  | Responsive          | Ten widths, 320–1440 px: horizontal overflow ≤ 1 px at every one.                                                                                                                                                                                                                                                                                               |
+| 14  | Touch targets       | Interactive controls ≥ 34 px tall at 390 px wide.                                                                                                                                                                                                                                                                                                               |
+| 15  | Accessibility       | axe-core scan against WCAG 2.1 A/AA: **zero serious or critical violations**.                                                                                                                                                                                                                                                                                   |
+| 16  | Keyboard            | Arrow keys move the tab selection and focus together; tabs expose the full label as their accessible name even when the visible text shortens on a phone.                                                                                                                                                                                                       |
+
+**Actual bugs found and fixed in this pass** (code changed, not tests):
+
+1. **The camera would have been blocked in production.** `next.config.ts` sent
+   `Permissions-Policy: camera=()` on every path, which overrides a user's own
+   permission grant — the live camera would have failed on the deployed site even
+   though Playwright passed. A scoped rule now allows `camera=(self)` for
+   `/tools/qr-code-scanner` only; `microphone` and `geolocation` stay off
+   everywhere, and `tests/next-headers.test.ts` pins both halves.
+2. **MECARD was mislabelled.** A MECARD payload reported the badge "Contact card"
+   while its own type said `mecard`; it now reads "Contact card (MECARD)", which
+   is the distinction the tool claims to make.
+3. **Turning history off left an empty list behind.** The switch deleted the
+   records and then immediately re-wrote `[]`, so the storage key survived and
+   "off" was not actually off. The persistence effect now removes the key while
+   history is disabled.
+4. **Withheld records were unsearchable.** Redaction replaced the whole summary
+   with "content withheld", so twenty redacted entries were indistinguishable.
+   The summary now keeps the non-secret identifier only — the Wi-Fi SSID, or the
+   contact name — and nothing else; the secret is still absent from storage
+   (asserted).
+5. **Wi-Fi field order** put Security before Hidden network; the SSID now leads,
+   then the hidden flag, then security, which is how the network card reads.
+
+**Blocked by browser/device limitations — not verified, and not claimed:**
+
+- **No physical Android or iOS device, no real camera, no printer, no second
+  screen exists in this environment.** Every "real sensor scanning printed paper"
+  claim is therefore impossible to make. The camera path is exercised through a
+  canvas `captureStream`, which is genuine as far as constraints, frame grabbing,
+  the decode worker, duplicate suppression and track release go, and a synthetic
+  one cannot tell you anything about focus hunting, exposure or motion blur.
+- **Torch and zoom** are proven only to the `applyConstraints` boundary. Whether
+  a real LED lights up is a hardware question.
+- **Front/rear switching** is proven at the device-enumeration and `deviceId`
+  level, not with two lenses.
+- **iOS Safari and Firefox** were not run at all: no binary is available here.
+- **Permissions-Policy behaviour** is now correct in the config and asserted by a
+  unit test, but browser context injection does not enforce the header, so it is
+  verified by inspection of the served response, not by a browser refusing to
+  open the camera.
+
+### 8.2 Command results
+
 | Check              | Command                                            | Result                                                                         |
 | ------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Unit / integration | `npx vitest run`                                   | **63 files, 1082 tests passed**                                                |
+| Unit / integration | `npx vitest run`                                   | **63 files, 1086 tests passed**                                                |
 | Types              | `npx tsc --noEmit`                                 | clean                                                                          |
 | Lint               | `npx eslint .`                                     | 0 errors, 3 warnings (`<img>` for blob URLs, which `next/image` cannot handle) |
-| Format             | `npx prettier --check …`                           | all files clean                                                                |
+| Format             | `npx prettier --check …`                           | scanner files clean (one pre-existing unrelated file still unformatted)        |
 | Production build   | `npm run build`                                    | succeeded; `/tools/qr-code-scanner` prerendered                                |
-| Browser E2E        | `npx playwright test tests/e2e/qr-scanner.spec.ts` | **10/10 passed** against `next start`                                          |
+| Browser E2E        | `npx playwright test tests/e2e/qr-scanner.spec.ts` | **10/10 passed** (dev server)                                                  |
+| Device checklist   | `npx playwright test …qr-scanner-verification…`    | **23/23 passed**                                                               |
+| Core + quality     | `npx playwright test core quality`                 | **355/355 passed** — sitemap, links, headers, a11y across the site             |
 
 Browser E2E covers: URL decode and type badge, Wi-Fi parse with password
 withheld from `localStorage`, lookalike domain → high risk + disabled open button,
@@ -294,7 +368,9 @@ detects it and says so instead of showing a dead preview.
 8. **Security inspection is structural only.** No reputation, blocklist or
    redirect-following check exists, by design — that would require sending the
    payload to a third party.
-9. **Firefox, WebKit and physical-device testing remain outstanding** (see §8).
+9. **Firefox, WebKit and physical-device testing remain outstanding** (see §8.1):
+   no second browser engine and no real hardware exist in this environment, so
+   those rows stay unverified rather than assumed.
 10. **`history-off` deletes immediately** rather than archiving; that is
     intentional, and the switch copy says so.
 

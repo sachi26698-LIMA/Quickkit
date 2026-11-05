@@ -37,6 +37,46 @@ export type HistoryRecord = {
   count: number;
 };
 
+/**
+ * The part of a withheld payload that is safe to keep.
+ *
+ * Redaction must remove the secret, not the only thing that makes the entry
+ * recognisable: "Wi-Fi credentials — content withheld (sensitive) · SecretNet"
+ * is useful and leaks nothing, whereas twenty identical "withheld" rows are
+ * not. Only the specific secret field is dropped, and only for the formats
+ * whose grammar we actually parse. For anything else, nothing is kept.
+ */
+function publicHint(payload: string, type: ContentTypeId): string {
+  if (!payload) return "";
+  switch (type) {
+    case "wifi": {
+      const body = payload.replace(/^WIFI:/i, "");
+      const ssid = /(?:^|;)S:((?:\\.|[^;\\])*)/i.exec(body);
+      return ssid ? ` · ${ssid[1].replace(/\\(.)/g, "$1")}` : "";
+    }
+    case "vcard":
+    case "mecard": {
+      const body = payload.replace(/^MECARD:/i, ";");
+      const raw =
+        /(?:^|\n)FN:(.+)$/im.exec(body)?.at(1) ??
+        /(?:^|;)N:([^;]*)/i.exec(body)?.at(1);
+      const name = (raw ?? "").trim();
+      if (!name) return "";
+      // MECARD writes "Last,First"; show it the way a person says it.
+      const parts = name
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      const display = parts.length === 2 ? `${parts[1]} ${parts[0]}` : name;
+      return ` · ${display.slice(0, 60)}`;
+    }
+    default:
+      // No parsed, guaranteed-secret-free field exists for this type, so the
+      // summary stays generic rather than guessing which substring was secret.
+      return "";
+  }
+}
+
 const newId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -59,8 +99,12 @@ export function prepareRecord(input: {
     type: input.type,
     typeLabel,
     payload: withhold ? null : input.payload,
+    // A withheld record still gets a summary that a person can recognise and
+    // search for, without the secret itself: the non-secret fields of the
+    // payload (the network name, the contact name, the address) are safe to
+    // keep, and a list of entries that all say "withheld" would be useless.
     summary: withhold
-      ? `${typeLabel} — content withheld (sensitive)`
+      ? `${typeLabel} — content withheld (sensitive)${publicHint(input.payload, input.type)}`
       : input.summary,
     redacted: withhold,
     sourceName: input.sourceName,

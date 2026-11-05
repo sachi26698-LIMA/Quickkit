@@ -316,8 +316,17 @@ test.describe("QR Code Scanner", () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
-    // Tab list responds to arrow keys.
-    await page.getByRole("tab", { name: /Camera|Live Camera/ }).focus();
+    // Tab list responds to arrow keys. Focus is retried because the very first
+    // focus() can land while the client is still attaching.
+    const cameraTab = page.getByRole("tab", { name: /Camera|Live Camera/ });
+    await expect
+      .poll(async () => {
+        await cameraTab.focus();
+        return cameraTab.evaluate(
+          (element) => element === document.activeElement,
+        );
+      })
+      .toBe(true);
     await page.keyboard.press("ArrowRight");
     await expect(page.getByRole("tab", { name: /Upload/ })).toHaveAttribute(
       "aria-selected",
