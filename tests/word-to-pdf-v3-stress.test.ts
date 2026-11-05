@@ -12,7 +12,8 @@ afterAll(async () => {
     JSON.stringify(
       {
         kind: "Actual authored PDF fixtures, NOT native DOCX conversion",
-        productionSourceAndOutputCap: 100,
+        productionSourceAndOutputCap: 1000,
+        supersededBy: "tests/word-to-pdf-v5-stress.test.ts",
         rssNote:
           "RSS is sampled before/after; maxRSS is cumulative process lifetime, not isolated case peak. Vitest workers and fixtures affect it.",
         results,
@@ -23,8 +24,8 @@ afterAll(async () => {
   );
 });
 describe("V3 real PDF fixture stress and large-document guard", () => {
-  for (const count of [100, 500, 1000])
-    it(`${count} actual PDF pages: ${count === 100 ? "edit and verify all pages" : "reject above the unchanged cap"}`, async () => {
+  for (const count of [100])
+    it(`${count} actual PDF pages: edit and verify all pages`, async () => {
       const start = performance.now(),
         pdf = await PDFDocument.create();
       for (let i = 0; i < count; i++) {
@@ -75,21 +76,6 @@ describe("V3 real PDF fixture stress and large-document guard", () => {
           outputBytes: result.bytes.length,
           fixtureMs,
           editAndVerifyMs: performance.now() - editStart,
-          rssBeforeMiB: before / 2 ** 20,
-          rssAfterMiB: process.memoryUsage().rss / 2 ** 20,
-          processLifetimeMaxRssMiB: process.resourceUsage().maxRSS / 1024,
-        });
-      } else {
-        await expect(processPdf(source, defaults)).rejects.toThrow(
-          /100-page limit/,
-        );
-        results.push({
-          pages: count,
-          status:
-            "PASS - actual oversized PDF parsed and rejected; NOT supported editing/conversion",
-          sourceBytes: source.length,
-          fixtureMs,
-          rejectMs: performance.now() - editStart,
           rssBeforeMiB: before / 2 ** 20,
           rssAfterMiB: process.memoryUsage().rss / 2 ** 20,
           processLifetimeMaxRssMiB: process.resourceUsage().maxRSS / 1024,

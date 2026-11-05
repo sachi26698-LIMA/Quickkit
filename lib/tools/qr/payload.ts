@@ -41,7 +41,9 @@ export type QrValues = Record<string, string | boolean>;
 
 /* ------------------------------------------------------------------ helpers */
 
-const EMAIL_RE = /^[^\s@,;"]+@[^\s@,;."]+\.[a-z]{2,63}$/i;
+// Accepts multi-label domains (hello@mail.example.com) but not empty or
+// consecutive-dot labels. Purely additive over the original single-dot rule.
+const EMAIL_RE = /^[^\s@,;"]+@([^\s@,;".]+\.)+[a-z]{2,63}$/i;
 const PHONE_RE = /^\+?[0-9][0-9 ()\-./]{2,22}$/;
 const PACKAGE_RE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,}$/i;
 const USERNAME_RE = /^[A-Za-z0-9._-]{1,80}$/;
@@ -674,6 +676,260 @@ const APP_FIELDS: QrField[] = [
   },
 ];
 
+/* --------------------------------------------- V3 destination-link fields */
+
+/** Shared single-URL field used by the destination-link content types. */
+function linkField(
+  key: string,
+  label: string,
+  placeholder: string,
+  help: string,
+): QrField {
+  return {
+    key,
+    label,
+    type: "text",
+    required: true,
+    placeholder,
+    help,
+    max: 2000,
+  };
+}
+
+const INSTAGRAM_FIELDS: QrField[] = [
+  {
+    key: "username",
+    label: "Instagram username",
+    type: "text",
+    required: true,
+    placeholder: "quickkit.tools",
+    help: "No @ needed. A full instagram.com profile URL is used exactly as typed.",
+    max: 120,
+  },
+];
+
+const FACEBOOK_FIELDS: QrField[] = [
+  {
+    key: "page",
+    label: "Facebook page name or URL",
+    type: "text",
+    required: true,
+    placeholder: "quickkit.tools",
+    help: "The page name from facebook.com/yourpage, or paste the full page URL.",
+    max: 200,
+  },
+];
+
+const YOUTUBE_FIELDS: QrField[] = [
+  {
+    key: "channel",
+    label: "YouTube handle or channel URL",
+    type: "text",
+    required: true,
+    placeholder: "@quickkit",
+    help: "A @handle, a UC… channel ID, or a full youtube.com channel URL.",
+    max: 200,
+  },
+];
+
+const SPOTIFY_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Spotify or music link",
+    "https://open.spotify.com/playlist/…",
+    "Paste a Spotify link (track, album, playlist, artist, episode or show) or any https music page. The link is never opened by QUICKKIT.",
+  ),
+];
+
+const GMAPS_FIELDS: QrField[] = [
+  {
+    key: "mode",
+    label: "How to locate it",
+    type: "select",
+    defaultValue: "place",
+    options: [
+      { value: "place", label: "Place name or address" },
+      { value: "coords", label: "Latitude / longitude" },
+      { value: "url", label: "Paste a Google Maps link" },
+    ],
+    half: true,
+  },
+  {
+    key: "place",
+    label: "Place name or address",
+    type: "text",
+    placeholder: "Café Aurora, Bandra, Mumbai",
+    half: true,
+    max: 300,
+  },
+  {
+    key: "latitude",
+    label: "Latitude",
+    type: "text",
+    placeholder: "19.0760",
+    half: true,
+    max: 16,
+  },
+  {
+    key: "longitude",
+    label: "Longitude",
+    type: "text",
+    placeholder: "72.8777",
+    half: true,
+    max: 16,
+  },
+  {
+    key: "url",
+    label: "Google Maps link",
+    type: "text",
+    placeholder: "https://maps.app.goo.gl/…",
+    help: "A google.com/maps, maps.app.goo.gl or goo.gl/maps link. Never fetched.",
+    max: 2000,
+  },
+];
+
+const GREVIEW_FIELDS: QrField[] = [
+  {
+    key: "placeId",
+    label: "Google Place ID",
+    type: "text",
+    placeholder: "ChIJN1t_tDeuEmsRUsoyG83frY4",
+    help: "From the Google Place ID finder, or your Business Profile. Builds a write-a-review link.",
+    half: true,
+    max: 200,
+  },
+  {
+    key: "url",
+    label: "…or paste a review link",
+    type: "text",
+    placeholder: "https://g.page/your-business/review",
+    help: "A g.page/…/review or search.google.com/local/writereview link. Used if no Place ID is given.",
+    max: 2000,
+  },
+];
+
+const BUSINESS_FIELDS: QrField[] = [
+  {
+    key: "company",
+    label: "Business name",
+    type: "text",
+    required: true,
+    placeholder: "Aurora Café",
+    half: true,
+    max: 120,
+  },
+  {
+    key: "contactName",
+    label: "Contact person",
+    type: "text",
+    placeholder: "Ada Lovelace",
+    half: true,
+    max: 120,
+  },
+  {
+    key: "title",
+    label: "Job title",
+    type: "text",
+    placeholder: "Owner",
+    half: true,
+    max: 120,
+  },
+  {
+    key: "website",
+    label: "Website",
+    type: "text",
+    required: true,
+    placeholder: "auroracafe.com",
+    half: true,
+    max: 300,
+  },
+  { key: "phone", label: "Phone", type: "tel", half: true, max: 24 },
+  { key: "email", label: "Email", type: "email", half: true, max: 120 },
+  {
+    key: "street",
+    label: "Street address",
+    type: "text",
+    half: true,
+    max: 160,
+  },
+  { key: "city", label: "City", type: "text", half: true, max: 80 },
+  { key: "region", label: "State / region", type: "text", half: true, max: 80 },
+  { key: "postal", label: "Postcode", type: "text", half: true, max: 20 },
+  { key: "country", label: "Country", type: "text", half: true, max: 60 },
+];
+
+const PRODUCT_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Product or shopping link",
+    "https://store.example.com/product/123",
+    "The product page on your shop or a marketplace (Amazon, Flipkart, Etsy…). Anyone who scans opens this exact page.",
+  ),
+];
+
+const BOOKING_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Appointment booking link",
+    "https://calendly.com/your-name/consult",
+    "Your Calendly, Cal.com, clinic or salon booking page. The scanner opens it to pick a slot.",
+  ),
+];
+
+const TICKET_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Event or ticket link",
+    "https://tickets.example.com/event/launch-night",
+    "The event page or ticket checkout (Eventbrite, BookMyShow, your own site).",
+  ),
+];
+
+const DOCUMENT_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "PDF or document link",
+    "https://example.com/menu.pdf",
+    "A publicly hosted PDF, menu, brochure or document URL. QUICKKIT does not upload or fetch the file — encode a link you already host.",
+  ),
+];
+
+const GALLERY_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Image gallery link",
+    "https://photos.example.com/wedding-album",
+    "A hosted gallery or album (Google Photos, iCloud, your portfolio). The scanner opens the album.",
+  ),
+];
+
+const VIDEO_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Video link",
+    "https://youtu.be/… or https://example.com/demo.mp4",
+    "A YouTube, Vimeo or direct .mp4/.webm video URL. The scanner opens the video.",
+  ),
+];
+
+const SOCIALS_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Your links page URL",
+    "https://linktr.ee/yourname",
+    "One code for all your socials: point it at a link-in-bio page (Linktree, Beacons, your own site). Static QR — see the Multi-link landing type to generate a page you can host.",
+  ),
+];
+
+const LANDING_FIELDS: QrField[] = [
+  linkField(
+    "url",
+    "Hosted landing-page URL",
+    "https://yourdomain.com/links",
+    "The address where your multi-link page is hosted. Generate the page itself with the landing-page builder, host it anywhere, then encode its URL here. Static QR — no QUICKKIT server, no scan tracking.",
+  ),
+];
+
 /* ------------------------------------------------------------------ builders */
 
 const SOCIAL_URLS: Record<string, (handle: string) => string> = {
@@ -1087,6 +1343,150 @@ function buildApp(v: QrValues) {
   return `${host}?id=${enc(pkgSource)}`;
 }
 
+/* ------------------------------------------------------- V3 link builders */
+
+function buildInstagram(v: QrValues) {
+  return buildSocial({ platform: "instagram", username: v.username });
+}
+
+function buildFacebook(v: QrValues) {
+  return buildSocial({ platform: "facebook", username: v.page });
+}
+
+function buildYoutube(v: QrValues) {
+  return buildSocial({ platform: "youtube", username: v.channel });
+}
+
+function buildSpotify(v: QrValues) {
+  const url = normalizeUrl(requireValue(v, "url", "Music link"));
+  try {
+    const parsed = new URL(url);
+    if (/(^|\.)open\.spotify\.com$/i.test(parsed.hostname)) {
+      // Spotify paths look like /playlist/ID, /intl-de/track/ID, /user/…/playlist/ID.
+      const path = parsed.pathname.replace(/^\/intl-[a-z]{2}\//i, "/");
+      if (!/^\/(track|album|playlist|artist|episode|show|user)\//i.test(path))
+        throw new QrUserError(
+          "That Spotify link should point to a track, album, playlist, artist, episode or show.",
+          "url",
+        );
+    }
+  } catch (error) {
+    if (error instanceof QrUserError) throw error;
+  }
+  return url;
+}
+
+function buildGmaps(v: QrValues) {
+  const mode = value(v, "mode") || "place";
+  if (mode === "url") {
+    const url = normalizeUrl(requireValue(v, "url", "Google Maps link"));
+    const host = new URL(url).hostname.toLowerCase();
+    const ok =
+      /(^|\.)google\.[a-z.]{2,}$/i.test(host) ||
+      host === "maps.app.goo.gl" ||
+      host === "goo.gl" ||
+      host === "maps.google.com";
+    if (!ok)
+      throw new QrUserError(
+        "Use a Google Maps link (google.com/maps, maps.app.goo.gl or goo.gl/maps).",
+        "url",
+      );
+    return url;
+  }
+  if (mode === "coords") {
+    const lat = Number(value(v, "latitude"));
+    const lng = Number(value(v, "longitude"));
+    if (!value(v, "latitude") || !value(v, "longitude"))
+      throw new QrUserError("Enter both latitude and longitude.", "latitude");
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90)
+      throw new QrUserError("Latitude must be between -90 and 90.", "latitude");
+    if (!Number.isFinite(lng) || lng < -180 || lng > 180)
+      throw new QrUserError(
+        "Longitude must be between -180 and 180.",
+        "longitude",
+      );
+    return `https://www.google.com/maps/search/?api=1&query=${enc(`${lat},${lng}`)}`;
+  }
+  const place = requireValue(v, "place", "Place name or address");
+  return `https://www.google.com/maps/search/?api=1&query=${enc(place)}`;
+}
+
+function buildGreview(v: QrValues) {
+  const placeId = value(v, "placeId");
+  const rawUrl = value(v, "url");
+  if (placeId) {
+    if (!/^[A-Za-z0-9_-]{10,200}$/.test(placeId))
+      throw new QrUserError(
+        "A Google Place ID looks like ChIJ… — letters, numbers, dashes and underscores.",
+        "placeId",
+      );
+    return `https://search.google.com/local/writereview?placeid=${enc(placeId)}`;
+  }
+  if (rawUrl) {
+    const url = normalizeUrl(rawUrl, "url");
+    const host = new URL(url).hostname.toLowerCase();
+    const ok =
+      host === "g.page" ||
+      host === "search.google.com" ||
+      /(^|\.)google\.[a-z.]{2,}$/i.test(host);
+    if (!ok)
+      throw new QrUserError(
+        "Use a Google review link (g.page/…/review or search.google.com/local/writereview).",
+        "url",
+      );
+    return url;
+  }
+  throw new QrUserError(
+    "Enter a Google Place ID or paste a review link.",
+    "placeId",
+  );
+}
+
+function buildBusiness(v: QrValues) {
+  const company = requireValue(v, "company", "Business name");
+  const website = normalizeUrl(
+    requireValue(v, "website", "Website"),
+    "website",
+  );
+  const contactName = value(v, "contactName");
+  const lines: string[] = ["BEGIN:VCARD", "VERSION:3.0"];
+  if (contactName) {
+    const parts = contactName.split(/\s+/);
+    const first = parts.shift() ?? "";
+    const last = parts.join(" ");
+    lines.push(foldLine(`N:${escapeVCard(last)};${escapeVCard(first)};;;`));
+    lines.push(foldLine(`FN:${escapeVCard(contactName)}`));
+  } else {
+    lines.push(foldLine(`N:${escapeVCard(company)};;;;`));
+    lines.push(foldLine(`FN:${escapeVCard(company)}`));
+  }
+  pushField(lines, "ORG", company);
+  pushField(lines, "TITLE", value(v, "title"));
+  lines.push(foldLine(`URL:${website}`));
+  const phone = phoneOrEmpty(value(v, "phone"), "phone", "Phone");
+  if (phone) lines.push(foldLine(`TEL;TYPE=WORK,VOICE:${phone}`));
+  const email = optionalEmail(v, "email", "Email");
+  if (email) lines.push(foldLine(`EMAIL;TYPE=WORK:${email}`));
+  const street = value(v, "street");
+  const city = value(v, "city");
+  const region = value(v, "region");
+  const postal = value(v, "postal");
+  const country = value(v, "country");
+  if (street || city || region || postal || country)
+    lines.push(
+      foldLine(
+        `ADR;TYPE=WORK:;;${escapeVCard(street)};${escapeVCard(city)};${escapeVCard(region)};${escapeVCard(postal)};${escapeVCard(country)}`,
+      ),
+    );
+  lines.push("END:VCARD");
+  return crlf(lines);
+}
+
+/** Destination-link types all encode one validated https URL. */
+function buildDestinationLink(v: QrValues) {
+  return normalizeUrl(requireValue(v, "url", "Link"));
+}
+
 /* ------------------------------------------------------------------ registry */
 
 export type QrContentTypeDef = {
@@ -1200,6 +1600,127 @@ export const QR_CONTENT_TYPES: QrContentTypeDef[] = [
     fields: APP_FIELDS,
     build: buildApp,
   },
+  {
+    id: "instagram",
+    label: "Instagram profile",
+    blurb: "Open an Instagram profile from a handle or URL.",
+    icon: "instagram",
+    fields: INSTAGRAM_FIELDS,
+    build: buildInstagram,
+  },
+  {
+    id: "facebook",
+    label: "Facebook page",
+    blurb: "Open a Facebook page by name or link.",
+    icon: "facebook",
+    fields: FACEBOOK_FIELDS,
+    build: buildFacebook,
+  },
+  {
+    id: "youtube",
+    label: "YouTube channel",
+    blurb: "A @handle, channel ID or channel URL.",
+    icon: "youtube",
+    fields: YOUTUBE_FIELDS,
+    build: buildYoutube,
+  },
+  {
+    id: "spotify",
+    label: "Spotify / music",
+    blurb: "A track, album, playlist or any music link.",
+    icon: "music",
+    fields: SPOTIFY_FIELDS,
+    build: buildSpotify,
+  },
+  {
+    id: "gmaps",
+    label: "Google Maps location",
+    blurb: "A place, address, coordinates or Maps link.",
+    icon: "map-pin",
+    fields: GMAPS_FIELDS,
+    build: buildGmaps,
+  },
+  {
+    id: "greview",
+    label: "Google Review link",
+    blurb: "Send customers straight to write a review.",
+    icon: "star",
+    fields: GREVIEW_FIELDS,
+    build: buildGreview,
+  },
+  {
+    id: "business",
+    label: "Business website + contact",
+    blurb: "A contact card with your site, phone and address.",
+    icon: "briefcase",
+    fields: BUSINESS_FIELDS,
+    build: buildBusiness,
+    dense: true,
+  },
+  {
+    id: "product",
+    label: "Product / shopping link",
+    blurb: "Open a product page on any store.",
+    icon: "shopping-bag",
+    fields: PRODUCT_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "booking",
+    label: "Appointment booking",
+    blurb: "Open a Calendly, Cal.com or booking page.",
+    icon: "calendar-check",
+    fields: BOOKING_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "ticket",
+    label: "Event / ticket link",
+    blurb: "Open an event page or ticket checkout.",
+    icon: "ticket",
+    fields: TICKET_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "document",
+    label: "PDF / document link",
+    blurb: "Open a hosted PDF, menu or brochure.",
+    icon: "file-text",
+    fields: DOCUMENT_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "gallery",
+    label: "Image gallery link",
+    blurb: "Open a hosted photo album or gallery.",
+    icon: "images",
+    fields: GALLERY_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "video",
+    label: "Video link",
+    blurb: "Open a YouTube, Vimeo or direct video.",
+    icon: "video",
+    fields: VIDEO_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "socials",
+    label: "Multi-social links",
+    blurb: "One code for your link-in-bio page.",
+    icon: "share",
+    fields: SOCIALS_FIELDS,
+    build: buildDestinationLink,
+  },
+  {
+    id: "landing",
+    label: "Multi-link landing page",
+    blurb: "Encode the URL of a landing page you host.",
+    icon: "layout",
+    fields: LANDING_FIELDS,
+    build: buildDestinationLink,
+  },
 ];
 
 export const contentTypeDef = (id: QrContentTypeId): QrContentTypeDef =>
@@ -1215,6 +1736,76 @@ export function defaultValuesFor(id: QrContentTypeId): QrValues {
 
 export function isKnownContentType(id: string): id is QrContentTypeId {
   return QR_CONTENT_TYPES.some((type) => type.id === id);
+}
+
+/**
+ * A working sample per content type, used by the "Try sample" affordance so a
+ * first-time user sees a real, decodable code for whichever type is selected.
+ * Every entry builds a valid payload (covered by the payload unit tests).
+ */
+export const QR_SAMPLE_VALUES: Record<QrContentTypeId, QrValues> = {
+  url: { url: "https://quickkit.tools/?src=qr-example" },
+  text: { text: "Hello from QUICKKIT — scan me!" },
+  email: {
+    to: "hello@quickkit.tools",
+    subject: "Hi from a QR code",
+    body: "I scanned your code and wanted to say hello.",
+  },
+  phone: { phone: "+91 98765 43210" },
+  sms: { phone: "+91 98765 43210", message: "Hi! I scanned your QR code." },
+  whatsapp: {
+    phone: "+91 98765 43210",
+    message: "Hello from your QR code!",
+  },
+  wifi: { ssid: "Café Aurora Wi-Fi", password: "", encryption: "nopass" },
+  vcard: {
+    firstName: "Ada",
+    lastName: "Lovelace",
+    org: "Quickkit",
+    title: "Engineer",
+    mobile: "+91 98765 43210",
+    email: "ada@quickkit.tools",
+    website: "quickkit.tools",
+  },
+  location: { latitude: "19.0760", longitude: "72.8777", format: "maps" },
+  event: {
+    title: "Quickkit launch party",
+    startDate: "2026-12-01T18:30",
+    endDate: "2026-12-01T21:00",
+    location: "Rooftop, Bandra",
+    timezone: "local",
+  },
+  social: { platform: "instagram", username: "quickkit.tools" },
+  app: { store: "android", packageName: "com.quickkit.app" },
+  instagram: { username: "quickkit.tools" },
+  facebook: { page: "quickkit.tools" },
+  youtube: { channel: "@quickkit" },
+  spotify: { url: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M" },
+  gmaps: { mode: "place", place: "Gateway of India, Mumbai" },
+  greview: { placeId: "ChIJN1t_tDeuEmsRUsoyG83frY4" },
+  business: {
+    company: "Aurora Café",
+    contactName: "Ada Lovelace",
+    title: "Owner",
+    website: "auroracafe.example.com",
+    phone: "+91 98765 43210",
+    email: "hello@auroracafe.example.com",
+    city: "Mumbai",
+    country: "India",
+  },
+  product: { url: "https://store.example.com/product/aurora-mug" },
+  booking: { url: "https://calendly.com/quickkit/consult" },
+  ticket: { url: "https://tickets.example.com/event/launch-night" },
+  document: { url: "https://quickkit.tools/menu.pdf" },
+  gallery: { url: "https://photos.example.com/aurora-album" },
+  video: { url: "https://youtu.be/dQw4w9WgXcQ" },
+  socials: { url: "https://linktr.ee/quickkit" },
+  landing: { url: "https://quickkit.tools/links" },
+};
+
+/** Sample values for a type, merged over its defaults so every field exists. */
+export function sampleValuesFor(id: QrContentTypeId): QrValues {
+  return { ...defaultValuesFor(id), ...QR_SAMPLE_VALUES[id] };
 }
 
 /** Build + validate the payload for a content type. Throws QrUserError. */

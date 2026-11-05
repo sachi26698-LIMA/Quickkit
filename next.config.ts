@@ -41,6 +41,12 @@ const devAllowedOrigins = [
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // The built-in DOCX renderer reads its bundled Noto fonts from disk at
+  // request time. Without this the fonts are missing from a traced/standalone
+  // deployment and every conversion would fail its engine health check.
+  outputFileTracingIncludes: {
+    "/api/word-to-pdf": ["./assets/noto/**"],
+  },
   ...(enforcing ? {} : { allowedDevOrigins: devAllowedOrigins }),
   async redirects() {
     return [
@@ -74,6 +80,20 @@ const config: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        // The QR Code Scanner is the one page that needs a camera. A
+        // Permissions-Policy on `/:path*` would otherwise be inherited by it
+        // and the browser would refuse getUserMedia even after the visitor
+        // granted permission, so this rule — which wins for the exact path —
+        // re-allows the camera for this page only. Nothing else is widened.
+        source: "/tools/qr-code-scanner",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
           },
         ],
       },

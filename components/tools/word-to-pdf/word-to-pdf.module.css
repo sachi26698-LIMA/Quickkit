@@ -1,6 +1,6 @@
 .studio {
   --plum: var(--t-deep);
-  --rose: rgb(var(--t-rgb));
+  --rose: var(--t-deep);
   --coral: rgb(var(--t2-rgb));
   --midnight: #1a0f2e;
   --blush: color-mix(in srgb, rgb(var(--t-rgb)) 14%, #fff);
@@ -1716,4 +1716,174 @@
 .pageAppearance .settings > details,
 .pageAppearance .settings > button {
   grid-column: 1 / -1;
+}
+
+/* --- V5: engine identity, live stages and fidelity notes --- */
+.engine > .dot {
+  margin-top: 6px;
+}
+.engine {
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 6px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    color-mix(in srgb, rgb(var(--t-rgb)) 3%, #fff)
+  );
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.engineBody {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.engineBody strong {
+  color: var(--plum);
+  font-size: 14px;
+  font-weight: 700;
+}
+.engineMeta {
+  color: var(--muted);
+}
+.engineMore {
+  justify-self: start;
+  margin-top: 3px;
+  padding: 3px 8px !important;
+  font-size: 12.5px !important;
+  min-height: 0 !important;
+  background: #fff !important;
+}
+.engineNotes {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  color: var(--muted);
+  font-size: 12.5px;
+  display: grid;
+  gap: 3px;
+}
+.dotLive {
+  background: #2f9e6e !important;
+  box-shadow: 0 0 0 3px #2f9e6e22;
+}
+.introBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.engineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--t-rgb) / 0.149);
+  background: #fff;
+  color: var(--plum);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dropActive {
+  background: rgb(var(--t-rgb) / 0.078) !important;
+  border-color: var(--rose) !important;
+  box-shadow: 0 0 0 4px rgb(var(--t-rgb) / 0.102);
+}
+.stageLine {
+  display: grid;
+  gap: 5px;
+  margin: 4px 0 2px;
+  font-size: 12.5px;
+  color: var(--plum);
+}
+.stageLine strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.stageLine small {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.progressTrack {
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--t-rgb) / 0.078);
+  overflow: hidden;
+}
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--plum), var(--rose));
+  transition: width 0.25s ease;
+}
+.spin {
+  animation: qk-spin 1.1s linear infinite;
+}
+@keyframes qk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.warningList {
+  margin: 4px 0 2px;
+  font-size: 12.5px;
+  color: #8a4b1f;
+}
+.warningList summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #8a4b1f;
+  font-weight: 600;
+  list-style: none;
+}
+.warningList summary::-webkit-details-marker {
+  display: none;
+}
+.warningList ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+}
+@media (max-width: 760px) {
+  .engine {
+    padding: 11px 12px;
+    font-size: 12.5px;
+  }
+  .engineBody strong {
+    font-size: 13.5px;
+  }
+  .introBadges {
+    width: 100%;
+  }
+  .engineBadge {
+    font-size: 12px;
+    padding: 5px 9px;
+  }
+  .exportBar {
+    position: sticky;
+    bottom: 0;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .exportActions > button {
+    min-height: 44px;
+  }
+}
+.exportHint {
+  font-size: 12.5px;
+  color: #8a4b1f;
+  font-weight: 600;
 }

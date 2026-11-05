@@ -39,6 +39,9 @@ const compactDesign = (design: QrDesign) => ({
   o: design.boost ? 1 : 0,
   v: design.invert ? 1 : 0,
   g: design.logo,
+  fr: design.frame,
+  ef: design.eyeFrame,
+  eb: design.eyeBall,
 });
 
 export function encodeShareConfig(config: SharedQrConfig) {
@@ -124,6 +127,9 @@ export function decodeShareConfig(raw: string | null): ShareParse {
       boost: design.o === 1,
       invert: design.v === 1,
       logo: (design.g ?? {}) as QrDesign["logo"],
+      frame: design.fr as QrDesign["frame"],
+      eyeFrame: design.ef as QrDesign["eyeFrame"],
+      eyeBall: design.eb as QrDesign["eyeBall"],
     },
     { hasLogo: false },
   );

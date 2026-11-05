@@ -129,8 +129,53 @@ export function defaultDesign(): QrDesign {
       padding: 0.6,
       shape: "rounded",
       halo: true,
+      bg: null,
     },
+    frame: { style: "none", text: "", fg: "#3b1b4f", bg: "#f4d7d4" },
+    eyeFrame: null,
+    eyeBall: null,
   };
+}
+
+/** Read a frame from untrusted input, falling back to the default. */
+export function readFrame(input: unknown, fallback: QrDesign["frame"]) {
+  if (!input || typeof input !== "object") return { ...fallback };
+  const raw = input as Record<string, unknown>;
+  const styles = [
+    "none",
+    "scan",
+    "menu",
+    "follow",
+    "contact",
+    "visit",
+    "custom",
+  ];
+  const style = styles.includes(String(raw.style))
+    ? (raw.style as QrDesign["frame"]["style"])
+    : fallback.style;
+  return {
+    style,
+    text: String(raw.text ?? fallback.text).slice(0, 40),
+    fg: isHexColor(String(raw.fg ?? ""))
+      ? normalizeHex(String(raw.fg))
+      : fallback.fg,
+    bg: isHexColor(String(raw.bg ?? ""))
+      ? normalizeHex(String(raw.bg))
+      : fallback.bg,
+  };
+}
+
+/** Read an optional fill override (eye colours). null/absent stays null. */
+export function readOptionalFill(input: unknown): QrFill | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  if (!isHexColor(String(raw.base ?? ""))) return null;
+  return readFill(raw, {
+    kind: "solid",
+    base: "#3b1b4f",
+    accent: "#3b1b4f",
+    angle: 0,
+  });
 }
 
 export type DesignAdjustment = { field: string; message: string };
@@ -272,144 +317,32 @@ export function clampDesign(
         : base.logo.shape,
       halo:
         raw.logo?.halo === undefined ? base.logo.halo : Boolean(raw.logo.halo),
+      bg:
+        raw.logo?.bg && isHexColor(String(raw.logo.bg))
+          ? normalizeHex(String(raw.logo.bg))
+          : null,
     },
+    frame: readFrame(raw.frame, base.frame),
+    eyeFrame: readOptionalFill(raw.eyeFrame),
+    eyeBall: readOptionalFill(raw.eyeBall),
   };
   return { design, adjustments };
 }
 
 /* ------------------------------------------------------------------ templates */
 
-export type QrTemplate = {
-  id: string;
-  name: string;
-  blurb: string;
-  /** Premium templates are read-only; users save their own presets instead. */
-  design: Partial<QrDesign>;
-};
-
-export const QR_TEMPLATES: QrTemplate[] = [
-  {
-    id: "signature",
-    name: "QUICKKIT Signature",
-    blurb: "Deep purple on lavender white",
-    design: {
-      fg: { kind: "linear", base: "#4b19b8", accent: "#8a5cf6", angle: 135 },
-      bg: { kind: "solid", base: "#ffffff", accent: "#ffffff", angle: 135 },
-      dotStyle: "rounded",
-      eyeStyle: "rounded",
-      dotScale: 0.9,
-      cornerRadius: 0.28,
-      errorLevel: "Q",
-      margin: 4,
-    },
-  },
-  {
-    id: "midnight",
-    name: "Midnight Grape",
-    blurb: "High-contrast violet gradient",
-    design: {
-      fg: { kind: "linear", base: "#2a1b5e", accent: "#6c35e8", angle: 90 },
-      bg: { kind: "solid", base: "#f6f1ff", accent: "#f6f1ff", angle: 90 },
-      dotStyle: "dots",
-      eyeStyle: "circle",
-      dotScale: 0.88,
-      errorLevel: "H",
-      margin: 4,
-    },
-  },
-  {
-    id: "editorial",
-    name: "Editorial Mono",
-    blurb: "Pure black blocks, print-safe",
-    design: {
-      fg: { kind: "solid", base: "#111111", accent: "#111111", angle: 0 },
-      bg: { kind: "solid", base: "#ffffff", accent: "#ffffff", angle: 0 },
-      dotStyle: "square",
-      eyeStyle: "square",
-      cornerRadius: 0,
-      errorLevel: "M",
-      margin: 4,
-    },
-  },
-  {
-    id: "sunrise",
-    name: "Sunrise Coral",
-    blurb: "Warm radial bloom on cream",
-    design: {
-      fg: { kind: "radial", base: "#b5341f", accent: "#f2762f", angle: 0 },
-      bg: { kind: "solid", base: "#fff8f0", accent: "#fff8f0", angle: 0 },
-      dotStyle: "classy-rounded",
-      eyeStyle: "rounded",
-      dotScale: 0.9,
-      cornerRadius: 0.3,
-      errorLevel: "Q",
-      margin: 4,
-    },
-  },
-  {
-    id: "mint",
-    name: "Mint Fresh",
-    blurb: "Teal gradient, soft dots",
-    design: {
-      fg: { kind: "linear", base: "#0f5f52", accent: "#28a58a", angle: 45 },
-      bg: { kind: "solid", base: "#f2fbf7", accent: "#f2fbf7", angle: 45 },
-      dotStyle: "dots",
-      eyeStyle: "dots",
-      dotScale: 0.86,
-      errorLevel: "M",
-      margin: 4,
-    },
-  },
-  {
-    id: "noir",
-    name: "Inverted Noir",
-    blurb: "Light on dark — verified, for screens",
-    design: {
-      fg: { kind: "solid", base: "#ffffff", accent: "#ffffff", angle: 0 },
-      bg: { kind: "solid", base: "#17152b", accent: "#17152b", angle: 0 },
-      dotStyle: "rounded",
-      eyeStyle: "rounded",
-      cornerRadius: 0.24,
-      errorLevel: "H",
-      margin: 4,
-      invert: true,
-    },
-  },
-  {
-    id: "glass",
-    name: "Clear Badge",
-    blurb: "Transparent PNG for overlays",
-    design: {
-      fg: { kind: "solid", base: "#17152b", accent: "#17152b", angle: 0 },
-      bg: { kind: "solid", base: "#ffffff", accent: "#ffffff", angle: 0 },
-      dotStyle: "square",
-      eyeStyle: "square",
-      cornerRadius: 0,
-      transparent: true,
-      margin: 2,
-      errorLevel: "Q",
-    },
-  },
-  {
-    id: "poster",
-    name: "Poster Bold",
-    blurb: "Chunky modules for large prints",
-    design: {
-      fg: { kind: "solid", base: "#4b19b8", accent: "#4b19b8", angle: 0 },
-      bg: { kind: "solid", base: "#ede3ff", accent: "#ede3ff", angle: 0 },
-      dotStyle: "classy",
-      eyeStyle: "classy",
-      dotScale: 1,
-      cornerRadius: 0.4,
-      margin: 6,
-      errorLevel: "Q",
-      size: 1024,
-    },
-  },
-];
-
-export const templateById = (id: string) =>
-  QR_TEMPLATES.find((template) => template.id === id);
+// The template library lives in ./templates (55 categorized, decode-verified
+// designs). Re-exported here so existing imports keep working unchanged.
+export {
+  QR_TEMPLATES,
+  QR_TEMPLATE_LIBRARY,
+  TEMPLATE_CATEGORIES,
+  templateById,
+  categoryLabel,
+  searchTemplates,
+  type QrTemplate,
+  type QrTemplateCategory,
+} from "./templates";
 
 /** Design without the volatile bits — what a preset actually stores. */
 export function presetDesign(design: QrDesign): QrDesign {

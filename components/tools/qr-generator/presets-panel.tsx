@@ -2,17 +2,54 @@
 /**
  * PRESETS — design combinations kept in this browser. A preset stores colours,
  * shapes, margins, size and error correction only: never a logo image, never a
- * field value. Each card shows the real code its design would render.
+ * field value. Each card shows the real code its design would render. Presets
+ * can be renamed, duplicated, and exported/imported as a validated JSON config
+ * that merges with — never clears — what is already saved.
  */
-import { useState } from "react";
-import { Bookmark, Lock, Save, Star, Trash } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  Bookmark,
+  Check,
+  Copy,
+  Download,
+  Lock,
+  Pencil,
+  Save,
+  Star,
+  Trash,
+  Upload,
+  X,
+} from "lucide-react";
 import { QrSection } from "./shared";
 import { QrThumb } from "./thumb";
 import type { QrStudio } from "./use-qr-studio";
 
 export default function PresetsPanel({ studio }: { studio: QrStudio }) {
-  const { presets, savePreset, deletePreset, applyPreset, def } = studio;
+  const {
+    presets,
+    savePreset,
+    deletePreset,
+    applyPreset,
+    renamePreset,
+    duplicatePreset,
+    exportConfigFile,
+    importConfigFile,
+    def,
+  } = studio;
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const startRename = (id: string, current: string) => {
+    setEditingId(id);
+    setEditName(current);
+  };
+  const commitRename = () => {
+    if (editingId) renamePreset(editingId, editName);
+    setEditingId(null);
+    setEditName("");
+  };
 
   return (
     <QrSection
@@ -59,6 +96,39 @@ export default function PresetsPanel({ studio }: { studio: QrStudio }) {
         </p>
       </div>
 
+      <div className="qr-config-bar">
+        <button
+          type="button"
+          className="secondary qr-mini-button"
+          onClick={exportConfigFile}
+          title="Download presets and history as a JSON file"
+        >
+          <Download size={14} /> Export config
+        </button>
+        <button
+          type="button"
+          className="secondary qr-mini-button"
+          onClick={() => fileRef.current?.click()}
+          title="Merge a config file into your saved presets and history"
+        >
+          <Upload size={14} /> Import config
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".json,application/json"
+          className="sr-only"
+          aria-label="Import a QUICKKIT QR config file"
+          onChange={(event) => {
+            void importConfigFile(event.target.files?.[0]);
+            event.target.value = "";
+          }}
+        />
+        <span className="qr-config-note">
+          Import merges and validates — your existing data is kept.
+        </span>
+      </div>
+
       {presets.length ? (
         <ul className="qr-preset-grid">
           {presets.map((preset) => (
@@ -67,7 +137,40 @@ export default function PresetsPanel({ studio }: { studio: QrStudio }) {
                 design={preset.design}
                 label={`Preview of the ${preset.name} design`}
               />
-              <strong>{preset.name}</strong>
+              {editingId === preset.id ? (
+                <div className="qr-rename-row">
+                  <input
+                    type="text"
+                    className="qr-input"
+                    value={editName}
+                    maxLength={40}
+                    aria-label={`Rename the ${preset.name} preset`}
+                    onChange={(event) => setEditName(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") commitRename();
+                      if (event.key === "Escape") setEditingId(null);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="qr-icon-button"
+                    onClick={commitRename}
+                    aria-label="Save the new name"
+                  >
+                    <Check size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="qr-icon-button"
+                    onClick={() => setEditingId(null)}
+                    aria-label="Cancel renaming"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <strong>{preset.name}</strong>
+              )}
               <small>
                 {preset.design.dotStyle} · {preset.design.eyeStyle} ·{" "}
                 {preset.design.errorLevel} · {preset.design.size}px
@@ -79,6 +182,22 @@ export default function PresetsPanel({ studio }: { studio: QrStudio }) {
                   onClick={() => applyPreset(preset)}
                 >
                   <Star size={13} /> Apply
+                </button>
+                <button
+                  type="button"
+                  className="qr-icon-button"
+                  onClick={() => startRename(preset.id, preset.name)}
+                  aria-label={`Rename the ${preset.name} preset`}
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="qr-icon-button"
+                  onClick={() => duplicatePreset(preset.id)}
+                  aria-label={`Duplicate the ${preset.name} preset`}
+                >
+                  <Copy size={14} />
                 </button>
                 <button
                   type="button"

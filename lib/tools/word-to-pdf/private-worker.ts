@@ -1,8 +1,8 @@
 import type { Settings } from "./settings";
 const MAX_PDF = 50 * 1024 * 1024;
 export const workerConfigured = () =>
-  process.env.WORD_TO_PDF_WORKER_URL !== undefined ||
-  process.env.WORD_TO_PDF_WORKER_TOKEN !== undefined;
+  Boolean(process.env.WORD_TO_PDF_WORKER_URL?.trim()) ||
+  Boolean(process.env.WORD_TO_PDF_WORKER_TOKEN?.trim());
 export function workerConfig() {
   const token = process.env.WORD_TO_PDF_WORKER_TOKEN || "";
   if (!/^[A-Za-z0-9_-]{32,128}$/.test(token))

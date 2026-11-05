@@ -38,9 +38,11 @@ export const toolThemes: Record<string, ToolTheme> = {
   "image-cropper": t("236 72 153", "255 112 74", "#be185d"),
   "image-to-image": t("240 84 60", "236 72 153", "#ad3508"),
   // QR & Barcode — red
+  "qr-code-scanner": t("185 28 28", "251 113 133", "#991b1b"),
   "qr-generator": t("200 16 46", "255 59 48", "#b91c1c"),
   // Text & Writing — plum / lavender
   "word-counter": t("107 33 168", "183 148 246", "#6b21a8"),
+  "image-to-text": t("134 25 143", "236 72 153", "#86198f"),
   "case-converter": t("126 34 206", "192 132 252", "#7e22ce"),
   // Developer Tools — indigo / cyan
   "json-formatter": t("67 56 202", "6 182 212", "#3730a3"),

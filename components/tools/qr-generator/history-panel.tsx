@@ -4,7 +4,17 @@
  * "Designs only" mode drops every field value, and a Wi-Fi password is never
  * stored in either mode. Rows offer a real re-render, not a snapshot.
  */
-import { Clock, Repeat2, ShieldCheck, Trash } from "lucide-react";
+import { useState } from "react";
+import {
+  Check,
+  Clock,
+  Copy,
+  Pencil,
+  Repeat2,
+  ShieldCheck,
+  Trash,
+  X,
+} from "lucide-react";
 import { buildPayload } from "@/lib/tools/qr/payload";
 import { QrSection, QrToggle } from "./shared";
 import { formatWhen, type QrHistoryEntry } from "@/lib/tools/qr/storage";
@@ -28,9 +38,23 @@ export default function HistoryPanel({ studio }: { studio: QrStudio }) {
     historyMode,
     restoreHistory,
     removeOne,
+    renameHistory,
+    duplicateHistory,
     clearAllHistory,
     toggleHistoryMode,
   } = studio;
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+
+  const startRename = (entry: QrHistoryEntry) => {
+    setEditingId(entry.id);
+    setEditLabel(entry.label || contentTypeDef(entry.typeId).label);
+  };
+  const commitRename = () => {
+    if (editingId) renameHistory(editingId, editLabel);
+    setEditingId(null);
+    setEditLabel("");
+  };
 
   return (
     <QrSection
@@ -75,9 +99,42 @@ export default function HistoryPanel({ studio }: { studio: QrStudio }) {
                 label={`Preview of ${entry.label || contentTypeDef(entry.typeId).label}`}
               />
               <div className="qr-history-text">
-                <strong>
-                  {entry.label || contentTypeDef(entry.typeId).label}
-                </strong>
+                {editingId === entry.id ? (
+                  <div className="qr-rename-row">
+                    <input
+                      type="text"
+                      className="qr-input"
+                      value={editLabel}
+                      maxLength={80}
+                      aria-label={`Rename the ${entry.label || "history"} entry`}
+                      onChange={(event) => setEditLabel(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") commitRename();
+                        if (event.key === "Escape") setEditingId(null);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="qr-icon-button"
+                      onClick={commitRename}
+                      aria-label="Save the new label"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="qr-icon-button"
+                      onClick={() => setEditingId(null)}
+                      aria-label="Cancel renaming"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <strong>
+                    {entry.label || contentTypeDef(entry.typeId).label}
+                  </strong>
+                )}
                 <small>
                   {contentTypeDef(entry.typeId).label} · v{entry.version} ·{" "}
                   {entry.bytes.toLocaleString()} bytes ·{" "}
@@ -95,6 +152,22 @@ export default function HistoryPanel({ studio }: { studio: QrStudio }) {
                   {entry.mode === "designs"
                     ? "Apply design"
                     : "Edit and regenerate"}
+                </button>
+                <button
+                  type="button"
+                  className="qr-icon-button"
+                  onClick={() => startRename(entry)}
+                  aria-label={`Rename the ${entry.label || "history"} entry`}
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="qr-icon-button"
+                  onClick={() => duplicateHistory(entry.id)}
+                  aria-label={`Duplicate the ${entry.label || "history"} entry`}
+                >
+                  <Copy size={14} />
                 </button>
                 <button
                   type="button"

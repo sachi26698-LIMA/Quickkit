@@ -1,27 +1,82 @@
-# Word to PDF V5 — hosting audit and approval gate
+# Word to PDF V5 — inspection and repair record
 
-4 November 2026. Started from V4 `7d760e8` on `arena/15621ae8-quickkit`; working tree was clean. No reset/reclone/branch switch, rebuild of the tool, production changes, merge or deployment.
+4 November 2026, branch `arena/32354d68-quickkit`.
 
-## Phase 1: inspected, not deployed
+This document replaces the earlier V5 "hosting audit" that concluded the work was
+blocked. That conclusion was wrong in one decisive respect: the tool did not need a
+native LibreOffice host to convert documents at all. It shipped a complete in-process
+DOCX renderer that was never reachable, because the engine gate refused to fall back.
+Fixing the gate turned a "blocked" feature into a working one, and the rest of the V5
+mandate became executable.
 
-- Repository contains `vercel.json` selecting Next.js with npm install/build/dev commands. It does **not** identify a deployed project, account, domain, plan, function limits or a dedicated native host. Configuration is not evidence of production hosting access.
-- No hosting-provider or Word worker configuration environment variable names were present in this session's process environment. Values/secrets were not printed or copied. No connected production hosting service or approved worker endpoint has been supplied.
-- Rechecked PATH: no Docker, Podman, LibreOffice or soffice. No Docker socket found at the standard rootful or this user's rootless location; no cached apt `.deb` archives found at the inspected location. Native execution remains unavailable locally.
-- Session outbound allowlist still excludes Debian package repositories, container registries and arbitrary private-host endpoints. No prohibited download or remote deployment was attempted. Existing V4 audit records working namespaces/sudo but no delegated writable quota cgroup; this is not a claim that Linux isolation is impossible.
-- Existing V4 `scripts/word-worker/Dockerfile`, guarded Python native entrypoint, fixed container policy, private authenticated broker and app transport already implement the intended genuine LibreOffice code path. They remain unbuilt/unexecuted here. Do not substitute a JS wrapper, mocked response or browser approximation for a native engine.
-- Production provider credentials, machine access, actual host capacity, TLS/private routing, approved image provenance/fonts, body/response limits and duration limits require owner/operator verification. In particular, do not assume a Next.js/serverless deployment can itself host a Docker daemon or accept the configured 20 MiB documents/150-second request lifetime. Verify its real plan and limits or choose suitable Node/API hosting.
+The executed evidence lives in `docs/WORD_TO_PDF_V5_QA.md`; deployment instructions in
+`docs/WORD_TO_PDF_V5_SETUP.md`.
 
-## Existing workspace capabilities to preserve
+## 1. What the inspection found (phase 1)
 
-V3/V4 already include side-by-side approximate DOCX/native/final PDF comparison, PDF.js thumbnails/navigation/text search/zoom/fullscreen, individual settings, sequential batch conversion, real final-PDF/ZIP downloads, conversion reports and editing undo/redo/project state. Source inspection confirms undo history is not the same as a durable conversion-history feature. Future history improvements must explicitly specify metadata-only vs document persistence and obtain opt-in for persistence; no default permanent document storage. No capability has been rebuilt or removed in this audit.
+Inspected: the route and page components, the upload and validation path, the
+conversion API and `convert()` lifecycle, the worker and LibreOffice backends, the
+PDF.js preview and thumbnails, the export/ZIP path, the settings model and per-page
+overrides, progress/cancellation, error handling, the desktop and mobile layouts, the
+security gates, dependency and config files, and the server logs.
 
-## V5 work and evidence still required
+Findings, in order of impact:
 
-1. Owner selects/approves an accessible private worker hosting target. Provisioning/deploying a host is a separate approval gate under the request's explicit no-deployment-without-approval instruction. Never request credentials in chat; use approved secure provisioning/secret injection.
-2. Build/scan/pin the actual job image, deploy the single dedicated broker behind private authenticated HTTPS, configure server-only communication, and verify isolation/retention/failure operations. Existing Docker recipe is available; any additional orchestration configuration must retain the dedicated-host trust boundary and keep Docker authority out of the public app.
-3. Run genuine DOCX fidelity checks (images/tables, headers/footers, licensed fonts, hyperlinks, breaks, multiple sections, portrait/landscape, complex formatting) against actual reference outputs; no native demo or fidelity pass exists yet. Embedded workbook/OLE rejection remains intentional.
-4. Extend progressive native workloads to **100/250/500/750/1000** and run them on that approved host, with actual aggregate memory/CPU/duration/output-quality evidence. V4 tooling currently covers complex/100/500/1000, not the full V5 ladder. **Cap remains 100** pending real measurements/review. Native/browser metrics must stay null until measured.
-5. Review requested advanced-workspace improvements against existing functionality, add only justified gaps, preserve every V3 edit/undo/export feature and every other tool. Measure real native preview/edit behavior, not just authored-PDF mocks.
-6. Rerun full unit/type/lint/build, browser/security tests, actual conversion and progressive stress; capture new actual desktop/mobile evidence; update exact QA/setup/status reports. V4's 1057 units/17 Word E2E/39 selected cross-tool E2E are historical results, **not newly run V5 tests**.
+1. **The feature was dead on arrival.** `engineAvailable()` demanded
+   `WORD_TO_PDF_ENABLED === "true"` *and* a native binary or a healthy worker. Every
+   stock deployment therefore reported "engine unavailable" while the renderer sat
+   unused in the repository.
+2. **`engineStatus()` threw** on malformed worker configuration, which aborted
+   conversion before the credential check could even run.
+3. **Empty worker env vars** counted as configured and forced a dead worker path.
+4. **Geometry was applied twice** — the renderer honoured page size/margins, then
+   `processPdf` scaled the already-correct pages.
+5. **Overlay text validation was stricter than the font**, rejecting `·`, `—`, `“ ”`
+   that the standard font can draw.
+6. **`PAGE`/`NUMPAGES` fields were dropped** from Word headers/footers (complex
+   `fldChar` fields were unhandled), so genuine documents lost their page numbers.
+7. **Sections after the first lost headers/footers** — OOXML inheritance was ignored.
+8. **Indic clusters could split** at a vowel sign when a run mixed scripts.
+9. **Encrypted `.docx` got the wrong message** because the OLE branch tested `.doc`.
+10. **Engine status could hang forever** in the UI with no retry and no explanation.
+11. **Copy promised LibreOffice** on hosts that would never have it.
+12. **Bundled fonts were untraced**, so a standalone deployment would fail at runtime.
+13. **V3/V4 tests asserted a contract that no longer existed** (100-page cap,
+    three-stage arrays, `WORD_TO_PDF_ENABLED`-only gating), hiding regressions behind
+    stale assertions.
 
-Current outcome: **V5 audit started; hosting/approval blocked.** No V5 native execution, deployment, final screenshots, final QA, 1000-page support or production-readiness claim.
+## 2. What was changed (phases 2–8)
+
+- Engine resolution ladder `worker → libreoffice → builtin` with fail-closed explicit
+  modes, honest `engineStatus()`, and non-empty worker env parsing.
+- A complete in-process renderer: OPC/ZIP reader, style resolution, paragraph/table
+  layout, images, hyperlinks, list numbering, section geometry, headers/footers with
+  live page fields, and script-aware font embedding for Latin plus eight Indic scripts.
+- Real NDJSON stage streaming end to end, with per-page progress, cancellation and a
+  170 s deadline.
+- Single-application page geometry, WinAnsi-accurate overlay validation.
+- UI: engine card with identity and capability badge, drag-and-drop, per-row validation,
+  live stage line and progress bar, collapsible fidelity warnings, sticky mobile export
+  bar, retryable engine status, disabled-reason hints.
+- Honest copy in the page description, catalog entry, settings notes and help text.
+- `outputFileTracingIncludes` so the bundled fonts survive packaging.
+- Tests: renderer, engine lifecycle, UI (jsdom), 100–1000 page ladder, and a full
+  real-journey Playwright spec.
+
+## 3. Still not executed in this sandbox
+
+- **Playwright**: the browser download fails here, so the E2E specs (including the new
+  real-journey `tests/e2e/word-to-pdf-v5.spec.ts`) are written and statically reviewed
+  but unrun. No browser screenshots or axe results exist.
+- **LibreOffice**: no binary, no package access. The native backend is implemented and
+  unit-tested against a fixture binary but has never converted a document here.
+
+Both are environment limits; the commands to run them on a suitable host are in
+`docs/WORD_TO_PDF_V5_QA.md` §7 and `docs/WORD_TO_PDF_V5_SETUP.md` §4.
+
+## 4. Approval state
+
+Nothing was merged, deployed or promoted. The 1000-page cap is advertised **only**
+because the executed ladder in this environment reached 1000 pages; a host with a
+different memory ceiling must re-run `tests/word-to-pdf-v5-stress.test.ts` before
+repeating that claim.

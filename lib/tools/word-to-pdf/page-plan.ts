@@ -1,3 +1,4 @@
+import { MAX_PAGES } from "./page-limits";
 import type { Settings } from "./settings";
 export const PAGE_OVERRIDE_KEYS = [
   "paper",
@@ -54,14 +55,12 @@ export function validatePlan(value: unknown): VisualPlan | null {
   if (
     !Number.isInteger(plan.sourceCount) ||
     plan.sourceCount < 1 ||
-    plan.sourceCount > 100 ||
+    plan.sourceCount > MAX_PAGES ||
     !Array.isArray(plan.pages) ||
     !plan.pages.length ||
-    plan.pages.length > 100
+    plan.pages.length > MAX_PAGES
   )
-    throw new Error(
-      "Keep 1–100 output pages. Large-document support is not stress-certified.",
-    );
+    throw new Error(`Keep 1–${MAX_PAGES} output pages.`);
   const ids = new Set<string>();
   for (const p of plan.pages) {
     if (

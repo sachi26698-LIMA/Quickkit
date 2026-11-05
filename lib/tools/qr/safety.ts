@@ -5,6 +5,7 @@
  */
 import { effectiveContrast, MIN_CONTRAST, GOOD_CONTRAST } from "./colour";
 import { modulesUnderLogo, type QrMatrix } from "./matrix";
+import { codeRegionRatio } from "./scene";
 import type { QrDesign } from "./types";
 
 export type SafetyLevel = "good" | "caution" | "blocked";
@@ -34,8 +35,27 @@ export function analyzeScannability(
   const findings: SafetyFinding[] = [];
   const contrast = effectiveContrast(design.fg, design.bg);
   const total = matrix ? matrix.size + design.margin * 2 : 0;
-  const modulePx = matrix ? design.size / total : 0;
+  // A frame shrinks the square the symbol lives in, so px/module must reflect
+  // the code region, not the whole canvas.
+  const modulePx = matrix ? (design.size * codeRegionRatio(design)) / total : 0;
   let logoCoverage = 0;
+
+  // Independent eye colours still need to separate from the field, or the
+  // finder patterns — the part a scanner locks onto first — disappear.
+  for (const [key, fill, name] of [
+    ["eyeFrame", design.eyeFrame, "Finder ring"],
+    ["eyeBall", design.eyeBall, "Finder centre"],
+  ] as const) {
+    if (!fill) continue;
+    const eyeContrast = effectiveContrast(fill, design.bg);
+    if (eyeContrast < MIN_CONTRAST)
+      findings.push({
+        level: eyeContrast < 1.4 ? "blocked" : "caution",
+        field: key,
+        message: `${name} contrast is ${eyeContrast.toFixed(2)}:1 against the field — scanners lock onto the finders first, so keep them dark-on-light.`,
+        fix: key === "eyeFrame" ? { eyeFrame: null } : { eyeBall: null },
+      });
+  }
 
   if (contrast < MIN_CONTRAST)
     findings.push({

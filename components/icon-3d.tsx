@@ -46,6 +46,8 @@ export type GlyphName =
   | "shield"
   | "sparkles"
   | "wordCount"
+  | "qrReader"
+  | "ocrText"
   | "case"
   | "json"
   | "key"
@@ -419,6 +421,42 @@ const glyphs: Record<GlyphName, (p: Paint) => ReactNode> = {
       ))}
       <rect x={33.5} y={33.5} width={4.5} height={4.5} rx={1.3} fill={p.w} />
       <rect x={40} y={36.5} width={4.5} height={4.5} rx={1.3} fill={p.w} />
+    </>
+  ),
+
+  qrReader: (p) => (
+    <>
+      <path
+        d="M14 22 V18 a4 4 0 0 1 4 -4 H22 M42 14 H46 a4 4 0 0 1 4 4 V22 M50 42 V46 a4 4 0 0 1 -4 4 H42 M22 50 H18 a4 4 0 0 1 -4 -4 V42"
+        fill="none"
+        stroke={p.w}
+        strokeWidth={3.6}
+        {...round}
+      />
+      <rect x={21} y={20.5} width={8} height={8} rx={2.4} fill={p.w} />
+      <rect x={35} y={35.5} width={8} height={8} rx={2.4} fill={p.w} />
+      <rect x={18} y={29.5} width={28} height={5} rx={2.5} fill={p.a} />
+    </>
+  ),
+
+  ocrText: (p) => (
+    <>
+      <rect x={13} y={16} width={36} height={32} rx={7} fill={p.w} />
+      <path
+        d="M21 26.5 H41 M21 33 H36 M21 39.5 H28"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3.4}
+        {...round}
+      />
+      <circle cx={46} cy={43} r={9} fill={p.a} />
+      <path
+        d="M41.8 39.8 H50.2 M46 39.8 V47.2"
+        fill="none"
+        stroke={p.w}
+        strokeWidth={2.8}
+        {...round}
+      />
     </>
   ),
 
@@ -1183,6 +1221,8 @@ export const toolArt: Record<string, GlyphName> = {
   "json-formatter": "json",
   "password-generator": "key",
   "qr-generator": "qrScan",
+  "qr-code-scanner": "qrReader",
+  "image-to-text": "ocrText",
   "image-compressor": "imgCompress",
   "image-resizer": "imgResize",
   "image-cropper": "crop",

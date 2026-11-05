@@ -14,15 +14,17 @@ import {
   contentTypeDef,
   defaultValuesFor,
   isKnownContentType,
+  sampleValuesFor,
   type QrValues,
 } from "@/lib/tools/qr/payload";
 import { utf8Length } from "@/lib/tools/qr/capacity";
 import { renderQr, type RenderOutput } from "@/lib/tools/qr/render";
+import { defaultDesign } from "@/lib/tools/qr/style";
 import {
-  defaultDesign,
-  QR_TEMPLATES,
-  templateById,
-} from "@/lib/tools/qr/style";
+  QR_TEMPLATE_LIBRARY,
+  type QrTemplate,
+  type QrTemplateCategory,
+} from "@/lib/tools/qr/templates";
 import { safeFixDesign } from "@/lib/tools/qr/safety";
 import { prepareLogo } from "@/lib/tools/qr/logo";
 import {
@@ -32,7 +34,6 @@ import {
   type QrLogoImage,
 } from "@/lib/tools/qr/types";
 import {
-  createQrPdf,
   pngBlob,
   qrFilename,
   svgBlob,
@@ -40,18 +41,42 @@ import {
   DEFAULT_PDF_OPTIONS,
 } from "@/lib/tools/qr/export";
 import {
+  DEFAULT_SHEET,
+  createLayoutPdf,
+  printLayoutDef,
+  type QrPrintLayoutId,
+  type SheetOptions,
+} from "@/lib/tools/qr/layouts";
+import { withPngDpi } from "@/lib/tools/qr/png";
+import {
+  DEFAULT_LANDING,
+  buildLandingHtml,
+  validateLanding,
+  type LandingConfig,
+} from "@/lib/tools/qr/landing";
+import {
   decodeShareConfig,
   encodeShareConfig,
   readShareHash,
 } from "@/lib/tools/qr/share";
 import {
   clearHistory as clearHistoryStore,
+  deleteCustomTemplate as deleteCustomTemplateStore,
   deletePreset as deletePresetStore,
+  duplicateCustomTemplate as duplicateCustomTemplateStore,
+  duplicateHistory as duplicateHistoryStore,
+  duplicatePreset as duplicatePresetStore,
+  exportConfig,
+  importConfig,
+  loadCustomTemplates,
   loadHistory,
   loadHistoryMode,
   loadPresets,
   recordHistory,
   removeHistory,
+  renameHistory as renameHistoryStore,
+  renamePreset as renamePresetStore,
+  saveCustomTemplate as saveCustomTemplateStore,
   saveHistoryMode,
   savePreset as savePresetStore,
   type QrHistoryEntry,
@@ -98,28 +123,28 @@ const HEAVY_DEBOUNCE_MS = 650;
 
 function labelFor(typeId: QrContentTypeId, values: QrValues) {
   const def = contentTypeDef(typeId);
-  const candidates =
-    typeId === "url"
-      ? [values.url]
-      : typeId === "text"
-        ? [values.text]
-        : typeId === "wifi"
-          ? [values.ssid]
-          : typeId === "vcard"
-            ? [`${values.firstName ?? ""} ${values.lastName ?? ""}`]
-            : typeId === "event"
-              ? [values.title]
-              : typeId === "social"
-                ? [values.platform, values.username]
-                : typeId === "email"
-                  ? [values.to]
-                  : [
-                      values.title,
-                      values.label,
-                      values.name,
-                      values.url,
-                      values.text,
-                    ];
+  const primary: Partial<Record<QrContentTypeId, (string | boolean)[]>> = {
+    url: [values.url],
+    text: [values.text],
+    wifi: [values.ssid],
+    vcard: [`${values.firstName ?? ""} ${values.lastName ?? ""}`],
+    event: [values.title],
+    social: [values.platform, values.username],
+    email: [values.to],
+    instagram: [values.username],
+    facebook: [values.page],
+    youtube: [values.channel],
+    business: [values.company],
+    gmaps: [values.place, values.url],
+    greview: [values.placeId, values.url],
+  };
+  const candidates = primary[typeId] ?? [
+    values.title,
+    values.label,
+    values.name,
+    values.url,
+    values.text,
+  ];
   const chosen = candidates.filter(Boolean).join(" ").trim();
   return (chosen || def.label).slice(0, 48);
 }
@@ -147,11 +172,16 @@ export function useQrStudio() {
   } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [presets, setPresets] = useState<QrPreset[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<QrTemplate[]>([]);
   const [history, setHistory] = useState<QrHistoryEntry[]>([]);
   const [historyMode, setHistoryMode] = useState<QrHistoryMode>("full");
   const [storageReady, setStorageReady] = useState(false);
   const [pdfOptions, setPdfOptions] =
     useState<QrPdfOptions>(DEFAULT_PDF_OPTIONS);
+  const [pngDpi, setPngDpi] = useState<number>(300);
+  const [printLayout, setPrintLayout] = useState<QrPrintLayoutId>("single");
+  const [sheet, setSheet] = useState<SheetOptions>(DEFAULT_SHEET);
+  const [landing, setLanding] = useState<LandingConfig>(DEFAULT_LANDING);
   const [sizeSlot, setSizeSlot] =
     useState<Slot<{ size: number; ok: boolean; message: string }[]>>(null);
   const [testing, setTesting] = useState(false);
@@ -231,6 +261,7 @@ export function useQrStudio() {
      * single deferred batch: doing it synchronously here would cascade renders
      * while the browser is still painting the first frame. */
     const stored = loadPresets();
+    const savedTemplates = loadCustomTemplates();
     const entries = loadHistory();
     const mode = loadHistoryMode();
     const shared = readShareHash(window.location.hash);
@@ -238,6 +269,7 @@ export function useQrStudio() {
     if (parsed?.ok) restoredFromLink.current = true;
     queueMicrotask(() => {
       setPresets(stored);
+      setCustomTemplates(savedTemplates);
       setHistory(entries);
       setHistoryMode(mode);
       if (parsed && parsed.ok) {
@@ -403,48 +435,111 @@ export function useQrStudio() {
    * typed in another content type is replaced.
    */
   const loadSample = useCallback(() => {
-    const typed = String(valuesByType.url?.url ?? "").trim();
-    setTypeId("url");
-    if (typed) {
+    // V2 guard first: an address the user already typed is never replaced, no
+    // matter which type is selected. Jump back to the URL type and say so.
+    const typedUrl = String(valuesByType.url?.url ?? "").trim();
+    if (typedUrl) {
+      setTypeId("url");
       setFlash({
         kind: "info",
         text: "Your own address is already in the Web address field, so it was left alone. Clear that field and press Try sample again for the example.",
       });
       return;
     }
+    // Nothing typed yet: load a working sample for the current type so the
+    // preview, the checks and the downloads all come alive.
+    if (typeId === "url") {
+      setValuesByType((current) => ({
+        ...current,
+        url: {
+          ...(current.url ?? defaultValuesFor("url")),
+          url: QR_SAMPLE_URL,
+        },
+      }));
+      setFlash({
+        kind: "info",
+        text: "Sample link loaded into the Web address field — the preview, the decode check and the downloads are all real. Overwrite it any time.",
+      });
+      return;
+    }
     setValuesByType((current) => ({
       ...current,
-      url: { ...(current.url ?? defaultValuesFor("url")), url: QR_SAMPLE_URL },
+      [typeId]: sampleValuesFor(typeId),
     }));
     setFlash({
       kind: "info",
-      text: "Sample link loaded into the Web address field — the preview, the decode check and the downloads are all real. Overwrite it any time.",
+      text: `Sample ${contentTypeDef(typeId).label.toLowerCase()} loaded — the preview, the decode check and the downloads are all real. Overwrite it any time.`,
     });
-  }, [valuesByType]);
+  }, [typeId, valuesByType]);
 
   const patchDesign = useCallback((patch: Partial<QrDesign>) => {
     setDesignState((current) => ({ ...current, ...patch }));
     setTemplateId("");
   }, []);
 
-  const applyTemplate = useCallback((id: string) => {
-    const template = templateById(id);
-    if (!template) return;
-    setTemplateId(id);
-    // A template has to land on its own design, not a blend of the last two:
-    // keys a template leaves out (invert, transparency, dot scale, corner
-    // radius) used to survive from whichever template was applied before, so
-    // "Clear Badge" over "Inverted Noir" produced a code that could not be
-    // verified at all. Start from the shipped defaults and let the template
-    // overwrite them. The uploaded logo and the chosen export size stay the
-    // user's — a template is a look, not a workflow reset.
-    setDesignState((current) => {
-      const next: QrDesign = { ...defaultDesign(), ...template.design };
-      next.logo = current.logo;
-      if (template.design.size === undefined) next.size = current.size;
-      if (template.design.margin === undefined) next.margin = current.margin;
-      return next;
+  const applyTemplate = useCallback(
+    (id: string) => {
+      const template = [...QR_TEMPLATE_LIBRARY, ...customTemplates].find(
+        (entry) => entry.id === id,
+      );
+      if (!template) return;
+      setTemplateId(id);
+      // A template has to land on its own design, not a blend of the last two:
+      // keys a template leaves out (invert, transparency, dot scale, corner
+      // radius) used to survive from whichever template was applied before, so
+      // "Clear Badge" over "Inverted Noir" produced a code that could not be
+      // verified at all. Start from the shipped defaults and let the template
+      // overwrite them. The uploaded logo image and the chosen export size stay
+      // the user's — a template is a look, not a workflow reset. A template may
+      // still suggest a logo *position*, which is merged over the current one.
+      setDesignState((current) => {
+        const next: QrDesign = { ...defaultDesign(), ...template.design };
+        next.logo = { ...current.logo, ...(template.design.logo ?? {}) };
+        if (template.design.size === undefined) next.size = current.size;
+        if (template.design.margin === undefined) next.margin = current.margin;
+        return next;
+      });
+      // A template's suggested caption and print width pre-fill the real PDF
+      // options, so applying it changes the printable output too — not just the
+      // on-screen colours.
+      if (template.label || template.printMm) {
+        setPdfOptions((current) => ({
+          ...current,
+          ...(template.label ? { caption: template.label } : {}),
+          ...(template.printMm ? { sizeMm: template.printMm } : {}),
+        }));
+      }
+    },
+    [customTemplates],
+  );
+
+  const saveCustomTemplate = useCallback(
+    (name: string, category: QrTemplateCategory) => {
+      const next = saveCustomTemplateStore(
+        { name, category, design },
+        loadCustomTemplates(),
+      );
+      setCustomTemplates(next);
+      setFlash({
+        kind: "info",
+        text: `Template “${name.trim() || "Untitled template"}” saved in this browser. Find it under My templates.`,
+      });
+    },
+    [design],
+  );
+
+  const duplicateTemplate = useCallback((template: QrTemplate) => {
+    const next = duplicateCustomTemplateStore(template, loadCustomTemplates());
+    setCustomTemplates(next);
+    setFlash({
+      kind: "info",
+      text: `“${template.name}” duplicated — edit it under My templates.`,
     });
+  }, []);
+
+  const deleteCustomTemplate = useCallback((id: string) => {
+    setCustomTemplates(deleteCustomTemplateStore(id, loadCustomTemplates()));
+    setTemplateId((current) => (current === id ? "" : current));
   }, []);
 
   const applyPreset = useCallback((preset: QrPreset) => {
@@ -467,6 +562,18 @@ export function useQrStudio() {
 
   const deletePreset = useCallback((id: string) => {
     setPresets(deletePresetStore(id, loadPresets()));
+  }, []);
+
+  const renamePreset = useCallback((id: string, name: string) => {
+    setPresets(renamePresetStore(id, name, loadPresets()));
+  }, []);
+
+  const duplicatePreset = useCallback((id: string) => {
+    setPresets(duplicatePresetStore(id, loadPresets()));
+    setFlash({
+      kind: "info",
+      text: "Preset duplicated — edit the copy freely.",
+    });
   }, []);
 
   const resetDesign = useCallback(() => {
@@ -563,8 +670,11 @@ export function useQrStudio() {
           return;
         }
         if (!png) return;
+        // Stamp the print resolution as metadata only — the verified pixels are
+        // untouched, so the file still decodes exactly as checked.
+        const finalPng = withPngDpi(png, pngDpi);
         downloadBlob(
-          pngBlob(png),
+          pngBlob(finalPng),
           qrFilename({
             label,
             typeId,
@@ -575,7 +685,7 @@ export function useQrStudio() {
         );
         setFlash({
           kind: "info",
-          text: `PNG downloaded — ${target}×${target} px, ${design.transparent ? "transparent" : design.bg.base + " field"}, verified by decode before saving.`,
+          text: `PNG downloaded — ${target}×${target} px at ${pngDpi} DPI, ${design.transparent ? "transparent" : design.bg.base + " field"}, verified by decode before saving.`,
         });
       } catch (error) {
         setFlash({
@@ -586,7 +696,7 @@ export function useQrStudio() {
         setBusy(null);
       }
     },
-    [design, label, logo, output, payloadResult, typeId],
+    [design, label, logo, output, payloadResult, pngDpi, typeId],
   );
 
   const exportSvg = useCallback(async () => {
@@ -633,17 +743,26 @@ export function useQrStudio() {
     }
     setBusy("Building PDF…");
     try {
-      const bytes = await createQrPdf(
-        [{ png: output.png, caption: pdfOptions.caption ? label : null }],
+      const bytes = await createLayoutPdf(
+        output.png,
+        pdfOptions.caption ? label : null,
+        printLayout,
         pdfOptions,
+        sheet,
       );
+      const layoutDef = printLayoutDef(printLayout);
       downloadBlob(
         new Blob([bytes as unknown as BlobPart], { type: "application/pdf" }),
-        qrFilename({ label, typeId, ext: "pdf", suffix: pdfOptions.paper }),
+        qrFilename({ label, typeId, ext: "pdf", suffix: printLayout }),
       );
       setFlash({
         kind: "info",
-        text: `PDF downloaded — ${PAPER_LABEL[pdfOptions.paper]} at ${pdfOptions.sizeMm} mm for the code.`,
+        text:
+          printLayout === "single"
+            ? `PDF downloaded — ${PAPER_LABEL[pdfOptions.paper]} at ${pdfOptions.sizeMm} mm for the code.`
+            : printLayout === "a4-sheet"
+              ? `PDF downloaded — A4 cut sheet, ${sheet.cols}×${sheet.rows} codes at ${sheet.codeMm} mm.`
+              : `PDF downloaded — ${layoutDef.name} (${layoutDef.pageMm?.w}×${layoutDef.pageMm?.h} mm).`,
       });
     } catch (error) {
       setFlash({
@@ -653,7 +772,7 @@ export function useQrStudio() {
     } finally {
       setBusy(null);
     }
-  }, [label, output, pdfOptions, payloadResult, typeId]);
+  }, [label, output, pdfOptions, payloadResult, printLayout, sheet, typeId]);
 
   const copyPayload = useCallback(async () => {
     try {
@@ -717,11 +836,10 @@ export function useQrStudio() {
         const matrix = createMatrix(payloadResult.payload, design.errorLevel, {
           boost: design.boost,
         });
-        const bitmap = rasterizeScene(
-          buildScene(matrix, { ...design, size }, logo),
-        );
+        const scene = buildScene(matrix, { ...design, size }, logo);
+        const bitmap = rasterizeScene(scene);
         const check = verifyBitmap(bitmap, payloadResult.payload, {
-          totalModules: matrix.size + design.margin * 2,
+          totalModules: Math.round(scene.size / scene.modulePx),
         });
         results.push({
           size,
@@ -783,6 +901,88 @@ export function useQrStudio() {
     setHistory(removeHistory(id, loadHistory()));
   }, []);
 
+  const renameHistory = useCallback((id: string, label: string) => {
+    setHistory(renameHistoryStore(id, label, loadHistory()));
+  }, []);
+
+  const duplicateHistory = useCallback((id: string) => {
+    setHistory(duplicateHistoryStore(id, loadHistory()));
+  }, []);
+
+  /** Download presets + history as a portable JSON config file. */
+  const exportConfigFile = useCallback(() => {
+    const json = exportConfig(loadPresets(), loadHistory());
+    downloadBlob(
+      new Blob([json], { type: "application/json;charset=utf-8" }),
+      `quickkit-qr-config-${new Date().toISOString().slice(0, 10)}.json`,
+    );
+    setFlash({
+      kind: "info",
+      text: "Config exported — presets and history saved to a JSON file on this device.",
+    });
+  }, []);
+
+  /** Merge a config file into existing data; never clears what is already saved. */
+  const importConfigFile = useCallback(
+    async (file: File | undefined | null) => {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const result = importConfig(text, loadPresets(), loadHistory());
+        setPresets(result.presets);
+        setHistory(result.history);
+        setFlash({
+          kind: result.ok ? "info" : "error",
+          text: result.message,
+        });
+      } catch (error) {
+        setFlash({
+          kind: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "That config could not be read.",
+        });
+      }
+    },
+    [],
+  );
+
+  /** Build + download the static landing page (Phase E). */
+  const downloadLanding = useCallback(() => {
+    const validation = validateLanding(landing);
+    if (!validation.ok) {
+      setFlash({ kind: "error", text: validation.errors[0] });
+      return;
+    }
+    try {
+      const html = buildLandingHtml(landing);
+      const slug =
+        landing.title
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 40) || "links";
+      downloadBlob(
+        new Blob([html], { type: "text/html;charset=utf-8" }),
+        `quickkit-landing-${slug}.html`,
+      );
+      setFlash({
+        kind: "info",
+        text: "Landing page downloaded. Host it (GitHub Pages, Netlify, your server), then put its public URL in the field above to make the QR. The page is static — the printed QR cannot be edited later.",
+      });
+    } catch (error) {
+      setFlash({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "The page could not be built.",
+      });
+    }
+  }, [landing]);
+
   return {
     typeId,
     def,
@@ -811,15 +1011,30 @@ export function useQrStudio() {
     storageReady,
     pdfOptions,
     setPdfOptions,
+    pngDpi,
+    setPngDpi,
+    printLayout,
+    setPrintLayout,
+    sheet,
+    setSheet,
     sizeTests,
     testing,
     label,
     templateId,
-    templates: QR_TEMPLATES,
+    templates: QR_TEMPLATE_LIBRARY,
+    customTemplates,
+    allTemplates: [...QR_TEMPLATE_LIBRARY, ...customTemplates],
     applyTemplate,
+    saveCustomTemplate,
+    duplicateTemplate,
+    deleteCustomTemplate,
     applyPreset,
     savePreset,
     deletePreset,
+    renamePreset,
+    duplicatePreset,
+    exportConfigFile,
+    importConfigFile,
     resetDesign,
     makeSafe,
     regenerate,
@@ -834,6 +1049,11 @@ export function useQrStudio() {
     toggleHistoryMode,
     clearAllHistory,
     removeOne,
+    renameHistory,
+    duplicateHistory,
+    landing,
+    setLanding,
+    downloadLanding,
   };
 }
 
