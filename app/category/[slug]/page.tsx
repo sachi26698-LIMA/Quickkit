@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight, Clock } from "lucide-react";
-import CategoryIcon from "@/components/category-icon";
+import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 import ToolCard from "@/components/tool-card";
 import CalculatorCategoryGrid from "@/components/calculator-category-grid";
 import { categoryMeta, metaBySlug, toolsByCategory } from "@/lib/catalog";
@@ -46,11 +46,11 @@ export default async function CategoryPage({
           <span aria-current="page">{meta.name}</span>
         </nav>
 
-        <header className={`category-hero ${meta.tint}`}>
+        <header
+          className={`category-hero ${meta.tint} cat-${categoryTone(meta.name)}`}
+        >
           <span className="category-glow" aria-hidden="true" />
-          <span className="category-icon large">
-            <CategoryIcon meta={meta} size={34} />
-          </span>
+          <CategoryIcon3D meta={meta} size={88} />
           <div>
             <h1>{meta.name}</h1>
             <p>{meta.description}</p>
@@ -65,7 +65,9 @@ export default async function CategoryPage({
         {list.length && meta.slug === "calculators" ? (
           <CalculatorCategoryGrid tools={list} />
         ) : list.length ? (
-          <div className="tool-grid category-tools">
+          <div
+            className={`tool-grid category-tools cat-${categoryTone(meta.name)}`}
+          >
             {list.map((tool) => (
               <ToolCard key={tool.slug} tool={tool} category={meta.name} />
             ))}
@@ -91,12 +93,10 @@ export default async function CategoryPage({
             {others.map((other) => (
               <Link
                 key={other.slug}
-                className="more-category-chip"
+                className={`more-category-chip ${other.tint} cat-${categoryTone(other.name)}`}
                 href={`/category/${other.slug}`}
               >
-                <span className={`dropdown-icon ${other.tint}`}>
-                  <CategoryIcon meta={other} size={16} />
-                </span>
+                <CategoryIcon3D meta={other} size={38} />
                 {other.name}
               </Link>
             ))}

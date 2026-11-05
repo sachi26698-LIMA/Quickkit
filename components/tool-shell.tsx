@@ -6,7 +6,12 @@ import {
   toolCategoriesOf,
   tools,
 } from "@/lib/catalog";
-import ToolIcon from "./tool-icon";
+import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
+import { ToolIcon3D, toolTone } from "./icon-3d";
+// Tool-page-only styling (scoped to .tool-page[data-tool]); the generated
+// sheet carries the lifted type scale, the hand-written one the glass UI.
+import "@/app/tool-pages.generated.css";
+import "@/app/tool-pages.css";
 export type ToolContent = { steps: string[]; faqs: { q: string; a: string }[] };
 export default function ToolShell({
   slug,
@@ -31,9 +36,12 @@ export default function ToolShell({
     .map((name) => categoryMeta.find((c) => c.name === name))
     .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta));
   const related = relatedTools(tool);
+  const theme = toolTheme(tool.slug, tool.category);
   return (
     <div
       className={`container tool-page${compact ? " tool-page-compact" : ""}`}
+      data-tool={tool.slug}
+      style={toolThemeStyle(theme)}
     >
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
@@ -48,7 +56,7 @@ export default function ToolShell({
       </nav>
       {compact ? (
         <header className="tool-title tool-title-compact">
-          <ToolIcon icon={tool.icon} color={tool.color} />
+          <ToolIcon3D tool={tool} size={64} />
           <div className="tool-title-copy">
             <h1>{tool.name}</h1>
             <p>{headingDescription ?? tool.description}</p>
@@ -57,7 +65,7 @@ export default function ToolShell({
         </header>
       ) : (
         <header className="tool-title">
-          <ToolIcon icon={tool.icon} color={tool.color} />
+          <ToolIcon3D tool={tool} size={64} />
           <span className="eyebrow">
             {toolCategories.join(" · ")} · Free browser tool
           </span>
@@ -119,11 +127,11 @@ export default function ToolShell({
         <div className="related-grid">
           {related.map((t) => (
             <Link
-              className="related-card"
+              className={`related-card cat-${toolTone(t)}`}
               key={t.slug}
               href={`/tools/${t.slug}`}
             >
-              <ToolIcon icon={t.icon} color={t.color} />
+              <ToolIcon3D tool={t} size={48} />
               <span>
                 <strong>{t.name}</strong>
                 <small>{t.category}</small>
