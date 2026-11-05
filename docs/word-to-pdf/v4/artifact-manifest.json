@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-04",
+  "nativeDemo": null,
+  "nativeStatus": "BLOCKED / NOT RUN",
+  "artifacts": [
+    {
+      "path": "docs/word-to-pdf/v4/README.md",
+      "bytes": 1730,
+      "sha256": "b90944da706565baac90db5530695cbfadae80b763543228f718353da777a40f"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/desktop-engine-unavailable.png",
+      "bytes": 463536,
+      "sha256": "5ecc6a5bc3d6a27d28e674c802ea01308027061424a5524cab310c07dbbdf98e"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/fixtures/100-pages.docx",
+      "bytes": 11869,
+      "sha256": "49f4839f4586865a5eac26427ed3dc2826b724efdde7a90e3ea6a904875ade09"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/fixtures/1000-pages.docx",
+      "bytes": 17261,
+      "sha256": "9b4dd5300eb5c4c03a8bc2f5350146d019aa309816ed6e43f08f8df8af8d338e"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/fixtures/500-pages.docx",
+      "bytes": 14322,
+      "sha256": "b56dac4d03ef41d204886aa49617f51f28ef88fb6d2f4807cf1c2845d4276b89"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/fixtures/complex.docx",
+      "bytes": 14658,
+      "sha256": "aba7949dd550ac71a244cfb343a81a6feea45083828aebefa0ec58dc28e544f0"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/mobile-engine-unavailable.png",
+      "bytes": 129731,
+      "sha256": "a50214401dd7f3e95735d25bc2841fa183701420e9f84d7a36373d0c53996503"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/native-benchmark-blocked.json",
+      "bytes": 2536,
+      "sha256": "47638a60fc72b1e31fdee3cceb5c3a3711bd1562e149666ebb085f76b095fde5"
+    },
+    {
+      "path": "docs/word-to-pdf/v4/observed-app-health.json",
+      "bytes": 209,
+      "sha256": "cdc963473db87a5f36e9fa9aa5e83e1dc696c05ebc50443c63bb0c2323cccade"
+    }
+  ]
+}

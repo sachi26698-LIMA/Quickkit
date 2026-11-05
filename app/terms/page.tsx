@@ -54,11 +54,11 @@ export default function TermsPage() {
         release.
       </p>
       <p>
-        The software executes on your device. We do not operate a server-side
-        copy of your files, and the operator does not receive your inputs. That
-        is an architectural statement about where the code runs, not a promise
-        that the site is available in every circumstance — see{" "}
-        <a href="#availability">service availability</a>.
+        Most tools execute on your device. Word to PDF is an explicit-consent
+        exception using operator-controlled native processing with temporary
+        document files, no permanent document storage by default, and no
+        automatic third-party fallback. Engine availability is not guaranteed —
+        see <a href="#availability">service availability</a>.
       </p>
 
       <h2 id="accounts">3. No accounts or registration</h2>
@@ -180,8 +180,9 @@ export default function TermsPage() {
       <p>
         You keep every right you already hold in the files, text and other
         material you process with QUICKKIT, and in the outputs the tools produce
-        for you. We claim no licence over them, because we never receive them.
-        There is no upload step to grant a licence through.
+        for you. We claim no ownership over them. For Word to PDF, you authorize
+        only the temporary processing necessary to perform your requested
+        conversion; browser-local tools do not upload your files.
       </p>
       <p>
         You are solely responsible for the content you process and for what you

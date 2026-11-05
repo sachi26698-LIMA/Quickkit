@@ -39,7 +39,9 @@ describe("catalog discovery", () => {
       "merge-pdf",
       "split-pdf",
       "compress-pdf",
+      "word-to-pdf",
       "pdf-to-word",
+      "pdf-lock-unlock",
     ]);
   });
   it("finds the PDF compressor by size-reduction intent", () => {
@@ -86,7 +88,7 @@ describe("catalog discovery", () => {
   it("groups tools by category, with future categories empty", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(2);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
-    expect(toolsByCategory("PDF Tools")).toHaveLength(7);
+    expect(toolsByCategory("PDF Tools")).toHaveLength(9);
     // QR & Barcode holds the generator and, since phase 14, the scanner.
     expect(toolsByCategory("QR & Barcode").map((t) => t.slug)).toEqual([
       "qr-generator",

@@ -33,7 +33,7 @@ export default function FileHandlingPage() {
     >
       <h2 id="principles">1. How processing works</h2>
       <p>
-        Every tool on QUICKKIT runs inside the browser tab you opened. The file
+        Most tools on QUICKKIT run inside the browser tab you opened. The file
         bytes are read from the <code>File</code> object your file picker
         returned, worked on in JavaScript (on the main thread or in a dedicated
         Web Worker inside the same tab), and turned into a new <code>Blob</code>{" "}
@@ -45,12 +45,13 @@ export default function FileHandlingPage() {
       </p>
       <ul>
         <li>
-          <strong>There is no upload endpoint.</strong> The application has no
-          API route, no database and no file store. There is nothing to receive
-          an upload.
+          <strong>Word to PDF is a consented exception.</strong> Its API accepts
+          DOCX only for requested operator-controlled native conversion. It uses
+          temporary job files, no permanent document storage by default and no
+          automatic third-party fallback. Other file tools process locally.
         </li>
         <li>
-          <strong>The browser would block one anyway.</strong> Every page is
+          <strong>Browser connections are restricted.</strong> Every page is
           served with a Content Security Policy whose <code>connect-src</code>{" "}
           is <code>&apos;self&apos;</code>, so a script cannot post your file to
           a third-party origin even if a future bug tried to.
@@ -59,7 +60,9 @@ export default function FileHandlingPage() {
           <strong>Third-party engines are self-hosted.</strong> The PDF engine,
           the OCR engine and language data, and the QR library are served from
           this site&rsquo;s own origin, not from a CDN. Loading a tool therefore
-          makes no request to anyone else, and no engine receives your data.
+          makes no request to anyone else, and browser-local engines do not send
+          file data away. Word to PDF uses the operator-controlled native engine
+          only with explicit upload consent.
         </li>
       </ul>
       <p>
@@ -109,8 +112,8 @@ export default function FileHandlingPage() {
         </li>
         <li>
           Memory is returned to the browser when the tab closes. Nothing is
-          swapped to a QUICKKIT server, because there is no QUICKKIT server side
-          to this.
+          swapped to a QUICKKIT server for these browser-local tools; Word to
+          PDF instead uses its separately consented native server pipeline.
         </li>
       </ul>
 
@@ -515,9 +518,15 @@ export default function FileHandlingPage() {
             </tr>
             <tr>
               <td>QUICKKIT servers</td>
-              <td>No file data — nothing is stored</td>
-              <td>Not applicable</td>
-              <td>Nothing to request</td>
+              <td>
+                Temporary consented Word to PDF job files; no default permanent
+                document store
+              </td>
+              <td>
+                Job cleanup; host crash/log retention requires operator
+                verification
+              </td>
+              <td>Contact the operator about server processing/retention</td>
             </tr>
             <tr>
               <td>Hosting provider</td>
@@ -529,9 +538,10 @@ export default function FileHandlingPage() {
         </table>
       </div>
       <p>
-        Because QUICKKIT receives no file data, there is no server-side deletion
-        request to make for your documents. A privacy request can still cover
-        email correspondence and any provider-side metadata; see{" "}
+        Browser-local tools send no document data. Word to PDF temporarily
+        processes consented uploads and requires verified job cleanup and host
+        retention controls. A privacy request can cover that processing, email
+        correspondence and any provider-side metadata; see{" "}
         <Link href="/privacy#rights">Privacy Policy §13</Link>.
       </p>
 

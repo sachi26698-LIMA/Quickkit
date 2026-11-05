@@ -10,6 +10,7 @@ export default defineConfig([
     "playwright-report/**",
     "public/ocr/**",
     "public/pdfjs/**",
+    "public/qpdf/**",
     "test-results/**",
   ]),
 ]);
