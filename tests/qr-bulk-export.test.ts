@@ -11,8 +11,11 @@ import {
   buildRowPayload,
   findDuplicates,
   guessMapping,
+  headersWithoutTypeColumn,
+  mappingForRow,
   parseCsv,
   parseCsvFile,
+  resolveRowType,
   valuesFromRow,
 } from "@/lib/tools/qr/bulk";
 import { contentTypeDef } from "@/lib/tools/qr/payload";
@@ -523,5 +526,62 @@ describe("shareable configuration", () => {
       expect(parsed.config.design.margin).toBeGreaterThanOrEqual(0);
       expect(parsed.dropped.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("bulk per-row content type (Phase G)", () => {
+  it("resolveRowType uses a mapped type cell when it names a known type", () => {
+    expect(resolveRowType(0, ["wifi"], "url")).toBe("wifi");
+    expect(resolveRowType(0, ["EMAIL"], "url")).toBe("email");
+    expect(resolveRowType(0, ["  url  "], "text")).toBe("url");
+  });
+
+  it("resolveRowType falls back to the batch default for unknown/empty cells", () => {
+    expect(resolveRowType(0, ["nonsense"], "url")).toBe("url");
+    expect(resolveRowType(0, [""], "url")).toBe("url");
+    expect(resolveRowType(-1, ["wifi"], "url")).toBe("url");
+    expect(resolveRowType(5, ["wifi"], "url")).toBe("url"); // out of range
+  });
+
+  it("mappingForRow reuses the batch mapping for the same type", () => {
+    const batch = { url: 1, label: 0 };
+    expect(mappingForRow("url", "url", batch, ["label", "url"])).toBe(batch);
+  });
+
+  it("mappingForRow re-guesses columns for a different row type", () => {
+    const headers = ["ssid", "password", "url"];
+    const batch = guessMapping(headers, contentTypeDef("url").fields);
+    const wifiMapping = mappingForRow("wifi", "url", batch, headers);
+    expect(wifiMapping.ssid).toBe(0);
+    expect(wifiMapping.password).toBe(1);
+  });
+
+  it("a mixed-type CSV builds a different payload per row", () => {
+    const headers = ["type", "url", "ssid", "password"];
+    const batchMapping = guessMapping(
+      headersWithoutTypeColumn(headers, 0),
+      contentTypeDef("url").fields,
+    );
+    const urlRow = ["url", "https://quickkit.tools", "", ""];
+    const wifiRow = ["wifi", "", "CafeNet", "secret123"];
+    const urlType = resolveRowType(0, urlRow, "url");
+    const wifiType = resolveRowType(0, wifiRow, "url");
+    const urlOutcome = buildRowPayload(
+      urlType,
+      mappingForRow(urlType, "url", batchMapping, headers, 0),
+      urlRow,
+      "M",
+    );
+    const wifiOutcome = buildRowPayload(
+      wifiType,
+      mappingForRow(wifiType, "url", batchMapping, headers, 0),
+      wifiRow,
+      "M",
+    );
+    expect(urlOutcome.ok).toBe(true);
+    expect(urlOutcome.payload).toBe("https://quickkit.tools/");
+    expect(wifiOutcome.ok).toBe(true);
+    expect(wifiOutcome.payload).toContain("WIFI:");
+    expect(wifiOutcome.payload).toContain("S:CafeNet");
   });
 });

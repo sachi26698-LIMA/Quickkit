@@ -619,7 +619,7 @@ the updated Sections 4–5 above.
 
 ---
 
-## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F implemented)
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G implemented)
 
 Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
 creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
@@ -676,22 +676,36 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
 - **A4 cut sheet:** a cols×rows grid of identical codes with light cut guides, clamped to fit A4 with a
   margin (`clampSheet`); columns/rows/code-width/gap controls appear when the sheet layout is chosen.
 
-**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **718 passed / 40 files**
+**Stage 2 — Phase G (bulk CSV: preview, per-row type, retry-failed) implemented and verified:**
+
+- **Pre-generation preview:** a "Preview rows" button validates every row's payload and flags
+  duplicates *without rendering pixels*, so you can fix the column mapping before generating.
+- **Per-row content type:** an optional "type" column lets one CSV mix types (url / wifi / email …);
+  each row resolves its own type and re-guesses its field mapping. The type column is excluded from
+  field guessing (a "type" header is also a Wi-Fi-encryption synonym, so it must not map onto a field).
+  Unknown/empty cells fall back to the batch default; the results table and ZIP manifest show per-row
+  types.
+- **Retry-failed:** re-validates and re-renders only the failed rows, keeping the successful codes
+  (carried over by matching payload). Also fixed a latent V2 issue where the "skip duplicates" toggle
+  had no effect — duplicates now render when the toggle is off.
+- Column mapping, per-item errors, progress, cancel, dedup, decode-verify and ZIP are preserved.
+
+**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **726 passed / 40 files**
 (was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six framed /
 eye-colour / logo designs decoded by jsQR to the exact payload; every print layout reloads as a valid
-PDF at its promised millimetre size and DPI-stamped PNGs still decode; production build clean with
-`/tools/qr-generator` static; dev preview live on port 3000; **44 decode-verified PNG artifacts** +
-report in `docs/qr-studio-v3/evidence/` (regenerate: `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs
-run tests/qr-v3-evidence.test.ts`). Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
+PDF at its promised millimetre size and DPI-stamped PNGs still decode; bulk per-row-type helpers and
+the preview/retry UI are tested; production build clean with `/tools/qr-generator` static; dev preview
+live on port 3000; **44 decode-verified PNG artifacts** + report in `docs/qr-studio-v3/evidence/`
+(regenerate: `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs run tests/qr-v3-evidence.test.ts`).
+Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
 
 **Honest limitations this stage:** browser screenshots blocked by the sandbox network policy (Chromium
 CDN + Debian repos unreachable) — live preview + engine-rendered QR evidence provided instead; Smart
 Link remains static only (no backend, no dynamic editing/analytics claimed). The calendar-event sample
 embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is regenerated each time (still decoded).
 
-**Remaining:** G (bulk retry/preview/per-row type), H (history/preset rename/duplicate/export/import),
-E (static landing-page builder), J (browser e2e + screenshots). **Not merged, not deployed — awaiting
-owner approval.**
+**Remaining:** H (history/preset rename/duplicate/export/import), E (static landing-page builder),
+J (browser e2e + screenshots). **Not merged, not deployed — awaiting owner approval.**
 
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 

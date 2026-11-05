@@ -10,10 +10,12 @@ import {
   CircleAlert,
   CircleCheck,
   Download,
+  Eye,
   FileArchive,
   FileCode,
   LoaderCircle,
   Play,
+  RotateCw,
   Rows3,
   ScanLine,
   TableProperties,
@@ -26,7 +28,10 @@ import {
   BULK_TEMPLATE,
   buildRowPayload,
   guessMapping,
+  headersWithoutTypeColumn,
+  mappingForRow,
   parseCsvFile,
+  resolveRowType,
   type ColumnMapping,
   type CsvTable,
 } from "@/lib/tools/qr/bulk";
@@ -50,6 +55,8 @@ type BulkStatus =
 type BulkRow = {
   index: number;
   cells: string[];
+  /** Effective content type for this row (per-row type column or batch default). */
+  rowType: QrContentTypeId;
   status: BulkStatus;
   payload: string | null;
   label: string;
@@ -68,11 +75,21 @@ const STATUS_LABEL: Record<BulkStatus, string> = {
   duplicate: "duplicate payload",
 };
 
+/** Best-guess the optional per-row "content type" column from the headers. */
+function guessTypeColumn(headers: string[]): number {
+  const wanted = ["type", "contenttype", "qrcodetype", "kind", "contentkind"];
+  return headers.findIndex((header) =>
+    wanted.includes(header.toLowerCase().replace(/[^a-z0-9]/g, "")),
+  );
+}
+
 export default function BulkPanel({ studio }: { studio: QrStudio }) {
   const [typeId, setTypeId] = useState<QrContentTypeId>("url");
   const [table, setTable] = useState<CsvTable | null>(null);
   const [fileName, setFileName] = useState("");
   const [mapping, setMapping] = useState<ColumnMapping>({});
+  const [typeColumn, setTypeColumn] = useState(-1);
+  const [previewed, setPreviewed] = useState(false);
   const [rows, setRows] = useState<BulkRow[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [running, setRunning] = useState(false);
@@ -126,9 +143,17 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
       setError(null);
       try {
         const parsed = await parseCsvFile(file, { maxRows: limit });
+        const detectedTypeColumn = guessTypeColumn(parsed.headers);
         setTable(parsed);
         setFileName(file.name);
-        setMapping(guessMapping(parsed.headers, def.fields));
+        setTypeColumn(detectedTypeColumn);
+        setMapping(
+          guessMapping(
+            headersWithoutTypeColumn(parsed.headers, detectedTypeColumn),
+            def.fields,
+          ),
+        );
+        setPreviewed(false);
         setRows([]);
         setProgress({ done: 0, total: 0 });
         if (parsed.truncated)
@@ -160,6 +185,8 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
     setTable(parsed);
     setFileName("sample-quickkit.csv");
     setMapping(guessMapping(parsed.headers, def.fields));
+    setTypeColumn(-1);
+    setPreviewed(false);
     setRows([]);
     setError(null);
   }, [def.fields]);
@@ -182,15 +209,21 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
     return counts;
   }, [rows]);
 
-  const generate = useCallback(async () => {
-    if (!table) return;
-    cancelled.current = false;
-    clearPreview();
-    setRunning(true);
+  /** Validate every row's payload + flag duplicates — no rendering (cheap). */
+  const prepareRows = useCallback((): BulkRow[] => {
+    if (!table) return [];
     const prepared: BulkRow[] = table.rows.map((cells, index) => {
-      const outcome = buildRowPayload(
+      const rowType = resolveRowType(typeColumn, cells, typeId);
+      const rowMapping = mappingForRow(
+        rowType,
         typeId,
         mapping,
+        table.headers,
+        typeColumn,
+      );
+      const outcome = buildRowPayload(
+        rowType,
+        rowMapping,
         cells,
         studio.design.errorLevel,
         studio.values,
@@ -198,6 +231,7 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
       return {
         index: index + 1,
         cells,
+        rowType,
         status: outcome.ok ? "queued" : "invalid",
         payload: outcome.payload ?? null,
         label: outcome.label ?? `Row ${index + 1}`,
@@ -208,89 +242,130 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
       };
     });
     const firstOf = new Map<string, number>();
-    const isDuplicate: boolean[] = [];
-    prepared.forEach((row, index) => {
-      if (!row.payload) {
-        isDuplicate[index] = false;
-        return;
-      }
+    prepared.forEach((row) => {
+      if (!row.payload) return;
       const original = firstOf.get(row.payload);
       if (original === undefined) {
         firstOf.set(row.payload, row.index);
-        isDuplicate[index] = false;
         return;
       }
-      isDuplicate[index] = true;
       if (row.status === "queued") {
         row.status = "duplicate";
         row.message = `Identical payload to row ${original}.`;
       }
     });
-    setRows(prepared);
-    setProgress({ done: 0, total: prepared.length });
-
-    const design = { ...studio.design, size: bulkSize };
-    const next = [...prepared];
-    let done = 0;
-    for (let index = 0; index < next.length; index += 1) {
-      if (cancelled.current) break;
-      const row = next[index];
-      if (row.status !== "queued" || !row.payload) {
-        done += 1;
-        continue;
-      }
-      if (isDuplicate[index] && skipDuplicates) {
-        done += 1;
-        continue;
-      }
-      try {
-        const shouldVerify = verifyEach && next.length <= 120;
-        const result = await renderQrPng(row.payload, design, null, {
-          verify: shouldVerify,
-        });
-        if (shouldVerify && !result.verification?.ok) {
-          row.status = "render-failed";
-          row.message = result.verification?.message ?? "decode failed";
-        } else {
-          const blob = pngBlob(result.png);
-          row.blob = blob;
-          row.bytes = blob.size;
-          row.status = shouldVerify ? "verified" : "ok";
-          row.name = qrFilename({
-            label: row.label,
-            typeId,
-            ext: "png",
-            size: bulkSize,
-            suffix: `row-${String(row.index).padStart(3, "0")}`,
-          });
-        }
-      } catch (problem) {
-        row.status = "render-failed";
-        row.message =
-          problem instanceof Error ? problem.message : "rendering failed";
-      }
-      done += 1;
-      // Publish in chunks so a 300-row batch does not thrash React.
-      if (done % 8 === 0 || done === next.length) {
-        setRows([...next]);
-        setProgress({ done, total: next.length });
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
-    }
-    setRows([...next]);
-    setProgress({ done, total: next.length });
-    setRunning(false);
+    return prepared;
   }, [
-    bulkSize,
-    clearPreview,
     mapping,
-    skipDuplicates,
-    studio.design,
+    studio.design.errorLevel,
     studio.values,
     table,
+    typeColumn,
     typeId,
-    verifyEach,
   ]);
+
+  /** Render the queued rows of a prepared batch, publishing progress in chunks. */
+  const renderRows = useCallback(
+    async (prepared: BulkRow[]) => {
+      cancelled.current = false;
+      clearPreview();
+      setRunning(true);
+      setRows([...prepared]);
+      setProgress({ done: 0, total: prepared.length });
+      const design = { ...studio.design, size: bulkSize };
+      const next = [...prepared];
+      let done = 0;
+      for (let index = 0; index < next.length; index += 1) {
+        if (cancelled.current) break;
+        const row = next[index];
+        // A carried-over blob (retry keeps successful rows) is already done.
+        if (row.blob) {
+          done += 1;
+          continue;
+        }
+        const shouldRender =
+          row.status === "queued" ||
+          (row.status === "duplicate" && !skipDuplicates);
+        if (!shouldRender || !row.payload) {
+          done += 1;
+          continue;
+        }
+        try {
+          const shouldVerify = verifyEach && next.length <= 120;
+          const result = await renderQrPng(row.payload, design, null, {
+            verify: shouldVerify,
+          });
+          if (shouldVerify && !result.verification?.ok) {
+            row.status = "render-failed";
+            row.message = result.verification?.message ?? "decode failed";
+          } else {
+            const blob = pngBlob(result.png);
+            row.blob = blob;
+            row.bytes = blob.size;
+            row.status = shouldVerify ? "verified" : "ok";
+            row.name = qrFilename({
+              label: row.label,
+              typeId: row.rowType,
+              ext: "png",
+              size: bulkSize,
+              suffix: `row-${String(row.index).padStart(3, "0")}`,
+            });
+          }
+        } catch (problem) {
+          row.status = "render-failed";
+          row.message =
+            problem instanceof Error ? problem.message : "rendering failed";
+        }
+        done += 1;
+        // Publish in chunks so a 300-row batch does not thrash React.
+        if (done % 8 === 0 || done === next.length) {
+          setRows([...next]);
+          setProgress({ done, total: next.length });
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      }
+      setRows([...next]);
+      setProgress({ done, total: next.length });
+      setRunning(false);
+      setPreviewed(true);
+    },
+    [bulkSize, clearPreview, skipDuplicates, studio.design, verifyEach],
+  );
+
+  /** Dry run: show what each row would encode before any pixels are rendered. */
+  const preview = useCallback(() => {
+    const prepared = prepareRows();
+    clearPreview();
+    setRows(prepared);
+    setProgress({ done: 0, total: prepared.length });
+    setPreviewed(true);
+  }, [clearPreview, prepareRows]);
+
+  const generate = useCallback(async () => {
+    if (!table) return;
+    await renderRows(prepareRows());
+  }, [prepareRows, renderRows, table]);
+
+  /** Re-validate and re-render only the rows that failed; keep the good ones. */
+  const retryFailed = useCallback(async () => {
+    if (!table) return;
+    const fresh = prepareRows();
+    const oldByIndex = new Map(rows.map((row) => [row.index, row]));
+    for (const row of fresh) {
+      const old = oldByIndex.get(row.index);
+      if (
+        old?.blob &&
+        old.payload === row.payload &&
+        (old.status === "verified" || old.status === "ok")
+      ) {
+        row.blob = old.blob;
+        row.bytes = old.bytes;
+        row.name = old.name;
+        row.status = old.status;
+      }
+    }
+    await renderRows(fresh);
+  }, [prepareRows, renderRows, rows, table]);
 
   const renderable = rows.filter((row) => row.blob);
 
@@ -321,7 +396,11 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
     entries.push({
       name: "qr-codes/README.txt",
       data: new TextEncoder().encode(
-        `QUICKKIT QR batch\n\n${renderable.length} PNG file(s), ${bulkSize}×${bulkSize} px, generated ${new Date().toISOString()}.\nContent type: ${def.label}. Each code was rendered in your browser; nothing was uploaded.\n${verifyEach && rows.length <= 120 ? "Every code in this batch was decoded after rendering." : "Decode verification was not run for this batch."}\n`,
+        `QUICKKIT QR batch\n\n${renderable.length} PNG file(s), ${bulkSize}×${bulkSize} px, generated ${new Date().toISOString()}.\nContent type: ${
+          typeColumn >= 0
+            ? `per-row (${[...new Set(rows.map((row) => contentTypeDef(row.rowType).label))].join(", ")})`
+            : def.label
+        }. Each code was rendered in your browser; nothing was uploaded.\n${verifyEach && rows.length <= 120 ? "Every code in this batch was decoded after rendering." : "Decode verification was not run for this batch."}\n`,
       ),
     });
     downloadBlob(
@@ -334,7 +413,16 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
         ext: "zip",
       }),
     );
-  }, [bulkSize, def.label, fileName, rows, renderable, typeId, verifyEach]);
+  }, [
+    bulkSize,
+    def.label,
+    fileName,
+    rows,
+    renderable,
+    typeColumn,
+    typeId,
+    verifyEach,
+  ]);
 
   const downloadReport = useCallback(() => {
     const header = [
@@ -367,6 +455,8 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
     setRows([]);
     setTable(null);
     setFileName("");
+    setTypeColumn(-1);
+    setPreviewed(false);
     setProgress({ done: 0, total: 0 });
     setError(null);
     clearPreview();
@@ -389,13 +479,14 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
     >
       <div className="qr-bulk-grid">
         <div className="qr-field half">
-          <label htmlFor="qr-bulk-type">Content type for every row</label>
+          <label htmlFor="qr-bulk-type">Default content type</label>
           <select
             id="qr-bulk-type"
             value={typeId}
             onChange={(event) => {
               const next = event.target.value as QrContentTypeId;
               setTypeId(next);
+              setPreviewed(false);
               if (table)
                 setMapping(
                   guessMapping(table.headers, contentTypeDef(next).fields),
@@ -408,6 +499,39 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
               </option>
             ))}
           </select>
+        </div>
+        <div className="qr-field half">
+          <label htmlFor="qr-bulk-type-col">
+            Per-row type column (optional)
+          </label>
+          <select
+            id="qr-bulk-type-col"
+            value={typeColumn}
+            onChange={(event) => {
+              const column = Number(event.target.value);
+              setTypeColumn(column);
+              setPreviewed(false);
+              if (table)
+                setMapping(
+                  guessMapping(
+                    headersWithoutTypeColumn(table.headers, column),
+                    def.fields,
+                  ),
+                );
+            }}
+            disabled={!table}
+          >
+            <option value={-1}>— same type for every row —</option>
+            {table?.headers.map((header, index) => (
+              <option key={`${header}-${index}`} value={index}>
+                {header}
+              </option>
+            ))}
+          </select>
+          <p className="qr-field-hint">
+            Pick a column whose cells name a content type (e.g. “url”, “wifi”,
+            “email”) to mix types in one batch. Unknown cells use the default.
+          </p>
         </div>
         <div className="qr-field half">
           <label htmlFor="qr-bulk-limit">Batch size limit</label>
@@ -564,6 +688,15 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
           <div className="qr-bulk-actions">
             <button
               type="button"
+              className="secondary"
+              onClick={preview}
+              disabled={running || !table.rows.length}
+              title="Validate every row and show what it would encode — no pixels rendered yet"
+            >
+              <Eye size={15} /> Preview rows
+            </button>
+            <button
+              type="button"
               className="primary"
               onClick={() => void generate()}
               disabled={running || !table.rows.length}
@@ -633,7 +766,25 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
                 >
                   <Download size={14} /> CSV result report
                 </button>
+                {summary.failed > 0 ? (
+                  <button
+                    type="button"
+                    className="secondary qr-mini-button"
+                    onClick={() => void retryFailed()}
+                    disabled={running}
+                    title="Re-validate and re-render only the failed rows; successful codes are kept"
+                  >
+                    <RotateCw size={14} /> Retry failed ({summary.failed})
+                  </button>
+                ) : null}
               </div>
+              {previewed && progress.done === 0 && summary.ok === 0 ? (
+                <p className="help">
+                  Preview only — {summary.total} row
+                  {summary.total === 1 ? "" : "s"} validated, nothing rendered
+                  yet. Fix any mapping, then press Generate.
+                </p>
+              ) : null}
 
               {selected !== null && selectedUrl ? (
                 <figure className="qr-bulk-preview">
@@ -664,6 +815,7 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
                     <tr>
                       <th scope="col">Row</th>
                       <th scope="col">Label</th>
+                      {typeColumn >= 0 ? <th scope="col">Type</th> : null}
                       <th scope="col">Status</th>
                       <th scope="col">Message</th>
                       <th scope="col">File</th>
@@ -680,6 +832,9 @@ export default function BulkPanel({ studio }: { studio: QrStudio }) {
                       >
                         <th scope="row">{row.index}</th>
                         <td>{row.label}</td>
+                        {typeColumn >= 0 ? (
+                          <td>{contentTypeDef(row.rowType).label}</td>
+                        ) : null}
                         <td>
                           <span className={`qr-row-status ${row.status}`}>
                             {STATUS_LABEL[row.status]}

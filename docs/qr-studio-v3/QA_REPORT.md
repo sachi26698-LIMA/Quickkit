@@ -1,11 +1,12 @@
-# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F)
+# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G)
 
 **Date:** 5 November 2026 (Stage 1: 3 November 2026)
 **Branch:** `arena/bc33caa6-quickkit` (continues the existing QR history — no rebuild)
 **Scope:** Stage 1 delivered Phase B (content types) + Phase C (template library). On the owner's
 "Continue" go-ahead, Stage 2 adds **Phase D** (frames + labels, independent eye colours, brand
-palettes, logo background) and **Phase F** (DPI metadata, custom-size export, print layouts, A4 cut
-sheet). Phases G / H / E follow; J (browser e2e) when a browser is available.
+palettes, logo background), **Phase F** (DPI metadata, custom-size export, print layouts, A4 cut
+sheet) and **Phase G** (bulk preview, per-row content type, retry-failed). Phases H / E follow;
+J (browser e2e) when a browser is available.
 **Baseline before changes:** 594 unit tests / 37 files passing, clean `npm ci`.
 
 ---
@@ -156,7 +157,27 @@ layout selector and the sheet/fixed-layout control visibility through the real U
 
 ---
 
-## 5. Branding
+## 5. Phase G — Bulk CSV: preview, per-row type, retry-failed (Stage 2)
+
+The V2 bulk pipeline (column mapping, per-item errors, progress, cancel, dedup, decode-verify, ZIP +
+CSV report) is preserved. Phase G adds three honest upgrades:
+
+| Feature | What was built | Status |
+|---------|----------------|--------|
+| **Pre-generation preview** | "Preview rows" validates every payload + flags duplicates with no pixels rendered, so mapping can be fixed before generating | **new, verified** |
+| **Per-row content type** | An optional "type" column mixes types in one CSV; each row resolves its type and re-guesses its field mapping. The type column is excluded from field guessing (a "type" header collides with the Wi-Fi-encryption synonym). Unknown/empty cells fall back to the batch default | **new, verified** |
+| **Retry-failed** | Re-validates + re-renders only failed rows, keeping successful codes by matching payload | **new, verified** |
+| **Skip-duplicates fix** | The V2 toggle had no effect (duplicates were always skipped); they now render when the toggle is off | **fixed, verified** |
+
+**Verification:** `tests/qr-bulk-export.test.ts` (+5 tests) covers `resolveRowType` (known/unknown/empty/
+out-of-range cells), `mappingForRow` (reuse vs re-guess, type-column exclusion) and a mixed-type CSV
+building a URL payload and a Wi-Fi payload from adjacent rows. `tests/qr-studio.test.tsx` (+3 tests)
+drives preview-without-render, the per-row Type column, and retry-failed (a bad row stays failed while
+the good row is kept) through the real UI in jsdom.
+
+---
+
+## 6. Branding
 
 Templates, the gallery **and now the Design Studio itself** use the requested QUICKKIT palette — Deep
 Plum `#3B1B4F`, Rose Pink `#D6598F` / deep rose `#B93A73`, Coral `#FF6B6B` / deep coral `#C93A3A`,
@@ -168,14 +189,14 @@ six folds (Colours / Pattern / Corners / Logo / **Frame** / Templates).
 
 ---
 
-## 6. Test & build evidence
+## 7. Test & build evidence
 
 | Gate | Result |
 |------|--------|
 | TypeScript (`tsc --noEmit`) | clean |
 | ESLint (changed files) | clean |
 | Prettier (changed files) | formatted |
-| Unit suite | **718 passing / 40 files** (was 682/39 at Stage 1, 594/37 baseline; +21 Phase D, +15 Phase F) |
+| Unit suite | **726 passing / 40 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G) |
 | Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
 | Print layouts | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit |
 | Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
@@ -195,7 +216,7 @@ in a browser-enabled environment before final sign-off.
 
 ---
 
-## 7. Preserved functionality (no regressions)
+## 8. Preserved functionality (no regressions)
 
 All pre-existing studio UI tests pass (the layout test now expects six design folds / ten tabs; the
 picker label list covers 27 types). Wi-Fi secret redaction, history/presets storage, bulk CSV, the
@@ -206,12 +227,11 @@ style is chosen).
 
 ---
 
-## 8. Remaining stages (Stage 2 continues)
+## 9. Remaining stages (Stage 2 continues)
 
-- **Phase G:** bulk retry-failed, pre-generation preview, per-row content type.
 - **Phase H:** history/preset rename, duplicate, JSON export/import with validation.
 - **Phase E:** static multi-link landing-page builder (downloadable HTML) — no backend, no analytics.
 - **Phase J:** full e2e + browser screenshots in a browser-enabled environment.
 
-**Status: Stage 2 — Phases B + C + D + F implemented and verified; G / H / E in progress. Awaiting
+**Status: Stage 2 — Phases B + C + D + F + G implemented and verified; H / E in progress. Awaiting
 owner review. Not merged, not deployed.**

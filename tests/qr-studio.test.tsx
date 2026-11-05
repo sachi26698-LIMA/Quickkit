@@ -639,3 +639,109 @@ describe("qr studio — V3 export controls (DPI, custom px, print layouts)", () 
     expect(button).not.toBeDisabled();
   });
 });
+
+describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => {
+  function openBulk() {
+    fireEvent.click(screen.getByRole("tab", { name: /Bulk \(CSV\)/ }));
+  }
+  function bulkCard() {
+    return within(document.getElementById("qr-bulk") as HTMLElement);
+  }
+  async function loadCsv(text: string, name = "test.csv") {
+    const file = new File([text], name, { type: "text/csv" });
+    const input = document.getElementById("qr-bulk-file") as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() =>
+      expect(screen.getByText("Column mapping")).toBeInTheDocument(),
+    );
+  }
+
+  it(
+    "previews rows without rendering any pixels",
+    async () => {
+      render(<QrGenerator />);
+      openBulk();
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load the sample file" }),
+      );
+      fireEvent.click(bulkCard().getByRole("button", { name: /Preview rows/ }));
+      await waitFor(() =>
+        expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+          /0 rendered/,
+        ),
+      );
+      expect(document.querySelector(".qr-row-status.queued")).not.toBeNull();
+      expect(
+        bulkCard().getByRole("button", { name: /Download ZIP/ }),
+      ).toBeDisabled();
+      expect(screen.getByText(/Preview only/)).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "a per-row type column reveals a Type column in the results",
+    async () => {
+      render(<QrGenerator />);
+      openBulk();
+      await loadCsv(
+        "type,url\nurl,https://quickkit.tools\nurl,https://example.com",
+      );
+      fireEvent.change(
+        screen.getByLabelText("Per-row type column (optional)"),
+        {
+          target: { value: "0" },
+        },
+      );
+      fireEvent.click(bulkCard().getByRole("button", { name: /Preview rows/ }));
+      await waitFor(() =>
+        expect(document.querySelector(".qr-bulk-rows")).toBeInTheDocument(),
+      );
+      expect(
+        screen.getByRole("columnheader", { name: "Type" }),
+      ).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "offers Retry failed when a row is invalid and re-runs on click",
+    async () => {
+      render(<QrGenerator />);
+      openBulk();
+      await loadCsv("name,url\nBad,not-a-valid-url\nGood,https://example.com");
+      fireEvent.click(
+        bulkCard().getByRole("button", { name: /Generate 2 codes/ }),
+      );
+      await waitFor(
+        () =>
+          expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+            /1 failed/,
+          ),
+        { timeout: TEST_TIMEOUT },
+      );
+      await waitFor(
+        () =>
+          expect(
+            bulkCard().getByRole("button", { name: /Retry failed \(1\)/ }),
+          ).toBeEnabled(),
+        { timeout: TEST_TIMEOUT },
+      );
+      fireEvent.click(
+        bulkCard().getByRole("button", { name: /Retry failed \(1\)/ }),
+      );
+      await waitFor(
+        () =>
+          expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+            /1 rendered/,
+          ),
+        { timeout: TEST_TIMEOUT },
+      );
+      // The good row is kept; the bad row still fails (data unchanged).
+      expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
+        /1 failed/,
+      );
+    },
+    TEST_TIMEOUT * 2,
+  );
+});
