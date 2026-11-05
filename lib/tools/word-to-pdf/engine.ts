@@ -22,7 +22,7 @@ import {
 import { processPdf } from "./process-pdf";
 import { prepareDocx } from "./docx";
 import { convertDocxWithBuiltinEngine } from "./render";
-import { FONT_DIRECTORY } from "./render/fonts";
+import { FONT_DIRECTORY, fontBytes } from "./render/fonts";
 import { type Settings } from "./settings";
 
 const execFileAsync = promisify(execFile);
@@ -96,7 +96,7 @@ let builtinCheck: Promise<boolean> | null = null;
 /** The bundled renderer needs its OFL fonts; verify them once per process. */
 async function builtinAvailable() {
   if (process.env.WORD_TO_PDF_BUILTIN === "false") return false;
-  builtinCheck ??= readFile(join(FONT_DIRECTORY, "NotoSans-Regular.ttf"))
+  builtinCheck ??= fontBytes("NotoSans-Regular.ttf")
     .then((data) => data.length > 1000)
     .catch(() => false);
   return builtinCheck;

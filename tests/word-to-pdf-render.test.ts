@@ -1,10 +1,18 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
+import { Document, Packer, Paragraph, TextRun } from "docx";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { convertDocxWithBuiltinEngine } from "../lib/tools/word-to-pdf/render";
 import { parseDocxPackage } from "../lib/tools/word-to-pdf/render/ooxml";
-import { splitScripts } from "../lib/tools/word-to-pdf/render/fonts";
+import {
+  BUNDLED_FONT_FILES,
+  FONT_DIRECTORY,
+  FontBook,
+  fontBytes,
+  splitScripts,
+  type FontFile,
+} from "../lib/tools/word-to-pdf/render/fonts";
 
 async function text(bytes: Uint8Array) {
   const doc = await getDocument({ data: new Uint8Array(bytes) }).promise;
@@ -143,5 +151,144 @@ describe("script segmentation", () => {
       "devanagari",
       "latin",
     ]);
+  });
+});
+
+describe("scoped bundled font loading and full font/script matrix", () => {
+  it("loads and caches all 17 bundled Noto fonts and rejects outside paths", async () => {
+    expect(FONT_DIRECTORY.endsWith("assets/noto")).toBe(true);
+    expect(BUNDLED_FONT_FILES).toHaveLength(17);
+
+    for (const file of BUNDLED_FONT_FILES) {
+      const firstPromise = fontBytes(file);
+      const secondPromise = fontBytes(file);
+      expect(secondPromise).toBe(firstPromise);
+      const [first, second] = await Promise.all([firstPromise, secondPromise]);
+      expect(second).toBe(first);
+      expect(first.byteLength).toBeGreaterThan(10_000);
+    }
+
+    await expect(
+      fontBytes("../package.json" as unknown as FontFile),
+    ).rejects.toThrow(/Unsupported bundled font/);
+  });
+
+  it("embeds all supported Latin faces/styles and Indic scripts in DOCX->PDF", async () => {
+    const pdf = await PDFDocument.create();
+    const book = new FontBook(pdf);
+    expect(book.face("Calibri")).toBe("sans");
+    expect(book.face("Times New Roman")).toBe("serif");
+    expect(book.face("Courier New")).toBe("mono");
+    expect(book.face("Menlo")).toBe("mono");
+    expect(book.key("sans", true, true, "latin")).toBe("sans-bolditalic");
+    expect(book.key("serif", true, true, "latin")).toBe("serif-bolditalic");
+    expect(book.key("mono", true, true, "latin")).toBe("mono-bolditalic");
+
+    const sampleDocx = new Uint8Array(
+      await Packer.toBuffer(
+        new Document({
+          sections: [
+            {
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: "Sans Regular ", font: "Calibri" }),
+                    new TextRun({
+                      text: "Sans Bold ",
+                      font: "Arial",
+                      bold: true,
+                    }),
+                    new TextRun({
+                      text: "Sans Italic ",
+                      font: "Calibri",
+                      italics: true,
+                    }),
+                    new TextRun({
+                      text: "Sans BoldItalic",
+                      font: "Arial",
+                      bold: true,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Serif Regular ",
+                      font: "Times New Roman",
+                    }),
+                    new TextRun({
+                      text: "Serif Bold ",
+                      font: "Georgia",
+                      bold: true,
+                    }),
+                    new TextRun({
+                      text: "Serif Italic ",
+                      font: "Cambria",
+                      italics: true,
+                    }),
+                    new TextRun({
+                      text: "Serif BoldItalic",
+                      font: "Palatino",
+                      bold: true,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Mono Regular ",
+                      font: "Courier New",
+                    }),
+                    new TextRun({
+                      text: "Mono Bold ",
+                      font: "Consolas",
+                      bold: true,
+                    }),
+                    new TextRun({
+                      text: "Mono Italic ",
+                      font: "Menlo",
+                      italics: true,
+                    }),
+                    new TextRun({
+                      text: "Mono BoldItalic",
+                      font: "Courier New",
+                      bold: true,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: "हिन्दी " }),
+                    new TextRun({ text: "हिन्दी बोल्ड ", bold: true }),
+                    new TextRun({ text: "ગુજરાતી " }),
+                    new TextRun({ text: "ગુજરાતી બોલ્ડ ", bold: true }),
+                    new TextRun({ text: "বাংলা " }),
+                    new TextRun({ text: "தமிழ் " }),
+                    new TextRun({ text: "తెలుగు " }),
+                    new TextRun({ text: "ಕನ್ನಡ " }),
+                    new TextRun({ text: "മലയാളം " }),
+                    new TextRun({ text: "ਪੰਜਾਬੀ" }),
+                  ],
+                }),
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+
+    const converted = await convertDocxWithBuiltinEngine(sampleDocx);
+    expect(String.fromCharCode(...converted.bytes.subarray(0, 5))).toBe(
+      "%PDF-",
+    );
+    expect(converted.pages).toBe(1);
+    const pages = await text(converted.bytes);
+    expect(pages[0]).toContain("Sans BoldItalic");
+    expect(pages[0]).toContain("Serif BoldItalic");
+    expect(pages[0]).toContain("Mono BoldItalic");
+    expect(pages[0]).toContain("ગુજરાતી");
   });
 });
