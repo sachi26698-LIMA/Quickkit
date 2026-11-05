@@ -49,6 +49,12 @@ import {
 } from "@/lib/tools/qr/layouts";
 import { withPngDpi } from "@/lib/tools/qr/png";
 import {
+  DEFAULT_LANDING,
+  buildLandingHtml,
+  validateLanding,
+  type LandingConfig,
+} from "@/lib/tools/qr/landing";
+import {
   decodeShareConfig,
   encodeShareConfig,
   readShareHash,
@@ -175,6 +181,7 @@ export function useQrStudio() {
   const [pngDpi, setPngDpi] = useState<number>(300);
   const [printLayout, setPrintLayout] = useState<QrPrintLayoutId>("single");
   const [sheet, setSheet] = useState<SheetOptions>(DEFAULT_SHEET);
+  const [landing, setLanding] = useState<LandingConfig>(DEFAULT_LANDING);
   const [sizeSlot, setSizeSlot] =
     useState<Slot<{ size: number; ok: boolean; message: string }[]>>(null);
   const [testing, setTesting] = useState(false);
@@ -941,6 +948,41 @@ export function useQrStudio() {
     [],
   );
 
+  /** Build + download the static landing page (Phase E). */
+  const downloadLanding = useCallback(() => {
+    const validation = validateLanding(landing);
+    if (!validation.ok) {
+      setFlash({ kind: "error", text: validation.errors[0] });
+      return;
+    }
+    try {
+      const html = buildLandingHtml(landing);
+      const slug =
+        landing.title
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 40) || "links";
+      downloadBlob(
+        new Blob([html], { type: "text/html;charset=utf-8" }),
+        `quickkit-landing-${slug}.html`,
+      );
+      setFlash({
+        kind: "info",
+        text: "Landing page downloaded. Host it (GitHub Pages, Netlify, your server), then put its public URL in the field above to make the QR. The page is static — the printed QR cannot be edited later.",
+      });
+    } catch (error) {
+      setFlash({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "The page could not be built.",
+      });
+    }
+  }, [landing]);
+
   return {
     typeId,
     def,
@@ -1009,6 +1051,9 @@ export function useQrStudio() {
     removeOne,
     renameHistory,
     duplicateHistory,
+    landing,
+    setLanding,
+    downloadLanding,
   };
 }
 

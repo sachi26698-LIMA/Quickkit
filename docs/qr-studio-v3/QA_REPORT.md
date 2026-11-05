@@ -1,13 +1,13 @@
-# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G + H)
+# QUICKKIT QR Studio V3 — QA & Feature Completion Report (Stage 2: Phases B + C + D + F + G + H + E)
 
 **Date:** 5 November 2026 (Stage 1: 3 November 2026)
 **Branch:** `arena/bc33caa6-quickkit` (continues the existing QR history — no rebuild)
 **Scope:** Stage 1 delivered Phase B (content types) + Phase C (template library). On the owner's
 "Continue" go-ahead, Stage 2 adds **Phase D** (frames + labels, independent eye colours, brand
 palettes, logo background), **Phase F** (DPI metadata, custom-size export, print layouts, A4 cut
-sheet), **Phase G** (bulk preview, per-row content type, retry-failed) and **Phase H** (history/preset
-rename, duplicate, validated config export/import). Phase E follows; J (browser e2e) when a browser is
-available.
+sheet), **Phase G** (bulk preview, per-row content type, retry-failed), **Phase H** (history/preset
+rename, duplicate, validated config export/import) and **Phase E** (static Smart Link landing-page
+builder). Phase I (brand-swatch retune) follows; J (browser e2e) when a browser is available.
 **Baseline before changes:** 594 unit tests / 37 files passing, clean `npm ci`.
 
 ---
@@ -202,7 +202,29 @@ export/import controls through the real UI.
 
 ---
 
-## 7. Branding
+## 7. Phase E — Static Smart Link landing page (Stage 2)
+
+| Feature | What was built | Status |
+|---------|----------------|--------|
+| **Builder UI** | "Build a Smart Link page" fold for the *landing* and *socials* types: title, bio, accent, up to 8 links, live preview | **new, verified** |
+| **Download HTML** | One self-contained file: inline CSS, system fonts, **no JS, no external requests, no tracking** | **new, verified** |
+| **Safety** | All text HTML-escaped; every link passes the http(s)-only `normalizeUrl` (javascript:/data: refused); validation refuses an empty/broken config | **new, verified** |
+| **Static limitation notice** | Plain-language note: host it yourself, no analytics, printed QR cannot be edited, no dynamic redirect | **new, verified** |
+| **QR of hosted URL** | The existing *landing*/*socials* URL field encodes the public URL where the user hosted the page | preserved |
+
+**No backend, no hosting, no analytics.** QUICKKIT only generates the file; the user hosts it. This is
+deliberately static and the UI says so — no dynamic-QR / edit-after-print / permanent-link claim is made.
+
+**Verification:** `tests/qr-landing.test.ts` (9 tests) covers self-containment (no `<script>`, no
+external `src`/stylesheet), HTML escaping of hostile titles/labels, dangerous-scheme rejection, accent
+colour, title/link validation, the 8-link cap, length/accent sanitisation and `escapeHtml`.
+`tests/qr-studio.test.tsx` (+3 tests) drives the builder through the real UI: the limitation notice,
+downloading a real HTML blob (asserted to contain the title + link and no script), and the
+disabled-until-valid / 8-link-cap behaviour.
+
+---
+
+## 8. Branding
 
 Templates, the gallery **and now the Design Studio itself** use the requested QUICKKIT palette — Deep
 Plum `#3B1B4F`, Rose Pink `#D6598F` / deep rose `#B93A73`, Coral `#FF6B6B` / deep coral `#C93A3A`,
@@ -214,14 +236,14 @@ six folds (Colours / Pattern / Corners / Logo / **Frame** / Templates).
 
 ---
 
-## 8. Test & build evidence
+## 9. Test & build evidence
 
 | Gate | Result |
 |------|--------|
 | TypeScript (`tsc --noEmit`) | clean |
 | ESLint (changed files) | clean |
 | Prettier (changed files) | formatted |
-| Unit suite | **736 passing / 40 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H) |
+| Unit suite | **748 passing / 41 files** (was 682/39 at Stage 1, 594/37 baseline; +21 D, +15 F, +8 G, +10 H, +12 E) |
 | Independent decode | every content type + all 55 templates + 11 category samples + 6 framed/eye/logo designs decoded by jsQR to the exact payload; DPI-stamped PNGs still decode |
 | Print layouts | every layout reloads as a valid PDF at its promised mm size; A4 sheet grid clamped to fit |
 | Production build (`npm run build`) | clean; `/tools/qr-generator` prerendered static |
@@ -241,7 +263,7 @@ in a browser-enabled environment before final sign-off.
 
 ---
 
-## 9. Preserved functionality (no regressions)
+## 10. Preserved functionality (no regressions)
 
 All pre-existing studio UI tests pass (the layout test now expects six design folds / ten tabs; the
 picker label list covers 27 types). Wi-Fi secret redaction, history/presets storage, bulk CSV, the
@@ -252,10 +274,11 @@ style is chosen).
 
 ---
 
-## 10. Remaining stages (Stage 2 continues)
+## 11. Remaining stages (Stage 2 continues)
 
-- **Phase E:** static multi-link landing-page builder (downloadable HTML) — no backend, no analytics.
+- **Phase I:** retune the six off-brand preset swatches to the brand palette (Deep Plum, Rose Pink,
+  Coral, Midnight, Soft Blush) — premium light theme and page structure already preserved.
 - **Phase J:** full e2e + browser screenshots in a browser-enabled environment.
 
-**Status: Stage 2 — Phases B + C + D + F + G + H implemented and verified; E in progress. Awaiting
+**Status: Stage 2 — Phases B + C + D + F + G + H + E implemented and verified; I in progress. Awaiting
 owner review. Not merged, not deployed.**

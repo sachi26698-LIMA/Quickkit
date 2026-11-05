@@ -619,7 +619,7 @@ the updated Sections 4–5 above.
 
 ---
 
-## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G + H implemented)
+## QR Code Studio V3 — Advanced Design Studio upgrade (Stage 2 in progress: Phases B + C + D + F + G + H + E implemented)
 
 Requested by the owner on 3 November 2026: upgrade the existing QR Generator V2 into a premium
 creation/design studio (27 content types, ≥50 categorized templates, frames + labels, independent
@@ -700,14 +700,27 @@ continuing the existing QR history — no rebuild. The owner chose a **staged** 
   counted, and storage caps are respected. **Existing data is never cleared or overwritten.** Loading
   existing storage stays lenient so a legacy row is never silently dropped.
 
-**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **736 passed / 40 files**
+**Stage 2 — Phase E (static Smart Link landing-page builder) implemented and verified:**
+
+- A "Build a Smart Link page" fold appears for the **Multi-link landing page** and **Multi-social
+  links** types: title, optional bio, accent colour and up to **8 links**, with a live preview.
+- **Download HTML** produces one self-contained file — inline CSS, system fonts, **no JavaScript, no
+  external requests, no tracking**. Every text field is HTML-escaped and every link is run through the
+  same http(s)-only validator the QR payloads use (javascript:/data: refused).
+- **Static by design, stated plainly:** the user hosts the file themselves (GitHub Pages, Netlify,
+  their server) and then encodes its public URL. QUICKKIT hosts nothing, has no analytics, and the
+  printed QR cannot be edited later — there is no dynamic redirect. No backend was added.
+
+**Verification (Stage 2 so far):** `tsc`/ESLint/Prettier clean; unit suite **748 passed / 41 files**
 (was 682/39 at Stage 1, 594/37 baseline); every content type, all 55 templates and the six framed /
 eye-colour / logo designs decoded by jsQR to the exact payload; every print layout reloads as a valid
 PDF at its promised millimetre size and DPI-stamped PNGs still decode; bulk per-row-type helpers and
 the preview/retry UI are tested; config rename/duplicate/export/import (merge, dedup, secret-stripping,
-foreign-file rejection) are tested; production build clean with `/tools/qr-generator` static; dev
-preview live on port 3000; **44 decode-verified PNG artifacts** + report in `docs/qr-studio-v3/evidence/`
-(regenerate: `QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs run tests/qr-v3-evidence.test.ts`).
+foreign-file rejection) are tested; the landing page is escape-safe, scheme-safe and self-contained
+(tested), and the builder UI downloads a real HTML file; production build clean with
+`/tools/qr-generator` static; dev preview live on port 3000; **44 decode-verified PNG artifacts** +
+report in `docs/qr-studio-v3/evidence/` (regenerate:
+`QR_EVIDENCE=1 node node_modules/vitest/vitest.mjs run tests/qr-v3-evidence.test.ts`).
 Full feature-by-feature report: `docs/qr-studio-v3/QA_REPORT.md`.
 
 **Honest limitations this stage:** browser screenshots blocked by the sandbox network policy (Chromium
@@ -715,8 +728,8 @@ CDN + Debian repos unreachable) — live preview + engine-rendered QR evidence p
 Link remains static only (no backend, no dynamic editing/analytics claimed). The calendar-event sample
 embeds a fresh `DTSTAMP`/`UID` per run, so its evidence PNG is regenerated each time (still decoded).
 
-**Remaining:** E (static landing-page builder), J (browser e2e + screenshots). **Not merged, not
-deployed — awaiting owner approval.**
+**Remaining:** I (retune the six off-brand preset swatches to the brand palette), J (browser e2e +
+screenshots). **Not merged, not deployed — awaiting owner approval.**
 
 ## QR Code Studio — premium UI redesign workstream (session branch, pending owner approval)
 

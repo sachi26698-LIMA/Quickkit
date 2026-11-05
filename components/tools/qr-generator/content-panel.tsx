@@ -41,6 +41,7 @@ import { MAX_QR_PAYLOAD_BYTES, utf8Length } from "@/lib/tools/qr/capacity";
 import { QR_CONTENT_TYPES, redactForDisplay } from "@/lib/tools/qr/payload";
 import type { QrContentTypeId } from "@/lib/tools/qr/types";
 import { QrDisclosure, QrFieldGrid } from "./shared";
+import LandingBuilder from "./landing-builder";
 import type { QrStudio } from "./use-qr-studio";
 
 const ICONS: Record<string, typeof QrCode> = {
@@ -164,6 +165,10 @@ export default function ContentPanel({ studio }: { studio: QrStudio }) {
         error={hasContent ? formError : null}
         onChange={studio.setValue}
       />
+
+      {typeId === "landing" || typeId === "socials" ? (
+        <LandingBuilder studio={studio} />
+      ) : null}
 
       <div className="qr-payload-bar">
         <button

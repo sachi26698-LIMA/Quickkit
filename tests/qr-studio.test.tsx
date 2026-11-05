@@ -811,3 +811,88 @@ describe("qr studio — V3 history & preset management (Phase H)", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("qr studio — V3 Smart Link landing builder (Phase E)", () => {
+  function openLandingBuilder() {
+    pickType("landing");
+    const summary = screen
+      .getByText("Build a Smart Link page")
+      .closest("summary") as HTMLElement;
+    fireEvent.click(summary);
+  }
+
+  it("shows the static-page limitation notice for the landing type", () => {
+    render(<QrGenerator />);
+    openLandingBuilder();
+    expect(
+      screen.getByText(/static HTML page you host yourself/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/no dynamic redirect/i)).toBeInTheDocument();
+  });
+
+  it(
+    "builds and downloads a self-contained HTML page from the builder",
+    async () => {
+      let captured: Blob | null = null;
+      vi.stubGlobal(
+        "URL",
+        Object.assign(window.URL, {
+          createObjectURL: vi.fn((blob: Blob) => {
+            captured = blob;
+            return "blob:stub";
+          }),
+          revokeObjectURL: vi.fn(),
+        }),
+      );
+      const clickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(() => {});
+
+      render(<QrGenerator />);
+      openLandingBuilder();
+      fireEvent.change(screen.getByLabelText("Page title"), {
+        target: { value: "Cafe Aroma" },
+      });
+      fireEvent.change(screen.getByLabelText("Link 1 label"), {
+        target: { value: "Menu" },
+      });
+      fireEvent.change(screen.getByLabelText("Link 1 URL"), {
+        target: { value: "https://example.com/menu" },
+      });
+
+      const download = screen.getByRole("button", {
+        name: /Download HTML page/,
+      });
+      expect(download).toBeEnabled();
+      fireEvent.click(download);
+
+      expect(clickSpy).toHaveBeenCalled();
+      expect(captured).not.toBeNull();
+      const html = await (captured as unknown as Blob).text();
+      expect(html).toContain("<!DOCTYPE html>");
+      expect(html).toContain("Cafe Aroma");
+      expect(html).toContain('href="https://example.com/menu"');
+      expect(html).not.toContain("<script");
+    },
+    TEST_TIMEOUT,
+  );
+
+  it("keeps download disabled until a valid link is present, and caps links at 8", () => {
+    render(<QrGenerator />);
+    openLandingBuilder();
+    // Default config has one empty link -> invalid -> disabled.
+    expect(
+      screen.getByRole("button", { name: /Download HTML page/ }),
+    ).toBeDisabled();
+
+    // Add links up to the cap; the Add link button then disables.
+    for (let i = 0; i < 10; i++) {
+      const add = screen.getByRole("button", { name: /Add link/ });
+      if ((add as HTMLButtonElement).disabled) break;
+      fireEvent.click(add);
+    }
+    expect(screen.getByLabelText("Link 8 label")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
+  });
+});
