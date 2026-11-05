@@ -126,6 +126,18 @@ export const tools = [
     phase: 2,
   },
   {
+    slug: "image-to-text",
+    name: "Image to Text (OCR)",
+    category: "Text & Writing",
+    description:
+      "Turn photos, screenshots, receipts and scanned PDFs into editable text — English, Hindi, Gujarati, Marathi, Bengali, Tamil, Telugu and Urdu, read on your device.",
+    keywords:
+      "ocr image to text text from image extract text scan scanned document photo screenshot receipt invoice handwriting handwritten notes table extraction columns structured data key value form copy paste editable english hindi gujarati marathi bengali tamil telugu urdu devanagari multi language detect language confidence batch rotate crop deskew enhance privacy offline local",
+    icon: "ocr",
+    color: "rose",
+    phase: 7,
+  },
+  {
     slug: "json-formatter",
     name: "JSON Formatter",
     category: "Developer Tools",
@@ -158,6 +170,18 @@ export const tools = [
     icon: "qr",
     color: "mint",
     phase: 2,
+  },
+  {
+    slug: "qr-code-scanner",
+    name: "QR Code Scanner",
+    category: "QR & Barcode",
+    description:
+      "Scan QR codes with your camera, an uploaded image or a whole folder of screenshots — decode every code in a picture, identify its content type and inspect the destination before you open it.",
+    keywords:
+      "scan scanner reader decode camera webcam upload image screenshot batch multiple codes wifi vcard contact url link payment upi crypto security phishing inspect history export csv json txt offline free qrcode",
+    icon: "scan",
+    color: "blue",
+    phase: 14,
   },
   {
     slug: "image-compressor",
@@ -487,7 +511,7 @@ export function relatedTools(tool: Tool, limit = 3): Tool[] {
 
 export function filterTools(query: string, category: Category) {
   const search = query.trim().toLocaleLowerCase();
-  return tools.filter(
+  const matches = tools.filter(
     (tool) =>
       (category === "All tools" ||
         toolCategoriesOf(tool).includes(category as ToolCategory)) &&
@@ -495,4 +519,14 @@ export function filterTools(query: string, category: Category) {
         .toLocaleLowerCase()
         .includes(search),
   );
+  if (!search) return matches;
+  // A tool whose *name* contains the query outranks one that only matched a
+  // keyword, so typing "JSON" still lands on JSON Formatter even though other
+  // tools mention JSON in their keyword list. Stable within each group.
+  const byName = matches.filter((tool) =>
+    tool.name.toLocaleLowerCase().includes(search),
+  );
+  return byName.length
+    ? [...byName, ...matches.filter((tool) => !byName.includes(tool))]
+    : matches;
 }

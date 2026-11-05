@@ -83,6 +83,20 @@ const config: NextConfig = {
           },
         ],
       },
+      {
+        // The QR Code Scanner is the one page that needs a camera. A
+        // Permissions-Policy on `/:path*` would otherwise be inherited by it
+        // and the browser would refuse getUserMedia even after the visitor
+        // granted permission, so this rule — which wins for the exact path —
+        // re-allows the camera for this page only. Nothing else is widened.
+        source: "/tools/qr-code-scanner",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
+          },
+        ],
+      },
     ];
   },
 };
