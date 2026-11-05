@@ -12,21 +12,27 @@ import {
 describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
     expect(filterTools("", "All tools")).toHaveLength(tools.length));
-  it("ignores case and surrounding spaces", () =>
-    expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter"));
+  it("ignores case and surrounding spaces", () => {
+    // Asked for by name, the JSON formatter must still come first: no other
+    // record may claim "json" in its name, only in its keywords.
+    expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter");
+    expect(
+      tools.filter((tool) => /json/iu.test(tool.name)).map((tool) => tool.slug),
+    ).toEqual(["json-formatter"]);
+  });
   it("searches keywords", () =>
     expect(filterTools("crypto", "All tools")[0].slug).toBe(
       "password-generator",
     ));
   it("combines category and query", () =>
-    expect(filterTools("json", "Text & Writing")).toHaveLength(0));
+    expect(filterTools("json-formatter", "Text & Writing")).toHaveLength(0));
   it("filters text tools", () =>
-    expect(filterTools("", "Text & Writing")).toHaveLength(2));
+    expect(filterTools("", "Text & Writing")).toHaveLength(3));
   it("finds the PDF merger by intent and category", () => {
     expect(filterTools("join pages", "PDF Tools")).toEqual([
       expect.objectContaining({ slug: "merge-pdf" }),
     ]);
-    expect(filterTools("pdf", "Text & Writing")).toHaveLength(0);
+    expect(filterTools("join", "Text & Writing")).toHaveLength(0);
   });
   it("finds the PDF splitter by extraction intent and category", () => {
     expect(filterTools("extract separate", "PDF Tools")).toEqual([
@@ -85,8 +91,26 @@ describe("catalog discovery", () => {
     expect(metaBySlug("qr-barcode")?.name).toBe("QR & Barcode");
     expect(metaBySlug("nope")).toBeUndefined();
   });
+  it("finds the OCR tool by intent in Text & Writing", () => {
+    expect(filterTools("ocr", "Text & Writing").map((t) => t.slug)).toEqual([
+      "image-to-text",
+    ]);
+    expect(
+      filterTools("text from image", "All tools").map((t) => t.slug),
+    ).toContain("image-to-text");
+    expect(
+      filterTools("handwritten", "All tools").map((t) => t.slug),
+    ).toContain("image-to-text");
+    // It is filed in Text & Writing only — never dual-listed as an image tool.
+    expect(toolsByCategory("Text & Writing").map((t) => t.slug)).toContain(
+      "image-to-text",
+    );
+    expect(toolsByCategory("Image Tools").map((t) => t.slug)).not.toContain(
+      "image-to-text",
+    );
+  });
   it("groups tools by category, with future categories empty", () => {
-    expect(toolsByCategory("Text & Writing")).toHaveLength(2);
+    expect(toolsByCategory("Text & Writing")).toHaveLength(3);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("PDF Tools")).toHaveLength(9);
     // QR & Barcode holds the generator and, since phase 14, the scanner.
