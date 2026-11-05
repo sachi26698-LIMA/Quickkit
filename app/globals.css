@@ -523,11 +523,28 @@ h2 {
   margin-inline: auto;
   padding: 12px 0 0;
 }
-.hero-search-zone, .hero-copy { width: min(1000px, calc(100% - 36px)); }
-.hero-search-zone { position: relative; z-index: 5; margin-top: clamp(12px, 1.5vw, 20px); }
-.hero .search-area { width: 100%; max-width: 1000px; margin: 0 auto; }
-.hero .popular-row, .hero .hero-actions, .hero .hero-benefits { justify-content: center; }
-.hero-copy { padding-bottom: 28px; }
+.hero-search-zone,
+.hero-copy {
+  width: min(1000px, calc(100% - 36px));
+}
+.hero-search-zone {
+  position: relative;
+  z-index: 5;
+  margin-top: clamp(12px, 1.5vw, 20px);
+}
+.hero .search-area {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.hero .popular-row,
+.hero .hero-actions,
+.hero .hero-benefits {
+  justify-content: center;
+}
+.hero-copy {
+  padding-bottom: 28px;
+}
 .search-area {
   position: relative;
   max-width: 560px;
