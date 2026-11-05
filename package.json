@@ -70,7 +70,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "22.x"
+    "node": "26.x"
   },
   "overrides": {
     "@typescript-eslint/typescript-estree": {

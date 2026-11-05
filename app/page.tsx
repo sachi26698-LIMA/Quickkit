@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Check,
-  LayoutGrid,
   MonitorSmartphone,
   Rocket,
   ShieldCheck,
@@ -14,8 +13,8 @@ import CategoryGrid from "@/components/category-grid";
 import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
-import { toolBySlug } from "@/lib/catalog";
 import { pageMetadata } from "@/lib/seo";
+import { toolBySlug } from "@/lib/catalog";
 
 export const metadata = pageMetadata(
   "Free browser tools for everyday tasks",
@@ -57,60 +56,47 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
 export default function Home() {
   return (
     <div className="home">
-      <div className="container">
-        <section className="hero" aria-labelledby="hero-title">
-          <div className="hero-copy">
-            <div className="hero-label">
-              <Sparkles size={13} aria-hidden="true" /> Your all-in-one toolkit
-            </div>
-            <h1 id="hero-title">
-              Small tasks.
-              <br />
-              <span>Quick solutions.</span>
-            </h1>
-            <p className="hero-description">
-              Free tools for everyday tasks — no sign-up, nothing to install,
-              and everything runs in your browser.
-            </p>
-            <HeroSearch />
-            <div className="popular-row">
-              <span className="popular-label">Popular:</span>
-              {popularSlugs.map((slug) => {
-                const tool = toolBySlug(slug)!;
-                return (
-                  <Link
-                    key={slug}
-                    className="popular-chip"
-                    href={`/tools/${tool.slug}`}
-                  >
-                    {tool.name}
-                  </Link>
-                );
-              })}
-            </div>
-            <div className="hero-actions">
-              <Link className="primary" href="/tools">
-                Explore All Tools <ArrowRight size={17} aria-hidden="true" />
-              </Link>
-              <Link className="secondary" href="#categories">
-                <LayoutGrid size={16} aria-hidden="true" /> Browse Categories
-              </Link>
-            </div>
-            <div className="hero-benefits">
-              <span>
-                <Check size={14} aria-hidden="true" /> Free to use
-              </span>
-              <span>
-                <Check size={14} aria-hidden="true" /> No sign-up
-              </span>
-              <span>
-                <Check size={14} aria-hidden="true" /> On your device
-              </span>
-            </div>
+      <section className="hero" aria-label="QUICKKIT tools">
+        <h1 className="sr-only">QUICKKIT tools</h1>
+        <div className="hero-search-zone">
+          <HeroSearch />
+        </div>
+        <HeroArt />
+        <div className="hero-copy">
+          <div className="popular-row">
+            <span className="popular-label">Popular:</span>
+            {popularSlugs.map((slug) => {
+              const tool = toolBySlug(slug)!;
+              return (
+                <Link
+                  key={slug}
+                  className="popular-chip"
+                  href={`/tools/${tool.slug}`}
+                >
+                  {tool.name}
+                </Link>
+              );
+            })}
           </div>
-          <HeroArt />
-        </section>
-
+          <div className="hero-actions">
+            <Link className="primary" href="/tools">
+              Explore All Tools <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="hero-benefits">
+            <span>
+              <Check size={14} aria-hidden="true" /> Free to use
+            </span>
+            <span>
+              <Check size={14} aria-hidden="true" /> No sign-up
+            </span>
+            <span>
+              <Check size={14} aria-hidden="true" /> On your device
+            </span>
+          </div>
+        </div>
+      </section>
+      <div className="container">
         <section
           id="categories"
           className="home-section"
@@ -125,9 +111,6 @@ export default function Home() {
                   Find the right tool for your task, all organized in one place.
                 </p>
               </div>
-              <Link href="/tools" className="section-link">
-                View all tools <ArrowRight size={15} aria-hidden="true" />
-              </Link>
             </div>
             <CategoryGrid />
           </Reveal>
