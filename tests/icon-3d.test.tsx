@@ -6,9 +6,11 @@ import Icon3D, {
   CategoryIcon3D,
   ToolIcon3D,
   categoryArt,
+  categoryTone,
   toolArt,
+  toolTone,
 } from "../components/icon-3d";
-import { categoryMeta, tools } from "../lib/catalog";
+import { categoryMeta, tools, type ToolCategory } from "../lib/catalog";
 
 afterEach(cleanup);
 
@@ -16,13 +18,21 @@ describe("3D icon system", () => {
   it("gives every catalog tool its own bespoke glyph", () => {
     const missing = tools.filter((t) => !toolArt[t.slug]).map((t) => t.slug);
     expect(missing).toEqual([]);
-    const glyphs = tools.map((t) => toolArt[t.slug].glyph);
+    const glyphs = tools.map((t) => toolArt[t.slug]);
     expect(new Set(glyphs).size).toBe(glyphs.length);
   });
 
   it("gives every category a distinct glyph", () => {
-    const glyphs = categoryMeta.map((c) => categoryArt[c.icon].glyph);
+    const glyphs = categoryMeta.map((c) => categoryArt[c.icon]);
     expect(new Set(glyphs).size).toBe(categoryMeta.length);
+  });
+
+  it("gives each category its own tone and tools inherit it", () => {
+    const tones = categoryMeta.map((c) => categoryTone(c.name));
+    expect(new Set(tones).size).toBe(categoryMeta.length);
+    for (const t of tools) {
+      expect(toolTone(t)).toBe(categoryTone(t.category as ToolCategory));
+    }
   });
 
   it("renders decorative, hidden icons with unique gradient ids", () => {
@@ -41,14 +51,14 @@ describe("3D icon system", () => {
   });
 
   it("derives animation timing from the name, so SSR and client agree", () => {
-    const a = render(<Icon3D name="pdf" tone="rose" />).container;
+    const a = render(<Icon3D name="pdf" tone="violet" />).container;
     const timing = (el: HTMLElement) => {
       const s = el.querySelector<HTMLElement>(".i3d")!.style;
       return `${s.getPropertyValue("--i-dur")}/${s.getPropertyValue("--i-delay")}`;
     };
     const first = timing(a);
     cleanup();
-    const b = render(<Icon3D name="pdf" tone="rose" />).container;
+    const b = render(<Icon3D name="pdf" tone="violet" />).container;
     expect(timing(b)).toBe(first);
   });
 });

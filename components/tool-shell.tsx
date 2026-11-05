@@ -119,7 +119,7 @@ export default function ToolShell({
         <div className="related-grid">
           {related.map((t) => (
             <Link
-              className={`related-card tone-${toolTone(t)}`}
+              className={`related-card cat-${toolTone(t)}`}
               key={t.slug}
               href={`/tools/${t.slug}`}
             >

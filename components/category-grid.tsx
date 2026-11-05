@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
 import { categoryMeta, toolsByCategory } from "@/lib/catalog";
-import { CategoryIcon3D } from "@/components/icon-3d";
+import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 
 /**
  * Homepage category cards with a subtle pointer-tracked 3D tilt and glow
@@ -41,7 +41,7 @@ export default function CategoryGrid() {
           <Link
             key={meta.slug}
             href={`/category/${meta.slug}`}
-            className={`category-card ${meta.tint}`}
+            className={`category-card ${meta.tint} cat-${categoryTone(meta.name)}`}
             onPointerMove={onMove}
             onPointerLeave={onLeave}
           >

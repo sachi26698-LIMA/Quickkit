@@ -1,5 +1,5 @@
 import { useId, type CSSProperties, type ReactNode } from "react";
-import type { CategoryMeta, Tool } from "@/lib/catalog";
+import type { CategoryMeta, Tool, ToolCategory } from "@/lib/catalog";
 
 /**
  * Shared 3D icon system.
@@ -21,7 +21,20 @@ import type { CategoryMeta, Tool } from "@/lib/catalog";
  * accessible name. Styles live in app/globals.css under "Glass design system".
  */
 
-export type Tone = "rose" | "mint" | "lavender" | "peach" | "sky" | "plum";
+/**
+ * One colour identity per category. Tools inherit the tone of their primary
+ * category, so a category reads as one family while every tool keeps its own
+ * glyph.
+ */
+export type Tone =
+  | "violet"
+  | "coral"
+  | "crimson"
+  | "plum"
+  | "indigo"
+  | "azure"
+  | "emerald"
+  | "magenta";
 
 export type GlyphName =
   | "pdf"
@@ -1044,8 +1057,8 @@ export default function Icon3D({
   };
   const style = {
     "--s": `var(--icon-size, ${size}px)`,
-    "--i-dur": `${(5.4 + seed(key, 1) * 3).toFixed(2)}s`,
-    "--i-delay": `${(-seed(key, 2) * 8).toFixed(2)}s`,
+    "--i-dur": `${(3.8 + seed(key, 1) * 2.4).toFixed(2)}s`,
+    "--i-delay": `${(-seed(key, 2) * 7).toFixed(2)}s`,
   } as CSSProperties;
 
   return (
@@ -1140,68 +1153,80 @@ export default function Icon3D({
 /* Catalog mapping                                                     */
 /* ------------------------------------------------------------------ */
 
-type Art = { glyph: GlyphName; tone: Tone };
+/** Category palette: deep + bright pair per category (see globals.css). */
+export const categoryTones: Record<ToolCategory, Tone> = {
+  "PDF Tools": "violet",
+  "Image Tools": "coral",
+  "QR & Barcode": "crimson",
+  "Text & Writing": "plum",
+  "Developer Tools": "indigo",
+  Calculators: "azure",
+  "Security & Privacy": "emerald",
+  "AI Tools": "magenta",
+};
 
-export const categoryArt: Record<CategoryMeta["icon"], Art> = {
-  pdf: { glyph: "pdf", tone: "rose" },
-  image: { glyph: "image", tone: "mint" },
-  qr: { glyph: "qr", tone: "plum" },
-  text: { glyph: "text", tone: "peach" },
-  code: { glyph: "code", tone: "lavender" },
-  calc: { glyph: "calc", tone: "sky" },
-  shield: { glyph: "shield", tone: "mint" },
-  sparkles: { glyph: "sparkles", tone: "rose" },
+export const categoryArt: Record<CategoryMeta["icon"], GlyphName> = {
+  pdf: "pdf",
+  image: "image",
+  qr: "qr",
+  text: "text",
+  code: "code",
+  calc: "calc",
+  shield: "shield",
+  sparkles: "sparkles",
 };
 
 /** One unique glyph per tool, keyed by route slug (the catalog's `icon` key is shared by e.g. every calculator). */
-export const toolArt: Record<string, Art> = {
-  "word-counter": { glyph: "wordCount", tone: "lavender" },
-  "case-converter": { glyph: "case", tone: "peach" },
-  "json-formatter": { glyph: "json", tone: "sky" },
-  "password-generator": { glyph: "key", tone: "plum" },
-  "qr-generator": { glyph: "qrScan", tone: "lavender" },
-  "image-compressor": { glyph: "imgCompress", tone: "mint" },
-  "image-resizer": { glyph: "imgResize", tone: "sky" },
-  "image-cropper": { glyph: "crop", tone: "peach" },
-  "image-to-image": { glyph: "imgSwap", tone: "mint" },
-  "images-to-pdf": { glyph: "imgsToPdf", tone: "rose" },
-  "pdf-to-image": { glyph: "pdfToImg", tone: "peach" },
-  "pdf-studio": { glyph: "layers", tone: "lavender" },
-  "merge-pdf": { glyph: "mergePdf", tone: "rose" },
-  "split-pdf": { glyph: "splitPdf", tone: "mint" },
-  "compress-pdf": { glyph: "compressPdf", tone: "peach" },
-  "word-to-pdf": { glyph: "wordToPdf", tone: "sky" },
-  "pdf-to-word": { glyph: "pdfToWord", tone: "lavender" },
-  "pdf-lock-unlock": { glyph: "pdfLock", tone: "plum" },
-  "percentage-calculator": { glyph: "percent", tone: "peach" },
-  "bmi-calculator": { glyph: "scale", tone: "mint" },
-  "discount-calculator": { glyph: "tag", tone: "rose" },
-  "gst-calculator": { glyph: "receipt", tone: "lavender" },
-  "age-calculator": { glyph: "cake", tone: "rose" },
-  "date-difference-calculator": { glyph: "calendar", tone: "sky" },
-  "emi-calculator": { glyph: "coins", tone: "peach" },
-  "loan-calculator": { glyph: "bank", tone: "plum" },
-  "scientific-calculator": { glyph: "wave", tone: "sky" },
-  "unit-converter": { glyph: "ruler", tone: "mint" },
-  "temperature-converter": { glyph: "thermo", tone: "rose" },
-  "time-converter": { glyph: "clock", tone: "lavender" },
+export const toolArt: Record<string, GlyphName> = {
+  "word-counter": "wordCount",
+  "case-converter": "case",
+  "json-formatter": "json",
+  "password-generator": "key",
+  "qr-generator": "qrScan",
+  "image-compressor": "imgCompress",
+  "image-resizer": "imgResize",
+  "image-cropper": "crop",
+  "image-to-image": "imgSwap",
+  "images-to-pdf": "imgsToPdf",
+  "pdf-to-image": "pdfToImg",
+  "pdf-studio": "layers",
+  "merge-pdf": "mergePdf",
+  "split-pdf": "splitPdf",
+  "compress-pdf": "compressPdf",
+  "word-to-pdf": "wordToPdf",
+  "pdf-to-word": "pdfToWord",
+  "pdf-lock-unlock": "pdfLock",
+  "percentage-calculator": "percent",
+  "bmi-calculator": "scale",
+  "discount-calculator": "tag",
+  "gst-calculator": "receipt",
+  "age-calculator": "cake",
+  "date-difference-calculator": "calendar",
+  "emi-calculator": "coins",
+  "loan-calculator": "bank",
+  "scientific-calculator": "wave",
+  "unit-converter": "ruler",
+  "temperature-converter": "thermo",
+  "time-converter": "clock",
 };
 
 /** Fallback for a tool added to the catalog before it has bespoke art. */
-const fallbackArt: Record<string, Art> = {
-  text: { glyph: "text", tone: "peach" },
-  case: { glyph: "case", tone: "peach" },
-  code: { glyph: "code", tone: "lavender" },
-  key: { glyph: "key", tone: "plum" },
-  qr: { glyph: "qr", tone: "plum" },
-  image: { glyph: "image", tone: "mint" },
-  pdf: { glyph: "pdf", tone: "rose" },
-  calc: { glyph: "calc", tone: "sky" },
+const fallbackArt: Record<string, GlyphName> = {
+  text: "text",
+  case: "case",
+  code: "code",
+  key: "key",
+  qr: "qr",
+  image: "image",
+  pdf: "pdf",
+  calc: "calc",
 };
 
-export function toolTone(tool: Pick<Tool, "slug" | "icon">): Tone {
-  return (toolArt[tool.slug] ?? fallbackArt[tool.icon] ?? categoryArt.sparkles)
-    .tone;
+export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
+
+/** Tone of a tool = tone of its primary category. */
+export function toolTone(tool: Pick<Tool, "category">): Tone {
+  return categoryTones[tool.category as ToolCategory] ?? "violet";
 }
 
 export function ToolIcon3D({
@@ -1209,16 +1234,15 @@ export function ToolIcon3D({
   size = 56,
   className,
 }: {
-  tool: Pick<Tool, "slug" | "icon">;
+  tool: Pick<Tool, "slug" | "icon" | "category">;
   size?: number;
   className?: string;
 }) {
-  const art =
-    toolArt[tool.slug] ?? fallbackArt[tool.icon] ?? categoryArt.sparkles;
+  const glyph = toolArt[tool.slug] ?? fallbackArt[tool.icon] ?? "sparkles";
   return (
     <Icon3D
-      name={art.glyph}
-      tone={art.tone}
+      name={glyph}
+      tone={toolTone(tool)}
       size={size}
       className={className}
       motionKey={tool.slug}
@@ -1235,11 +1259,10 @@ export function CategoryIcon3D({
   size?: number;
   className?: string;
 }) {
-  const art = categoryArt[meta.icon];
   return (
     <Icon3D
-      name={art.glyph}
-      tone={art.tone}
+      name={categoryArt[meta.icon]}
+      tone={categoryTone(meta.name)}
       size={size}
       className={className}
       motionKey={`cat-${meta.slug}`}

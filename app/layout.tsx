@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import IconMotionGate from "@/components/icon-motion-gate";
 import { indexingEnabled } from "@/lib/launch";
 import { siteOrigin } from "@/lib/seo";
 import "./globals.css";
@@ -52,6 +53,7 @@ export default function Layout({
           {children}
         </main>
         <Footer />
+        <IconMotionGate />
       </body>
     </html>
   );

@@ -59,7 +59,7 @@ export default function CalculatorCategoryGrid({ tools }: { tools: Tool[] }) {
         Showing {found.length} of {tools.length} calculators
       </p>
       {found.length ? (
-        <div className="tool-grid category-tools">
+        <div className="tool-grid category-tools cat-azure">
           {found.map((tool) => (
             <ToolCard key={tool.slug} tool={tool} />
           ))}

@@ -17,7 +17,7 @@ export default function ToolCard({
   category?: string;
 }) {
   return (
-    <article className={`tool-card tone-${toolTone(tool)}`}>
+    <article className={`tool-card cat-${toolTone(tool)}`}>
       <div className="card-top">
         <ToolIcon3D tool={tool} size={60} />
         <span className="card-top-right">
