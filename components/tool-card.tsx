@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { Tool } from "@/lib/catalog";
-import ToolIcon from "@/components/tool-icon";
+import { ToolIcon3D, toolTone } from "@/components/icon-3d";
 import FavoriteButton from "@/components/favorite-button";
 
 /**
@@ -17,9 +17,9 @@ export default function ToolCard({
   category?: string;
 }) {
   return (
-    <article className="tool-card">
+    <article className={`tool-card tone-${toolTone(tool)}`}>
       <div className="card-top">
-        <ToolIcon icon={tool.icon} color={tool.color} />
+        <ToolIcon3D tool={tool} size={60} />
         <span className="card-top-right">
           <span className="category-label">{category ?? tool.category}</span>
           <FavoriteButton slug={tool.slug} name={tool.name} />

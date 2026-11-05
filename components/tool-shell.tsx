@@ -6,7 +6,7 @@ import {
   toolCategoriesOf,
   tools,
 } from "@/lib/catalog";
-import ToolIcon from "./tool-icon";
+import { ToolIcon3D, toolTone } from "./icon-3d";
 export type ToolContent = { steps: string[]; faqs: { q: string; a: string }[] };
 export default function ToolShell({
   slug,
@@ -48,7 +48,7 @@ export default function ToolShell({
       </nav>
       {compact ? (
         <header className="tool-title tool-title-compact">
-          <ToolIcon icon={tool.icon} color={tool.color} />
+          <ToolIcon3D tool={tool} size={64} />
           <div className="tool-title-copy">
             <h1>{tool.name}</h1>
             <p>{headingDescription ?? tool.description}</p>
@@ -57,7 +57,7 @@ export default function ToolShell({
         </header>
       ) : (
         <header className="tool-title">
-          <ToolIcon icon={tool.icon} color={tool.color} />
+          <ToolIcon3D tool={tool} size={64} />
           <span className="eyebrow">
             {toolCategories.join(" · ")} · Free browser tool
           </span>
@@ -119,11 +119,11 @@ export default function ToolShell({
         <div className="related-grid">
           {related.map((t) => (
             <Link
-              className="related-card"
+              className={`related-card tone-${toolTone(t)}`}
               key={t.slug}
               href={`/tools/${t.slug}`}
             >
-              <ToolIcon icon={t.icon} color={t.color} />
+              <ToolIcon3D tool={t} size={48} />
               <span>
                 <strong>{t.name}</strong>
                 <small>{t.category}</small>
