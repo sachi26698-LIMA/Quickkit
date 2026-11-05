@@ -160,6 +160,18 @@ export const tools = [
     phase: 2,
   },
   {
+    slug: "qr-code-scanner",
+    name: "QR Code Scanner",
+    category: "QR & Barcode",
+    description:
+      "Scan QR codes with your camera, an uploaded image or a whole folder of screenshots — decode every code in a picture, identify its content type and inspect the destination before you open it.",
+    keywords:
+      "scan scanner reader decode camera webcam upload image screenshot batch multiple codes wifi vcard contact url link payment upi crypto security phishing inspect history export csv json txt offline free qrcode",
+    icon: "scan",
+    color: "blue",
+    phase: 14,
+  },
+  {
     slug: "image-compressor",
     name: "Image Compressor",
     category: "Image Tools",

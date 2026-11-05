@@ -79,6 +79,36 @@ describe("next.config header policy", () => {
     }
   });
 
+  it("allows the camera on the QR scanner page only", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    try {
+      const { default: config } = await import("../next.config");
+      const rules = (await config.headers?.()) ?? [];
+      const permissionRule = (source: string) =>
+        rules
+          .filter((rule) => rule.source === source)
+          .flatMap((rule) => rule.headers as HeaderEntry[])
+          .find((header) => header.key === "Permissions-Policy")?.value ?? "";
+
+      // The scanner needs a camera for its live mode, and a scoped rule is the
+      // only way to say yes to one page without saying yes to the whole site.
+      expect(permissionRule("/tools/qr-code-scanner")).toContain(
+        "camera=(self)",
+      );
+      // Everything else keeps the camera off: no other tool asks for it.
+      expect(permissionRule("/:path*")).toContain("camera=()");
+      expect(permissionRule("/:path*")).not.toContain("camera=(self)");
+      // Microphone and location stay off everywhere, scanner included.
+      for (const source of ["/:path*", "/tools/qr-code-scanner"])
+        expect(permissionRule(source)).toContain(
+          "microphone=(), geolocation=()",
+        );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("only widens the dev-origin guard while developing", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
