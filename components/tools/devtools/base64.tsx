@@ -14,6 +14,7 @@ import {
   DevToolFrame,
   DevToggle,
   type ToolMessage,
+  yieldForUi,
 } from "./shared";
 
 const EXAMPLE_TEXT = "Hello, नमस्ते 👋";
@@ -26,6 +27,7 @@ export default function Base64Tool() {
   const [file, setFile] = useState<File | null>(null);
   const [binaryOutput, setBinaryOutput] = useState<Uint8Array | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<ToolMessage | null>(null);
 
   const clear = () => {
@@ -43,9 +45,13 @@ export default function Base64Tool() {
   };
 
   async function transform() {
+    setBusy(true);
+    setOutput("");
+    setBinaryOutput(null);
+    setCompleted(false);
+    setMessage(null);
     try {
-      setBinaryOutput(null);
-      setCompleted(false);
+      await yieldForUi();
       if (direction === "encode") {
         const bytes = file
           ? new Uint8Array(await file.arrayBuffer())
@@ -98,6 +104,8 @@ export default function Base64Tool() {
             ? error.message
             : "Could not process this Base64 input.",
       });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -129,6 +137,8 @@ export default function Base64Tool() {
       description="Encode UTF-8 text or a local file to Base64, then decode it as readable UTF-8 or download the original bytes."
       message={message}
       output={output}
+      busy={busy}
+      busyLabel="Encoding or decoding locally…"
       copyText={binaryOutput ? "" : output}
       filename={
         direction === "encode" ? "quickkit.base64.txt" : "quickkit-decoded.txt"
@@ -214,11 +224,14 @@ export default function Base64Tool() {
             direction === "encode"
               ? (selected) => {
                   if (selected.size > MAX_BASE64_FILE_BYTES) {
+                    setFile(null);
+                    setOutput("");
+                    setBinaryOutput(null);
+                    setCompleted(false);
                     setMessage({
                       kind: "error",
                       text: `File is too large. Keep it below ${MAX_BASE64_FILE_BYTES.toLocaleString()} bytes.`,
                     });
-                    setFile(null);
                     return;
                   }
                   setFile(selected);

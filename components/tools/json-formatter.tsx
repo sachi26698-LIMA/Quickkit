@@ -21,7 +21,11 @@ import {
 import { formatBytes } from "@/lib/tools/download";
 import CopyButton from "./copy-button";
 import { CharMeter, DownloadTextButton, WorkspaceHeading } from "./tool-ui";
-import { DevCodeOutput } from "./devtools/shared";
+import {
+  DevCodeOutput,
+  DevProcessingIndicator,
+  yieldForUi,
+} from "./devtools/shared";
 
 type Inspect = ReturnType<typeof inspectJson> | null;
 type ErrorSpot = ReturnType<typeof locateJsonError>;
@@ -38,6 +42,8 @@ export default function JsonFormatter() {
   const [view, setView] = useState<JsonView>("text");
   const [indent, setIndent] = useState<JsonIndent>(2);
   const [sortKeys, setSortKeys] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState("Processing JSON locally…");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const indentLabel = indent === "\t" ? "tab" : `${indent}-space`;
@@ -51,8 +57,16 @@ export default function JsonFormatter() {
     setError(false);
   }
 
-  function process(mode: "format" | "minify" | "validate") {
+  async function process(mode: "format" | "minify" | "validate") {
+    setBusyLabel(
+      mode === "validate"
+        ? "Validating JSON locally…"
+        : "Processing JSON locally…",
+    );
+    setBusy(true);
+    clearResults();
     try {
+      await yieldForUi();
       const result = processJson(input, mode, { indent, sortKeys });
       setOutput(result);
       setView("text");
@@ -78,23 +92,41 @@ export default function JsonFormatter() {
         e instanceof Error ? e.message : "Could not process this JSON.",
       );
       setError(true);
+    } finally {
+      setBusy(false);
     }
   }
 
   async function loadFile(file: File | undefined) {
     if (!file) return;
-    if (file.size > MAX_JSON_LENGTH) {
-      clearResults();
-      setError(true);
-      setStatus("JSON is too large. Keep input below 1,000,000 characters.");
-      return;
-    }
-    const text = await file.text();
-    setInput(text);
+    setBusyLabel("Reading JSON locally…");
+    setBusy(true);
     clearResults();
-    setStatus(
-      `Loaded ${file.name} (${formatBytes(file.size)}). Choose an action below.`,
-    );
+    try {
+      if (file.size > MAX_JSON_LENGTH * 4) {
+        throw new Error(
+          "JSON file is too large. Keep input below 1,000,000 characters.",
+        );
+      }
+      await yieldForUi();
+      const text = await file.text();
+      if (text.length > MAX_JSON_LENGTH) {
+        throw new Error(
+          "JSON file is too large. Keep input below 1,000,000 characters.",
+        );
+      }
+      setInput(text);
+      setStatus(
+        `Loaded ${file.name} (${formatBytes(file.size)}). Choose an action below.`,
+      );
+    } catch (e) {
+      setError(true);
+      setStatus(
+        e instanceof Error ? e.message : "Could not read this JSON file.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   const sizeDelta =
@@ -105,7 +137,7 @@ export default function JsonFormatter() {
   return (
     <fieldset
       className="workspace"
-      disabled={!ready}
+      disabled={!ready || busy}
       aria-label="Tool workspace"
     >
       <WorkspaceHeading
@@ -270,6 +302,7 @@ export default function JsonFormatter() {
           <CircleCheck size={16} /> Validate
         </button>
       </div>
+      {busy ? <DevProcessingIndicator label={busyLabel} /> : null}
       {status && (
         <div className={`status ${error ? "error" : "success"}`} role="status">
           <p>

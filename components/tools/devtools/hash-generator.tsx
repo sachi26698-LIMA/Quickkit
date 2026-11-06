@@ -14,6 +14,7 @@ import {
   DevTextOutput,
   DevToolFrame,
   type ToolMessage,
+  yieldForUi,
 } from "./shared";
 
 const ALGORITHMS: HashAlgorithm[] = ["MD5", "SHA-1", "SHA-256", "SHA-512"];
@@ -43,8 +44,11 @@ export default function HashGenerator() {
 
   async function generate() {
     setBusy(true);
+    setOutput("");
+    setMessage(null);
     setProgress(0);
     try {
+      await yieldForUi();
       const digest =
         source === "file" && file
           ? await hashFile(file, algorithm, setProgress)
@@ -76,6 +80,8 @@ export default function HashGenerator() {
   function loadFile(selected: File) {
     if (selected.size > MAX_HASH_FILE_BYTES) {
       setFile(null);
+      setOutput("");
+      setProgress(0);
       setMessage({
         kind: "error",
         text: `File is too large. Keep it below ${Math.round(MAX_HASH_FILE_BYTES / 1024 / 1024)} MB.`,
@@ -98,6 +104,8 @@ export default function HashGenerator() {
       description="Generate MD5, SHA-1, SHA-256 or SHA-512 from UTF-8 text or local file bytes. Hashing is chunked and stays in your browser."
       message={message}
       output={output}
+      busy={busy}
+      busyLabel=""
       filename={`quickkit-${algorithm.toLowerCase().replaceAll("-", "")}-hash.txt`}
       mimeType="text/plain;charset=utf-8"
       downloadLabel="Download hash"

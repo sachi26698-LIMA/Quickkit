@@ -8,6 +8,7 @@ import {
   DevTextOutput,
   DevToolFrame,
   type ToolMessage,
+  yieldForUi,
 } from "./shared";
 
 const JSON_VALIDATOR_SAMPLE = `{"service":"QUICKKIT","ready":true,"tools":["format","validate"]}`;
@@ -16,6 +17,8 @@ export default function JsonValidator() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [message, setMessage] = useState<ToolMessage | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState("Validating JSON locally…");
 
   const clear = () => {
     setInput("");
@@ -24,8 +27,13 @@ export default function JsonValidator() {
   };
   const reset = () => clear();
 
-  function validate() {
+  async function validate() {
+    setBusyLabel("Validating JSON locally…");
+    setBusy(true);
+    setOutput("");
+    setMessage(null);
     try {
+      await yieldForUi();
       const normalized = processJson(input, "validate");
       const summary = inspectJson(input);
       setOutput(normalized);
@@ -44,20 +52,25 @@ export default function JsonValidator() {
           ? ` Error near line ${spot.line}, column ${spot.column}.`
           : "";
         const excerpt = spot ? ` ${spot.excerpt.replace("\n", " — ")}` : "";
-        setOutput("");
         setMessage({
           kind: "error",
           text: `${reason}${location}${excerpt} JSON requires double-quoted keys and strings, commas between values, matching brackets, and no trailing commas.`,
         });
       } else {
-        setOutput("");
         setMessage({ kind: "error", text: reason });
       }
+    } finally {
+      setBusy(false);
     }
   }
 
   async function loadFile(file: File) {
+    setBusyLabel("Reading JSON locally…");
+    setBusy(true);
+    setOutput("");
+    setMessage(null);
     try {
+      await yieldForUi();
       if (file.size > MAX_DEVELOPER_TEXT_LENGTH) {
         throw new Error(
           "JSON file is too large. Keep it below 1,000,000 bytes.",
@@ -76,6 +89,8 @@ export default function JsonValidator() {
         text:
           error instanceof Error ? error.message : "Could not read this file.",
       });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -85,6 +100,8 @@ export default function JsonValidator() {
       description="Validate JSON without transforming your source or executing anything. Errors include a line and column when available."
       message={message}
       output={output}
+      busy={busy}
+      busyLabel={busyLabel}
       filename="quickkit-validated.json"
       mimeType="application/json;charset=utf-8"
       downloadLabel="Download JSON"

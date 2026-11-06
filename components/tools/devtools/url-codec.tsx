@@ -7,6 +7,7 @@ import {
   DevToolFrame,
   DevToggle,
   type ToolMessage,
+  yieldForUi,
 } from "./shared";
 
 const URL_SAMPLE = "https://example.com/search?q=hello world&lang=नमस्ते";
@@ -17,6 +18,7 @@ export default function UrlCodec() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [message, setMessage] = useState<ToolMessage | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const clear = () => {
     setInput("");
@@ -28,8 +30,12 @@ export default function UrlCodec() {
     setDirection("encode");
     setMode("component");
   };
-  function process() {
+  async function process() {
+    setBusy(true);
+    setOutput("");
+    setMessage(null);
     try {
+      await yieldForUi();
       const result =
         direction === "encode"
           ? encodeUrl(input, mode)
@@ -48,6 +54,8 @@ export default function UrlCodec() {
             ? error.message
             : "Could not process this URL.",
       });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -65,6 +73,8 @@ export default function UrlCodec() {
       description="Switch between full-URL encoding (keeps URL separators) and component encoding (escapes reserved characters inside a query value)."
       message={message}
       output={output}
+      busy={busy}
+      busyLabel="Encoding or decoding URL locally…"
       filename="quickkit-url.txt"
       mimeType="text/plain;charset=utf-8"
       downloadLabel="Download result"
@@ -145,7 +155,11 @@ export default function UrlCodec() {
         />
       </div>
       <div className="devtool-action-row">
-        <button type="button" className="primary" onClick={process}>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => void process()}
+        >
           {direction === "encode" ? "Encode URL" : "Decode URL"}
         </button>
       </div>

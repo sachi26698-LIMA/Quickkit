@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -8,13 +8,18 @@ const screenshots = path.resolve("test-results/developer-tools");
 async function capture(page: Page, name: string) {
   await mkdir(screenshots, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 1200 });
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     document.documentElement.style.scrollBehavior = "auto";
     document.body.style.scrollBehavior = "auto";
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-    window.scrollTo(0, 0);
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() =>
+        window.requestAnimationFrame(() => resolve()),
+      );
+    });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     for (const element of document.querySelectorAll<HTMLElement>(
       "textarea, pre",
     )) {
@@ -22,10 +27,47 @@ async function capture(page: Page, name: string) {
       element.scrollLeft = 0;
     }
   });
+  await page.waitForFunction(() => window.scrollY === 0);
   await page.screenshot({
     path: path.join(screenshots, `${name}.png`),
     animations: "disabled",
+    fullPage: true,
   });
+}
+
+async function readOutputText(output: Locator): Promise<string> {
+  return output.evaluate((element) => {
+    if (
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLInputElement
+    ) {
+      return element.value;
+    }
+    if (element.querySelector(".devtool-output-placeholder")) return "";
+    return element.textContent ?? "";
+  });
+}
+
+async function expectCopyAndDownload(
+  page: Page,
+  output: Locator,
+  downloadLabel: string,
+  filename: string,
+) {
+  const text = await readOutputText(output);
+  expect(text.length).toBeGreaterThan(0);
+  await page.getByRole("button", { name: "Copy", exact: true }).click();
+  await expect(
+    page.getByText("Copied to clipboard.", { exact: true }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(text);
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: downloadLabel, exact: true }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe(filename);
+  expect(await readFile((await download.path())!)).toEqual(Buffer.from(text));
 }
 
 test.describe("the eleven Developer Tools", () => {
@@ -111,6 +153,101 @@ test.describe("the eleven Developer Tools", () => {
     await expect(page).toHaveURL(/\/tools\/xml-formatter$/u);
   });
 
+  test("tool search supports its keyboard shortcut and favorites persist accessibly", async ({
+    page,
+  }) => {
+    await page.goto("/tools?category=developer-tools", {
+      waitUntil: "networkidle",
+    });
+    const search = page.getByRole("searchbox", { name: "Search tools" });
+    await expect(search).toBeEnabled();
+    await page.keyboard.press("Control+k");
+    await expect(search).toBeFocused();
+    await search.fill("XML Formatter");
+    await expect(page.getByRole("status")).toHaveText("1 tools found");
+    await page.keyboard.press("Escape");
+    await expect(search).toHaveValue("");
+
+    const save = page.getByRole("button", { name: "Save XML Formatter" });
+    await save.focus();
+    await expect(save).toBeFocused();
+    await page.keyboard.press("Space");
+    const remove = page.getByRole("button", {
+      name: "Remove XML Formatter from saved tools",
+    });
+    await expect(remove).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("link", { name: "Saved tools (1)" }).click();
+    await expect(page).toHaveURL(/\/saved$/u);
+    await expect(
+      page.getByRole("link", { name: "XML Formatter", exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", {
+        name: "Remove XML Formatter from saved tools",
+      })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "No saved tools yet" }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(() => localStorage.getItem("quickkit:saved-tools")),
+    ).toBe("[]");
+  });
+
+  test("JSON tool actions and output views work with keyboard-only activation", async ({
+    page,
+  }) => {
+    await page.goto("/tools/json-formatter");
+    await page
+      .getByLabel("JSON input", { exact: true })
+      .fill('{"keyboard":true}');
+    const format = page.getByRole("button", {
+      name: "Format JSON",
+      exact: true,
+    });
+    await format.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByLabel("JSON result", { exact: true })).toHaveValue(
+      '{\n  "keyboard": true\n}',
+    );
+    const syntax = page.getByRole("button", { name: "Syntax", exact: true });
+    await syntax.focus();
+    await page.keyboard.press("Space");
+    await expect(
+      page.getByRole("textbox", { name: "JSON syntax-highlighted output" }),
+    ).toContainText('"keyboard"');
+  });
+
+  test("Developer Tool motion becomes static when reduced motion is requested", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/tools/html-formatter");
+    const motionStyles = await page.evaluate(() => {
+      const workspace = document.querySelector(".workspace");
+      const spinner = document.createElement("span");
+      spinner.className = "devtool-processing-spinner";
+      workspace?.append(spinner);
+      const spinnerAnimation = getComputedStyle(spinner).animationName;
+      spinner.remove();
+      const editor = document.querySelector(".devtool-editor");
+      return {
+        spinnerAnimation,
+        editorTransition: editor
+          ? getComputedStyle(editor).transitionDuration
+          : "",
+        iconAnimation: getComputedStyle(
+          document.querySelector(".tool-title .i3d-body")!,
+        ).animationName,
+      };
+    });
+    expect(motionStyles.spinnerAnimation).toBe("none");
+    expect(
+      Number.parseFloat(motionStyles.editorTransition),
+    ).toBeLessThanOrEqual(0.00001);
+    expect(motionStyles.iconAnimation).toBe("none");
+  });
+
   test("JSON Formatter adds safe syntax/tree views and a working reset", async ({
     page,
     context,
@@ -119,12 +256,12 @@ test.describe("the eleven Developer Tools", () => {
     await page.goto("/tools/json-formatter");
     await page
       .getByLabel("JSON input", { exact: true })
-      .fill('{"hello":"世界","ready":true}');
+      .fill('{"hello":"world","ready":true}');
     await page
       .getByRole("button", { name: "Format JSON", exact: true })
       .click();
     await expect(page.getByLabel("JSON result", { exact: true })).toHaveValue(
-      '{\n  "hello": "世界",\n  "ready": true\n}',
+      '{\n  "hello": "world",\n  "ready": true\n}',
     );
     await page.getByRole("button", { name: "Syntax", exact: true }).click();
     await expect(
@@ -141,7 +278,7 @@ test.describe("the eleven Developer Tools", () => {
       await page.getByRole("button", { name: "Copy", exact: true }).click();
       await expect(page.getByText("Copied to clipboard.")).toBeVisible();
       expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-        '{\n  "hello": "世界",\n  "ready": true\n}',
+        '{\n  "hello": "world",\n  "ready": true\n}',
       );
     }
     await capture(page, "json-formatter");
@@ -191,6 +328,34 @@ test.describe("the eleven Developer Tools", () => {
     await expect(
       page.getByLabel("Validation result", { exact: true }),
     ).toHaveValue("");
+    await page
+      .getByRole("button", { name: "Validate JSON", exact: true })
+      .click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "Enter JSON first",
+    );
+
+    await page.getByLabel("JSON input", { exact: true }).fill('{"ok":true}');
+    await page
+      .getByRole("button", { name: "Validate JSON", exact: true })
+      .click();
+    await expect(
+      page.getByLabel("Validation result", { exact: true }),
+    ).not.toHaveValue("");
+    await page.getByLabel("Open JSON file", { exact: true }).setInputFiles({
+      name: "over-limit.json",
+      mimeType: "application/json",
+      buffer: Buffer.alloc(1_000_001, 0x20),
+    });
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "too large",
+    );
+    await expect(
+      page.getByLabel("Validation result", { exact: true }),
+    ).toHaveValue("");
+    await expect(
+      page.getByRole("button", { name: "Download JSON", exact: true }),
+    ).toBeDisabled();
   });
 
   test("HTML formatting and minification leave script text inert", async ({
@@ -224,7 +389,23 @@ test.describe("the eleven Developer Tools", () => {
       page.getByRole("textbox", { name: "HTML output" }),
     ).toContainText(`globalThis.${marker}=true`);
     await expect(page.getByText("Original UTF-8 size")).toBeVisible();
+    await page
+      .getByLabel("HTML input", { exact: true })
+      .fill("<main><h1>Hello world</h1></main>");
+    await page
+      .getByRole("button", { name: "Format HTML", exact: true })
+      .click();
+    await expect(
+      page.getByRole("textbox", { name: "HTML output" }),
+    ).toContainText("Hello world");
     await capture(page, "html-formatter");
+    await page.getByLabel("HTML input", { exact: true }).fill("<main><");
+    await page
+      .getByRole("button", { name: "Format HTML", exact: true })
+      .click();
+    await expect(page.locator(".devtool-message.success")).toContainText(
+      "HTML formatted locally",
+    );
   });
 
   test("CSS and JavaScript minifiers transform source without executing it", async ({
@@ -239,6 +420,13 @@ test.describe("the eleven Developer Tools", () => {
       page.getByRole("textbox", { name: "CSS minified output" }),
     ).toContainText(".card{color:#fff");
     await capture(page, "css-minifier");
+    await page
+      .getByLabel("CSS input", { exact: true })
+      .fill(".broken { color: red");
+    await page.getByRole("button", { name: "Minify CSS", exact: true }).click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "line 1, column 9",
+    );
 
     await page.goto("/tools/javascript-minifier");
     const marker = "__quickkit_js_code_was_not_executed__";
@@ -259,7 +447,25 @@ test.describe("the eleven Developer Tools", () => {
         marker,
       ),
     ).toBeUndefined();
+    await page
+      .getByLabel("JavaScript input", { exact: true })
+      .fill("function greet(name) { return name; }");
+    await page
+      .getByRole("button", { name: "Minify JavaScript", exact: true })
+      .click();
+    await expect(
+      page.getByRole("textbox", { name: "JavaScript minified output" }),
+    ).toContainText("greet");
     await capture(page, "javascript-minifier");
+    await page
+      .getByLabel("JavaScript input", { exact: true })
+      .fill("function (");
+    await page
+      .getByRole("button", { name: "Minify JavaScript", exact: true })
+      .click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      /line 1, column \d+/u,
+    );
   });
 
   test("Base64 round-trips Unicode, copies text and downloads exact binary bytes", async ({
@@ -268,7 +474,7 @@ test.describe("the eleven Developer Tools", () => {
     browserName,
   }) => {
     await page.goto("/tools/base64-encoder-decoder");
-    const text = "नमस्ते 🌍";
+    const text = "Hello, world!";
     const encoded = Buffer.from(text, "utf8").toString("base64");
     await page.getByLabel("Text or Base64 input", { exact: true }).fill(text);
     await page
@@ -287,14 +493,26 @@ test.describe("the eleven Developer Tools", () => {
     }
     await capture(page, "base64-encoder-decoder");
 
+    const unicodeText = "नमस्ते 🌍";
+    const unicodeEncoded = Buffer.from(unicodeText, "utf8").toString("base64");
+    await page
+      .getByLabel("Text or Base64 input", { exact: true })
+      .fill(unicodeText);
+    await page
+      .getByRole("button", { name: "Encode Base64", exact: true })
+      .click();
+    await expect(page.getByLabel("Base64 output", { exact: true })).toHaveValue(
+      unicodeEncoded,
+    );
+
     await page.getByRole("button", { name: "Decode", exact: true }).click();
-    await page.getByLabel("Base64 input", { exact: true }).fill(encoded);
+    await page.getByLabel("Base64 input", { exact: true }).fill(unicodeEncoded);
     await page
       .getByRole("button", { name: "Decode Base64", exact: true })
       .click();
     await expect(
       page.getByLabel("Decoded UTF-8 output", { exact: true }),
-    ).toHaveValue(text);
+    ).toHaveValue(unicodeText);
 
     await page
       .getByRole("button", { name: "Binary file", exact: true })
@@ -310,6 +528,23 @@ test.describe("the eleven Developer Tools", () => {
         .click(),
     ]);
     expect([...(await readFile((await download.path())!))]).toEqual([0, 255]);
+
+    await page.getByRole("button", { name: "UTF-8 text", exact: true }).click();
+    await page.getByLabel("Base64 input", { exact: true }).fill("//4=");
+    await page
+      .getByRole("button", { name: "Decode Base64", exact: true })
+      .click();
+    await expect(page.locator(".devtool-message.error")).toBeVisible();
+    await expect(
+      page.getByLabel("Decoded UTF-8 output", { exact: true }),
+    ).toHaveValue("");
+    await page.getByLabel("Base64 input", { exact: true }).fill("%%%");
+    await page
+      .getByRole("button", { name: "Decode Base64", exact: true })
+      .click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "Invalid Base64",
+    );
   });
 
   test("URL component and full-URL modes preserve their different semantics", async ({
@@ -328,7 +563,23 @@ test.describe("the eleven Developer Tools", () => {
     await expect(
       page.getByLabel("Encoded URL output", { exact: true }),
     ).toHaveValue(encodeURI(value));
+    const screenshotValue = "https://example.com/?q=hello world";
+    await page
+      .getByLabel("URL or query value", { exact: true })
+      .fill(screenshotValue);
+    await page.getByRole("button", { name: "Encode URL", exact: true }).click();
+    await expect(
+      page.getByLabel("Encoded URL output", { exact: true }),
+    ).toHaveValue(encodeURI(screenshotValue));
     await capture(page, "url-encoder-decoder");
+    await page.getByRole("button", { name: "Decode", exact: true }).click();
+    await page
+      .getByLabel("Encoded URL or component", { exact: true })
+      .fill("%A");
+    await page.getByRole("button", { name: "Decode URL", exact: true }).click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "Invalid percent-encoding",
+    );
   });
 
   test("UUID generator creates unique valid v4 batches", async ({ page }) => {
@@ -337,9 +588,9 @@ test.describe("the eleven Developer Tools", () => {
     await page
       .getByRole("button", { name: "Generate UUIDs", exact: true })
       .click();
-    const values = (
-      await page.getByLabel("Generated UUIDs", { exact: true }).inputValue()
-    ).split("\n");
+    const generated = page.getByLabel("Generated UUIDs", { exact: true });
+    await expect(generated).not.toHaveValue("");
+    const values = (await generated.inputValue()).split("\n");
     expect(values).toHaveLength(4);
     expect(new Set(values).size).toBe(4);
     for (const value of values) {
@@ -352,6 +603,16 @@ test.describe("the eleven Developer Tools", () => {
     await expect(page.getByLabel("UUID quantity", { exact: true })).toHaveValue(
       "10",
     );
+    await page.getByLabel("UUID quantity", { exact: true }).fill("0");
+    await page
+      .getByRole("button", { name: "Generate UUIDs", exact: true })
+      .click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "Choose a whole number",
+    );
+    await expect(
+      page.getByLabel("Generated UUIDs", { exact: true }),
+    ).toHaveValue("");
   });
 
   test("Regex Tester matches safely and caps oversized replacement previews", async ({
@@ -392,6 +653,13 @@ test.describe("the eleven Developer Tools", () => {
     await expect(
       page.getByRole("button", { name: "Download replacement", exact: true }),
     ).toBeDisabled();
+    await page.getByLabel("Regular expression", { exact: true }).fill("[");
+    await expect(page.locator(".devtool-message.error")).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(
+      page.getByLabel("Replacement preview", { exact: true }),
+    ).toHaveValue("");
   });
 
   test("Hash Generator matches a known digest and hashes local files in chunks", async ({
@@ -436,17 +704,201 @@ test.describe("the eleven Developer Tools", () => {
     await expect(
       page.getByRole("textbox", { name: "XML output" }),
     ).toContainText("નમસ્તે");
-    await capture(page, "xml-formatter");
     await page.getByRole("button", { name: "Minify XML", exact: true }).click();
     await expect(
       page.getByRole("textbox", { name: "XML output" }),
     ).toContainText("<root><a>નમસ્તે</a><b>世界</b></root>");
     await page
       .getByLabel("XML input", { exact: true })
+      .fill("<root><name>Quickkit</name><ready>true</ready></root>");
+    await page.getByRole("button", { name: "Format XML", exact: true }).click();
+    await expect(
+      page.getByRole("textbox", { name: "XML output" }),
+    ).toContainText("Quickkit");
+    await capture(page, "xml-formatter");
+    await page
+      .getByLabel("XML input", { exact: true })
       .fill('<!DOCTYPE root [<!ENTITY x "unsafe">]><root>&x;</root>');
     await page.getByRole("button", { name: "Format XML", exact: true }).click();
     await expect(page.locator(".devtool-message.error")).toContainText(
       "DOCTYPE declarations",
+    );
+    await page
+      .getByLabel("XML input", { exact: true })
+      .fill("<root>\n  <item></root>");
+    await page.getByRole("button", { name: "Format XML", exact: true }).click();
+    await expect(page.locator(".devtool-message.error")).toContainText(
+      "line 2, column",
+    );
+  });
+
+  test("every Developer Tool copies its current result and downloads matching bytes", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const runTool = async (
+      slug: string,
+      outputLabel: string,
+      downloadLabel: string,
+      filename: string,
+      prepare: () => Promise<unknown>,
+    ) => {
+      await page.goto(`/tools/${slug}`);
+      await prepare();
+      const output = page.getByLabel(outputLabel, { exact: true });
+      await expect.poll(() => readOutputText(output)).not.toBe("");
+      await expectCopyAndDownload(page, output, downloadLabel, filename);
+    };
+
+    await runTool(
+      "json-formatter",
+      "JSON result",
+      "Download .json",
+      "quickkit.json",
+      async () => {
+        await page.getByLabel("JSON input", { exact: true }).fill('{"a":"🌍"}');
+        await page
+          .getByRole("button", { name: "Format JSON", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "json-validator",
+      "Validation result",
+      "Download JSON",
+      "quickkit-validated.json",
+      async () => {
+        await page.getByLabel("JSON input", { exact: true }).fill('{"a":"🌍"}');
+        await page
+          .getByRole("button", { name: "Validate JSON", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "html-formatter",
+      "HTML output",
+      "Download .html",
+      "quickkit.html",
+      async () => {
+        await page
+          .getByLabel("HTML input", { exact: true })
+          .fill("<main><p>🌍</p></main>");
+        await page
+          .getByRole("button", { name: "Format HTML", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "css-minifier",
+      "CSS minified output",
+      "Download .css",
+      "quickkit.min.css",
+      async () => {
+        await page
+          .getByLabel("CSS input", { exact: true })
+          .fill(".card { color: red; }");
+        await page
+          .getByRole("button", { name: "Minify CSS", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "javascript-minifier",
+      "JavaScript minified output",
+      "Download .js",
+      "quickkit.min.js",
+      async () => {
+        await page
+          .getByLabel("JavaScript input", { exact: true })
+          .fill("function add(a, b) { return a + b; }");
+        await page
+          .getByRole("button", { name: "Minify JavaScript", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "base64-encoder-decoder",
+      "Base64 output",
+      "Download Base64",
+      "quickkit.base64.txt",
+      async () => {
+        await page
+          .getByLabel("Text or Base64 input", { exact: true })
+          .fill("🌍");
+        await page
+          .getByRole("button", { name: "Encode Base64", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "url-encoder-decoder",
+      "Encoded URL output",
+      "Download result",
+      "quickkit-url.txt",
+      async () => {
+        await page
+          .getByLabel("URL or query value", { exact: true })
+          .fill("hello 🌍");
+        await page
+          .getByRole("button", { name: "Encode URL", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "uuid-generator",
+      "Generated UUIDs",
+      "Download UUIDs",
+      "quickkit-uuids.txt",
+      async () => {
+        await page.getByLabel("UUID quantity", { exact: true }).fill("1");
+        await page
+          .getByRole("button", { name: "Generate UUIDs", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "regex-tester",
+      "Replacement preview",
+      "Download replacement",
+      "quickkit-regex-replacement.txt",
+      async () => {
+        await page.getByLabel("Regular expression", { exact: true }).fill("a");
+        await page.getByLabel("Test text", { exact: true }).fill("a b a");
+        await page.getByLabel("Replacement", { exact: true }).fill("x");
+        await expect(page.locator(".devtool-message")).toContainText(
+          "2 matches found",
+          {
+            timeout: 10_000,
+          },
+        );
+      },
+    );
+    await runTool(
+      "hash-generator",
+      "SHA-256 hash",
+      "Download hash",
+      "quickkit-sha256-hash.txt",
+      async () => {
+        await page.getByLabel("Text to hash", { exact: true }).fill("abc");
+        await page
+          .getByRole("button", { name: "Generate hash", exact: true })
+          .click();
+      },
+    );
+    await runTool(
+      "xml-formatter",
+      "XML output",
+      "Download .xml",
+      "quickkit.xml",
+      async () => {
+        await page
+          .getByLabel("XML input", { exact: true })
+          .fill("<root><item>🌍</item></root>");
+        await page
+          .getByRole("button", { name: "Format XML", exact: true })
+          .click();
+      },
     );
   });
 

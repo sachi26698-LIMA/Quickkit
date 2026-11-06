@@ -12,7 +12,12 @@ import {
   type RegexAnalysis,
   type RegexMatch,
 } from "@/lib/tools/regex";
-import { DevTextOutput, DevToolFrame, type ToolMessage } from "./shared";
+import {
+  DevProcessingIndicator,
+  DevTextOutput,
+  DevToolFrame,
+  type ToolMessage,
+} from "./shared";
 
 type Flag = "g" | "i" | "m" | "s" | "u";
 type Flags = Record<Flag, boolean>;
@@ -24,6 +29,7 @@ export default function RegexTester() {
   const [sample, setSample] = useState(REGEX_SAMPLE_TEXT);
   const [replacement, setReplacement] = useState("QUICKKIT");
   const [analysis, setAnalysis] = useState<RegexAnalysis | null>(null);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<ToolMessage | null>(null);
   const flagText = useMemo(
     () =>
@@ -34,9 +40,13 @@ export default function RegexTester() {
   );
 
   useEffect(() => {
-    if (!pattern && !sample && !replacement) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
+      if (!pattern && !sample && !replacement) {
+        setBusy(false);
+        return;
+      }
+      setBusy(true);
       void analyzeRegexInWorker(
         { pattern, flags: flagText, sample, replacement },
         controller.signal,
@@ -56,6 +66,7 @@ export default function RegexTester() {
                 : "success",
             text: `${matchStatus}.${replacementStatus}`,
           });
+          setBusy(false);
         })
         .catch((error: unknown) => {
           if (error instanceof DOMException && error.name === "AbortError")
@@ -68,6 +79,7 @@ export default function RegexTester() {
                 ? error.message
                 : "Could not test this regular expression.",
           });
+          setBusy(false);
         });
     }, 120);
     return () => {
@@ -82,6 +94,7 @@ export default function RegexTester() {
     setReplacement("");
     setAnalysis(null);
     setMessage(null);
+    setBusy(false);
   };
   const reset = () => {
     setPattern("QUICKKIT");
@@ -90,6 +103,7 @@ export default function RegexTester() {
     setReplacement("QUICKKIT");
     setAnalysis(null);
     setMessage(null);
+    setBusy(true);
   };
   const loadSample = () => {
     setPattern("(QUICKKIT): (format|hash)");
@@ -98,6 +112,7 @@ export default function RegexTester() {
     setReplacement("$1 — $2");
     setAnalysis(null);
     setMessage(null);
+    setBusy(true);
   };
 
   return (
@@ -126,7 +141,12 @@ export default function RegexTester() {
             aria-label="Regular expression"
             maxLength={MAX_REGEX_PATTERN_LENGTH}
             value={pattern}
-            onChange={(event) => setPattern(event.currentTarget.value)}
+            onChange={(event) => {
+              setPattern(event.currentTarget.value);
+              setAnalysis(null);
+              setMessage(null);
+              setBusy(true);
+            }}
             placeholder="e.g. (cat|dog)+"
             spellCheck={false}
           />
@@ -143,12 +163,16 @@ export default function RegexTester() {
                 <input
                   type="checkbox"
                   checked={flags[flag]}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const checked = event.currentTarget.checked;
                     setFlags((current) => ({
                       ...current,
-                      [flag]: event.currentTarget.checked,
-                    }))
-                  }
+                      [flag]: checked,
+                    }));
+                    setAnalysis(null);
+                    setMessage(null);
+                    setBusy(true);
+                  }}
                 />
                 <code>{flag}</code>
                 <span>
@@ -173,7 +197,12 @@ export default function RegexTester() {
             aria-label="Replacement"
             maxLength={MAX_REGEX_REPLACEMENT_LENGTH}
             value={replacement}
-            onChange={(event) => setReplacement(event.currentTarget.value)}
+            onChange={(event) => {
+              setReplacement(event.currentTarget.value);
+              setAnalysis(null);
+              setMessage(null);
+              setBusy(true);
+            }}
             placeholder="$1 or replacement text"
           />
         </label>
@@ -181,6 +210,9 @@ export default function RegexTester() {
           Sample pattern
         </button>
       </div>
+      {busy ? (
+        <DevProcessingIndicator label="Testing this pattern in a local worker…" />
+      ) : null}
       <div className="devtool-editors">
         <div className="devtool-editor">
           <div className="devtool-editor-toolbar">
@@ -195,7 +227,12 @@ export default function RegexTester() {
             className="code-input devtool-code-input"
             maxLength={MAX_REGEX_TEST_LENGTH}
             value={sample}
-            onChange={(event) => setSample(event.currentTarget.value)}
+            onChange={(event) => {
+              setSample(event.currentTarget.value);
+              setAnalysis(null);
+              setMessage(null);
+              setBusy(true);
+            }}
             placeholder="Type or paste text to test…"
             spellCheck={false}
           />

@@ -23,6 +23,27 @@ export type ToolMessage = {
 
 export type CodeLanguage = "json" | "html" | "xml" | "css" | "javascript";
 
+export function yieldForUi(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+      window.requestAnimationFrame(() =>
+        window.requestAnimationFrame(() => resolve()),
+      );
+    } else {
+      setTimeout(resolve, 0);
+    }
+  });
+}
+
+export function DevProcessingIndicator({ label }: { label: string }) {
+  return (
+    <div className="devtool-processing" role="status" aria-live="polite">
+      <span className="devtool-processing-spinner" aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+  );
+}
+
 export function ToolMessageBanner({
   message,
 }: {
@@ -62,12 +83,16 @@ export function DevToolFrame({
   onClear,
   onReset,
   help,
+  busy = false,
+  busyLabel = "Processing locally…",
 }: {
   title: string;
   description: string;
   children: ReactNode;
   message: ToolMessage | null;
   output: string;
+  busy?: boolean;
+  busyLabel?: string;
   copyText?: string;
   filename?: string;
   mimeType?: string;
@@ -85,11 +110,12 @@ export function DevToolFrame({
   return (
     <fieldset
       className="workspace devtool-workspace"
-      disabled={!ready}
+      disabled={!ready || busy}
       aria-label="Developer tool workspace"
     >
       <WorkspaceHeading title={title} description={description} />
       {children}
+      {busy && busyLabel ? <DevProcessingIndicator label={busyLabel} /> : null}
       <ToolMessageBanner message={message} />
       <div className="workspace-foot devtool-actions">
         <div className="devtool-reset-actions">

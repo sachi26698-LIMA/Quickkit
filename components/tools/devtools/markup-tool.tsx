@@ -17,6 +17,7 @@ import {
   DevCodeOutput,
   DevToolFrame,
   type ToolMessage,
+  yieldForUi,
 } from "./shared";
 
 type MarkupKind = "html" | "xml";
@@ -33,6 +34,7 @@ export default function MarkupTool({ kind }: { kind: MarkupKind }) {
     null,
   );
   const [completed, setCompleted] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const clear = () => {
     setInput("");
@@ -47,10 +49,13 @@ export default function MarkupTool({ kind }: { kind: MarkupKind }) {
   };
 
   async function transform(mode: "format" | "minify") {
+    setBusy(true);
     setCompleted(false);
     setOutput("");
     setStats(null);
+    setMessage(null);
     try {
+      await yieldForUi();
       const result = isHtml
         ? mode === "format"
           ? await formatHtml(input, { indent })
@@ -73,14 +78,19 @@ export default function MarkupTool({ kind }: { kind: MarkupKind }) {
             ? error.message
             : `Could not process this ${label}.`,
       });
+    } finally {
+      setBusy(false);
     }
   }
 
   async function loadFile(file: File) {
+    setBusy(true);
     setCompleted(false);
     setOutput("");
     setStats(null);
+    setMessage(null);
     try {
+      await yieldForUi();
       if (file.size > MAX_MARKUP_FILE_BYTES) {
         throw new Error(
           `${label} file is too large. Keep it below ${formatBytes(MAX_MARKUP_FILE_BYTES)}.`,
@@ -107,6 +117,8 @@ export default function MarkupTool({ kind }: { kind: MarkupKind }) {
             ? error.message
             : `Could not read this ${label} file.`,
       });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -127,6 +139,8 @@ export default function MarkupTool({ kind }: { kind: MarkupKind }) {
       }
       message={message}
       output={output}
+      busy={busy}
+      busyLabel="Processing markup locally…"
       filename={`quickkit.${extension}`}
       mimeType={`text/${extension};charset=utf-8`}
       downloadLabel={`Download .${extension}`}

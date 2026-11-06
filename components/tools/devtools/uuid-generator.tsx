@@ -5,12 +5,18 @@ import {
   generateUuidBatch,
   UUID_BATCH_LIMIT,
 } from "@/lib/tools/developer-data";
-import { DevTextOutput, DevToolFrame, type ToolMessage } from "./shared";
+import {
+  DevTextOutput,
+  DevToolFrame,
+  type ToolMessage,
+  yieldForUi,
+} from "./shared";
 
 export default function UuidGenerator() {
   const [quantity, setQuantity] = useState("10");
   const [output, setOutput] = useState("");
   const [message, setMessage] = useState<ToolMessage | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const clear = () => {
     setOutput("");
@@ -21,8 +27,12 @@ export default function UuidGenerator() {
     setQuantity("10");
   };
 
-  function generate(count = Number(quantity)) {
+  async function generate(count = Number(quantity)) {
+    setBusy(true);
+    setOutput("");
+    setMessage(null);
     try {
+      await yieldForUi();
       const values = generateUuidBatch(count);
       setOutput(values.join("\n"));
       setMessage({
@@ -36,6 +46,8 @@ export default function UuidGenerator() {
         text:
           error instanceof Error ? error.message : "Could not generate UUIDs.",
       });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -45,6 +57,8 @@ export default function UuidGenerator() {
       description="Generate RFC 4122 variant UUID v4 identifiers with the browser's cryptographically secure random generator. Each batch is checked for duplicates."
       message={message}
       output={output}
+      busy={busy}
+      busyLabel="Generating UUIDs locally…"
       filename="quickkit-uuids.txt"
       mimeType="text/plain;charset=utf-8"
       downloadLabel="Download UUIDs"
@@ -70,7 +84,7 @@ export default function UuidGenerator() {
         <button
           type="button"
           className="toolbar-button"
-          onClick={() => generate(3)}
+          onClick={() => void generate(3)}
         >
           Sample 3 UUIDs
         </button>
@@ -102,7 +116,11 @@ export default function UuidGenerator() {
         />
       </div>
       <div className="devtool-action-row">
-        <button type="button" className="primary" onClick={() => generate()}>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => void generate()}
+        >
           Generate UUIDs
         </button>
       </div>

@@ -15,6 +15,7 @@ import {
   DevCodeOutput,
   DevToolFrame,
   type ToolMessage,
+  yieldForUi,
 } from "./shared";
 
 type MinifierKind = "css" | "javascript";
@@ -29,6 +30,7 @@ export default function MinifierTool({ kind }: { kind: MinifierKind }) {
     null,
   );
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState(`Minifying ${name} locally…`);
   const [completed, setCompleted] = useState(false);
 
   const clear = () => {
@@ -41,11 +43,14 @@ export default function MinifierTool({ kind }: { kind: MinifierKind }) {
   const reset = () => clear();
 
   async function minify() {
+    setBusyLabel(`Minifying ${name} locally…`);
     setBusy(true);
     setCompleted(false);
     setOutput("");
     setStats(null);
+    setMessage(null);
     try {
+      await yieldForUi();
       const result = isCss ? minifyCss(input) : await minifyJavaScript(input);
       setOutput(result);
       setCompleted(true);
@@ -70,10 +75,14 @@ export default function MinifierTool({ kind }: { kind: MinifierKind }) {
   }
 
   async function loadFile(file: File) {
+    setBusyLabel(`Reading ${name} locally…`);
+    setBusy(true);
     setCompleted(false);
     setOutput("");
     setStats(null);
+    setMessage(null);
     try {
+      await yieldForUi();
       if (file.size > MAX_DEVELOPER_TEXT_LENGTH) {
         throw new Error(
           `${name} file is too large. Keep it below 1,000,000 bytes.`,
@@ -95,6 +104,8 @@ export default function MinifierTool({ kind }: { kind: MinifierKind }) {
             ? error.message
             : `Could not read this ${name} file.`,
       });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -113,6 +124,8 @@ export default function MinifierTool({ kind }: { kind: MinifierKind }) {
       }
       message={message}
       output={output}
+      busy={busy}
+      busyLabel={busyLabel}
       filename={filename}
       mimeType={
         isCss ? "text/css;charset=utf-8" : "text/javascript;charset=utf-8"
@@ -180,7 +193,7 @@ export default function MinifierTool({ kind }: { kind: MinifierKind }) {
           onClick={() => void minify()}
           disabled={busy}
         >
-          {busy ? "Minifying…" : `Minify ${name}`}
+          {busy ? "Processing…" : `Minify ${name}`}
         </button>
       </div>
       {stats ? (

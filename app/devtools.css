@@ -1,4 +1,112 @@
 /* Advanced browser-only developer utilities. Scoped per tool page; no homepage rules. */
+.tool-page[data-tool] .devtool-editor {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .tool-page[data-tool] .devtool-editor:hover {
+    transform: translateY(-1px);
+    border-color: rgb(var(--t-rgb) / 0.3);
+    box-shadow:
+      0 12px 28px rgb(var(--t-rgb) / 0.075),
+      inset 0 1px 0 rgb(255 255 255 / 0.82);
+  }
+  :is(
+      .tool-page[data-tool="json-formatter"],
+      .tool-page[data-tool="json-validator"],
+      .tool-page[data-tool="html-formatter"],
+      .tool-page[data-tool="xml-formatter"],
+      .tool-page[data-tool="css-minifier"],
+      .tool-page[data-tool="javascript-minifier"],
+      .tool-page[data-tool="base64-encoder-decoder"],
+      .tool-page[data-tool="hash-generator"],
+      .tool-page[data-tool="url-encoder-decoder"],
+      .tool-page[data-tool="uuid-generator"],
+      .tool-page[data-tool="regex-tester"]
+    )
+    .tool-title:hover
+    > .i3d
+    .i3d-tilt {
+    translate: 0 -8% calc(var(--s) * 0.3);
+    scale: 1.1;
+    transform: rotateX(10deg) rotateY(calc(-12deg + var(--ry, 0deg) * 1.5));
+  }
+  :is(
+      .tool-page[data-tool="json-formatter"],
+      .tool-page[data-tool="json-validator"],
+      .tool-page[data-tool="html-formatter"],
+      .tool-page[data-tool="xml-formatter"],
+      .tool-page[data-tool="css-minifier"],
+      .tool-page[data-tool="javascript-minifier"],
+      .tool-page[data-tool="base64-encoder-decoder"],
+      .tool-page[data-tool="hash-generator"],
+      .tool-page[data-tool="url-encoder-decoder"],
+      .tool-page[data-tool="uuid-generator"],
+      .tool-page[data-tool="regex-tester"]
+    )
+    .tool-title:hover
+    > .i3d
+    .i3d-shadow {
+    scale: 1.2 1.1;
+  }
+  :is(
+      .tool-page[data-tool="json-formatter"],
+      .tool-page[data-tool="json-validator"],
+      .tool-page[data-tool="html-formatter"],
+      .tool-page[data-tool="xml-formatter"],
+      .tool-page[data-tool="css-minifier"],
+      .tool-page[data-tool="javascript-minifier"],
+      .tool-page[data-tool="base64-encoder-decoder"],
+      .tool-page[data-tool="hash-generator"],
+      .tool-page[data-tool="url-encoder-decoder"],
+      .tool-page[data-tool="uuid-generator"],
+      .tool-page[data-tool="regex-tester"]
+    )
+    .tool-title:hover
+    > .i3d
+    .i3d-shine::after {
+    animation: i3d-glint-hover 0.85s ease-out 1 both;
+  }
+}
+.tool-page[data-tool]
+  .devtool-workspace
+  :is(button.primary, button.secondary, button.toolbar-button):active:not(
+    :disabled
+  ),
+.tool-page[data-tool] .devtool-view-switch button:active:not(:disabled),
+.tool-page[data-tool] .devtool-segmented-control button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.975);
+  transition-duration: 80ms;
+}
+.tool-page[data-tool] .devtool-processing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border: 1px solid rgb(var(--t-rgb) / 0.2);
+  border-radius: 12px;
+  background: rgb(var(--t-rgb) / 0.055);
+  color: var(--t-deep);
+  font-size: 12px;
+  font-weight: 650;
+}
+.tool-page[data-tool] .devtool-processing-spinner {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  border: 2px solid rgb(var(--t-rgb) / 0.22);
+  border-top-color: rgb(var(--t-rgb));
+  border-radius: 50%;
+  animation: devtool-spin 700ms linear infinite;
+}
+@keyframes devtool-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .tool-page[data-tool] .devtool-workspace {
   color: var(--t-ink);
 }
@@ -439,7 +547,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .tool-page[data-tool] .devtool-editor,
   .tool-page[data-tool] .devtool-message,
+  .tool-page[data-tool] .devtool-processing-spinner,
   .tool-page[data-tool] .devtool-segmented-control button,
   .tool-page[data-tool] .devtool-progress > span {
     animation: none;

@@ -160,6 +160,9 @@ describe("XML formatter", () => {
   it("rejects malformed XML, empty input, DTD and external-entity declarations", () => {
     expect(() => formatXml("")).toThrow("Enter xml first");
     expect(() => formatXml("<root><item></root>")).toThrow();
+    expect(() => formatXml("<root>\n  <item></root>")).toThrow(
+      "line 2, column",
+    );
     expect(() =>
       formatXml('<!DOCTYPE root [<!ENTITY x "unsafe">]><root>&x;</root>'),
     ).toThrow("DOCTYPE declarations");

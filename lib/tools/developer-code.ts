@@ -1,6 +1,7 @@
 import {
   DOMParser,
   XMLSerializer,
+  type Document as XmlDocument,
   type Element as XmlElement,
   type Node as XmlNode,
 } from "@xmldom/xmldom";
@@ -346,6 +347,15 @@ function writeXmlNode(
   return `${openTag}\n${content.map((line) => `${xmlIndent(depth + 1, indent)}${line}`).join("\n")}\n${xmlIndent(depth, indent)}${closeTag}`;
 }
 
+type XmlParseIssue = { message: string; line?: number; column?: number };
+
+function formatXmlParseIssue(issue: XmlParseIssue): string {
+  const location = issue.line
+    ? ` (line ${issue.line}${issue.column ? `, column ${issue.column}` : ""})`
+    : "";
+  return `${issue.message}${location}`;
+}
+
 export function formatXml(
   source: string,
   options: { compact?: boolean; indent?: 2 | 4 | "\t" } = {},
@@ -361,14 +371,30 @@ export function formatXml(
   }
 
   let nodeCount = 0;
+  const parseIssue: { current: XmlParseIssue | null } = { current: null };
   const parser = new DOMParser({
     locator: true,
-    onError(level, message) {
-      if (level === "warning") return;
-      throw new Error(message);
+    onError(level, message, context) {
+      if (level === "warning" || parseIssue.current) return;
+      parseIssue.current = {
+        message,
+        line: context.locator?.lineNumber,
+        column: context.locator?.columnNumber,
+      };
     },
   });
-  const document = parser.parseFromString(source, "application/xml");
+  let document: XmlDocument;
+  try {
+    document = parser.parseFromString(source, "application/xml");
+  } catch (error) {
+    if (parseIssue.current) {
+      throw new Error(formatXmlParseIssue(parseIssue.current));
+    }
+    throw new Error(formatParserError(error, "Could not parse this XML."));
+  }
+  if (parseIssue.current) {
+    throw new Error(formatXmlParseIssue(parseIssue.current));
+  }
   const visit = (node: XmlNode, depth: number) => {
     nodeCount += 1;
     if (nodeCount > XML_NODE_LIMIT) {
