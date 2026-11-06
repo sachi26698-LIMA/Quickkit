@@ -205,8 +205,9 @@ export default function AboutPage() {
                   counts, reading-time estimates, and case conversion.
                 </li>
                 <li>
-                  <strong>Developer Tools</strong> — JSON formatting, validation
-                  and minification.
+                  <strong>Developer Tools</strong> — JSON and markup formatters,
+                  CSS and JavaScript minifiers, encoders, UUIDs, regex and
+                  hashes.
                 </li>
                 <li>
                   <strong>Calculators</strong> — percentages, GST, discounts,

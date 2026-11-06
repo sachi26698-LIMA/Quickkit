@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "All Tools — every QUICKKIT utility in one place",
-  "Browse and search all QUICKKIT tools: PDF merger, word counter, case converter, JSON formatter, password generator, QR generator and image compressor.",
+  "Browse all QUICKKIT browser tools, including PDF and image utilities, text tools, JSON and HTML formatters, CSS and JavaScript minifiers, Base64 and URL encoders, regex testing, UUID generation and hashes.",
   "/tools",
 );
 

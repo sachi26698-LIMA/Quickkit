@@ -27,11 +27,18 @@ describe("3D icon system", () => {
     expect(new Set(glyphs).size).toBe(categoryMeta.length);
   });
 
-  it("gives each category its own tone and tools inherit it", () => {
+  it("gives each category its own tone and Developer Tools distinct accents", () => {
     const tones = categoryMeta.map((c) => categoryTone(c.name));
     expect(new Set(tones).size).toBe(categoryMeta.length);
-    for (const t of tools) {
-      expect(toolTone(t)).toBe(categoryTone(t.category as ToolCategory));
+    const developerTools = tools.filter(
+      (tool) => tool.category === "Developer Tools",
+    );
+    const developerTones = developerTools.map((tool) => toolTone(tool));
+    expect(new Set(developerTones).size).toBe(developerTools.length);
+    for (const tool of tools.filter(
+      (item) => item.category !== "Developer Tools",
+    )) {
+      expect(toolTone(tool)).toBe(categoryTone(tool.category as ToolCategory));
     }
   });
 

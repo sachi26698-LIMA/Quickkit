@@ -1,0 +1,555 @@
+/* Advanced browser-only developer utilities. Scoped per tool page; no homepage rules. */
+.tool-page[data-tool] .devtool-workspace {
+  color: var(--t-ink);
+}
+.tool-page[data-tool] .devtool-editors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  min-width: 0;
+}
+.tool-page[data-tool] .devtool-editor {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--t-line);
+  border-radius: 17px;
+  background: rgb(255 255 255 / 0.66);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.75);
+}
+.tool-page[data-tool] .devtool-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  margin: 0 0 10px;
+}
+.tool-page[data-tool] .devtool-editor-toolbar > label,
+.tool-page[data-tool] .devtool-editor-toolbar > .field-label {
+  min-width: 0;
+  margin: 0;
+  color: var(--t-ink);
+  font-size: 13px;
+  font-weight: 720;
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-editor-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+.tool-page[data-tool] .devtool-editor-actions .toolbar-button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-color: var(--t-line);
+  background: rgb(255 255 255 / 0.9);
+  font-size: 11px;
+}
+.tool-page[data-tool]
+  .devtool-editor-actions
+  .toolbar-button:hover:not(:disabled) {
+  border-color: rgb(var(--t-rgb) / 0.34);
+  background: rgb(var(--t-rgb) / 0.07);
+}
+.tool-page[data-tool] .devtool-code-input,
+.tool-page[data-tool] .devtool-code-output {
+  width: 100%;
+  min-width: 0;
+  min-height: 220px;
+  max-height: 480px;
+  margin: 0;
+  overflow: auto;
+  border: 1px solid rgb(var(--t-rgb) / 0.19);
+  border-radius: 13px;
+  background: linear-gradient(
+    145deg,
+    rgb(255 255 255 / 0.98),
+    rgb(var(--t-rgb) / 0.025)
+  );
+  color: #201b35;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+.tool-page[data-tool] .devtool-code-input {
+  display: block;
+  padding: 14px;
+  resize: vertical;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.tool-page[data-tool] .devtool-code-input:focus,
+.tool-page[data-tool] .devtool-code-output:focus {
+  border-color: rgb(var(--t-rgb) / 0.65);
+  outline: 3px solid rgb(var(--t-rgb) / 0.18);
+  outline-offset: 2px;
+}
+.tool-page[data-tool] .devtool-code-output {
+  padding: 14px;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  user-select: text;
+}
+.tool-page[data-tool] .devtool-code-output code {
+  font: inherit;
+}
+.tool-page[data-tool] .devtool-output-text {
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.tool-page[data-tool] .devtool-output-placeholder {
+  color: #716b80;
+}
+.tool-page[data-tool] .devtool-input-footer {
+  align-items: flex-start;
+  margin-top: 9px;
+  font-size: 10.5px;
+}
+.tool-page[data-tool] .devtool-input-footer > span:last-child {
+  text-align: right;
+}
+.tool-page[data-tool] .devtool-input-footer .char-meter {
+  color: var(--t-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tool-page[data-tool] .devtool-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 13px 15px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  line-height: 1.6;
+  animation: devtool-message-in 180ms ease-out both;
+}
+.tool-page[data-tool] .devtool-message p {
+  margin: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-message.success {
+  color: #16633f;
+  border-color: #c1ead2;
+  background: #effaf3;
+}
+.tool-page[data-tool] .devtool-message.warning {
+  color: #805015;
+  border-color: #f0d9a8;
+  background: #fff8e9;
+}
+.tool-page[data-tool] .devtool-message.error {
+  color: #9f2929;
+  border-color: #f3cccc;
+  background: #fff3f3;
+}
+.tool-page[data-tool] .devtool-message svg {
+  flex: none;
+  margin-top: 2px;
+}
+.tool-page[data-tool] .devtool-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.tool-page[data-tool] .devtool-reset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.tool-page[data-tool] .devtool-actions .foot-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.tool-page[data-tool] .devtool-help {
+  margin-top: 12px;
+}
+.tool-page[data-tool] .devtool-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.tool-page[data-tool] .devtool-action-row > button {
+  min-width: 132px;
+}
+.tool-page[data-tool] .devtool-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 22px;
+  margin-top: 16px;
+}
+.tool-page[data-tool] .devtool-options > label,
+.tool-page[data-tool] .devtool-options .devtool-option-label {
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+  margin: 0;
+  color: var(--t-ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.tool-page[data-tool] .devtool-options select,
+.tool-page[data-tool] .devtool-options input[type="number"],
+.tool-page[data-tool] .devtool-options input[type="text"] {
+  min-height: 42px;
+  border-color: var(--t-line);
+  background: rgb(255 255 255 / 0.9);
+}
+.tool-page[data-tool] .devtool-toggle-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.tool-page[data-tool] .devtool-toggle-group legend {
+  margin-bottom: 7px;
+  color: var(--t-ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.tool-page[data-tool] .devtool-segmented-control {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--t-line);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 0.74);
+}
+.tool-page[data-tool] .devtool-segmented-control button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--t-muted);
+  font-size: 12px;
+  font-weight: 650;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+.tool-page[data-tool] .devtool-segmented-control button:hover:not(:disabled) {
+  color: var(--t-ink);
+  background: rgb(var(--t-rgb) / 0.07);
+}
+.tool-page[data-tool] .devtool-segmented-control button.active {
+  color: var(--t-deep);
+  background: rgb(var(--t-rgb) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--t-rgb) / 0.16);
+}
+.tool-page[data-tool] .devtool-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.tool-page[data-tool] .devtool-stat {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(var(--t-rgb) / 0.13);
+  border-radius: 13px;
+  background: rgb(var(--t-rgb) / 0.045);
+}
+.tool-page[data-tool] .devtool-stat strong,
+.tool-page[data-tool] .devtool-stat span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-stat strong {
+  color: var(--t-deep);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.tool-page[data-tool] .devtool-stat span {
+  margin-top: 4px;
+  color: var(--t-muted);
+  font-size: 10.5px;
+}
+.tool-page[data-tool] .syntax-string {
+  color: #087e61;
+}
+.tool-page[data-tool] .syntax-number {
+  color: #8c4f0b;
+}
+.tool-page[data-tool] .syntax-literal,
+.tool-page[data-tool] .syntax-keyword {
+  color: #673ab7;
+  font-weight: 650;
+}
+.tool-page[data-tool] .syntax-punctuation {
+  color: #766d8b;
+}
+.tool-page[data-tool] .syntax-comment {
+  color: #78817e;
+  font-style: italic;
+}
+.tool-page[data-tool] .syntax-tag {
+  color: var(--t-deep);
+  font-weight: 700;
+}
+.tool-page[data-tool] .syntax-attribute {
+  color: #a34412;
+}
+.tool-page[data-tool] .devtool-tree {
+  max-height: 480px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgb(var(--t-rgb) / 0.19);
+  border-radius: 13px;
+  background: linear-gradient(
+    145deg,
+    rgb(255 255 255 / 0.98),
+    rgb(var(--t-rgb) / 0.025)
+  );
+  color: var(--t-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.tool-page[data-tool] .devtool-tree details {
+  padding-left: 13px;
+  border-left: 1px solid rgb(var(--t-rgb) / 0.14);
+}
+.tool-page[data-tool] .devtool-tree details > summary {
+  cursor: pointer;
+  padding: 3px 0;
+  color: var(--t-deep);
+  font-weight: 680;
+}
+.tool-page[data-tool] .devtool-tree-row {
+  padding: 3px 0 3px 14px;
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-tree-key {
+  color: #a34412;
+}
+.tool-page[data-tool] .devtool-tree-value {
+  color: #087e61;
+}
+.tool-page[data-tool] .devtool-regex-highlights mark {
+  border-radius: 4px;
+  padding: 1px 2px;
+  background: rgb(var(--t-rgb) / 0.2);
+  color: var(--t-deep);
+}
+.tool-page[data-tool] .devtool-regex-groups {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+.tool-page[data-tool] .devtool-regex-groups ol > li {
+  padding: 8px 10px;
+  border: 1px solid rgb(var(--t-rgb) / 0.12);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.72);
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-progress {
+  width: min(360px, 100%);
+  height: 9px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgb(var(--t-rgb) / 0.13);
+}
+.tool-page[data-tool] .devtool-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgb(var(--t-rgb)), rgb(var(--t2-rgb)));
+  transition: width 120ms ease;
+}
+.tool-page[data-tool] .devtool-file-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 9px;
+  color: var(--t-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+@keyframes devtool-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 760px) {
+  .tool-page[data-tool] .devtool-editors {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .tool-page[data-tool] .devtool-editor {
+    padding: 11px;
+  }
+  .tool-page[data-tool] .devtool-actions {
+    align-items: stretch;
+  }
+  .tool-page[data-tool] .devtool-reset-actions,
+  .tool-page[data-tool] .devtool-actions .foot-actions {
+    width: 100%;
+  }
+  .tool-page[data-tool] .devtool-actions .foot-actions {
+    justify-content: flex-start;
+  }
+  .tool-page[data-tool] .devtool-actions .secondary {
+    min-width: 0;
+    padding-inline: 11px;
+  }
+  .tool-page[data-tool] .devtool-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tool-page[data-tool] .devtool-action-row > button {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+  }
+  .tool-page[data-tool] .devtool-editor-toolbar {
+    flex-wrap: wrap;
+  }
+  .tool-page[data-tool] .devtool-input-footer {
+    flex-wrap: wrap;
+  }
+  .tool-page[data-tool] .devtool-input-footer > span:last-child {
+    text-align: left;
+  }
+}
+@media (max-width: 360px) {
+  .tool-page[data-tool] .devtool-workspace {
+    padding: 14px;
+  }
+  .tool-page[data-tool] .devtool-editor-toolbar .char-meter {
+    font-size: 9px;
+  }
+  .tool-page[data-tool] .devtool-segmented-control button {
+    padding-inline: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-page[data-tool] .devtool-message,
+  .tool-page[data-tool] .devtool-segmented-control button,
+  .tool-page[data-tool] .devtool-progress > span {
+    animation: none;
+    transition: none;
+  }
+}
+.tool-page[data-tool] .devtool-view-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 10px;
+}
+.tool-page[data-tool] .devtool-view-switch button {
+  min-height: 32px;
+  padding: 6px 11px;
+  border: 1px solid var(--t-line);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.72);
+  color: var(--t-muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+.tool-page[data-tool] .devtool-view-switch button.active {
+  border-color: rgb(var(--t-rgb) / 0.35);
+  background: rgb(var(--t-rgb) / 0.11);
+  color: var(--t-deep);
+}
+.tool-page[data-tool] .devtool-view-switch button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tool-page[data-tool] .devtool-regex-highlights {
+  min-width: 0;
+  margin-top: 14px;
+}
+.tool-page[data-tool] .devtool-regex-highlights > .field-label,
+.tool-page[data-tool] .devtool-regex-groups > .field-label {
+  margin: 0 0 8px;
+  color: var(--t-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tool-page[data-tool] .devtool-regex-highlights pre {
+  max-height: 240px;
+  min-height: 64px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--t-line);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.7);
+  color: var(--t-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-regex-groups ol,
+.tool-page[data-tool] .devtool-regex-groups ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 22px;
+}
+.tool-page[data-tool] .devtool-regex-groups ul {
+  margin-top: 6px;
+  padding-left: 18px;
+}
+.tool-page[data-tool] .devtool-regex-groups code {
+  overflow-wrap: anywhere;
+}
+.tool-page[data-tool] .devtool-toggle-legend {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--t-ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.tool-page[data-tool] .regex-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.tool-page[data-tool] .regex-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 37px;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--t-line);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.74);
+  color: var(--t-muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+.tool-page[data-tool] .regex-flag input {
+  accent-color: rgb(var(--t-rgb));
+}
+.tool-page[data-tool] .regex-flag code {
+  color: var(--t-deep);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tool-page[data-tool] .devtool-progress-wrap {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--t-muted);
+  font-size: 11px;
+}

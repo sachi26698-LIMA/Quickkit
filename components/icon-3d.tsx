@@ -34,7 +34,11 @@ export type Tone =
   | "indigo"
   | "azure"
   | "emerald"
-  | "magenta";
+  | "magenta"
+  | "cyan"
+  | "teal"
+  | "amber"
+  | "rose";
 
 export type GlyphName =
   | "pdf"
@@ -50,6 +54,16 @@ export type GlyphName =
   | "ocrText"
   | "case"
   | "json"
+  | "jsonValidate"
+  | "htmlMarkup"
+  | "cssStyle"
+  | "javascript"
+  | "base64"
+  | "urlLink"
+  | "uuid"
+  | "regex"
+  | "hash"
+  | "xml"
   | "key"
   | "qrScan"
   | "imgCompress"
@@ -380,6 +394,208 @@ const glyphs: Record<GlyphName, (p: Paint) => ReactNode> = {
       {[26.5, 32, 37.5].map((x) => (
         <circle key={x} cx={x} cy={31} r={2.5} fill={p.a} />
       ))}
+    </>
+  ),
+  jsonValidate: (p) => (
+    <>
+      <Sheet p={p} x={15} y={12}>
+        <Bar x={4} y={10} w={13} />
+        <Bar x={4} y={16} w={11} />
+      </Sheet>
+      <path
+        d="M39 31 L49 35 V42 C49 48 44.5 51 39 53 C33.5 51 29 48 29 42 V35 Z"
+        fill={p.a}
+      />
+      <path
+        d="M34.5 41.5 L38 45 L44 38.5"
+        fill="none"
+        stroke={p.w}
+        strokeWidth={2.8}
+        {...round}
+      />
+    </>
+  ),
+  htmlMarkup: (p) => (
+    <>
+      <path
+        d="M25 18 L14 31 L25 44 M39 18 L50 31 L39 44"
+        fill="none"
+        stroke={p.w}
+        strokeWidth={5}
+        {...round}
+      />
+      <path
+        d="M36 14 L28 48"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={4.5}
+        {...round}
+      />
+      <circle cx={15} cy={49} r={3.2} fill={p.a} />
+    </>
+  ),
+  cssStyle: (p) => (
+    <>
+      <rect x={15} y={15} width={33} height={34} rx={8} fill={p.w} />
+      <path
+        d="M20 23 H43 M20 29 H36 M20 35 H40"
+        fill="none"
+        stroke={D}
+        strokeOpacity={0.45}
+        strokeWidth={2.4}
+        {...round}
+      />
+      <path
+        d="M37 39 C37 34 44 31 44 26 C44 31 51 34 51 39 A7 7 0 0 1 37 39 Z"
+        fill={p.a}
+      />
+      <path
+        d="M41 40 C41 37.5 44 36 44 33.5 C44 36 47 37.5 47 40 A3 3 0 0 1 41 40 Z"
+        fill={p.w}
+        opacity={0.9}
+      />
+    </>
+  ),
+  javascript: (p) => (
+    <>
+      <rect x={13} y={13} width={38} height={38} rx={9} fill={p.w} />
+      <path
+        d="M32 21 V39 C32 45 28 48 22 45"
+        fill="none"
+        stroke={D}
+        strokeWidth={4}
+        {...round}
+      />
+      <path
+        d="M43 24 C40 21 35 22 35 26 C35 31 45 29 45 36 C45 42 39 44 34 40"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3.8}
+        {...round}
+      />
+      <circle cx={25} cy={38} r={2.2} fill={p.a} />
+    </>
+  ),
+  base64: (p) => (
+    <>
+      <rect x={15} y={15} width={34} height={34} rx={8} fill={p.w} />
+      {[0, 1, 2].map((row) =>
+        [0, 1, 2].map((column) => (
+          <rect
+            key={`${row}-${column}`}
+            x={21 + column * 7}
+            y={21 + row * 7}
+            width={4.5}
+            height={4.5}
+            rx={1.5}
+            fill={(row + column) % 2 === 0 ? p.a : D}
+            opacity={(row + column) % 2 === 0 ? 1 : 0.42}
+          />
+        )),
+      )}
+      <path d="M20 45 L44 20" stroke={p.a} strokeWidth={3.5} {...round} />
+    </>
+  ),
+  urlLink: (p) => (
+    <>
+      <g transform="rotate(-38 32 32)">
+        <rect
+          x={14}
+          y={25}
+          width={24}
+          height={14}
+          rx={7}
+          fill="none"
+          stroke={p.w}
+          strokeWidth={4.5}
+        />
+        <rect
+          x={26}
+          y={25}
+          width={24}
+          height={14}
+          rx={7}
+          fill="none"
+          stroke={p.a}
+          strokeWidth={4.5}
+        />
+        <path d="M24 32 H40" stroke={D} strokeWidth={2.5} {...round} />
+      </g>
+    </>
+  ),
+  uuid: (p) => (
+    <>
+      <rect x={15} y={15} width={34} height={34} rx={8} fill={p.w} />
+      <path
+        d="M23 24 H41 M23 30 H37 M23 36 H34"
+        fill="none"
+        stroke={D}
+        strokeOpacity={0.42}
+        strokeWidth={2.4}
+        {...round}
+      />
+      <circle cx={42} cy={41} r={8.5} fill={p.a} />
+      <path
+        d="M42 36 V46 M37 41 H47"
+        stroke={p.w}
+        strokeWidth={2.3}
+        {...round}
+      />
+    </>
+  ),
+  regex: (p) => (
+    <>
+      <circle cx={29} cy={29} r={15} fill={p.w} />
+      <circle
+        cx={29}
+        cy={29}
+        r={8.5}
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3.3}
+      />
+      <path d="M40 40 L51 51" stroke={p.w} strokeWidth={5} {...round} />
+      <path d="M25 29 H33 M29 25 V33" stroke={D} strokeWidth={2.1} {...round} />
+    </>
+  ),
+  hash: (p) => (
+    <>
+      <rect x={14} y={14} width={36} height={36} rx={9} fill={p.w} />
+      <path
+        d="M26 20 L23 44 M39 20 L36 44 M19 29 H45 M18 37 H44"
+        fill="none"
+        stroke={D}
+        strokeWidth={3.3}
+        opacity={0.62}
+        {...round}
+      />
+      <path
+        d="M26 20 L23 44 M19 29 H45"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3.3}
+        {...round}
+      />
+    </>
+  ),
+  xml: (p) => (
+    <>
+      <path
+        d="M25 19 L15 31 L25 43 M39 19 L49 31 L39 43"
+        fill="none"
+        stroke={p.w}
+        strokeWidth={4.5}
+        {...round}
+      />
+      <path
+        d="M36 15 L28 47"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={4}
+        {...round}
+      />
+      <circle cx={32} cy={31} r={3.2} fill={D} />
+      <circle cx={32} cy={50} r={2.8} fill={p.a} />
     </>
   ),
   key: (p) => (
@@ -1219,6 +1435,16 @@ export const toolArt: Record<string, GlyphName> = {
   "word-counter": "wordCount",
   "case-converter": "case",
   "json-formatter": "json",
+  "json-validator": "jsonValidate",
+  "html-formatter": "htmlMarkup",
+  "css-minifier": "cssStyle",
+  "javascript-minifier": "javascript",
+  "base64-encoder-decoder": "base64",
+  "url-encoder-decoder": "urlLink",
+  "uuid-generator": "uuid",
+  "regex-tester": "regex",
+  "hash-generator": "hash",
+  "xml-formatter": "xml",
   "password-generator": "key",
   "qr-generator": "qrScan",
   "qr-code-scanner": "qrReader",
@@ -1264,9 +1490,26 @@ const fallbackArt: Record<string, GlyphName> = {
 
 export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
 
-/** Tone of a tool = tone of its primary category. */
-export function toolTone(tool: Pick<Tool, "category">): Tone {
-  return categoryTones[tool.category as ToolCategory] ?? "violet";
+/** Tool cards share the 3D system while each Developer Tool has its own accent. */
+const toolAccentTones: Record<string, Tone> = {
+  "json-formatter": "indigo",
+  "json-validator": "cyan",
+  "html-formatter": "coral",
+  "css-minifier": "emerald",
+  "javascript-minifier": "amber",
+  "base64-encoder-decoder": "plum",
+  "url-encoder-decoder": "teal",
+  "uuid-generator": "rose",
+  "regex-tester": "magenta",
+  "hash-generator": "crimson",
+  "xml-formatter": "azure",
+};
+export function toolTone(tool: Pick<Tool, "category" | "slug">): Tone {
+  return (
+    toolAccentTones[tool.slug] ??
+    categoryTones[tool.category as ToolCategory] ??
+    "violet"
+  );
 }
 
 export function ToolIcon3D({

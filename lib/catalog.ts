@@ -64,7 +64,7 @@ export const categoryMeta: CategoryMeta[] = [
     slug: "developer-tools",
     blurb: "Encode, decode, format and work with dev utilities.",
     description:
-      "Everyday developer utilities — format and validate data cleanly without sending it to a server.",
+      "Format, validate, minify and inspect code, text, identifiers and hashes — processed locally in your browser.",
     tint: "tint-dev",
     icon: "code",
   },
@@ -142,11 +142,129 @@ export const tools = [
     name: "JSON Formatter",
     category: "Developer Tools",
     description:
-      "Bring order to your data. Format, validate, and minify JSON without the fuss.",
-    keywords: "code pretty print validator developer",
+      "Beautify, validate or minify JSON with exact syntax locations, a collapsible tree and safe, local processing.",
+    keywords:
+      "code pretty print validator beautify minify syntax highlight tree developer",
     icon: "code",
     color: "blue",
     phase: 2,
+  },
+  {
+    slug: "json-validator",
+    name: "JSON Validator",
+    category: "Developer Tools",
+    description:
+      "Check JSON syntax, pinpoint missing commas or brackets and read a clear explanation of errors — without running code.",
+    keywords:
+      "json parse validate syntax error location line column malformed brackets commas developer",
+    icon: "code",
+    color: "cyan",
+    phase: 20,
+  },
+  {
+    slug: "html-formatter",
+    name: "HTML Formatter",
+    category: "Developer Tools",
+    description:
+      "Beautify and minify HTML with safe syntax highlighting, useful size stats and local copy or download.",
+    keywords:
+      "markup html beautifier pretty print minifier code formatting developer",
+    icon: "code",
+    color: "peach",
+    phase: 20,
+  },
+  {
+    slug: "css-minifier",
+    name: "CSS Minifier",
+    category: "Developer Tools",
+    description:
+      "Compress CSS with a syntax-aware parser and compare original, compressed and saved byte counts.",
+    keywords:
+      "stylesheet style css compress optimize optimizer comments whitespace size percentage developer",
+    icon: "code",
+    color: "mint",
+    phase: 20,
+  },
+  {
+    slug: "javascript-minifier",
+    name: "JavaScript Minifier",
+    category: "Developer Tools",
+    description:
+      "Safely compress JavaScript with a real parser, compare file sizes and see readable syntax errors. Your code is never executed.",
+    keywords:
+      "javascript js minify compress terser optimize code safely no execution developer",
+    icon: "code",
+    color: "gold",
+    phase: 20,
+  },
+  {
+    slug: "base64-encoder-decoder",
+    name: "Base64 Encoder / Decoder",
+    category: "Developer Tools",
+    description:
+      "Encode Unicode text or local files to Base64, or decode Base64 back to UTF-8 text or a downloadable binary file.",
+    keywords: "base64 encode decode binary file utf-8 unicode text developer",
+    icon: "code",
+    color: "plum",
+    phase: 20,
+  },
+  {
+    slug: "url-encoder-decoder",
+    name: "URL Encoder / Decoder",
+    category: "Developer Tools",
+    description:
+      "Encode and decode complete URLs or individual query components, including Unicode and reserved characters.",
+    keywords:
+      "url uri percent encode decode query parameter component urlencoding developer",
+    icon: "code",
+    color: "teal",
+    phase: 20,
+  },
+  {
+    slug: "uuid-generator",
+    name: "UUID Generator",
+    category: "Developer Tools",
+    description:
+      "Generate secure UUID v4 values in unique bulk batches, ready to copy or download.",
+    keywords: "guid identifier unique id uuid v4 random bulk batch developer",
+    icon: "code",
+    color: "rose",
+    phase: 20,
+  },
+  {
+    slug: "regex-tester",
+    name: "Regex Tester",
+    category: "Developer Tools",
+    description:
+      "Test regular expressions live in a time-limited local worker with flags, highlighted matches, capture groups and replacement previews.",
+    keywords:
+      "regular expression regexp pattern flags match capture groups replacement tester developer",
+    icon: "code",
+    color: "violet",
+    phase: 20,
+  },
+  {
+    slug: "hash-generator",
+    name: "Hash Generator",
+    category: "Developer Tools",
+    description:
+      "Generate MD5, SHA-1, SHA-256 or SHA-512 digests from text or files, locally and in chunks.",
+    keywords:
+      "checksum digest md5 sha1 sha-1 sha256 sha-256 sha512 sha-512 hash file developer",
+    icon: "code",
+    color: "emerald",
+    phase: 20,
+  },
+  {
+    slug: "xml-formatter",
+    name: "XML Formatter",
+    category: "Developer Tools",
+    description:
+      "Format or compact well-formed XML with safe syntax highlighting, local processing and secure DTD rejection.",
+    keywords: "xml beautifier minifier format pretty print markup developer",
+    icon: "code",
+    color: "azure",
+    phase: 20,
   },
   {
     slug: "password-generator",
@@ -521,8 +639,8 @@ export function filterTools(query: string, category: Category) {
   );
   if (!search) return matches;
   // A tool whose *name* contains the query outranks one that only matched a
-  // keyword, so typing "JSON" still lands on JSON Formatter even though other
-  // tools mention JSON in their keyword list. Stable within each group.
+  // keyword, so typing "JSON" lands on JSON Formatter and JSON Validator first.
+  // Ordering stays stable within each group.
   const byName = matches.filter((tool) =>
     tool.name.toLocaleLowerCase().includes(search),
   );

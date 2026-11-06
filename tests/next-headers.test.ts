@@ -61,6 +61,7 @@ describe("next.config header policy", () => {
       expect(scriptSrc.replace("'wasm-unsafe-eval'", "")).not.toContain(
         "unsafe-eval",
       );
+      expect(value).toContain("worker-src 'self' blob:");
     }
   });
 

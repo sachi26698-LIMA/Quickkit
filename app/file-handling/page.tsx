@@ -414,12 +414,17 @@ export default function FileHandlingPage() {
 
       <h2 id="calculators">19. Calculators and other browser tools</h2>
       <p>
-        Word Counter, Case Converter, JSON Formatter, Password Generator and the
-        calculator suite process only the text or numbers you type. They hold it
-        in component state, compute locally and store nothing. Passwords are
-        produced with the Web Crypto API (<code>crypto.getRandomValues</code>)
-        and exist only in the page; copying uses your device clipboard, which
-        other apps and extensions may be able to read.
+        Word Counter, Case Converter, JSON Formatter and Validator, HTML and XML
+        Formatters, CSS and JavaScript Minifiers, Base64 and URL tools, UUID and
+        Regex tools, Hash Generator, Password Generator and the calculator suite
+        process only the text or files you choose in the browser. They hold
+        input in page state or a short-lived local worker and store nothing.
+        JavaScript is parsed but never executed; regex matching runs in a
+        time-limited worker; file hashes are calculated locally in chunks.
+        Passwords and UUIDs use the Web Crypto API (
+        <code>crypto.getRandomValues</code>) and exist only in the page. Copying
+        uses your device clipboard, which other apps and extensions may be able
+        to read.
       </p>
 
       <h2 id="external">20. External processing dependencies</h2>

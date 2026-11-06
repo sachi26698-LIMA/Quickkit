@@ -44,8 +44,19 @@ export const toolThemes: Record<string, ToolTheme> = {
   "word-counter": t("107 33 168", "183 148 246", "#6b21a8"),
   "image-to-text": t("134 25 143", "236 72 153", "#86198f"),
   "case-converter": t("126 34 206", "192 132 252", "#7e22ce"),
-  // Developer Tools — indigo / cyan
+  // Developer Tools — each utility has its own indigo-family accent.
   "json-formatter": t("67 56 202", "6 182 212", "#3730a3"),
+  "json-validator": t("8 145 178", "34 211 238", "#0e7490"),
+  "html-formatter": t("234 88 12", "251 146 60", "#c2410c"),
+  "css-minifier": t("13 148 136", "45 212 191", "#0f766e"),
+  "javascript-minifier": t("180 83 9", "245 158 11", "#a16207"),
+  "base64-encoder-decoder": t("107 33 168", "183 148 246", "#581c87"),
+  "url-encoder-decoder": t("14 116 144", "34 211 238", "#0e7490"),
+  "uuid-generator": t("190 24 93", "244 63 94", "#9d174d"),
+  "regex-tester": t("124 58 237", "192 38 211", "#6d28d9"),
+  "hash-generator": t("5 150 105", "20 184 166", "#047857"),
+  "xml-formatter": t("2 132 199", "6 182 212", "#0369a1"),
+
   // Security & Privacy — teal
   "password-generator": t("13 148 136", "20 184 166", "#0f766e"),
   // Calculators — blue family
