@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import {
   Braces,
   CircleCheck,
+  Eraser,
   FileUp,
   Minimize2,
   RotateCcw,
@@ -20,9 +21,15 @@ import {
 import { formatBytes } from "@/lib/tools/download";
 import CopyButton from "./copy-button";
 import { CharMeter, DownloadTextButton, WorkspaceHeading } from "./tool-ui";
+import {
+  DevCodeOutput,
+  DevProcessingIndicator,
+  yieldForUi,
+} from "./devtools/shared";
 
 type Inspect = ReturnType<typeof inspectJson> | null;
 type ErrorSpot = ReturnType<typeof locateJsonError>;
+type JsonView = "text" | "syntax" | "tree";
 
 export default function JsonFormatter() {
   const ready = useHydrated();
@@ -32,24 +39,37 @@ export default function JsonFormatter() {
   const [error, setError] = useState(false);
   const [spot, setSpot] = useState<ErrorSpot>(null);
   const [info, setInfo] = useState<Inspect>(null);
+  const [view, setView] = useState<JsonView>("text");
   const [indent, setIndent] = useState<JsonIndent>(2);
   const [sortKeys, setSortKeys] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState("Processing JSON locally…");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const indentLabel = indent === "\t" ? "tab" : `${indent}-space`;
 
   function clearResults() {
     setOutput("");
+    setView("text");
     setStatus("");
     setSpot(null);
     setInfo(null);
     setError(false);
   }
 
-  function process(mode: "format" | "minify" | "validate") {
+  async function process(mode: "format" | "minify" | "validate") {
+    setBusyLabel(
+      mode === "validate"
+        ? "Validating JSON locally…"
+        : "Processing JSON locally…",
+    );
+    setBusy(true);
+    clearResults();
     try {
+      await yieldForUi();
       const result = processJson(input, mode, { indent, sortKeys });
       setOutput(result);
+      setView("text");
       setSpot(null);
       try {
         setInfo(inspectJson(input));
@@ -72,23 +92,41 @@ export default function JsonFormatter() {
         e instanceof Error ? e.message : "Could not process this JSON.",
       );
       setError(true);
+    } finally {
+      setBusy(false);
     }
   }
 
   async function loadFile(file: File | undefined) {
     if (!file) return;
-    if (file.size > MAX_JSON_LENGTH) {
-      clearResults();
-      setError(true);
-      setStatus("JSON is too large. Keep input below 1,000,000 characters.");
-      return;
-    }
-    const text = await file.text();
-    setInput(text);
+    setBusyLabel("Reading JSON locally…");
+    setBusy(true);
     clearResults();
-    setStatus(
-      `Loaded ${file.name} (${formatBytes(file.size)}). Choose an action below.`,
-    );
+    try {
+      if (file.size > MAX_JSON_LENGTH * 4) {
+        throw new Error(
+          "JSON file is too large. Keep input below 1,000,000 characters.",
+        );
+      }
+      await yieldForUi();
+      const text = await file.text();
+      if (text.length > MAX_JSON_LENGTH) {
+        throw new Error(
+          "JSON file is too large. Keep input below 1,000,000 characters.",
+        );
+      }
+      setInput(text);
+      setStatus(
+        `Loaded ${file.name} (${formatBytes(file.size)}). Choose an action below.`,
+      );
+    } catch (e) {
+      setError(true);
+      setStatus(
+        e instanceof Error ? e.message : "Could not read this JSON file.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   const sizeDelta =
@@ -99,7 +137,7 @@ export default function JsonFormatter() {
   return (
     <fieldset
       className="workspace"
-      disabled={!ready}
+      disabled={!ready || busy}
       aria-label="Tool workspace"
     >
       <WorkspaceHeading
@@ -159,18 +197,57 @@ export default function JsonFormatter() {
           </div>
         </div>
         <div>
-          <div className="tool-toolbar">
-            <label htmlFor="json-output">JSON result</label>
+          <div className="tool-toolbar devtool-result-toolbar">
+            {view === "text" ? (
+              <label htmlFor="json-output">JSON result</label>
+            ) : (
+              <span className="field-label">JSON result</span>
+            )}
             <CharMeter value={output.length} max={MAX_JSON_LENGTH} />
           </div>
-          <textarea
-            id="json-output"
-            className="code-input"
-            spellCheck={false}
-            readOnly
-            value={output}
-            placeholder="Your formatted JSON will appear here…"
-          />
+          <div
+            className="devtool-view-switch"
+            role="group"
+            aria-label="JSON output view"
+          >
+            {(
+              [
+                ["text", "Code"],
+                ["syntax", "Syntax"],
+                ["tree", "Tree"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={view === value ? "active" : ""}
+                aria-pressed={view === value}
+                disabled={!output}
+                onClick={() => setView(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {view === "text" ? (
+            <textarea
+              id="json-output"
+              className="code-input"
+              spellCheck={false}
+              readOnly
+              value={output}
+              placeholder="Your formatted JSON will appear here…"
+            />
+          ) : view === "syntax" ? (
+            <DevCodeOutput
+              label="JSON syntax-highlighted output"
+              value={output}
+              language="json"
+              placeholder="Your formatted JSON will appear here…"
+            />
+          ) : (
+            <JsonTree output={output} />
+          )}
           <div className="input-footer">
             <span>
               {info && output
@@ -225,6 +302,7 @@ export default function JsonFormatter() {
           <CircleCheck size={16} /> Validate
         </button>
       </div>
+      {busy ? <DevProcessingIndicator label={busyLabel} /> : null}
       {status && (
         <div className={`status ${error ? "error" : "success"}`} role="status">
           <p>
@@ -248,15 +326,30 @@ export default function JsonFormatter() {
         </div>
       )}
       <div className="workspace-foot">
-        <button
-          className="secondary"
-          onClick={() => {
-            setInput("");
-            clearResults();
-          }}
-        >
-          <RotateCcw size={15} /> Reset
-        </button>
+        <div className="devtool-reset-actions">
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              setInput("");
+              clearResults();
+            }}
+          >
+            <Eraser size={15} /> Clear
+          </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              setInput("");
+              setIndent(2);
+              setSortKeys(false);
+              clearResults();
+            }}
+          >
+            <RotateCcw size={15} /> Reset
+          </button>
+        </div>
         <div className="foot-actions">
           <DownloadTextButton
             text={output}
@@ -274,5 +367,93 @@ export default function JsonFormatter() {
         rejected. Duplicate object keys retain only the last value.
       </p>
     </fieldset>
+  );
+}
+
+type TreeBudget = { remaining: number };
+
+function JsonTree({ output }: { output: string }) {
+  if (!output) {
+    return (
+      <div className="devtool-tree" role="region" aria-label="JSON tree view">
+        Format JSON to explore its structure.
+      </div>
+    );
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(output) as unknown;
+  } catch {
+    return (
+      <div className="devtool-tree" role="region" aria-label="JSON tree view">
+        The current result is not valid JSON.
+      </div>
+    );
+  }
+  return (
+    <div className="devtool-tree" role="region" aria-label="JSON tree view">
+      {renderJsonNode("root", parsed, 0, { remaining: 1_000 }, "root")}
+      {parsed &&
+      typeof parsed === "object" &&
+      Object.keys(parsed).length > 1_000 ? (
+        <p>
+          Large tree preview: expand the source JSON to inspect the remaining
+          values.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function renderJsonNode(
+  label: string,
+  value: unknown,
+  depth: number,
+  budget: TreeBudget,
+  path: string,
+): React.ReactNode {
+  if (budget.remaining <= 0) return null;
+  budget.remaining -= 1;
+  const compound = value !== null && typeof value === "object";
+  if (!compound) {
+    const printable =
+      typeof value === "string" ? JSON.stringify(value) : String(value);
+    return (
+      <div className="devtool-tree-row" key={path}>
+        {depth > 0 ? <span className="devtool-tree-key">{label}: </span> : null}
+        <span className="devtool-tree-value">{printable}</span>
+      </div>
+    );
+  }
+  const entries = Array.isArray(value)
+    ? value.map((item, index) => [String(index), item] as const)
+    : Object.entries(value as Record<string, unknown>);
+  const visibleEntries = entries.slice(
+    0,
+    Math.min(entries.length, budget.remaining),
+  );
+  return (
+    <details className="devtool-tree-branch" key={path} open={depth < 2}>
+      <summary>
+        {depth > 0 ? `${label}: ` : ""}
+        {Array.isArray(value)
+          ? `Array · ${entries.length} items`
+          : `Object · ${entries.length} keys`}
+      </summary>
+      {visibleEntries.map(([childLabel, child], index) =>
+        renderJsonNode(
+          childLabel,
+          child,
+          depth + 1,
+          budget,
+          `${path}.${index}`,
+        ),
+      )}
+      {visibleEntries.length < entries.length ? (
+        <div className="devtool-tree-row">
+          … {entries.length - visibleEntries.length} more entries not shown
+        </div>
+      ) : null}
+    </details>
   );
 }

@@ -18604,6 +18604,62 @@ details.qr-acc {
   --i-a2: #62e0ff;
   --i-glow: 192 38 211;
 }
+.cat-cyan,
+.i3d-cyan {
+  --c-rgb: 8 145 178;
+  --c2-rgb: 34 211 238;
+  --c-deep: #0e7490;
+  --i-hi: #b7f6ff;
+  --i-mid: #22d3ee;
+  --i-deep: #0891b2;
+  --i-dark: #164e63;
+  --i-light: #e0fbff;
+  --i-a1: #dcfbff;
+  --i-a2: #22d3ee;
+  --i-glow: 8 145 178;
+}
+.cat-teal,
+.i3d-teal {
+  --c-rgb: 14 116 144;
+  --c2-rgb: 34 211 238;
+  --c-deep: #0e7490;
+  --i-hi: #a5f3fc;
+  --i-mid: #14b8a6;
+  --i-deep: #0e7490;
+  --i-dark: #164e63;
+  --i-light: #dffbff;
+  --i-a1: #a7f3d0;
+  --i-a2: #2dd4bf;
+  --i-glow: 14 116 144;
+}
+.cat-amber,
+.i3d-amber {
+  --c-rgb: 180 83 9;
+  --c2-rgb: 245 158 11;
+  --c-deep: #a16207;
+  --i-hi: #ffe7a5;
+  --i-mid: #f59e0b;
+  --i-deep: #b45309;
+  --i-dark: #78350f;
+  --i-light: #fff8df;
+  --i-a1: #fff1b8;
+  --i-a2: #fbbf24;
+  --i-glow: 180 83 9;
+}
+.cat-rose,
+.i3d-rose {
+  --c-rgb: 190 24 93;
+  --c2-rgb: 244 63 94;
+  --c-deep: #9d174d;
+  --i-hi: #ffc0d2;
+  --i-mid: #f43f5e;
+  --i-deep: #be185d;
+  --i-dark: #881337;
+  --i-light: #fff0f5;
+  --i-a1: #ffe4ed;
+  --i-a2: #fb7185;
+  --i-glow: 190 24 93;
+}
 .tint-pdf,
 .tint-qr,
 .tint-dev,

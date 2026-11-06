@@ -12,6 +12,7 @@ import { ToolIcon3D, toolTone } from "./icon-3d";
 // sheet carries the lifted type scale, the hand-written one the glass UI.
 import "@/app/tool-pages.generated.css";
 import "@/app/tool-pages.css";
+import "@/app/devtools.css";
 export type ToolContent = { steps: string[]; faqs: { q: string; a: string }[] };
 export default function ToolShell({
   slug,

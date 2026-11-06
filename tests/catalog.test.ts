@@ -13,12 +13,11 @@ describe("catalog discovery", () => {
   it("shows every tool for an empty query", () =>
     expect(filterTools("", "All tools")).toHaveLength(tools.length));
   it("ignores case and surrounding spaces", () => {
-    // Asked for by name, the JSON formatter must still come first: no other
-    // record may claim "json" in its name, only in its keywords.
+    // The formatter wins the name-ranked search, with the distinct validator next.
     expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter");
     expect(
       tools.filter((tool) => /json/iu.test(tool.name)).map((tool) => tool.slug),
-    ).toEqual(["json-formatter"]);
+    ).toEqual(["json-formatter", "json-validator"]);
   });
   it("searches keywords", () =>
     expect(filterTools("crypto", "All tools")[0].slug).toBe(
@@ -120,6 +119,36 @@ describe("catalog discovery", () => {
     ]);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);
+  });
+  it("publishes eleven unique Developer Tools with searchable routes", () => {
+    const developerTools = toolsByCategory("Developer Tools");
+    expect(developerTools).toHaveLength(11);
+    expect(developerTools.map((tool) => tool.slug)).toEqual([
+      "json-formatter",
+      "json-validator",
+      "html-formatter",
+      "css-minifier",
+      "javascript-minifier",
+      "base64-encoder-decoder",
+      "url-encoder-decoder",
+      "uuid-generator",
+      "regex-tester",
+      "hash-generator",
+      "xml-formatter",
+    ]);
+    for (const query of [
+      "json validator",
+      "CSS",
+      "Base64",
+      "regex",
+      "SHA-512",
+      "XML formatter",
+    ]) {
+      expect(
+        filterTools(query, "Developer Tools").length,
+        query,
+      ).toBeGreaterThan(0);
+    }
   });
   it("keeps each split tool in exactly one category, with no dual listings", () => {
     // The combined converter used to be listed in both Image Tools and PDF

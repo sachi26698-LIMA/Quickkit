@@ -4,11 +4,14 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   await page.goto("/tools");
   await expect(page.locator(".tool-card")).toHaveCount(tools.length);
   await page.getByRole("searchbox").fill("json");
-  await expect(page.locator(".tool-card")).toHaveCount(2);
+  await expect(page.locator(".tool-card")).toHaveCount(3);
   await expect(page.locator(".tool-card").first()).toContainText(
     "JSON Formatter",
   );
   await expect(page.locator(".tool-card").nth(1)).toContainText(
+    "JSON Validator",
+  );
+  await expect(page.locator(".tool-card").nth(2)).toContainText(
     "QR Code Scanner",
   );
   await page
@@ -38,11 +41,14 @@ test("hero search suggests tools and opens results in All Tools", async ({
   ).toBeVisible();
   await search.press("Enter");
   await expect(page).toHaveURL(/\/tools\?q=json$/);
-  await expect(page.locator(".tool-card")).toHaveCount(2);
+  await expect(page.locator(".tool-card")).toHaveCount(3);
   await expect(page.locator(".tool-card").first()).toContainText(
     "JSON Formatter",
   );
   await expect(page.locator(".tool-card").nth(1)).toContainText(
+    "JSON Validator",
+  );
+  await expect(page.locator(".tool-card").nth(2)).toContainText(
     "QR Code Scanner",
   );
 });

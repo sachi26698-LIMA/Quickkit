@@ -76,8 +76,25 @@ export function locateJsonError(input: string) {
   } catch (e) {
     const message = e instanceof Error ? e.message : "";
     const posMatch = /position\s+(\d+)/i.exec(message);
-    if (!posMatch) return null;
-    const position = Math.min(Number(posMatch[1]), input.length);
+    const lineColumnMatch = /line\s+(\d+)\s+column\s+(\d+)/i.exec(message);
+    let position: number | null = posMatch ? Number(posMatch[1]) : null;
+    if (position === null && lineColumnMatch) {
+      const targetLine = Math.max(1, Number(lineColumnMatch[1]));
+      const targetColumn = Math.max(1, Number(lineColumnMatch[2]));
+      const linesBefore = input.split("\n").slice(0, targetLine - 1);
+      position =
+        linesBefore.reduce((sum, line) => sum + line.length + 1, 0) +
+        targetColumn -
+        1;
+    }
+    if (
+      position === null &&
+      /unexpected end|end of json input/i.test(message)
+    ) {
+      position = input.length;
+    }
+    if (position === null) return null;
+    position = Math.min(Math.max(0, position), input.length);
     const before = input.slice(0, position);
     const line = before.split("\n").length;
     const column = position - before.lastIndexOf("\n");

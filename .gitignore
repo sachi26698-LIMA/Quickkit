@@ -2,6 +2,7 @@ node_modules/
 .next/
 /public/pdfjs/
 /public/qpdf/
+/public/html-minifier/
 coverage/
 playwright-report/
 test-results/

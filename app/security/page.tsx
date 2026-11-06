@@ -128,8 +128,10 @@ export default function SecurityPage() {
         <li>
           <strong>No eval.</strong> The Content Security Policy allows
           WebAssembly compilation (<code>&apos;wasm-unsafe-eval&apos;</code>)
-          for the OCR engine and nothing more; raw <code>eval</code> is not
-          permitted in production.
+          for local processing, but raw <code>eval</code> is not permitted in
+          production. A separate <code>worker-src</code> rule permits a
+          short-lived, in-memory worker for bounded regular-expression tests; it
+          does not allow blob scripts in the page.
         </li>
       </ul>
 
@@ -141,6 +143,8 @@ export default function SecurityPage() {
           <code>default-src &apos;self&apos;</code>,{" "}
           <code>connect-src &apos;self&apos;</code> (so a script cannot
           exfiltrate data to another origin),{" "}
+          <code>worker-src &apos;self&apos; blob:</code> (for same-origin
+          workers and the temporary regex worker),{" "}
           <code>object-src &apos;none&apos;</code>,{" "}
           <code>base-uri &apos;self&apos;</code>,{" "}
           <code>form-action &apos;self&apos;</code>,{" "}
