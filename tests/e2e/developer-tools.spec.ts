@@ -282,6 +282,15 @@ test.describe("the eleven Developer Tools", () => {
       );
     }
     await capture(page, "json-formatter");
+    await page
+      .getByLabel("JSON input", { exact: true })
+      .fill('{"greeting":"नमस्ते 🌍"}');
+    await page
+      .getByRole("button", { name: "Format JSON", exact: true })
+      .click();
+    await expect(page.getByLabel("JSON result", { exact: true })).toHaveValue(
+      '{\n  "greeting": "नमस्ते 🌍"\n}',
+    );
     await page.getByRole("button", { name: "Reset", exact: true }).click();
     await expect(page.getByLabel("JSON input", { exact: true })).toHaveValue(
       "",
