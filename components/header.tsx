@@ -81,7 +81,12 @@ export default function Header() {
           className={open ? "navigation open" : "navigation"}
           aria-label="Main navigation"
         >
-          <Link href="/" onClick={closeAll} aria-current={current("/")}>
+          <Link
+            href="/"
+            prefetch={false}
+            onClick={closeAll}
+            aria-current={current("/")}
+          >
             Home
           </Link>
           <Link

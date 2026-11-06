@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import { shiftCalendar } from "@/lib/tools/phase9-dates";
 import { parseLocalTimestamp } from "@/lib/tools/phase9-working-time";
 export default function CalendarTime() {
+  const ready = useHydrated();
   const [start, setStart] = useState("");
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState<"days" | "weeks" | "months" | "years">(
@@ -38,11 +40,17 @@ export default function CalendarTime() {
           <p>Shift local dates without assuming a fixed month length.</p>
         </div>
       </div>
+      {!ready && (
+        <p className="sr-only" role="status">
+          Loading calculator controls…
+        </p>
+      )}
       <div className="calculator-grid">
         <div className="calculator-fields">
           <label>
             Starting local date and time
             <input
+              disabled={!ready}
               type="datetime-local"
               value={start}
               onChange={(e) => setStart(e.target.value)}
@@ -51,6 +59,7 @@ export default function CalendarTime() {
           <label>
             Calendar duration (negative to subtract)
             <input
+              disabled={!ready}
               type="number"
               step="1"
               value={amount}
@@ -60,6 +69,7 @@ export default function CalendarTime() {
           <label>
             Calendar unit
             <select
+              disabled={!ready}
               value={unit}
               onChange={(e) => setUnit(e.target.value as typeof unit)}
             >
@@ -72,6 +82,7 @@ export default function CalendarTime() {
           <button
             className="secondary"
             type="button"
+            disabled={!ready}
             onClick={() => {
               setStart("");
               setAmount("");

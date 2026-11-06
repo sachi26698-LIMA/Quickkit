@@ -5,7 +5,7 @@ export default function NotFound() {
       <span className="eyebrow">404 · Not found</span>
       <h1>This one isn’t in the kit.</h1>
       <p>Head back to explore the tool catalog.</p>
-      <Link href="/" className="primary">
+      <Link href="/" prefetch={false} className="primary">
         Back to QUICKKIT
       </Link>
     </section>

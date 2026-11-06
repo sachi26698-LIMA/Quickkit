@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import {
   workingTime,
   parseClock,
@@ -24,6 +25,7 @@ function duration(ms: number) {
   return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
 }
 export default function TimeAdvanced() {
+  const ready = useHydrated();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [days, setDays] = useState<number[]>([1, 2, 3, 4, 5]);
@@ -59,11 +61,17 @@ export default function TimeAdvanced() {
           <p>Measure elapsed time and overlap with a custom weekly schedule.</p>
         </div>
       </div>
+      {!ready && (
+        <p className="sr-only" role="status">
+          Loading calculator controls…
+        </p>
+      )}
       <div className="calculator-grid">
         <div className="calculator-fields">
           <label>
             Start timestamp (local)
             <input
+              disabled={!ready}
               type="datetime-local"
               value={start}
               onChange={(e) => setStart(e.target.value)}
@@ -72,17 +80,19 @@ export default function TimeAdvanced() {
           <label>
             End timestamp (local)
             <input
+              disabled={!ready}
               type="datetime-local"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
             />
           </label>
-          <fieldset className="advanced-item">
+          <fieldset className="advanced-item" disabled={!ready}>
             <legend>Working days</legend>
             <div className="workdays">
               {names.map((name, i) => (
                 <label className="calculator-check" key={name}>
                   <input
+                    disabled={!ready}
                     type="checkbox"
                     checked={days.includes(i)}
                     onChange={(e) =>
@@ -101,6 +111,7 @@ export default function TimeAdvanced() {
           <label>
             Workday starts
             <input
+              disabled={!ready}
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
@@ -109,6 +120,7 @@ export default function TimeAdvanced() {
           <label>
             Workday ends
             <input
+              disabled={!ready}
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
@@ -117,6 +129,7 @@ export default function TimeAdvanced() {
           <button
             className="secondary"
             type="button"
+            disabled={!ready}
             onClick={() => {
               setStart("");
               setEnd("");
