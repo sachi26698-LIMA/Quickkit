@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import {
   age,
   dateDifference,
@@ -10,6 +11,7 @@ import { Workspace } from "./phase9-shared";
 import CalendarView from "./phase9-calendar-view";
 import { zodiac } from "@/lib/tools/phase9-zodiac";
 export default function Dates({ kind }: { kind: string }) {
+  const ready = useHydrated();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [inclusive, setInclusive] = useState(false);
@@ -115,9 +117,15 @@ export default function Dates({ kind }: { kind: string }) {
         setShowZodiac(false);
       }}
     >
+      {!ready && (
+        <p className="sr-only" role="status">
+          Loading calculator controls…
+        </p>
+      )}
       <label>
         {isAge ? "Date of birth" : "Start date"}
         <input
+          disabled={!ready}
           type="date"
           value={start}
           onChange={(e) => setStart(e.target.value)}
@@ -126,6 +134,7 @@ export default function Dates({ kind }: { kind: string }) {
       <label>
         {isAge ? "Age on date" : "End date"}
         <input
+          disabled={!ready}
           type="date"
           value={end}
           onChange={(e) => setEnd(e.target.value)}
@@ -134,6 +143,7 @@ export default function Dates({ kind }: { kind: string }) {
       {isAge && (
         <label className="calculator-check">
           <input
+            disabled={!ready}
             type="checkbox"
             checked={showZodiac}
             onChange={(e) => setShowZodiac(e.target.checked)}
@@ -147,6 +157,7 @@ export default function Dates({ kind }: { kind: string }) {
           <label>
             Second date of birth
             <input
+              disabled={!ready}
               type="date"
               value={secondBirth}
               onChange={(e) => setSecondBirth(e.target.value)}
@@ -162,6 +173,7 @@ export default function Dates({ kind }: { kind: string }) {
         <>
           <label className="calculator-check">
             <input
+              disabled={!ready}
               type="checkbox"
               checked={inclusive}
               onChange={(e) => setInclusive(e.target.checked)}
@@ -171,6 +183,7 @@ export default function Dates({ kind }: { kind: string }) {
           <label>
             Add or subtract duration from start (negative to subtract)
             <input
+              disabled={!ready}
               type="number"
               step="1"
               value={shift}
@@ -180,6 +193,7 @@ export default function Dates({ kind }: { kind: string }) {
           <label>
             Duration unit
             <select
+              disabled={!ready}
               value={shiftUnit}
               onChange={(e) => setShiftUnit(e.target.value as typeof shiftUnit)}
             >
@@ -201,6 +215,7 @@ export default function Dates({ kind }: { kind: string }) {
             <label>
               Holiday dates (YYYY-MM-DD, comma or line separated)
               <textarea
+                disabled={!ready}
                 value={holidays}
                 onChange={(e) => setHolidays(e.target.value)}
                 placeholder="2026-01-26, 2026-08-15"

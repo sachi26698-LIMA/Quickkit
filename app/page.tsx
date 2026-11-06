@@ -72,6 +72,7 @@ export default function Home() {
                   key={slug}
                   className="popular-chip"
                   href={`/tools/${tool.slug}`}
+                  prefetch={false}
                 >
                   {tool.name}
                 </Link>

@@ -39,7 +39,9 @@ export default async function CategoryPage({
     <div className="home inner-page">
       <div className="container">
         <nav className="breadcrumbs" aria-label="Breadcrumb">
-          <Link href="/">Home</Link>
+          <Link href="/" prefetch={false}>
+            Home
+          </Link>
           <ChevronRight size={13} aria-hidden="true" />
           <Link href="/tools">All Tools</Link>
           <ChevronRight size={13} aria-hidden="true" />

@@ -28,11 +28,15 @@ test("hero search suggests tools and opens results in All Tools", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("searchbox").fill("json");
+  const search = page.getByRole("searchbox", {
+    name: "Search tools",
+    exact: true,
+  });
+  await search.fill("json");
   await expect(
     page.locator(".search-result", { hasText: "JSON Formatter" }),
   ).toBeVisible();
-  await page.getByRole("searchbox").press("Enter");
+  await search.press("Enter");
   await expect(page).toHaveURL(/\/tools\?q=json$/);
   await expect(page.locator(".tool-card")).toHaveCount(2);
   await expect(page.locator(".tool-card").first()).toContainText(

@@ -44,7 +44,9 @@ export default function ToolShell({
       style={toolThemeStyle(theme)}
     >
       <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link href="/">Home</Link>
+        <Link href="/" prefetch={false}>
+          Home
+        </Link>
         <ChevronRight size={13} />
         <Link href="/tools">Tools</Link>
         <ChevronRight size={13} />

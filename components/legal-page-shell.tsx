@@ -48,7 +48,9 @@ export default function LegalPageShell({
         <nav className="breadcrumbs legal-breadcrumbs" aria-label="Breadcrumb">
           <ol>
             <li>
-              <Link href="/">Home</Link>
+              <Link href="/" prefetch={false}>
+                Home
+              </Link>
             </li>
             <li aria-hidden="true">
               <ChevronRight size={12} />
