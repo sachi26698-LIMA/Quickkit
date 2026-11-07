@@ -234,18 +234,20 @@ export default function AboutPage() {
                 DOCX files are sent to operator-controlled native processing
                 only after consent and a requested conversion. No permanent
                 document storage or automatic third-party fallback is used by
-                default. Native host isolation, cleanup and retention require
-                operator verification before production approval.
+                default. Native host isolation, cleanup and retention are
+                operator duties verified against the live deployment.
               </p>
               <p>
-                Every page is served with a Content Security Policy that keeps
-                fetch and XHR connections same-origin and allowlists the Google
-                AdSense verification script. That third-party script runs in the
-                page and may access page or browser information; the application
-                does not intentionally send tool inputs to it. Avoid entering
-                sensitive material if you are not comfortable with that access.
-                This policy does not prevent consented server processing by the
-                Word to PDF private worker.
+                Every page is served with a Content Security Policy that allows
+                scripts, frames, images and network connections only from this
+                site&rsquo;s own origin plus the specific Google hosts AdSense
+                needs to serve and measure ads — no wildcards, no other third
+                parties. That third-party script runs in the page and may access
+                page or browser information; the application does not
+                intentionally send tool inputs to it. Avoid entering sensitive
+                material if you are not comfortable with that access. This
+                policy does not prevent consented server processing by the Word
+                to PDF private worker.
               </p>
               <p>
                 Where privacy is <em>not</em> absolute, we say so: the hosting

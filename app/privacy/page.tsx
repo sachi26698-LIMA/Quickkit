@@ -131,9 +131,10 @@ export default function PrivacyPage() {
         files are temporary and cleanup is required after processing; actual
         host isolation, crash cleanup and logging/retention remain operator
         release gates. Native conversion is disabled when its engine is
-        unavailable. The Content Security Policy keeps application fetch and XHR
-        connections same-origin, while separately allowing the Google AdSense
-        verification script described in sections 7 and 8.
+        unavailable. The Content Security Policy allows application fetch and
+        XHR connections only to this site&rsquo;s own origin and the Google
+        AdSense hosts described in sections 7 and 8 — no wildcards and no other
+        third parties.
       </p>
       <p>
         Two honest qualifications. First, the hosting provider still sees the

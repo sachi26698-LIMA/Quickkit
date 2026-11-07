@@ -56,12 +56,13 @@ export default function FileHandlingPage() {
         </li>
         <li>
           <strong>Browser connections are restricted.</strong> The Content
-          Security Policy keeps fetch and XHR connections same-origin, but it
-          separately allowlists the Google AdSense verification script in
-          <code>script-src</code>. That script runs in the page and may access
-          page content; do not use sensitive files if you are not comfortable
-          with that third-party access. The application does not intentionally
-          send selected files to AdSense.
+          Security Policy allows scripts, frames, images and fetch/XHR
+          connections only from this site&rsquo;s own origin and the named
+          Google AdSense hosts — no wildcards, no other third parties. That
+          script runs in the page and may access page content; do not use
+          sensitive files if you are not comfortable with that third-party
+          access. The application does not intentionally send selected files to
+          AdSense.
         </li>
         <li>
           <strong>Processing engines are self-hosted.</strong> The PDF engine,
