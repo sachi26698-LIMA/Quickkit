@@ -331,10 +331,10 @@ export default function TermsPage() {
         bring a claim in your local courts are unaffected.
       </p>
       <p className="legal-review-flag">
-        <strong>Legal-review note.</strong> The governing law, the forum clause
-        and any mandatory consumer-protection carve-outs must be chosen and
-        confirmed by the operator with local counsel. No jurisdiction has been
-        assumed.
+        <strong>Legal-review note.</strong> Governing law is stated as India,
+        the operator&rsquo;s jurisdiction. The forum clause and any mandatory
+        consumer-protection carve-outs that would override it should still be
+        confirmed with local counsel before they are relied on.
       </p>
 
       <h2 id="contact">15. Contact</h2>
