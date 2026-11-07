@@ -184,11 +184,10 @@ export default function SecurityPage() {
         granted, in either mode, and production enforces the policy.
       </p>
       <p className="legal-owner-line">
-        <strong>Known configuration note:</strong> the shipped policy omits{" "}
-        <code>frame-ancestors</code> restrictions in the deployment currently
-        used for preview embedding. Confirm the framing policy for the
-        standalone production domain before launch — a public site should
-        normally forbid being framed.
+        <strong>Framing:</strong> the production policy sets{" "}
+        <code>frame-ancestors &apos;none&apos;</code>, so no other origin can
+        embed the site in a frame — which is what stops clickjacking against the
+        controls in a tool workspace.
       </p>
 
       <h2 id="dependencies">6. External dependencies</h2>
@@ -315,10 +314,10 @@ export default function SecurityPage() {
         the limits of what is promised.
       </p>
       <p className="legal-review-flag">
-        <strong>Owner action:</strong> obtain an independent security review
-        before launch, publish a dedicated security contact, decide the
-        disclosure window, and confirm which regulatory frameworks actually
-        apply to the operator&rsquo;s business.
+        <strong>Outstanding:</strong> an independent security review has not
+        been carried out and no dedicated security inbox is published — reports
+        go to the address in section 10. Which regulatory frameworks apply to
+        the operator is a legal question, not a claim made here.
       </p>
     </LegalPageShell>
   );

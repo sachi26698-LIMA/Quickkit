@@ -257,11 +257,13 @@ export default function AccessibilityPage() {
         must resolve.
       </p>
       <p className="legal-review-flag">
-        <strong>Owner action:</strong> obtain an independent accessibility
-        review, confirm which accessibility laws apply to the operator&rsquo;s
-        jurisdiction and business model, and publish a named contact with a
-        response commitment. Related: <Link href="/disclaimer">Disclaimer</Link>
-        , <Link href="/privacy">Privacy Policy</Link>.
+        <strong>Outstanding:</strong> an independent accessibility review has
+        not been carried out, and which accessibility laws apply to the operator
+        is a legal question rather than a claim made here. Barriers can be
+        reported through the <Link href="/contact">contact page</Link>, and the
+        commitments above are what responses will be measured against. Related:{" "}
+        <Link href="/disclaimer">Disclaimer</Link>,{" "}
+        <Link href="/privacy">Privacy Policy</Link>.
       </p>
     </LegalPageShell>
   );

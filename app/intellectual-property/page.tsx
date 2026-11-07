@@ -162,10 +162,10 @@ export default function IntellectualPropertyPage() {
         copyright law allows by default.
       </p>
       <p className="legal-review-flag">
-        <strong>Owner action:</strong> decide whether QUICKKIT will be released
-        under an open-source licence. If it is, choose and review the licence,
-        keep a full dependency-and-notice inventory for distribution, and update
-        this section. Until then, UNLICENSED is the accurate description.
+        <strong>Status:</strong> no open-source licence has been chosen for
+        QUICKKIT&rsquo;s own code, and none is promised. Until a licence is
+        published on this page, <strong>UNLICENSED</strong> is the accurate
+        description of the package.
       </p>
 
       <h2 id="fonts-icons">4. Fonts and icons</h2>

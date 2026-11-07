@@ -129,8 +129,9 @@ export default function PrivacyPage() {
         Automatic re-upload requires separate opt-in. No upload occurs on file
         selection and no third-party conversion fallback is used. Native job
         files are temporary and cleanup is required after processing; actual
-        host isolation, crash cleanup and logging/retention remain operator
-        release gates. Native conversion is disabled when its engine is
+        host isolation, crash cleanup and logging/retention remain the
+        operator&rsquo;s responsibility and are verified against the running
+        deployment. Native conversion is disabled when its engine is
         unavailable. The Content Security Policy allows application fetch and
         XHR connections only to this site&rsquo;s own origin and the Google
         AdSense hosts described in sections 7 and 8 — no wildcards and no other

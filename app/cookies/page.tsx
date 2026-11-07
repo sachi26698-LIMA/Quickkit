@@ -229,7 +229,8 @@ export default function CookiesPage() {
         entry requires consent, and which consent standard applies (ePrivacy,
         GDPR, UK PECR, state privacy laws, DPDP Act and others), is a
         jurisdiction-specific legal question. The operator should confirm the
-        classification of each entry above with counsel before launch.
+        classification of each entry above has not yet been settled with
+        counsel.
       </p>
 
       <h2 id="third-party">9. Third-party cookies</h2>

@@ -116,10 +116,10 @@ export default function CopyrightPage() {
         please tell us — that is a bug we will take seriously.
       </p>
       <p className="legal-review-flag">
-        <strong>Owner action:</strong> confirm the packaged licence inventory
-        (including transitive dependencies and their notices) before any public
-        distribution of the source, and keep third-party notice files with the
-        distribution. A fuller inventory must accompany a source release.
+        <strong>Scope note:</strong> the dependency licences and notices are
+        kept with the source repository, which is where a redistributor would
+        need them. This website publishes the summaries above rather than a full
+        transitive inventory; nothing here modifies or replaces a licence.
       </p>
 
       <h2 id="user-outputs">3. Your files and outputs</h2>
