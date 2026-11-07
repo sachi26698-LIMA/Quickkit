@@ -27,6 +27,26 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   await page.getByRole("button", { name: "Clear search", exact: true }).click();
   await expect(page.locator(".tool-card")).toHaveCount(tools.length);
 });
+test("AdSense verification script is in the shared head on every route", async ({
+  page,
+}) => {
+  await page.route("https://pagead2.googlesyndication.com/**", (route) =>
+    route.abort(),
+  );
+  const routes = ["/", "/tools", "/tools/json-formatter", "/privacy"];
+  for (const route of routes) {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.headers()["content-security-policy"]).toContain(
+      "https://pagead2.googlesyndication.com",
+    );
+    const script = page.locator(
+      'head script[src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"]',
+    );
+    await expect(script).toHaveCount(1);
+    await expect(script).toHaveAttribute("async", "");
+    await expect(script).toHaveAttribute("crossorigin", "anonymous");
+  }
+});
 test("hero search suggests tools and opens results in All Tools", async ({
   page,
 }) => {

@@ -213,17 +213,19 @@ export default function TermsPage() {
         are not responsible for their content or availability.
       </p>
       <p>
-        Tool processing itself uses no third-party service. The browser
-        libraries that do the work — PDF parsing, PDF writing, image encoding,
-        QR generation, document generation, and the self-hosted OCR engine — are
-        bundled with the site rather than called over the network, and they are
-        listed with their licences in the{" "}
+        Tool processing itself does not use a third-party processing service.
+        The browser libraries that do the work — PDF parsing, PDF writing, image
+        encoding, QR generation, document generation, and the self-hosted OCR
+        engine — are bundled with the site rather than called over the network,
+        and they are listed with their licences in the{" "}
         <Link href="/intellectual-property#open-source">
           Intellectual Property Policy
         </Link>
-        . If a future feature ever needs a remote API, that change will be
-        documented in the <Link href="/privacy">Privacy Policy</Link> first and
-        will be clearly labelled in the tool itself.
+        . The site separately loads a Google AdSense verification script; it is
+        not used to process files. See the{" "}
+        <Link href="/privacy">Privacy Policy</Link> for its data handling. Any
+        future remote processing API will be documented before use and clearly
+        labelled in the affected tool.
       </p>
 
       <h2 id="availability">10. Service availability</h2>

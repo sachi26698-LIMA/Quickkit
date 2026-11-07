@@ -19,15 +19,17 @@ export default function CookiesPage() {
     <LegalPageShell
       href="/cookies"
       title="Cookie Policy"
-      intro="QUICKKIT sets zero cookies. This page documents the browser storage the site can create when you use a feature, why each entry exists, and how to remove it."
+      intro="QUICKKIT application code does not intentionally set cookies. Google AdSense is loaded for site verification and may use cookies or similar identifiers; this page also documents the browser storage created by site features."
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
       <h2 id="summary">1. The short version</h2>
       <ul>
         <li>
-          <strong>Cookies: none.</strong> The site does not set a first-party
-          cookie, and nothing on the page sets a third-party one.
+          <strong>Cookies:</strong> QUICKKIT application code does not
+          intentionally set cookies. The Google AdSense script loaded site-wide
+          may use cookies or similar advertising identifiers, depending on its
+          settings and your browser.
         </li>
         <li>
           <strong>Local storage and IndexedDB:</strong> used only for
@@ -35,8 +37,9 @@ export default function CookiesPage() {
           optional conversion history.
         </li>
         <li>
-          <strong>Analytics or advertising:</strong> none, so there is no
-          consent banner to dismiss.
+          <strong>Analytics:</strong> none. The AdSense verification script is
+          an advertising-platform script; review sections 6 and 8 for its
+          potential cookie use and consent considerations.
         </li>
       </ul>
 
@@ -45,15 +48,17 @@ export default function CookiesPage() {
         A cookie is a small text file a site asks the browser to store and to
         send back with every request to that site. Local storage and session
         storage are a different mechanism: the data lives in the browser, is
-        never attached to HTTP requests, and is readable only by scripts from
-        the same origin. IndexedDB is the same idea with room for larger binary
-        data.
+        never attached to HTTP requests. Scripts running in this page context,
+        including the embedded AdSense script, may be able to read it. IndexedDB
+        is the same idea with room for larger binary data.
       </p>
       <p>
-        QUICKKIT uses no cookies at all. The distinction matters because the
-        strictest cookie-consent rules are triggered by setting or reading
-        information on a device — which is why the local-storage entries below
-        are documented in full even though they are not cookies.
+        QUICKKIT&rsquo;s own application code does not intentionally set
+        cookies. The AdSense script may read or set cookies or similar
+        identifiers, depending on Google&rsquo;s configuration and browser
+        settings. The distinction matters because rules can apply to storing or
+        reading information on a device, which is why local-storage entries are
+        documented below as well.
       </p>
 
       <h2 id="essential">3. Essential storage</h2>
@@ -181,41 +186,43 @@ export default function CookiesPage() {
 
       <h2 id="analytics">5. Analytics cookies</h2>
       <p>
-        None. No analytics product, no first-party analytics script, no
-        server-side visitor counting is implemented. We do not know how many
-        people visit, which tools are popular, or which pages you read — and
-        that is a deliberate trade: it also means we cannot see you.
+        QUICKKIT does not implement a separate analytics product, first-party
+        analytics script or server-side visitor counter. Google may receive
+        requests and advertising-related data through the AdSense script; any
+        publisher reporting depends on its account settings. See section 6.
       </p>
 
       <h2 id="advertising">6. Advertising cookies</h2>
       <p>
-        None. There is no ad network, no affiliate pixel, no retargeting tag and
-        no third-party remarketing script anywhere in the release. QUICKKIT has
-        no paid tier and no ads.
+        A Google AdSense verification script is loaded on every page. It may
+        access or store cookies or similar advertising identifiers under
+        Google&rsquo;s policies and your browser settings. This code change adds
+        no explicit ad-slot markup, and the current Content Security Policy
+        blocks frames. Serving ads would require a separately reviewed CSP and
+        consent configuration. QUICKKIT has no paid tier.
       </p>
 
       <h2 id="inventory">7. Full storage inventory</h2>
       <p>
-        The table in <a href="#functional">section 4</a> is the complete list.
-        If you inspect your browser&rsquo;s site-data panel for this origin,
-        those are the only entries QUICKKIT can create. Anything else under this
-        domain would be the result of a browser extension or a third-party tool
-        you installed, not this site.
+        The table in <a href="#functional">section 4</a> is the complete list of
+        first-party local-storage and IndexedDB entries created by the
+        application. Cookies or identifiers used by AdSense are outside this
+        first-party inventory; their storage context depends on Google&rsquo;s
+        implementation and your browser settings.
       </p>
 
       <h2 id="consent">8. Consent</h2>
       <p>
-        Consent is required for storage that is not strictly necessary. The
-        entries above are either strictly necessary for a feature you explicitly
-        switched on, or created by an action you took (hearting a tool, saving a
-        preset, enabling history). They are not used for tracking, profiling,
-        advertising or cross-site identification.
+        The local-storage entries above are functional preferences. The AdSense
+        script is a separate advertising-platform integration and may use
+        cookies or similar identifiers. This release does not include a consent
+        banner or consent-management platform.
       </p>
       <p>
-        Because no non-essential tracking exists, there is no consent banner.
-        Adding one over storage that carries no tracking would be theatre; if
-        non-essential storage is ever introduced, a real opt-in mechanism will
-        be added first, and this page updated before it is deployed.
+        Before enabling ad serving or personalized advertising, the operator
+        should review applicable consent requirements and configure AdSense and
+        any required consent-management platform for the audience. This is a
+        deployment and legal-review requirement, not a claim of compliance.
       </p>
       <p className="legal-review-flag">
         <strong>Needs legal review before publication.</strong> Whether a
@@ -228,12 +235,11 @@ export default function CookiesPage() {
 
       <h2 id="third-party">9. Third-party cookies</h2>
       <p>
-        There are no embedded third-party frames, widgets, fonts, scripts or
-        pixels on QUICKKIT pages, so no third party can set or read a cookie
-        here. Fonts are self-hosted, icons are bundled, and the social links in
-        the footer are ordinary anchors — a cookie from Instagram, X, YouTube,
-        GitHub or LinkedIn can only appear after you follow the link to their
-        site, under their policy.
+        The Google AdSense script is embedded on QUICKKIT pages and may set or
+        read cookies or similar identifiers under Google&rsquo;s policies and
+        your browser settings. Fonts are self-hosted, icons are bundled, and
+        social links in the footer are ordinary anchors — their destinations can
+        only set cookies after you follow a link to those sites.
       </p>
 
       <h2 id="managing">10. Managing and deleting storage</h2>

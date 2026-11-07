@@ -31,14 +31,14 @@ const groups: Group[] = [
         q: "Are my files uploaded to a server?",
         a: (
           <>
-            Most tools process files in your browser without uploading. Word to
-            PDF is an explicit-consent exception: requesting conversion sends
-            DOCX bytes to an operator-controlled native engine or private
-            worker. Selecting a file alone does not upload it. Temporary job
-            cleanup is required; there is no permanent document store by default
-            or automatic third-party conversion fallback. Read the{" "}
-            <Link href="/file-handling">File Handling Policy</Link> for the
-            tool-by-tool detail.
+            Most tools process files in your browser; the application does not
+            upload them for those conversions. The site also loads a Google
+            AdSense verification script on each page. It runs in the page and
+            may access page content, so avoid sensitive files if you are not
+            comfortable with that third-party access. Word to PDF is a separate
+            explicit-consent exception: requesting conversion sends DOCX bytes
+            to an operator-controlled native engine or private worker. Read the
+            <Link href="/file-handling">File Handling Policy</Link> for details.
           </>
         ),
       },
@@ -46,10 +46,11 @@ const groups: Group[] = [
         q: "Do you use analytics or advertising cookies?",
         a: (
           <>
-            No. There is no analytics SDK, no advertising network and no
-            tracking pixel, and the site sets no cookies at all. The{" "}
-            <Link href="/cookies">Cookie Policy</Link> lists every local-storage
-            entry the site can create.
+            There is no analytics SDK or tracking pixel. A Google AdSense
+            verification script loads on every page and may use cookies or
+            similar identifiers. See the{" "}
+            <Link href="/cookies">Cookie Policy</Link> for details and consent
+            considerations.
           </>
         ),
       },
@@ -99,9 +100,10 @@ const groups: Group[] = [
         q: "Is QUICKKIT free?",
         a: (
           <>
-            Yes — every tool currently on the site is free, with no ads and no
-            paid tier. If a paid option is ever introduced, the free tools and
-            this answer will be updated before anything changes.
+            Yes — every tool currently on the site is free, with no paid tier.
+            The AdSense verification script is loaded on each page for site
+            verification. This change does not add ad placements; serving ads
+            would require further CSP and consent configuration.
           </>
         ),
       },
