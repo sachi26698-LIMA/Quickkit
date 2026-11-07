@@ -264,10 +264,11 @@ const groups: Group[] = [
         q: "Are your policies legally reviewed?",
         a: (
           <>
-            Not yet. They are written against the actual implementation and are
-            labelled as drafts pending owner details and legal review. Several
-            provisions — governing law, liability wording, DMCA agent, retention
-            statements — are explicitly flagged where review is required.
+            Not yet — they have not been through a lawyer. They are written
+            against the actual implementation rather than copied from a
+            template, and the specific provisions that still need review
+            (liability wording, the DMCA agent, retention statements) are
+            flagged where they appear on the page.
           </>
         ),
       },

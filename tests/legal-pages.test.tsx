@@ -14,6 +14,7 @@ import {
   hasOwnerDetail,
   ownerDetail,
   ownerDetails,
+  publishOperatorAsBrand,
   socials,
   socialsVisible,
 } from "../lib/site";
@@ -282,10 +283,49 @@ describe("rendered legal page shell", () => {
     expect(screen.getByText(/Was this page clear\?/)).toBeTruthy();
   });
 
-  it("shows the owner-input notice while details are missing", async () => {
+  it("shows the owner-input notice only while details are actually missing", async () => {
+    // The notice is derived from `lib/site.ts`, never hardcoded, so it has to
+    // track the data in both directions: present while something is missing,
+    // gone the moment the operator supplies it.
+    const stillMissing =
+      (!hasOwnerDetail("legalName") && !publishOperatorAsBrand) ||
+      !hasOwnerDetail("jurisdiction") ||
+      !hasOwnerDetail("publicEmail");
     const { default: PrivacyPage } = await import("../app/privacy/page");
     render(<PrivacyPage />);
-    expect(screen.getByText(/Owner input required/)).toBeTruthy();
+    if (stillMissing) {
+      expect(screen.getByText(/Owner input required/)).toBeTruthy();
+    } else {
+      expect(screen.queryByText(/Owner input required/)).toBeNull();
+      expect(screen.queryByText(/Draft — pending owner details/)).toBeNull();
+      expect(screen.queryByText(/Owner to supply/)).toBeNull();
+    }
+  });
+
+  it("publishes the contact address on every page that promises one", async () => {
+    // The operator supplied one address; the Contact page, Privacy Policy,
+    // Terms and About page must all reach it, as a real mailto link.
+    expect(contactEmail).toBeTruthy();
+    const pages = [
+      ["contact", (await import("../app/contact/page")).default],
+      ["privacy", (await import("../app/privacy/page")).default],
+      ["terms", (await import("../app/terms/page")).default],
+      ["about", (await import("../app/about/page")).default],
+    ] as const;
+    for (const [name, Page] of pages) {
+      const { container, unmount } = render(<Page />);
+      const mailtos = Array.from(
+        container.querySelectorAll('a[href^="mailto:"]'),
+      );
+      expect(mailtos.length, `${name} publishes a mailto link`).toBeGreaterThan(
+        0,
+      );
+      for (const link of mailtos)
+        expect(link.getAttribute("href"), name).toContain(
+          `mailto:${contactEmail}`,
+        );
+      unmount();
+    }
   });
 
   it("renders the FAQ groups with unique question summaries", async () => {

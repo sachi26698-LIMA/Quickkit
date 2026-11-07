@@ -284,11 +284,11 @@ export default function TermsPage() {
         nothing here overrides them.
       </p>
       <p className="legal-review-flag">
-        <strong>Needs legal review before publication.</strong> The wording
-        above is a good-faith plain-language draft. The enforceability of
-        liability caps, the treatment of consumer rights and the required
-        disclosures differ substantially between jurisdictions and must be
-        confirmed by a qualified lawyer
+        <strong>Legal-review note.</strong> The wording above is a good-faith
+        plain-language draft. The enforceability of liability caps, the
+        treatment of consumer rights and the required disclosures differ
+        substantially between jurisdictions and must be confirmed by a qualified
+        lawyer
         {jurisdiction
           ? ` for ${jurisdiction}`
           : " for the operator's jurisdiction"}
@@ -331,10 +331,10 @@ export default function TermsPage() {
         bring a claim in your local courts are unaffected.
       </p>
       <p className="legal-review-flag">
-        <strong>Needs legal review before publication.</strong> The governing
-        law, the forum clause and any mandatory consumer-protection carve-outs
-        must be chosen and confirmed by the operator with local counsel. No
-        jurisdiction has been assumed.
+        <strong>Legal-review note.</strong> The governing law, the forum clause
+        and any mandatory consumer-protection carve-outs must be chosen and
+        confirmed by the operator with local counsel. No jurisdiction has been
+        assumed.
       </p>
 
       <h2 id="contact">15. Contact</h2>

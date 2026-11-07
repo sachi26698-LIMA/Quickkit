@@ -19,8 +19,12 @@
  * `docs/LEGAL_PAGES.md` for the full checklist behind these fields.
  */
 export const ownerDetails = {
-  /** Verified, monitored public contact inbox shown on every page. */
-  publicEmail: "",
+  /**
+   * Verified, monitored public contact inbox shown on every page.
+   * Supplied by the operator on 2026-11-07; this single value enables the
+   * contact page, the contact form's mailto fallback and every "email us" link.
+   */
+  publicEmail: "Quickkit96@gmail.com",
   /** Registered / trading legal name of the person or company operating QUICKKIT. */
   legalName: "",
   /** Country (and region, if relevant) whose law governs the terms. */

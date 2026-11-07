@@ -130,7 +130,9 @@ export default function ContactPage() {
               </time>
             </span>
             <span className="legal-updated-note">
-              Channels depend on owner-supplied details.
+              {contactEmail
+                ? "One monitored address serves every route below."
+                : "Channels depend on owner-supplied details."}
             </span>
           </p>
         </header>
