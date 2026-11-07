@@ -18,6 +18,9 @@ const geist = localFont({
   variable: "--font-geist",
   fallback: ["Arial", "Helvetica", "sans-serif"],
 });
+/** Public AdSense publisher id; the same value is in the loader URL and ads.txt. */
+const ADSENSE_CLIENT_ID = "ca-pub-1478767466279341";
+
 export const metadata: Metadata = {
   title: {
     default: "QUICKKIT — Handy tools. Zero hassle.",
@@ -32,6 +35,10 @@ export const metadata: Metadata = {
         : "http://localhost:3001"),
   ),
   robots: { index: indexingEnabled, follow: indexingEnabled },
+  // Tells AdSense which account owns the site even before an ad unit is placed
+  // (it is what the AdSense "site verification" check looks for). The value is
+  // already public in the loader URL below, so nothing is disclosed here.
+  other: { "google-adsense-account": ADSENSE_CLIENT_ID },
 };
 export default function Layout({
   children,

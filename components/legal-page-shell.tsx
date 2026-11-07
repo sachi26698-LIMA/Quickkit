@@ -4,7 +4,11 @@ import { isoDatetime, legalPageByHref } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import LegalRelated from "@/components/legal-related";
 import OwnerPlaceholder from "@/components/owner-placeholder";
-import { hasOwnerDetail, ownerDetail } from "@/lib/site";
+import {
+  hasOwnerDetail,
+  ownerDetail,
+  publishOperatorAsBrand,
+} from "@/lib/site";
 
 /**
  * Server-rendered shell shared by every legal / information page.
@@ -37,7 +41,9 @@ export default function LegalPageShell({
   const page = legalPageByHref(href);
   const sections = page?.sections ?? [];
   const missing: string[] = [
-    !hasOwnerDetail("legalName") ? "the operator's legal name" : null,
+    !hasOwnerDetail("legalName") && !publishOperatorAsBrand
+      ? "the operator's legal name"
+      : null,
     !hasOwnerDetail("jurisdiction") ? "the governing jurisdiction" : null,
     !hasOwnerDetail("publicEmail") ? "a verified contact address" : null,
   ].filter(Boolean) as string[];
@@ -74,9 +80,11 @@ export default function LegalPageShell({
               Last updated{" "}
               <time {...isoDatetime(lastUpdatedIso)}>{lastUpdated}</time>
             </span>
-            <span className="legal-updated-note">
-              Draft — pending owner details and legal review.
-            </span>
+            {missing.length ? (
+              <span className="legal-updated-note">
+                Draft — pending owner details.
+              </span>
+            ) : null}
           </p>
         </header>
 
@@ -170,12 +178,15 @@ export default function LegalPageShell({
             <p className="legal-review-note">
               <Mail size={14} aria-hidden="true" /> This document is written in
               plain language to describe the software as built. It is
-              information, not legal advice, and it should be reviewed by a
-              qualified lawyer
-              {ownerDetail("jurisdiction")
-                ? ` in ${ownerDetail("jurisdiction")}`
-                : ""}{" "}
-              before QUICKKIT is launched publicly.
+              information, not legal advice
+              {missing.length
+                ? `, and it should be reviewed by a qualified lawyer${
+                    ownerDetail("jurisdiction")
+                      ? ` in ${ownerDetail("jurisdiction")}`
+                      : ""
+                  } before QUICKKIT is launched publicly`
+                : ". Questions about this page are welcome at any time"}
+              .
             </p>
           </article>
         </div>

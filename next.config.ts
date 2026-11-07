@@ -1,16 +1,73 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
 
-/**
- * One policy, enforced in production. `'wasm-unsafe-eval'` permits WebAssembly
- * compilation (on-device OCR in PDF to Word) without enabling JavaScript eval.
- */
-const CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://pagead2.googlesyndication.com; " +
-  "worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; " +
-  "img-src 'self' blob: data:; font-src 'self'; " +
-  "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; " +
-  "frame-src 'none'; frame-ancestors 'none'";
+// ─────────────────────────────────────────────────────────────────────────────
+// Content-Security-Policy.
+//
+// One policy, enforced in production. `'wasm-unsafe-eval'` permits WebAssembly
+// compilation (on-device OCR in PDF to Word) without enabling JavaScript eval.
+//
+// Everything is same-origin except the hosts Google AdSense actually needs. The
+// AdSense loader pulls further scripts, ad iframes, creatives and beacons from a
+// handful of Google hosts, so a policy that allows only the loader leaves every
+// slot blank — see docs/ADSENSE_CSP.md for the reasoning and the hosts.
+//
+// No wildcards: every host is listed explicitly, `object-src` stays 'none',
+// `base-uri` and `form-action` stay 'self', and framing *this* site stays
+// forbidden (frame-ancestors 'none'). Only the resource types AdSense uses are
+// widened — script, frame, img and connect.
+// ─────────────────────────────────────────────────────────────────────────────
+const ADSENSE_SCRIPTS = [
+  "https://pagead2.googlesyndication.com", // the loader itself
+  "https://tpc.googlesyndication.com",
+  "https://googleads.g.doubleclick.net",
+  "https://www.googletagservices.com",
+  "https://adservice.google.com",
+  "https://partner.googleadservices.com",
+  "https://fundingchoicesmessages.google.com", // consent message (CMP)
+];
+
+const ADSENSE_FRAMES = [
+  "https://googleads.g.doubleclick.net", // the ad iframe
+  "https://tpc.googlesyndication.com",
+  "https://www.google.com",
+  "https://ep2.adtrafficquality.google",
+  "https://fundingchoicesmessages.google.com",
+];
+
+const ADSENSE_IMAGES = [
+  "https://pagead2.googlesyndication.com",
+  "https://tpc.googlesyndication.com",
+  "https://googleads.g.doubleclick.net",
+  "https://www.google.com",
+  "https://www.gstatic.com",
+];
+
+const ADSENSE_CONNECTIONS = [
+  "https://pagead2.googlesyndication.com",
+  "https://googleads.g.doubleclick.net",
+  "https://tpc.googlesyndication.com",
+  "https://www.google.com",
+  "https://ep1.adtrafficquality.google",
+  "https://ep2.adtrafficquality.google",
+  "https://fundingchoicesmessages.google.com",
+  "https://csi.gstatic.com",
+];
+
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${ADSENSE_SCRIPTS.join(" ")}`,
+  "worker-src 'self' blob:",
+  "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' blob: data: ${ADSENSE_IMAGES.join(" ")}`,
+  "font-src 'self'",
+  `connect-src 'self' ${ADSENSE_CONNECTIONS.join(" ")}`,
+  `frame-src ${ADSENSE_FRAMES.join(" ")}`,
+].join("; ");
 
 // `next dev` cannot run under this policy: React's development runtime calls
 // eval() (to reconstruct component stacks across realms) and the dev server's

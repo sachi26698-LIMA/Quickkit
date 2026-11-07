@@ -322,22 +322,24 @@ export default function AboutPage() {
             <section id="operator" className="legal-section">
               <h2>Who runs QUICKKIT</h2>
               <p>
-                QUICKKIT is an independent project. The legal entity behind it,
-                the jurisdiction it operates from and the registered contact
-                details are{" "}
+                QUICKKIT is an independent project published under the QUICKKIT
+                brand. There is no registered company, partnership or other
+                separate legal entity behind it, and therefore no company
+                registration number to publish — the brand is the whole
+                identity, and the site does not dress it up as anything more.
+              </p>
+              <p>
+                It is operated from and governed by the law of{" "}
                 {jurisdiction ? (
-                  <>confirmed as {jurisdiction}.</>
+                  <strong>{jurisdiction}</strong>
                 ) : (
-                  <>
-                    still to be supplied by the operator:{" "}
-                    <OwnerPlaceholder what="operator identity and jurisdiction" />
-                  </>
-                )}{" "}
-                Those details will appear in the{" "}
+                  <OwnerPlaceholder what="the governing jurisdiction" />
+                )}
+                . The same statement appears in the{" "}
                 <Link href="/terms">Terms and Conditions</Link> and the{" "}
-                <Link href="/privacy">Privacy Policy</Link> as soon as they are
-                verified. Nothing on this site invents a company name,
-                registration number or address.
+                <Link href="/privacy">Privacy Policy</Link>, so the three pages
+                cannot drift apart. How to reach the project is described on the{" "}
+                <Link href="/contact">contact page</Link>.
               </p>
             </section>
 

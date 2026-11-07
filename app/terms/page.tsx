@@ -9,7 +9,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
-import { ownerDetail } from "@/lib/site";
+import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Terms and Conditions — using QUICKKIT",
@@ -349,6 +349,14 @@ export default function TermsPage() {
         Operator:{" "}
         {legalName ? (
           <strong>{legalName}</strong>
+        ) : publishOperatorAsBrand ? (
+          <>
+            <strong>the QUICKKIT project</strong> — an independently operated
+            website published under the QUICKKIT brand. No registered company,
+            partnership or other separate legal entity is claimed for it, and it
+            has no company registration number. The jurisdiction it operates
+            from is {jurisdiction ? `stated as ${jurisdiction}` : "not stated"}.
+          </>
         ) : (
           <OwnerPlaceholder what="the operator's legal name and business form" />
         )}

@@ -24,7 +24,7 @@ export const ownerDetails = {
   /** Registered / trading legal name of the person or company operating QUICKKIT. */
   legalName: "",
   /** Country (and region, if relevant) whose law governs the terms. */
-  jurisdiction: "",
+  jurisdiction: "India",
   /** Postal address, only if your jurisdiction requires it to be published. */
   postalAddress: "",
   /** Company registration / tax identifier, only if publication is required. */
@@ -40,10 +40,23 @@ export const ownerDetails = {
   /** Optional: named data-protection contact or representative, if appointed. */
   dataProtectionContact: "",
   /** Minimum age the operator has decided the service is intended for. */
-  minimumAge: "",
+  minimumAge: "13",
 } as const;
 
 export type OwnerDetailKey = keyof typeof ownerDetails;
+
+/**
+ * How the operator is identified on the legal pages.
+ *
+ * The operator publishes QUICKKIT under the QUICKKIT brand and does not name an
+ * individual or claim a registered company, so `legalName` stays empty on
+ * purpose. Presenting a brand name as a legal entity would be a claim this
+ * project cannot support, so the pages say exactly that instead — and stop
+ * asking for a legal name they are not going to publish.
+ *
+ * Set this to `false` and fill `legalName` if a registered entity is ever used.
+ */
+export const publishOperatorAsBrand = true;
 
 /** True when the operator has supplied a real value for this field. */
 export function hasOwnerDetail(key: OwnerDetailKey): boolean {
@@ -86,6 +99,17 @@ export const contactEmailVerified = contactEmail !== null;
  * When set, the form POSTs JSON: { name, email, subject, message }.
  */
 export const contactFormEndpoint = "";
+
+/**
+ * Whether the social row is shown at all.
+ *
+ * The URLs below are *demo* links to guessable `/quickkit` handles that were
+ * never confirmed to belong to the operator. Publishing unverified profiles is a
+ * trust signal against the site (and can point visitors at a stranger's account),
+ * so the row is hidden until real profiles exist: set this to `true` after
+ * replacing every URL below with a verified one.
+ */
+export const socialsVisible = false;
 
 /** Demo social profiles — replace each URL with the real QUICKKIT account. */
 export const socials = [

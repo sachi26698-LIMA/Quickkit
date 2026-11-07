@@ -65,7 +65,47 @@ describe("next.config header policy", () => {
     }
   });
 
-  it("allows only the required AdSense script origin", async () => {
+  it("allows exactly the AdSense hosts, and nothing wider", async () => {
+    // AdSense needs more than its loader: the loader spawns scripts, ad iframes,
+    // creatives and beacons on a fixed set of Google hosts. Anything a review
+    // would question — `*`, a scheme-wide `https:`, `data:` scripts — must stay
+    // out, so the list is pinned host by host.
+    const expected = {
+      "script-src": [
+        "https://pagead2.googlesyndication.com",
+        "https://tpc.googlesyndication.com",
+        "https://googleads.g.doubleclick.net",
+        "https://www.googletagservices.com",
+        "https://adservice.google.com",
+        "https://partner.googleadservices.com",
+        "https://fundingchoicesmessages.google.com",
+      ],
+      "frame-src": [
+        "https://googleads.g.doubleclick.net",
+        "https://tpc.googlesyndication.com",
+        "https://www.google.com",
+        "https://ep2.adtrafficquality.google",
+        "https://fundingchoicesmessages.google.com",
+      ],
+      "img-src": [
+        "https://pagead2.googlesyndication.com",
+        "https://tpc.googlesyndication.com",
+        "https://googleads.g.doubleclick.net",
+        "https://www.google.com",
+        "https://www.gstatic.com",
+      ],
+      "connect-src": [
+        "https://pagead2.googlesyndication.com",
+        "https://googleads.g.doubleclick.net",
+        "https://tpc.googlesyndication.com",
+        "https://www.google.com",
+        "https://ep1.adtrafficquality.google",
+        "https://ep2.adtrafficquality.google",
+        "https://fundingchoicesmessages.google.com",
+        "https://csi.gstatic.com",
+      ],
+    } as const;
+
     for (const mode of ["production", "development"] as const) {
       const value = cspOf(
         await headersFor(mode),
@@ -73,12 +113,23 @@ describe("next.config header policy", () => {
           ? "Content-Security-Policy"
           : "Content-Security-Policy-Report-Only",
       );
-      const scriptSrc = /script-src([^;]*)/.exec(value)?.[1] ?? "";
-      const remoteSources = scriptSrc
-        .trim()
-        .split(/\s+/)
-        .filter((source) => source.startsWith("https://"));
-      expect(remoteSources).toEqual(["https://pagead2.googlesyndication.com"]);
+      for (const [directive, hosts] of Object.entries(expected)) {
+        const sources = (
+          new RegExp(`${directive}([^;]*)`).exec(value)?.[1] ?? ""
+        )
+          .trim()
+          .split(/\s+/)
+          .filter((source) => source.startsWith("https://"));
+        expect(sources).toEqual(hosts);
+      }
+      // Framing *this* site, injecting objects and rewriting <base> stay closed,
+      // and no wildcard sneaks into any directive.
+      expect(value).toContain("frame-ancestors 'none'");
+      expect(value).toContain("object-src 'none'");
+      expect(value).toContain("base-uri 'self'");
+      expect(value).toContain("form-action 'self'");
+      expect(value).not.toMatch(/(^|[\s;])[*]([\s;]|$)/);
+      expect(value).not.toMatch(/\shttps:(\s|;|$)/);
     }
   });
 
