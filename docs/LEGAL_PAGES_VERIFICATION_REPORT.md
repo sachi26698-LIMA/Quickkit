@@ -5,6 +5,8 @@
 **Build audited:** production build via `npm run build` + `npm start` on `:3001`, `SITE_URL` and `LAUNCH_APPROVED` unset (the pre-launch state).
 **Verdict:** 12/12 routes pass the automated audit with **0 problems**. Approval is requested; release is blocked on the owner inputs listed in §3.
 
+> **Update — 7 November 2026:** This report predates the site-wide AdSense verification script. Its earlier “no third-party scripts/cookies” findings describe the audited build only and are superseded for the current code; the Privacy, Cookie and Security pages now disclose the integration. Re-run this audit and obtain legal review before publication.
+
 > **Read this before trusting the mobile and accessibility columns.** Playwright browser binaries
 > cannot be installed in this environment (`npx playwright install chromium` fails: the CDN download
 > is blocked and no system Chrome exists). **No page was rendered at any viewport, and no keyboard

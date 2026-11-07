@@ -12,9 +12,9 @@
 // to the reader as an explicitly marked placeholder.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** The date the current *draft* text was written. Not a legal approval date. */
-export const LEGAL_LAST_UPDATED = "4 November 2026";
-export const LEGAL_LAST_UPDATED_ISO = "2026-11-04";
+/** The date this shared set of legal page drafts was most recently revised. Not legal approval. */
+export const LEGAL_LAST_UPDATED = "7 November 2026";
+export const LEGAL_LAST_UPDATED_ISO = "2026-11-07";
 
 /**
  * `dateTime` in JSX is emitted verbatim as a camel-cased attribute in the
@@ -82,9 +82,9 @@ export const legalPages: LegalPage[] = [
     navLabel: "Privacy Policy",
     title: "Privacy Policy",
     intro:
-      "What QUICKKIT actually collects, what stays in your browser, and what never leaves your device.",
+      "What QUICKKIT collects, what tool data stays in your browser, and where third-party services and hosting apply.",
     description:
-      "How QUICKKIT handles data: no accounts, no analytics, browser-local tool processing, the local-storage keys used and where ordinary hosting requests apply.",
+      "How QUICKKIT handles data: browser-local tool processing, the site-wide AdSense verification script, local storage and ordinary hosting requests.",
     group: "legal",
     indexable: true,
     sections: [
@@ -109,9 +109,9 @@ export const legalPages: LegalPage[] = [
     navLabel: "Cookie Policy",
     title: "Cookie Policy",
     intro:
-      "QUICKKIT sets no tracking cookies. Here is exactly what is stored in your browser, why, and how to remove it.",
+      "QUICKKIT application code does not intentionally set cookies. The site-wide AdSense script may use identifiers; here is what is stored in your browser and how to manage it.",
     description:
-      "QUICKKIT uses no analytics or advertising cookies. A complete list of the local-storage and IndexedDB entries the site can create, and how to manage them.",
+      "Cookie guide to the site-wide AdSense verification script, possible cookies or identifiers, and QUICKKIT's first-party local storage and IndexedDB entries.",
     group: "legal",
     indexable: true,
     sections: [

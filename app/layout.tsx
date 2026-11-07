@@ -38,6 +38,13 @@ export default function Layout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={geist.variable}>
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"
+          crossOrigin="anonymous"
+        ></script>
+      </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to content

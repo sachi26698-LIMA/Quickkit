@@ -25,7 +25,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       href="/privacy"
       title="Privacy Policy"
-      intro="QUICKKIT is built so that the data you put into a tool stays in your browser. This page explains exactly what that means, where it stops being true, and what you can do about it."
+      intro="QUICKKIT processes most tool data in your browser and also loads a third-party AdSense verification script. This page explains what stays local, what leaves the page, and what you can do about it."
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
@@ -33,8 +33,9 @@ export default function PrivacyPage() {
       <ul>
         <li>No account, no login, no profile, no email sign-up.</li>
         <li>
-          No analytics, no advertising network, no third-party tracker, no
-          session-recording script.
+          No analytics or session-recording service. A Google AdSense
+          verification script is loaded on each page; its third-party processing
+          is described in sections 7 and 8.
         </li>
         <li>
           Most tools process files and text in your browser. Word to PDF is an
@@ -43,7 +44,9 @@ export default function PrivacyPage() {
         </li>
         <li>
           A few preferences (saved tools, QR presets, optional conversion
-          history) are stored in your browser and never leave it.
+          history) are stored in your browser. The application does not
+          intentionally transmit them; the AdSense script&rsquo;s page access is
+          described below.
         </li>
         <li>
           Like every website, loading the pages involves ordinary HTTP requests
@@ -56,7 +59,9 @@ export default function PrivacyPage() {
       <p>
         We do not ask for, and the application does not collect, your name,
         email address, phone number, postal address, payment details, date of
-        birth or location. Word to PDF sends document bytes to an
+        birth or location through the application itself. The Google AdSense
+        script is separate third-party code and may process request or browser
+        information as described below. Word to PDF sends document bytes to an
         operator-controlled conversion endpoint only after explicit consent and
         a conversion request.
       </p>
@@ -67,6 +72,13 @@ export default function PrivacyPage() {
           the hosting provider when your browser fetches a page, script, font or
           image. This can include your IP address, user agent, the URL requested
           and a timestamp. See <a href="#hosting">section 9</a>.
+        </li>
+        <li>
+          <strong>Google AdSense script requests</strong> — the verification
+          script is loaded from Google on every page. Google receives ordinary
+          request data and the script may access page and browser information,
+          cookies or advertising identifiers according to Google&rsquo;s
+          policies and your browser settings. See sections 6–8.
         </li>
         <li>
           <strong>Browser-local preferences</strong> you choose to create —
@@ -119,17 +131,20 @@ export default function PrivacyPage() {
         files are temporary and cleanup is required after processing; actual
         host isolation, crash cleanup and logging/retention remain operator
         release gates. Native conversion is disabled when its engine is
-        unavailable. The browser Content Security Policy restricts browser
-        connections to the site origin; it does not prevent the server from
-        calling its private worker.
+        unavailable. The Content Security Policy keeps application fetch and XHR
+        connections same-origin, while separately allowing the Google AdSense
+        verification script described in sections 7 and 8.
       </p>
       <p>
         Two honest qualifications. First, the hosting provider still sees the
         ordinary requests for the page and its assets (section 9) — that is
-        metadata about the visit, not the content of your files. Second, if the
-        operator later configures an email-sending endpoint for the contact
-        form, the text you type into that form would be transmitted; the form
-        states on screen which behaviour is active.
+        metadata about the visit, not the content of your files. Separately, the
+        AdSense script is third-party code running in the page; the application
+        does not deliberately send tool inputs to it, but it may be able to read
+        page content. Do not enter sensitive material if you are not comfortable
+        with that access. If the operator later configures an email-sending
+        endpoint for the contact form, the text you type into that form would be
+        transmitted; the form states on screen which behaviour is active.
       </p>
       <p>
         A full tool-by-tool account of what happens to each file type is in the{" "}
@@ -140,10 +155,12 @@ export default function PrivacyPage() {
 
       <h2 id="storage">6. Cookies and local browser storage</h2>
       <p>
-        QUICKKIT sets no cookies at all — not for analytics, not for advertising
-        and not even a session cookie, because there is no session to maintain.
-        The site does use your browser&rsquo;s own storage for preferences that
-        you create by using a feature:
+        QUICKKIT application code does not intentionally set cookies and there
+        is no application session cookie. The Google AdSense script may read or
+        set cookies or similar advertising identifiers, subject to
+        Google&rsquo;s configuration and your browser settings. The site also
+        uses your browser&rsquo;s own storage for preferences that you create by
+        using a feature:
       </p>
       <ul>
         <li>
@@ -167,43 +184,50 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        All of it is readable only by this site in your browser, and all of it
-        can be erased from your browser&rsquo;s site-data settings. The{" "}
+        This storage is scoped to this site, but any script running in the page
+        context—including the AdSense verification script—may be able to read
+        it. You can erase it from your browser&rsquo;s site-data settings. The{" "}
         <Link href="/cookies">Cookie Policy</Link> lists every key, its purpose
         and its lifetime.
       </p>
 
       <h2 id="analytics">7. Analytics and tracking</h2>
       <p>
-        There are none. This release loads no Google Analytics, no advertising
-        pixel, no heatmap or session-recording tool, no A/B testing SDK and no
-        social embed that could track you — the social links in the footer are
-        plain links that only contact the destination if you click them.
+        QUICKKIT does not load Google Analytics, heatmaps, session recording,
+        A/B testing or social embeds. It does load the Google AdSense
+        verification script on every page. That advertising script is supplied
+        by Google, runs in the page, and may process browser or page information
+        and advertising identifiers under Google&rsquo;s policies and your
+        settings. No ad-slot markup is added in this change, and the current
+        Content Security Policy blocks frames; serving ads would require a
+        separately reviewed CSP and consent configuration.
       </p>
       <p>
-        Correspondingly, there is no cookie-consent banner, because there is
-        nothing non-essential to consent to. If analytics were ever added, it
-        would require a genuine consent mechanism and an update to this page and
-        the <Link href="/cookies">Cookie Policy</Link> before any script loaded.
+        This release does not include a consent-management banner. Before
+        enabling ad serving or personalized advertising, the operator should
+        review and configure the consent settings and any consent-management
+        requirements that apply to the audience. See the{" "}
+        <Link href="/cookies">Cookie Policy</Link> and obtain legal review.
       </p>
 
       <h2 id="third-party">8. Third-party integrations</h2>
       <p>
-        Processing uses no remote third-party service. The libraries that
-        perform PDF parsing and writing, document generation, image encoding, QR
-        encoding/decoding and on-device OCR are bundled into the site and served
-        from the same origin; fonts are self-hosted, not fetched from a font
-        CDN. Their names and licences are listed in the{" "}
+        The libraries that perform PDF parsing and writing, document generation,
+        image encoding, QR encoding/decoding and on-device OCR are bundled into
+        the site and served from the same origin; fonts are self-hosted, not
+        fetched from a font CDN. The AdSense verification script is the
+        third-party exception: it is fetched from Google on every page and its
+        code runs in the page. It is not used by the application to process
+        files. Library names and licences are listed in the{" "}
         <Link href="/intellectual-property#open-source">
           Intellectual Property Policy
         </Link>
         .
       </p>
       <p>
-        Outbound links — social profiles and any external references — leave the
-        site when clicked. From that moment the destination&rsquo;s own privacy
-        policy governs. QUICKKIT does not embed their scripts, so nothing is
-        shared with them simply by loading a QUICKKIT page.
+        Other outbound links — social profiles and external references — leave
+        the site when clicked. From that moment the destination&rsquo;s own
+        privacy policy governs.
       </p>
 
       <h2 id="hosting">9. Hosting and server requests</h2>

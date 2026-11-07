@@ -6,7 +6,7 @@ import { indexingEnabled } from "./lib/launch";
  * compilation (on-device OCR in PDF to Word) without enabling JavaScript eval.
  */
 const CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; " +
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://pagead2.googlesyndication.com; " +
   "worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; " +
   "img-src 'self' blob: data:; font-src 'self'; " +
   "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; " +

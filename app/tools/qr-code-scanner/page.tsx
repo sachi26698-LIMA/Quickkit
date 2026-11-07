@@ -14,14 +14,14 @@ export default function Page() {
       slug="qr-code-scanner"
       content={{
         steps: [
-          "Point your camera at a code and press Start camera, or drop an image, a screenshot or a whole folder of images into the workspace. Nothing is uploaded: every frame and every pixel is decoded in this tab.",
+          "Point your camera at a code and press Start camera, or drop an image, a screenshot or a whole folder of images into the workspace. The scanner decodes images in this tab and its processing logic does not upload them. A separate AdSense script loads site-wide; see the Privacy Policy for that third-party access.",
           "When a code is found, read the result card. It names the content type, shows the parsed fields, and runs a local security check on the destination. For a link you must confirm before anything opens — nothing opens on its own.",
           "Batch mode works through a stack of images with a bounded number running at once. Export the results you need as CSV, JSON or TXT, or keep them in the local History tab.",
         ],
         faqs: [
           {
             q: "Are my images or scanned codes uploaded?",
-            a: "No. Files are read through your browser's own image decoder and the pixels are decoded by a QR reader that runs in this tab. There is no server side to this tool, no analytics on your content, and the decode worker is a local script. History is stored in this browser's local storage and you can turn it off or clear it at any time.",
+            a: "The scanner reads and decodes images locally and does not upload them for processing. A separate Google AdSense verification script loads on every page and runs in the page; see the Privacy Policy for its possible access to page or browser information. History is stored in this browser's local storage and you can turn it off or clear it at any time.",
           },
           {
             q: "Can it read more than one QR code in a screenshot?",

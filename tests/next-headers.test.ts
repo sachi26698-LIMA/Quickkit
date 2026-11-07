@@ -65,6 +65,23 @@ describe("next.config header policy", () => {
     }
   });
 
+  it("allows only the required AdSense script origin", async () => {
+    for (const mode of ["production", "development"] as const) {
+      const value = cspOf(
+        await headersFor(mode),
+        mode === "production"
+          ? "Content-Security-Policy"
+          : "Content-Security-Policy-Report-Only",
+      );
+      const scriptSrc = /script-src([^;]*)/.exec(value)?.[1] ?? "";
+      const remoteSources = scriptSrc
+        .trim()
+        .split(/\s+/)
+        .filter((source) => source.startsWith("https://"));
+      expect(remoteSources).toEqual(["https://pagead2.googlesyndication.com"]);
+    }
+  });
+
   it("keeps the rest of the hardening in both modes", async () => {
     for (const mode of ["production", "development"] as const) {
       const keys = (await headersFor(mode)).map((h) => h.key);

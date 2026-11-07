@@ -140,15 +140,19 @@ export default function SecurityPage() {
       <ul>
         <li>
           <strong>Content-Security-Policy</strong> —{" "}
-          <code>default-src &apos;self&apos;</code>,{" "}
-          <code>connect-src &apos;self&apos;</code> (so a script cannot
-          exfiltrate data to another origin),{" "}
-          <code>worker-src &apos;self&apos; blob:</code> (for same-origin
-          workers and the temporary regex worker),{" "}
+          <code>default-src &apos;self&apos;</code>; <code>script-src</code>
+          allowlists <code>https://pagead2.googlesyndication.com</code> for the
+          AdSense verification script; <code>connect-src &apos;self&apos;</code>{" "}
+          keeps fetch and XHR requests same-origin;{" "}
+          <code>worker-src &apos;self&apos; blob:</code> permits same-origin
+          workers and the temporary regex worker;{" "}
           <code>object-src &apos;none&apos;</code>,{" "}
           <code>base-uri &apos;self&apos;</code>,{" "}
-          <code>form-action &apos;self&apos;</code>,{" "}
-          <code>frame-ancestors &apos;none&apos;</code>.
+          <code>form-action &apos;self&apos;</code> and{" "}
+          <code>frame-ancestors &apos;none&apos;</code> remain in force. The
+          allowlisted third-party script executes in the page; see the{" "}
+          <Link href="/privacy">Privacy Policy</Link> and{" "}
+          <Link href="/cookies">Cookie Policy</Link>.
         </li>
         <li>
           <strong>Strict-Transport-Security</strong> — enforces HTTPS for a
@@ -187,13 +191,17 @@ export default function SecurityPage() {
 
       <h2 id="dependencies">6. External dependencies</h2>
       <p>
-        Third-party engines are served from this origin rather than a CDN, so a
-        compromised or unreachable CDN cannot inject code into the page or
-        observe when a tool is used. The production dependency audit reports no
-        known vulnerabilities. A residual set of moderate advisories exists in
-        the development-only lint toolchain; it has been reviewed and documented
-        in the repository, and it is not shipped to users. We do not describe
-        that review as a clean full audit.
+        The tool engines are bundled and served from this origin rather than a
+        CDN. The AdSense verification script is the site&rsquo;s externally
+        hosted script exception: it is supplied by Google, runs in the page and
+        may process browser or page information. It is not used by the
+        application to process files; see the{" "}
+        <Link href="/privacy">Privacy Policy</Link> and{" "}
+        <Link href="/cookies">Cookie Policy</Link>. The production dependency
+        audit reports no known vulnerabilities. A residual set of moderate
+        advisories exists in the development-only lint toolchain; it has been
+        reviewed and documented in the repository, and it is not shipped to
+        users. We do not describe that review as a clean full audit.
       </p>
       <p>
         Engine components and their licences are listed in the{" "}

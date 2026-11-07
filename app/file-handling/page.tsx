@@ -19,8 +19,9 @@ export const metadata = pageMetadata(
  * `lib/tools/pdf/*` (workers), `lib/tools/pdf-to-word/*` (incl. self-hosted
  * tesseract.js under /ocr), `lib/tools/image-*.ts`, `lib/tools/qr/*`,
  * `lib/tools/download.ts`, `lib/use-favorites.ts`, `next.config.ts` (CSP
- * `connect-src 'self'`, Permissions-Policy) and `components/contact-form.tsx`.
- * If a pipeline changes, this page must be updated in the same commit.
+ * `connect-src 'self'`, the AdSense `script-src` allowlist, Permissions-Policy)
+ * and `components/contact-form.tsx`. If a pipeline changes, this page must be
+ * updated in the same commit.
  */
 export default function FileHandlingPage() {
   return (
@@ -37,7 +38,10 @@ export default function FileHandlingPage() {
         bytes are read from the <code>File</code> object your file picker
         returned, worked on in JavaScript (on the main thread or in a dedicated
         Web Worker inside the same tab), and turned into a new <code>Blob</code>{" "}
-        that you download. No step in that sequence sends the bytes anywhere.
+        that you download. The application&rsquo;s tool-processing pipeline does
+        not send the bytes anywhere. Separately, the site-wide AdSense script
+        runs in the page; see the <Link href="/privacy">Privacy Policy</Link>{" "}
+        for that third-party access.
       </p>
       <p>
         Three properties of the architecture make that verifiable, not just
@@ -51,25 +55,31 @@ export default function FileHandlingPage() {
           automatic third-party fallback. Other file tools process locally.
         </li>
         <li>
-          <strong>Browser connections are restricted.</strong> Every page is
-          served with a Content Security Policy whose <code>connect-src</code>{" "}
-          is <code>&apos;self&apos;</code>, so a script cannot post your file to
-          a third-party origin even if a future bug tried to.
+          <strong>Browser connections are restricted.</strong> The Content
+          Security Policy keeps fetch and XHR connections same-origin, but it
+          separately allowlists the Google AdSense verification script in
+          <code>script-src</code>. That script runs in the page and may access
+          page content; do not use sensitive files if you are not comfortable
+          with that third-party access. The application does not intentionally
+          send selected files to AdSense.
         </li>
         <li>
-          <strong>Third-party engines are self-hosted.</strong> The PDF engine,
-          the OCR engine and language data, and the QR library are served from
-          this site&rsquo;s own origin, not from a CDN. Loading a tool therefore
-          makes no request to anyone else, and browser-local engines do not send
-          file data away. Word to PDF uses the operator-controlled native engine
-          only with explicit upload consent.
+          <strong>Processing engines are self-hosted.</strong> The PDF engine,
+          OCR engine and language data, and QR library are served from this
+          site&rsquo;s own origin, not a CDN. Loading a tool makes no request to
+          a third-party processing engine, and the application&rsquo;s local
+          engines do not send file data away. The AdSense script is a separate
+          site-wide request, not a file-processing service. Word to PDF uses the
+          operator-controlled native engine only with explicit upload consent.
         </li>
       </ul>
       <p>
-        What is <em>not</em> covered by the above: the ordinary HTTP requests
-        your browser makes to fetch the page and its assets, which the hosting
-        provider necessarily sees. That is described in{" "}
-        <Link href="/privacy#hosting">Privacy Policy §9</Link>.
+        What is <em>not</em> covered by the above: ordinary requests to the
+        hosting provider, and the request for the site-wide AdSense script from
+        Google. That script executes in the page and may access page or browser
+        information; details are in the{" "}
+        <Link href="/privacy">Privacy Policy</Link> and{" "}
+        <Link href="/cookies">Cookie Policy</Link>.
       </p>
 
       <h2 id="file-selection">2. File selection</h2>
