@@ -7,6 +7,7 @@ import {
   tools,
 } from "@/lib/catalog";
 import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
+import AdUnit from "./ad-unit";
 import { ToolIcon3D, toolTone } from "./icon-3d";
 // Tool-page-only styling (scoped to .tool-page[data-tool]); the generated
 // sheet carries the lifted type scale, the hand-written one the glass UI.
@@ -120,6 +121,9 @@ export default function ToolShell({
           ))}
         </section>
       </div>
+      {/* Sits below the workspace and its controls, in the reading flow that
+          follows the tool — never beside a button the user is aiming at. */}
+      <AdUnit />
       <section className="related">
         <div className="section-heading">
           <h2>Keep the good work going</h2>
