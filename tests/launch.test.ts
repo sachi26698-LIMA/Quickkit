@@ -31,7 +31,12 @@ it("keeps sitemap and robots blocked even with an origin but no approval", async
   vi.resetModules();
   const { default: robots } = await import("../app/robots");
   const { default: sitemap } = await import("../app/sitemap");
-  expect(robots().rules).toEqual({ userAgent: "*", disallow: "/" });
+  // ads.txt stays crawlable even while the rest of the site is not indexable.
+  expect(robots().rules).toEqual({
+    userAgent: "*",
+    allow: "/ads.txt",
+    disallow: "/",
+  });
   expect(sitemap()).toEqual([]);
 });
 it("emits all real sitemap routes only after explicit production approval", async () => {
