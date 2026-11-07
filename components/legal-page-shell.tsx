@@ -74,9 +74,11 @@ export default function LegalPageShell({
               Last updated{" "}
               <time {...isoDatetime(lastUpdatedIso)}>{lastUpdated}</time>
             </span>
-            <span className="legal-updated-note">
-              Draft — pending owner details and legal review.
-            </span>
+            {missing.length ? (
+              <span className="legal-updated-note">
+                Draft — pending owner details.
+              </span>
+            ) : null}
           </p>
         </header>
 
@@ -170,12 +172,15 @@ export default function LegalPageShell({
             <p className="legal-review-note">
               <Mail size={14} aria-hidden="true" /> This document is written in
               plain language to describe the software as built. It is
-              information, not legal advice, and it should be reviewed by a
-              qualified lawyer
-              {ownerDetail("jurisdiction")
-                ? ` in ${ownerDetail("jurisdiction")}`
-                : ""}{" "}
-              before QUICKKIT is launched publicly.
+              information, not legal advice
+              {missing.length
+                ? `, and it should be reviewed by a qualified lawyer${
+                    ownerDetail("jurisdiction")
+                      ? ` in ${ownerDetail("jurisdiction")}`
+                      : ""
+                  } before QUICKKIT is launched publicly`
+                : ". Questions about this page are welcome at any time"}
+              .
             </p>
           </article>
         </div>

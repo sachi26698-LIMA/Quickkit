@@ -16,7 +16,10 @@ import { legalPages } from "@/lib/legal";
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!indexingEnabled || !siteOrigin) return [];
 
-  const staticRoutes = ["/", "/tools", "/saved", "/help", "/sitemap"];
+  // `/saved` is deliberately absent: it renders the visitor's own browser-local
+  // favourites, so a crawler only ever sees an empty shell. It also carries a
+  // noindex tag and is disallowed in robots.txt.
+  const staticRoutes = ["/", "/tools", "/help", "/sitemap"];
   const legalRoutes = legalPages
     .filter((page) => page.indexable)
     .map((page) => page.href);

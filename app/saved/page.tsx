@@ -2,11 +2,16 @@ import PageHero from "@/components/page-hero";
 import SavedList from "@/components/saved-list";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata(
-  "Saved Tools — your QUICKKIT favourites",
-  "Tools you've saved with the heart icon, stored locally in this browser for quick access.",
-  "/saved",
-);
+// Personal, per-browser state: keep it out of the index (it is also disallowed
+// in robots.txt and absent from the sitemap).
+export const metadata = {
+  ...pageMetadata(
+    "Saved Tools — your QUICKKIT favourites",
+    "Tools you've saved with the heart icon, stored locally in this browser for quick access.",
+    "/saved",
+  ),
+  robots: { index: false, follow: true },
+};
 
 export default function SavedPage() {
   return (
