@@ -274,7 +274,7 @@ const groups: Group[] = [
       },
       {
         q: "Do you claim GDPR or other compliance?",
-        a: "No. We describe what the software does; we do not claim compliance with any regulation or hold any certification. Whether a given law applies to the operator is a legal question that is still open.",
+        a: "No. We describe what the software does; we do not claim compliance with any regulation or hold any certification. The site is operated from India and its terms name the law of India; whether a given regulation applies to the operator is a legal question we do not answer for you.",
       },
     ],
   },
