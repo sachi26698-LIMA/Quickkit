@@ -9,6 +9,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import AdUnit from "@/components/ad-unit";
 import CategoryGrid from "@/components/category-grid";
 import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
@@ -98,6 +99,9 @@ export default function Home() {
         </div>
       </section>
       <div className="container">
+        {/* Below the introduction, above the toolkit — never inside the hero's
+            search controls. */}
+        <AdUnit />
         <section
           id="categories"
           className="home-section"

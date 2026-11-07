@@ -475,6 +475,34 @@ h2 {
   margin-top: 64px;
   scroll-margin-top: 96px;
 }
+
+/* ── AdSense slot ─────────────────────────────────────────────────────────
+   Shared by the homepage unit and the one on each tool page. The height is
+   reserved per breakpoint so a late-arriving ad cannot shift text the reader is
+   already looking at; the unit itself is responsive (data-ad-format="auto"),
+   so no fixed width is ever set here. */
+.ad-slot {
+  margin-block: clamp(32px, 5vw, 56px);
+}
+.ad-slot-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+.ad-slot .adsbygoogle {
+  display: block;
+  width: 100%;
+  min-height: 100px;
+}
+@media (min-width: 768px) {
+  .ad-slot .adsbygoogle {
+    min-height: 280px;
+  }
+}
 .section-heading {
   display: flex;
   align-items: center;
