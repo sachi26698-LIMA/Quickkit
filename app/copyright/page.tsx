@@ -1,7 +1,5 @@
 import Link from "next/link";
-import LegalPageShell, {
-  OwnerPlaceholder,
-} from "@/components/legal-page-shell";
+import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import {
   LEGAL_LAST_UPDATED,
@@ -9,7 +7,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
-import { ownerDetail } from "@/lib/site";
+import { contactEmail, ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Copyright and DMCA Policy",
@@ -199,17 +197,24 @@ export default function CopyrightPage() {
         17 U.S.C. §512(c)(2)):{" "}
         {agent ? (
           <strong>{agent}</strong>
-        ) : (
-          <OwnerPlaceholder what="designated copyright agent name and postal address" />
-        )}
+        ) : contactEmail ? (
+          <>
+            no agent is published — QUICKKIT names no individual and publishes
+            no postal address, so a notice sent to{" "}
+            <ContactLink channel="copyright" subject="Copyright notice" /> with
+            the subject line &ldquo;Copyright notice&rdquo; reaches the operator
+            directly, and no registration with the U.S. Copyright Office is
+            claimed.
+          </>
+        ) : null}
       </p>
       <p className="legal-review-flag">
-        <strong>Needs legal review before publication.</strong> Whether QUICKKIT
-        qualifies for DMCA safe-harbour protection, whether a registered agent
-        with the U.S. Copyright Office is required, and how the equivalent
-        mechanisms work in the operator&rsquo;s own jurisdiction are legal
-        determinations. This section describes a process; it does not claim
-        safe-harbour status or any registration.
+        <strong>Legal-review note.</strong> Whether QUICKKIT qualifies for DMCA
+        safe-harbour protection, whether a registered agent with the U.S.
+        Copyright Office is required, and how the equivalent mechanisms work in
+        the operator&rsquo;s own jurisdiction are legal determinations. This
+        section describes a process; it does not claim safe-harbour status or
+        any registration.
       </p>
 
       <h2 id="counter-notice">6. Counter-notification</h2>

@@ -372,13 +372,12 @@ export default function PrivacyPage() {
         request as consent to anything.
       </p>
       <p className="legal-review-flag">
-        <strong>Needs legal review before publication.</strong> Formal
-        request-handling procedure, identity verification (where applicable),
-        statutory response deadlines and any representative or
-        data-protection-officer appointment are legal determinations for the
-        operator&rsquo;s jurisdiction. The list of rights above is generic and
-        must be tailored. No compliance claim (GDPR, UK GDPR, CCPA/CPRA, DPDP
-        Act or otherwise) is made on this page.
+        <strong>Legal-review note.</strong> Formal request-handling procedure,
+        identity verification (where applicable), statutory response deadlines
+        and any representative or data-protection-officer appointment are legal
+        determinations for the operator&rsquo;s jurisdiction. The list of rights
+        above is generic and must be tailored. No compliance claim (GDPR, UK
+        GDPR, CCPA/CPRA, DPDP Act or otherwise) is made on this page.
       </p>
 
       <h2 id="contact">14. Contact and policy updates</h2>

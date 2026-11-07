@@ -1,7 +1,5 @@
 import Link from "next/link";
-import LegalPageShell, {
-  OwnerPlaceholder,
-} from "@/components/legal-page-shell";
+import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import {
   LEGAL_LAST_UPDATED,
@@ -9,7 +7,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
-import { ownerDetail } from "@/lib/site";
+import { contactEmail, ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Security Policy",
@@ -284,18 +282,11 @@ export default function SecurityPage() {
       <h2 id="contact">10. Security contact</h2>
       <p>
         <ContactLink channel="security" subject="Security report" />
-        {named ? (
-          " — reported messages reach the operator directly."
-        ) : (
-          <>
-            {" "}
-            A dedicated, monitored security inbox is{" "}
-            <OwnerPlaceholder what="a dedicated, monitored security inbox" />{" "}
-            until then, reports should go through the{" "}
-            <Link href="/contact">contact page</Link> and will be handled on a
-            best-effort basis only.
-          </>
-        )}
+        {named
+          ? " — reported messages reach the operator directly."
+          : contactEmail
+            ? " — the monitored address published for the whole site. A separate security-only inbox is not published yet, so reports sent there are read on a best-effort basis; mark the subject line so they are not missed."
+            : null}
       </p>
       <p>
         General questions and bug reports (not security-sensitive) go through

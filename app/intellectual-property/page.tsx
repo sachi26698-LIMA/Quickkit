@@ -1,7 +1,5 @@
 import Link from "next/link";
-import LegalPageShell, {
-  OwnerPlaceholder,
-} from "@/components/legal-page-shell";
+import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import {
   LEGAL_LAST_UPDATED,
@@ -9,7 +7,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
-import { ownerDetail } from "@/lib/site";
+import { contactEmail, ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Intellectual Property Policy",
@@ -70,15 +68,12 @@ export default function IntellectualPropertyPage() {
         </li>
       </ul>
       <p>
-        Ownership of the brand rests with the operator.{" "}
-        {business ? null : (
-          <>
-            The legal entity that holds these rights is{" "}
-            <OwnerPlaceholder what="the registered owner of the QUICKKIT brand" />{" "}
-            — brand ownership is not implied by the name alone.{" "}
-          </>
-        )}
-        No trademark registration is claimed on this page.
+        Ownership of the brand rests with the operator. The legal entity that
+        holds these rights is <strong>the QUICKKIT project itself</strong> — the
+        same operator named in the{" "}
+        <Link href="/about#operator">About page</Link> and the Terms; no
+        separate company is claimed, and brand ownership is not implied by the
+        name alone. No trademark registration is claimed on this page.
       </p>
 
       <h2 id="open-source">3. Open-source components</h2>
@@ -262,13 +257,15 @@ export default function IntellectualPropertyPage() {
       </p>
       <p>
         A dedicated business or licensing inbox is{" "}
-        {business ? "configured." : "not yet supplied: "}
-        {business ? null : (
-          <OwnerPlaceholder what="a monitored business/licensing address" />
-        )}{" "}
-        Until it is, send requests through the{" "}
-        <Link href="/contact">contact page</Link>; they will reach the same
-        operator, described in the{" "}
+        {business
+          ? "configured."
+          : contactEmail
+            ? "not published: requests go to the same monitored address as everything else."
+            : "not published: use the contact page."}{" "}
+        Send them to{" "}
+        <ContactLink channel="business" subject="IP permission request" /> or
+        through the <Link href="/contact">contact page</Link>; they reach the
+        same operator, described in the{" "}
         <Link href="/about#operator">About page</Link>.
       </p>
 

@@ -127,10 +127,11 @@ export default function SitemapPage() {
           </p>
           <p>
             A machine-readable version is published at <code>/sitemap.xml</code>
-            , but only once the operator has explicitly approved the production
-            origin for indexing — while the site is in review it returns an
-            empty url set, and crawlers are told <code>noindex</code>. That
-            prevents draft pages from being indexed before launch.
+            . It lists the public tool, category and policy pages and
+            deliberately omits the routes nobody should land on from a search
+            result: the browser-local saved-tools page, the empty categories
+            that have no tools yet, and the POST-only conversion endpoint. Those
+            are also the paths <code>/robots.txt</code> keeps closed.
           </p>
           <p>
             The four footer groups mirror these the other way round:{" "}
