@@ -138,12 +138,16 @@ export default function SecurityPage() {
       <ul>
         <li>
           <strong>Content-Security-Policy</strong> —{" "}
-          <code>default-src &apos;self&apos;</code>; <code>script-src</code>
-          allowlists <code>https://pagead2.googlesyndication.com</code> for the
-          AdSense verification script; <code>connect-src &apos;self&apos;</code>{" "}
-          keeps fetch and XHR requests same-origin;{" "}
-          <code>worker-src &apos;self&apos; blob:</code> permits same-origin
-          workers and the temporary regex worker;{" "}
+          <code>default-src &apos;self&apos;</code> is the baseline. The
+          directives Google AdSense needs in order to serve and measure ads are
+          widened to the exact hosts it uses and nothing else:{" "}
+          <code>script-src</code>, <code>connect-src</code>,{" "}
+          <code>img-src</code> and <code>frame-src</code> name individual Google
+          hosts such as <code>https://pagead2.googlesyndication.com</code> and{" "}
+          <code>https://googleads.g.doubleclick.net</code>. There are no
+          wildcards and no scheme-wide sources, so no other third party can be
+          loaded or contacted. <code>worker-src &apos;self&apos; blob:</code>{" "}
+          permits same-origin workers and the temporary regex worker;{" "}
           <code>object-src &apos;none&apos;</code>,{" "}
           <code>base-uri &apos;self&apos;</code>,{" "}
           <code>form-action &apos;self&apos;</code> and{" "}
