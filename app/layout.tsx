@@ -21,6 +21,17 @@ const geist = localFont({
 /** Public AdSense publisher id; the same value is in the loader URL and ads.txt. */
 const ADSENSE_CLIENT_ID = "ca-pub-1478767466279341";
 
+/**
+ * Google Search Console ownership token (Search Console → Settings → Ownership
+ * verification → HTML tag). Next renders it as
+ * `<meta name="google-site-verification" content="…">` in the document head.
+ *
+ * It lives in the root layout rather than on the homepage so ownership stays
+ * verified no matter how the homepage is edited, and it is a public string with
+ * no security value — removing it only un-verifies the property.
+ */
+const GOOGLE_SITE_VERIFICATION = "Ws39VaIkLt8aOvlE5k6mABJfBxFOHuyzIU4bgERImCY";
+
 export const metadata: Metadata = {
   title: {
     default: "QUICKKIT — Handy tools. Zero hassle.",
@@ -35,6 +46,7 @@ export const metadata: Metadata = {
         : "http://localhost:3001"),
   ),
   robots: { index: indexingEnabled, follow: indexingEnabled },
+  verification: { google: GOOGLE_SITE_VERIFICATION },
   // Tells AdSense which account owns the site even before an ad unit is placed
   // (it is what the AdSense "site verification" check looks for). The value is
   // already public in the loader URL below, so nothing is disclosed here.
