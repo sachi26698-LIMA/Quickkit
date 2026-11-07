@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { pageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/json-ld";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -300,6 +301,12 @@ export default function FaqPage() {
             <li aria-current="page">FAQ</li>
           </ol>
         </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "FAQ", path: "/faq" },
+          ])}
+        />
 
         <header className="legal-hero">
           <span className="eyebrow">QUICKKIT help</span>

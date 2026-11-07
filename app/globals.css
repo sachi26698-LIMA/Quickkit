@@ -606,6 +606,61 @@ h2 {
 .hero-copy {
   padding-bottom: 28px;
 }
+/* Homepage headline — the page's one H1, visible and descriptive. Kept to the
+   size of a section heading so the search field stays the first control on the
+   page and the hero art keeps its role as the visual anchor. */
+.hero-intro {
+  width: min(1000px, calc(100% - 36px));
+  margin-top: clamp(10px, 1.6vw, 22px);
+}
+.hero-headline {
+  margin: 0;
+  font-size: clamp(19px, 2.6vw, 29px);
+  line-height: 1.22;
+  letter-spacing: -0.7px;
+  font-weight: 680;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.hero-lede {
+  max-width: 62ch;
+  margin: 9px auto 0;
+  font-size: clamp(13px, 1.15vw, 15px);
+  line-height: 1.66;
+  color: var(--secondary);
+}
+/* Homepage explanatory copy. Same reading measure and rhythm as the policy
+   pages so it reads as part of the site, not as a block of text bolted on. */
+.home-copy {
+  max-width: 78ch;
+  margin-top: 22px;
+  font-size: 15px;
+  line-height: 1.76;
+  color: var(--secondary);
+}
+.home-copy p {
+  margin: 0 0 14px;
+}
+.home-copy p:last-child {
+  margin-bottom: 0;
+}
+.home-copy strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+.home-copy a {
+  color: var(--purple-deep);
+  text-decoration: underline;
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--purple-deep) 35%,
+    transparent
+  );
+  text-underline-offset: 2px;
+}
+.home-copy a:hover {
+  text-decoration-color: currentColor;
+}
 .search-area {
   position: relative;
   max-width: 560px;

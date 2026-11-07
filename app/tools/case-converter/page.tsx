@@ -2,8 +2,8 @@ import ToolShell from "@/components/tool-shell";
 import CaseConverter from "@/components/tools/case-converter";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
-  "Case Converter — uppercase, title, camelCase, snake_case & more",
-  "Convert between ten case styles — UPPERCASE, Title Case, camelCase, snake_case, kebab-case and playful aLtErNaTiNg — live as you type, without losing line breaks.",
+  "Case Converter — upper, title, camel, snake case",
+  "Convert between ten case styles — UPPERCASE, Title Case, camelCase, snake_case, kebab-case and alternating — live as you type, without losing line breaks.",
   "/tools/case-converter",
 );
 export default function Page() {

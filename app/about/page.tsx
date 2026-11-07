@@ -11,7 +11,8 @@ import AdUnit from "@/components/ad-unit";
 import CategoryIcon from "@/components/category-icon";
 import { OwnerPlaceholder } from "@/components/legal-page-shell";
 import { categoryMeta, tools, toolsByCategory } from "@/lib/catalog";
-import { pageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/json-ld";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -23,7 +24,7 @@ import LegalRelated from "@/components/legal-related";
 import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "About QUICKKIT — free browser tools",
+  "About us — free browser tools",
   legalPageByHref("/about")!.description,
   "/about",
 );
@@ -82,6 +83,12 @@ export default function AboutPage() {
             <li aria-current="page">About</li>
           </ol>
         </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "About", path: "/about" },
+          ])}
+        />
 
         <header className="legal-hero">
           <span className="eyebrow">About QUICKKIT</span>

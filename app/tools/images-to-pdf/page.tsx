@@ -47,8 +47,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Images to PDF Converter — build a PDF from your photos",
-  "Turn JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF images into one PDF, one image per page. Drag to order pages, rotate and remove them, choose A4, A3, A5, Letter or a custom size with margins and fit, and download a real PDF. Local browser conversion, no upload.",
+  "Images to PDF — build one PDF from your photos",
+  "Turn JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF images into one PDF, one image per page. Reorder and rotate pages, pick A4, A3, A5, Letter or a custom size.",
   "/tools/images-to-pdf",
 );
 

@@ -5,8 +5,8 @@ import { categories, metaBySlug, type Category } from "@/lib/catalog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "All Tools — every QUICKKIT utility in one place",
-  "Browse all QUICKKIT browser tools, including PDF and image utilities, text tools, JSON and HTML formatters, CSS and JavaScript minifiers, Base64 and URL encoders, regex testing, UUID generation and hashes.",
+  "All Tools — every free browser tool in one place",
+  "Browse all 42 browser tools: PDF and image utilities, text and OCR tools, JSON and HTML formatters, CSS and JavaScript minifiers, encoders, regex and hashes.",
   "/tools",
 );
 

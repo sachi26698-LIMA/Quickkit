@@ -47,8 +47,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "PDF Studio — merge, split, extract, rotate and compress PDF pages",
-  "Merge PDFs, extract or split page ranges, rotate, reorder and remove individual pages, and compress the result in your browser. Live thumbnails, real page counts and verified output. No upload.",
+  "PDF Studio — merge, split, extract, rotate pages",
+  "Merge PDFs, extract page ranges, rotate, reorder and remove pages, then compress the result in your browser. Live thumbnails, page counts and verified output.",
   "/tools/pdf-studio",
 );
 

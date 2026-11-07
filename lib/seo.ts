@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { contactEmail } from "@/lib/site";
 function productionOrigin() {
   const raw = process.env.SITE_URL;
   if (!raw) return undefined;
@@ -50,6 +51,82 @@ export function pageMetadata(
       description,
       ...(siteOrigin ? { images: [siteOrigin + "/opengraph-image"] } : {}),
     },
+  };
+}
+
+/** One step of a visible breadcrumb trail. `path` is a site-relative route. */
+export type Crumb = { name: string; path: string };
+
+/**
+ * JSON-LD for the trail a page already shows on screen.
+ *
+ * Only pages that render a visible `<nav aria-label="Breadcrumb">` call this, and
+ * the list passed in is the same list the reader sees — no invented levels, no
+ * "Home" on a page that does not show one. Positions are sequential from 1, as
+ * the schema requires.
+ *
+ * Returns `undefined` when no production origin is configured, so a preview
+ * build never emits absolute URLs that do not exist yet.
+ */
+export function breadcrumbStructuredData(items: Crumb[]) {
+  if (!siteOrigin || items.length === 0) return undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: siteOrigin + item.path,
+    })),
+  };
+}
+
+/**
+ * Site-wide JSON-LD: who publishes the site (`Organization`) and what the site
+ * is (`WebSite`, with the internal search QUICKKIT actually has at `/tools?q=`).
+ *
+ * Nothing here is guessed. `email` is only emitted when the operator has
+ * configured a real inbox, there is no address, no founding date, no rating and
+ * no `sameAs` list — the social accounts are deliberately not published.
+ */
+export function siteStructuredData() {
+  if (!siteOrigin) return undefined;
+  const origin = siteOrigin;
+  const organizationId = `${origin}/#organization`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: "QUICKKIT",
+        url: origin,
+        logo: {
+          "@type": "ImageObject",
+          url: `${origin}/apple-icon.png`,
+          width: 180,
+          height: 180,
+        },
+        ...(contactEmail ? { email: contactEmail } : {}),
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${origin}/#website`,
+        name: "QUICKKIT",
+        url: origin,
+        inLanguage: "en",
+        publisher: { "@id": organizationId },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${origin}/tools?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
   };
 }
 

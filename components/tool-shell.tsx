@@ -7,6 +7,8 @@ import {
   tools,
 } from "@/lib/catalog";
 import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
+import { breadcrumbStructuredData } from "@/lib/seo";
+import JsonLd from "./json-ld";
 import AdUnit from "./ad-unit";
 import { ToolIcon3D, toolTone } from "./icon-3d";
 // Tool-page-only styling (scoped to .tool-page[data-tool]); the generated
@@ -58,6 +60,19 @@ export default function ToolShell({
         <ChevronRight size={13} />
         <span>{tool.name}</span>
       </nav>
+      {/* The same four levels the breadcrumb above shows. Every one of the 42
+          tool pages gets it from here. */}
+      <JsonLd
+        data={breadcrumbStructuredData([
+          { name: "Home", path: "/" },
+          { name: "Tools", path: "/tools" },
+          {
+            name: primaryCategory.name,
+            path: `/category/${primaryCategory.slug}`,
+          },
+          { name: tool.name, path: `/tools/${tool.slug}` },
+        ])}
+      />
       {compact ? (
         <header className="tool-title tool-title-compact">
           <ToolIcon3D tool={tool} size={64} />

@@ -47,8 +47,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "PDF to Image Converter — export PDF pages as JPG, PNG or WEBP",
-  "Render the pages of a PDF to JPG, PNG or WEBP right in your browser. Export every page or a custom range, choose 72 to 600 DPI, preview the real rendered pages, and download single pages or one ZIP. No upload.",
+  "PDF to Image — export pages as JPG, PNG or WEBP",
+  "Render PDF pages to JPG, PNG or WEBP in your browser. Export every page or a custom range at 72 to 600 DPI, preview the real pages and download one ZIP.",
   "/tools/pdf-to-image",
 );
 

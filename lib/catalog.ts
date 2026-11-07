@@ -28,7 +28,7 @@ export const categoryMeta: CategoryMeta[] = [
     slug: "pdf-tools",
     blurb: "Merge, split, convert, lock and manage PDF files.",
     description:
-      "Everything you need to work with PDFs — combine documents, export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption locally. Word to PDF is a separately disclosed, consent-gated server conversion workflow.",
+      "Combine, split, compress, convert and protect PDFs locally — export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption.",
     tint: "tint-pdf",
     icon: "pdf",
   },

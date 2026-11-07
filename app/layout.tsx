@@ -3,8 +3,9 @@ import localFont from "next/font/local";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import IconMotionGate from "@/components/icon-motion-gate";
+import JsonLd from "@/components/json-ld";
 import { indexingEnabled } from "@/lib/launch";
-import { siteOrigin } from "@/lib/seo";
+import { siteOrigin, siteStructuredData } from "@/lib/seo";
 import "./globals.css";
 
 // Self-hosted Geist (OFL, see app/fonts/LICENSE-geist.txt). next/font/local
@@ -58,6 +59,9 @@ export default function Layout({
   return (
     <html lang="en" className={geist.variable}>
       <head>
+        {/* Who publishes the site and what it is. One block for the whole site,
+            generated from lib/seo.ts — no ratings, no address, nothing guessed. */}
+        <JsonLd data={siteStructuredData()} />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"

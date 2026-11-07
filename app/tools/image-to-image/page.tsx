@@ -47,8 +47,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image to Image Converter — JPG, PNG, WEBP, AVIF, GIF, BMP, TIFF",
-  "Convert images between JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF in batch. Quality-first compression with target file sizes, resizing, crop and rotate, transparency control and a real before/after preview. Local browser conversion, no upload.",
+  "Image Converter — JPG, PNG, WEBP, AVIF and TIFF",
+  "Convert images between JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF, with quality or target-size compression, resize, crop, transparency and before/after sizes.",
   "/tools/image-to-image",
 );
 

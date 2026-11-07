@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import ContactForm from "@/components/contact-form";
 import { OwnerPlaceholder } from "@/components/legal-page-shell";
-import { pageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/json-ld";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -29,7 +30,7 @@ import {
 } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "Contact QUICKKIT — support, privacy, security and business",
+  "Contact — support, privacy, security, business",
   legalPageByHref("/contact")!.description,
   "/contact",
 );
@@ -111,6 +112,12 @@ export default function ContactPage() {
             <li aria-current="page">Contact</li>
           </ol>
         </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "Contact", path: "/contact" },
+          ])}
+        />
 
         <header className="legal-hero">
           <span className="eyebrow">We read every message</span>

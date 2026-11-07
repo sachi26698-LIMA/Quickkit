@@ -3,8 +3,8 @@ import RegexTester from "@/components/tools/devtools/regex-tester";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Regex Tester — live matches, groups and replacements",
-  "Test regular expressions with flags, match highlights, capture groups and replacement previews. Runs in a time-limited local worker; no arbitrary code is executed.",
+  "Regex Tester — live matches, groups, replacements",
+  "Test regular expressions with flags, match highlights, capture groups and replacement previews. Runs in a time-limited local worker; no code is executed.",
   "/tools/regex-tester",
 );
 

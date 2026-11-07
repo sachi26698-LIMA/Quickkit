@@ -2,8 +2,8 @@ import ToolShell from "@/components/tool-shell";
 import QrGenerator from "@/components/tools/qr-generator";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
-  "QR Code Generator — free QR codes with logo, colors, bulk CSV, PNG & SVG",
-  "Create QR codes for links, text, email, Wi-Fi, contacts, events, social profiles and app stores. Style colors, dots, eyes and a logo, verify every code by decoding it, then export PNG, SVG, PDF or a bulk CSV batch — all in your browser.",
+  "QR Code Generator — logo, colors, CSV, PNG & SVG",
+  "Create QR codes for links, Wi-Fi, contacts and events. Style colors, dots, eyes and a logo, verify each code by decoding it, then export PNG, SVG, PDF or CSV.",
   "/tools/qr-generator",
 );
 export default function Page() {

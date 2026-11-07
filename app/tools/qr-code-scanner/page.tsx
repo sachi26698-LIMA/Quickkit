@@ -3,8 +3,8 @@ import QrScanner from "@/components/tools/qr-scanner";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "QR Code Scanner — scan images, screenshots and camera codes privately",
-  "Scan QR codes with your camera, an uploaded photo, a screenshot or a whole batch of images. Decode every code in one picture, see what the content really is, inspect the destination for obvious risks, and export the results as CSV, JSON or TXT — all on your device.",
+  "QR Code Scanner — camera, screenshots and images",
+  "Scan QR codes from your camera, a photo, a screenshot or a batch of images. Decode every code, inspect the destination and export results as CSV, JSON or TXT.",
   "/tools/qr-code-scanner",
 );
 

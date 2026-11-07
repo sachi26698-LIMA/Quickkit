@@ -42,8 +42,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Compressor — shrink JPEG, PNG, WebP and AVIF locally",
-  "Compress images to an exact KB or MB target or a quality level, convert between JPEG, PNG, WebP and AVIF, keep transparency, batch up to 20 files, compare before/after sizes and download one image or a ZIP. Free, local and private.",
+  "Image Compressor — shrink JPEG, PNG, WebP, AVIF",
+  "Compress images to an exact KB or MB target or a quality level, convert between JPEG, PNG, WebP and AVIF, keep transparency and batch up to 20 files at once.",
   "/tools/image-compressor",
 );
 

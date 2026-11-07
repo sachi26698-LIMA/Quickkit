@@ -12,7 +12,7 @@ import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "Privacy Policy — how QUICKKIT handles data",
+  "Privacy Policy — how your data is handled",
   legalPageByHref("/privacy")!.description,
   "/privacy",
 );

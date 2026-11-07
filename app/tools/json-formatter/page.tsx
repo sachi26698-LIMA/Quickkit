@@ -2,7 +2,7 @@ import ToolShell from "@/components/tool-shell";
 import JsonFormatter from "@/components/tools/json-formatter";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
-  "JSON Formatter & Validator — format or minify JSON",
+  "JSON Formatter & Validator — format or minify",
   "Format JSON with 2/4-space or tab indentation, sort keys, validate syntax with exact error locations, or minify. A local editor with no code execution.",
   "/tools/json-formatter",
 );
