@@ -3,8 +3,8 @@ import PdfMerger from "@/components/tools/merge-pdf";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Merge PDF — combine PDFs locally with page selection",
-  "Combine multiple PDFs in your browser. Reorder files, choose pages, unlock supported PDFs locally, add source bookmarks and download a validated merged PDF with no upload.",
+  "Merge PDF — combine PDFs locally with page picks",
+  "Combine multiple PDFs in your browser. Reorder files, choose pages, unlock supported PDFs locally, add bookmarks and download a validated merged PDF. No upload.",
   "/tools/merge-pdf",
 );
 

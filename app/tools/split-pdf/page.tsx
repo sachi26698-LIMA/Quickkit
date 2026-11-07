@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Split PDF — extract ranges and pages locally",
-  "Split one PDF in your browser by custom ranges, selected pages, every N pages or one PDF per page. Preview pages, name outputs, and download validated PDFs or a ZIP with no upload.",
+  "Split a PDF by custom ranges, selected pages, every N pages or one PDF per page. Preview pages, name outputs and download validated PDFs or a ZIP. No upload.",
   "/tools/split-pdf",
 );
 

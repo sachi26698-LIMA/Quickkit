@@ -12,7 +12,7 @@ import PageHero from "@/components/page-hero";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Help Center & FAQ — getting the most from QUICKKIT",
+  "Help Center & FAQ — guides for every tool",
   "Answers about QUICKKIT tools: privacy and local processing, accounts, saving tools, supported devices and more.",
   "/help",
 );

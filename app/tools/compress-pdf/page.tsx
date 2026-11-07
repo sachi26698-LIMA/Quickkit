@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Compress PDF — reduce PDF size locally",
-  "Compress PDFs in your browser with low, medium, high or maximum presets, custom image quality, optional target size, batch processing, previews, and validated PDF or ZIP downloads with no upload.",
+  "Compress PDFs with low, medium, high or maximum presets, custom image quality, an optional target size, previews and validated PDF or ZIP downloads.",
   "/tools/compress-pdf",
 );
 

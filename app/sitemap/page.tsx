@@ -2,10 +2,11 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { categoryMeta, tools } from "@/lib/catalog";
 import { footerGroups, legalPages } from "@/lib/legal";
-import { pageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/json-ld";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Sitemap — every QUICKKIT page",
+  "Sitemap — every page on this site",
   "A complete map of QUICKKIT: all tools, categories, company pages, legal documents and trust policies, each on its own page.",
   "/sitemap",
 );
@@ -87,6 +88,12 @@ export default function SitemapPage() {
             <li aria-current="page">Sitemap</li>
           </ol>
         </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "Sitemap", path: "/sitemap" },
+          ])}
+        />
 
         <header className="legal-hero">
           <span className="eyebrow">Find everything</span>

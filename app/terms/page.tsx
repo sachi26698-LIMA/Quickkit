@@ -12,7 +12,7 @@ import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "Terms and Conditions — using QUICKKIT",
+  "Terms and Conditions — rules for using the tools",
   legalPageByHref("/terms")!.description,
   "/terms",
 );

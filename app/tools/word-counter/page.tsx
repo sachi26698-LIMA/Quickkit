@@ -2,7 +2,7 @@ import ToolShell from "@/components/tool-shell";
 import WordCounter from "@/components/tools/word-counter";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
-  "Word Counter — live words, characters & reading time",
+  "Word Counter — words, characters and reading time",
   "Count words, characters, sentences and paragraphs as you type — with speaking time, keyword density and a word-goal tracker. All local, nothing uploaded.",
   "/tools/word-counter",
 );

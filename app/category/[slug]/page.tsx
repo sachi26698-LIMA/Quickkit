@@ -4,9 +4,11 @@ import { ArrowRight, ChevronRight, Clock } from "lucide-react";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 import AdUnit from "@/components/ad-unit";
 import ToolCard from "@/components/tool-card";
+import JsonLd from "@/components/json-ld";
 import CalculatorCategoryGrid from "@/components/calculator-category-grid";
 import { categoryMeta, metaBySlug, toolsByCategory } from "@/lib/catalog";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import { categoryContent } from "@/lib/category-content";
 
 export function generateStaticParams() {
   return categoryMeta.map((c) => ({ slug: c.slug }));
@@ -39,6 +41,7 @@ export default async function CategoryPage({
 }) {
   const meta = metaBySlug((await params).slug);
   if (!meta) notFound();
+  const copy = categoryContent[meta.slug];
   const list = toolsByCategory(meta.name);
   const others = categoryMeta.filter((c) => c.slug !== meta.slug);
 
@@ -54,6 +57,15 @@ export default async function CategoryPage({
           <ChevronRight size={13} aria-hidden="true" />
           <span aria-current="page">{meta.name}</span>
         </nav>
+        {/* Mirrors the trail above, level for level. Only emitted because this
+            page shows a breadcrumb to the reader. */}
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "All Tools", path: "/tools" },
+            { name: meta.name, path: `/category/${meta.slug}` },
+          ])}
+        />
 
         <header
           className={`category-hero ${meta.tint} cat-${categoryTone(meta.name)}`}
@@ -96,10 +108,33 @@ export default async function CategoryPage({
           </div>
         )}
 
-        {/* Below the tool listing and above the "other categories" links: a
-            pause after the content, not between the reader and navigation.
-            A category with nothing in it yet is a placeholder, not a page with
-            content worth advertising against, so it gets no unit. */}
+        {/* The category's own explanation: what these tools do, how they fit
+            together and where the limits are. It sits between the listing and
+            the ad so the page is content first, advertising second. */}
+        {copy ? (
+          <section
+            className="home-section category-about"
+            aria-labelledby="category-about-title"
+          >
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">About this category</span>
+                <h2 id="category-about-title">{copy.heading}</h2>
+              </div>
+            </div>
+            <div className="home-copy">
+              <p>{copy.intro}</p>
+              {copy.paragraphs.map((paragraph) => (
+                <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Below the content: a pause after the reading, not between the reader
+            and navigation. A category with nothing in it yet is a placeholder,
+            not a page with content worth advertising against, so it gets no
+            unit. */}
         {list.length ? (
           <AdUnit placement="category-bottom" format="auto" />
         ) : null}

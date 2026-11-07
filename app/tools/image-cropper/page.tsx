@@ -42,8 +42,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Cropper — freeform, social, circle and batch crops",
-  "Crop JPEG, PNG and WebP images locally with freeform or fixed ratios, Instagram, YouTube and Facebook presets, circle and square crops, rotation, flip, zoom and pan, custom output sizes, per-image batch crops and ZIP downloads. Free, private and processed in your browser.",
+  "Image Cropper — freeform, social, circle, batch",
+  "Crop JPEG, PNG and WebP images with freeform or fixed ratios, Instagram, YouTube and Facebook presets, circle and square crops, rotation and per-image batches.",
   "/tools/image-cropper",
 );
 

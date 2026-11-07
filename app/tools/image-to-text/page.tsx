@@ -51,8 +51,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image to Text (OCR) — extract editable text from images and scans locally",
-  "Free OCR that runs in your browser: extract text from photos, screenshots, receipts, tables and scanned PDFs in English, Hindi, Gujarati, Marathi, Bengali, Tamil, Telugu and Urdu. Six extraction modes, confidence highlighting, an editable side-by-side editor, and TXT, DOCX, PDF, CSV or JSON export. Nothing is uploaded.",
+  "Image to Text (OCR) — extract text locally",
+  "Extract text from photos, screenshots and scanned PDFs in 8 languages, with confidence highlighting and TXT, DOCX, PDF, CSV or JSON export. Nothing is uploaded.",
   "/tools/image-to-text",
 );
 

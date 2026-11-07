@@ -3,7 +3,7 @@ import UrlCodec from "@/components/tools/devtools/url-codec";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "URL Encoder / Decoder — encode URLs and query values",
+  "URL Encoder / Decoder — encode URLs and queries",
   "Encode or decode full URLs and individual query components with correct Unicode and reserved-character handling. Nothing is fetched or uploaded.",
   "/tools/url-encoder-decoder",
 );

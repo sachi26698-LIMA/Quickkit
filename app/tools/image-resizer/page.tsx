@@ -42,8 +42,8 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Resizer — crop, rotate, resize and convert photos locally",
-  "Resize by exact pixels, percentage, longest side or social preset, crop and rotate, adjust colour, convert to JPEG, PNG, WebP or AVIF, batch process up to 20 images and download a ZIP. Free, local and private.",
+  "Image Resizer — pixels, percentage, social sizes",
+  "Resize by exact pixels, percentage, longest side or social preset, crop and rotate, convert to JPEG, PNG, WebP or AVIF, batch up to 20 images, download a ZIP.",
   "/tools/image-resizer",
 );
 

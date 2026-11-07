@@ -3,8 +3,8 @@ import PdfToWord from "@/components/tools/pdf-to-word";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "PDF to Word Converter — turn PDFs into editable DOCX locally",
-  "Convert PDF documents to editable Microsoft Word DOCX files in your browser. Preview the original PDF and the converted Word file side by side, convert selected page ranges in batches, and use optional on-device OCR for scanned PDFs. Nothing is uploaded.",
+  "PDF to Word — convert PDFs into editable DOCX",
+  "Convert PDFs to editable DOCX in your browser. Compare the original and the Word file side by side, convert page ranges, and use on-device OCR for scans.",
   "/tools/pdf-to-word",
 );
 

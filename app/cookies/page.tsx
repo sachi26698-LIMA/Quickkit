@@ -9,7 +9,7 @@ import {
 import ContactLink from "@/components/contact-link";
 
 export const metadata = pageMetadata(
-  "Cookie Policy — what QUICKKIT stores (and doesn’t)",
+  "Cookie Policy — what we store and what we don’t",
   legalPageByHref("/cookies")!.description,
   "/cookies",
 );

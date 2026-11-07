@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight, Mail, ShieldAlert } from "lucide-react";
 import { isoDatetime, legalPageByHref } from "@/lib/legal";
+import { breadcrumbStructuredData } from "@/lib/seo";
 import AdUnit from "@/components/ad-unit";
 import ContactLink from "@/components/contact-link";
+import JsonLd from "@/components/json-ld";
 import LegalRelated from "@/components/legal-related";
 import OwnerPlaceholder from "@/components/owner-placeholder";
 import {
@@ -71,6 +73,15 @@ export default function LegalPageShell({
             <li aria-current="page">{title}</li>
           </ol>
         </nav>
+        {/* Mirrors the visible trail on all nine policy pages that use this
+            shell. Pages with no breadcrumb do not emit one. */}
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "Policies & information", path: "/sitemap" },
+            { name: title, path: href },
+          ])}
+        />
 
         <header className="legal-hero">
           <span className="eyebrow">QUICKKIT policies</span>

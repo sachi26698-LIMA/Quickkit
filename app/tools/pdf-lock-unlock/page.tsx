@@ -3,8 +3,8 @@ import PdfLockUnlock from "@/components/tools/pdf-lock-unlock";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "PDF Lock & Unlock — AES-256 password protection locally",
-  "Lock PDFs with AES-256 or AES-128 encryption, open and permissions passwords, and reader permission controls — or unlock PDFs with the correct existing password. Batch processing, verified downloads and ZIP export, all in your browser.",
+  "PDF Lock & Unlock — AES-256 protection, locally",
+  "Lock PDFs with AES-256 or AES-128, set open and permissions passwords, or unlock a PDF with the existing password. Batch runs and ZIP export in your browser.",
   "/tools/pdf-lock-unlock",
 );
 

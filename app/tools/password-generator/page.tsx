@@ -3,7 +3,7 @@ import PasswordGenerator from "@/components/tools/password-generator";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "Password Generator — secure random passwords",
-  "Create 8–64 character passwords using browser cryptography, with a live entropy strength meter. Choose character sets, exclude ambiguous characters and copy locally.",
+  "Create 8–64 character passwords using browser cryptography, with an entropy strength meter. Choose character sets, exclude ambiguous characters, copy locally.",
   "/tools/password-generator",
 );
 export default function Page() {
