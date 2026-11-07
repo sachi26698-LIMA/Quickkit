@@ -14,7 +14,10 @@ import {
   hasOwnerDetail,
   ownerDetail,
   ownerDetails,
+  socials,
+  socialsVisible,
 } from "../lib/site";
+import Footer from "../components/footer";
 
 afterEach(cleanup);
 
@@ -153,6 +156,22 @@ describe("owner-detail honesty rules", () => {
     }
     expect(hasOwnerDetail("legalName")).toBe(false);
     expect(ownerDetail("legalName")).toBeUndefined();
+  });
+
+  it("keeps the unverified social row out of the footer", () => {
+    // The shipped URLs point at guessable `/quickkit` handles that were never
+    // confirmed to belong to the operator. Until they are, the footer must not
+    // send visitors to a stranger's profile: hide the row entirely.
+    if (!socialsVisible) {
+      const { container } = render(<Footer />);
+      expect(container.querySelector(".footer-socials")).toBeNull();
+      expect(screen.queryByLabelText(/on social media/i)).toBeNull();
+    }
+    // Whatever is published has to be a real, absolute HTTPS profile URL.
+    for (const social of socials) {
+      expect(social.href).toMatch(/^https:\/\/[^/]+\/\S+$/);
+      expect(social.href).not.toBe("#");
+    }
   });
 
   it("never publishes an unverified contact address", () => {

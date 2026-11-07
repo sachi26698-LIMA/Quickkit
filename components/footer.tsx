@@ -3,7 +3,7 @@ import { Heart, ShieldCheck } from "lucide-react";
 import Brand from "@/components/brand";
 import SocialGlyph from "@/components/social-icons";
 import { footerGroups } from "@/lib/legal";
-import { socials } from "@/lib/site";
+import { socials, socialsVisible } from "@/lib/site";
 
 /**
  * Footer navigation is generated from `lib/legal.ts`, which is also the source
@@ -20,23 +20,27 @@ export default function Footer() {
           <p>
             Your everyday digital toolkit. Simple, fast and privacy-friendly.
           </p>
-          <div
-            className="footer-socials"
-            role="group"
-            aria-label="QUICKKIT on social media"
-          >
-            {socials.map(({ label, href, icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`QUICKKIT on ${label} (opens in new tab)`}
-              >
-                <SocialGlyph icon={icon} />
-              </a>
-            ))}
-          </div>
+          {/* Hidden until the URLs in `socials` are confirmed to be the
+              operator's real profiles — see `socialsVisible` in lib/site.ts. */}
+          {socialsVisible ? (
+            <div
+              className="footer-socials"
+              role="group"
+              aria-label="QUICKKIT on social media"
+            >
+              {socials.map(({ label, href, icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`QUICKKIT on ${label} (opens in new tab)`}
+                >
+                  <SocialGlyph icon={icon} />
+                </a>
+              ))}
+            </div>
+          ) : null}
           <p className="footer-promise-line">
             <ShieldCheck size={19} aria-hidden="true" />
             <span>
