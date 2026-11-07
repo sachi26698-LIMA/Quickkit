@@ -1,13 +1,22 @@
 // @vitest-environment jsdom
+import { StrictMode } from "react";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
 // The homepage renders client islands that expect the App Router (HeroSearch
 // uses useRouter). Rendering a page component in isolation needs the hooks
-// stubbed; the assertions below only care about where the ad slot sits.
+// stubbed; the assertions below only care about where the ad slots sit.
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -19,6 +28,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 import AdUnit, { AD_CLIENT, AD_SLOT } from "../components/ad-unit";
+import { AD_SLOTS, ADSENSE_CLIENT, MAX_ADS_PER_PAGE } from "../lib/ads";
 import ToolShell from "../components/tool-shell";
 import Home from "../app/page";
 
@@ -56,12 +66,17 @@ beforeAll(() => {
   }
 });
 
+beforeEach(() => {
+  // A fresh queue per test so "one push per unit" is measurable.
+  (window as unknown as { adsbygoogle: unknown }).adsbygoogle = [];
+});
+
 afterEach(cleanup);
 
 /**
  * The ad integration is small, so every part of it is pinned: the ids, the fact
- * that exactly one loader exists, one slot per page, and that no slot can end up
- * inside a tool workspace next to the controls.
+ * that exactly one loader exists, that each unit registers exactly once, and
+ * that no slot can end up inside a tool workspace next to the controls.
  */
 
 const AD_SCRIPT = "googlesyndication.com/pagead/js/adsbygoogle.js";
@@ -98,17 +113,31 @@ describe("AdSense loader", () => {
     expect(layout).not.toMatch(/data-ad-slot/); // loader only, no unit
   });
 
-  it("publishes the same publisher id as the ad unit", () => {
+  it("publishes the same publisher id everywhere it appears", () => {
     const layout = readFileSync("app/layout.tsx", "utf8");
     expect(layout).toContain(AD_CLIENT);
-    expect(AD_CLIENT).toBe("ca-pub-1478767466279341");
+    expect(ADSENSE_CLIENT).toBe("ca-pub-1478767466279341");
+    // The single unit that actually exists in the AdSense account.
+    expect(AD_SLOTS.display).toBe("1553253144");
     expect(AD_SLOT).toBe("1553253144");
+    // ads.txt must authorise the same publisher.
+    expect(readFileSync("public/ads.txt", "utf8")).toBe(
+      `google.com, ${ADSENSE_CLIENT.replace("ca-", "")}, DIRECT, f08c47fec0942fa0\n`,
+    );
+  });
+
+  it("never loads a second copy of the script from a unit", () => {
+    render(<AdUnit placement="home-after-hero" />);
+    render(<AdUnit placement="home-bottom" />);
+    expect(
+      document.querySelectorAll(`script[src*="adsbygoogle.js"]`),
+    ).toHaveLength(0);
   });
 });
 
 describe("AdUnit", () => {
   it("renders one responsive slot with the configured ids", () => {
-    const { container } = render(<AdUnit />);
+    const { container } = render(<AdUnit placement="home-after-hero" />);
     const slots = container.querySelectorAll("ins.adsbygoogle");
     expect(slots).toHaveLength(1);
 
@@ -124,6 +153,32 @@ describe("AdUnit", () => {
       "Advertisement",
     );
     expect(container.querySelector("img, svg, canvas")).toBeNull();
+    // Nothing that invites a click: the unit is a plain <ins>, no link/button.
+    expect(container.querySelector("a, button")).toBeNull();
+  });
+
+  it("writes its placement onto the DOM so a duplicate is detectable", () => {
+    const { container } = render(<AdUnit placement="tool-after-faq" />);
+    expect(container.querySelector(".ad-slot")).toHaveAttribute(
+      "data-ad-placement",
+      "tool-after-faq",
+    );
+    expect(container.querySelector("ins.adsbygoogle")).toHaveAttribute(
+      "data-ad-placement",
+      "tool-after-faq",
+    );
+  });
+
+  it("passes the requested responsive format through", () => {
+    const { container } = render(
+      <AdUnit placement="home-mid-content" format="rectangle" />,
+    );
+    const aside = container.querySelector(".ad-slot");
+    expect(aside).toHaveAttribute("data-ad-format", "rectangle");
+    expect(container.querySelector("ins.adsbygoogle")).toHaveAttribute(
+      "data-ad-format",
+      "rectangle",
+    );
   });
 
   it("pushes to the existing loader rather than loading a new script", () => {
@@ -131,23 +186,55 @@ describe("AdUnit", () => {
     (window as unknown as { adsbygoogle: unknown[] }).adsbygoogle = {
       push: (config: unknown) => pushes.push(config),
     } as unknown as never;
-    render(<AdUnit />);
+    render(<AdUnit placement={"home-bottom"} />);
     expect(pushes).toHaveLength(1);
-    expect(
-      document.querySelectorAll(`script[src*="adsbygoogle.js"]`),
-    ).toHaveLength(0);
+  });
+
+  it("registers each unit once, even when React runs effects twice", () => {
+    const pushes: unknown[] = [];
+    (window as unknown as { adsbygoogle: unknown[] }).adsbygoogle = {
+      push: (config: unknown) => pushes.push(config),
+    } as unknown as never;
+    render(
+      <StrictMode>
+        <AdUnit placement="home-after-hero" />
+        <AdUnit placement="home-mid-content" />
+        <AdUnit placement="home-bottom" />
+      </StrictMode>,
+    );
+    // Three units on the page, three requests — never six.
+    expect(pushes).toHaveLength(3);
+  });
+
+  it("stays blank instead of throwing when the loader never arrives", () => {
+    // An ad blocker leaves `window.adsbygoogle` undefined; the unit must still
+    // render, quietly, rather than break the page it sits on.
+    delete (window as unknown as { adsbygoogle?: unknown }).adsbygoogle;
+    const { container } = render(<AdUnit placement="help-bottom" />);
+    expect(container.querySelectorAll("ins.adsbygoogle")).toHaveLength(1);
+    expect(container.querySelector(".ad-slot-label")?.textContent).toBe(
+      "Advertisement",
+    );
   });
 });
 
 describe("ad placement", () => {
-  it("puts one slot on the homepage, below the hero and above the toolkit", () => {
+  it("puts three slots on the homepage, each in its own content gap", () => {
     const { container } = render(<Home />);
-    const slots = container.querySelectorAll(".ad-slot");
-    expect(slots).toHaveLength(1);
+    const slots = [...container.querySelectorAll(".ad-slot")];
+    expect(slots).toHaveLength(3);
+    expect(
+      new Set(slots.map((s) => s.getAttribute("data-ad-placement"))).size,
+    ).toBe(3);
+    expect(slots.map((s) => s.getAttribute("data-ad-placement"))).toEqual([
+      "home-after-hero",
+      "home-mid-content",
+      "home-bottom",
+    ]);
 
+    // 1 — after the hero, before the category section.
     const hero = container.querySelector(".hero");
     expect(hero).toBeTruthy();
-    // After the hero in document order, and before the category section.
     expect(
       hero!.compareDocumentPosition(slots[0]) &
         Node.DOCUMENT_POSITION_FOLLOWING,
@@ -157,9 +244,25 @@ describe("ad placement", () => {
       slots[0].compareDocumentPosition(categories!) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+
+    // 2 — between the two content sections.
+    const why = container.querySelector('[aria-labelledby="why-title"]');
+    expect(
+      categories!.compareDocumentPosition(slots[1]) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      slots[1].compareDocumentPosition(why!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    // 3 — after the closing call to action, i.e. the page's last content block.
+    const cta = container.querySelector(".cta-banner");
+    expect(
+      cta!.compareDocumentPosition(slots[2]) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
-  it("puts one slot on a tool page, outside the workspace", () => {
+  it("puts three slots on a tool page, all outside the workspace", () => {
     const { container } = render(
       <ToolShell
         slug="word-counter"
@@ -171,19 +274,66 @@ describe("ad placement", () => {
       </ToolShell>,
     );
 
-    expect(container.querySelectorAll(".ad-slot")).toHaveLength(1);
+    const slots = [...container.querySelectorAll(".ad-slot")];
+    expect(slots).toHaveLength(3);
+    expect(slots.map((slot) => slot.getAttribute("data-ad-placement"))).toEqual(
+      ["tool-after-intro", "tool-after-faq", "tool-bottom"],
+    );
 
-    // The slot must not contain — or be contained by — the interactive workspace.
     const workspace = container.querySelector('[data-testid="workspace"]')!;
-    const slot = container.querySelector(".ad-slot")!;
-    expect(slot.contains(workspace)).toBe(false);
-    expect(workspace.contains(slot)).toBe(false);
-    expect(slot.querySelector("button")).toBeNull();
+    const guidance = container.querySelector(".tool-guidance")!;
+    const related = container.querySelector(".related")!;
 
-    // It comes after the workspace, in the reading flow that follows the tool.
+    for (const slot of slots) {
+      // Neither contains nor is contained by the interactive workspace, and no
+      // slot may ever hold a control of its own.
+      expect(slot.contains(workspace)).toBe(false);
+      expect(workspace.contains(slot)).toBe(false);
+      expect(
+        slot.querySelector("button, a, input, textarea, select"),
+      ).toBeNull();
+    }
+
+    // 1 — after the introduction, immediately before the workspace.
+    const title = container.querySelector(".tool-title")!;
     expect(
-      workspace.compareDocumentPosition(slot) &
+      title.compareDocumentPosition(slots[0]) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(
+      slots[0].compareDocumentPosition(workspace) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    // 2 — after the how-to steps and the FAQ block.
+    expect(
+      guidance.compareDocumentPosition(slots[1]) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      slots[1].compareDocumentPosition(related) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    // 3 — the last block on the page.
+    expect(
+      related.compareDocumentPosition(slots[2]) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(slots[2].querySelector("a")).toBeNull();
+  });
+
+  it("never exceeds the per-page ceiling", () => {
+    const { container } = render(
+      <ToolShell
+        slug="word-counter"
+        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
+      >
+        <div />
+      </ToolShell>,
+    );
+    expect(container.querySelectorAll(".ad-slot").length).toBeLessThanOrEqual(
+      MAX_ADS_PER_PAGE,
+    );
   });
 });

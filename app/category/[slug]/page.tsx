@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight, Clock } from "lucide-react";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
+import AdUnit from "@/components/ad-unit";
 import ToolCard from "@/components/tool-card";
 import CalculatorCategoryGrid from "@/components/calculator-category-grid";
 import { categoryMeta, metaBySlug, toolsByCategory } from "@/lib/catalog";
@@ -94,6 +95,14 @@ export default async function CategoryPage({
             </Link>
           </div>
         )}
+
+        {/* Below the tool listing and above the "other categories" links: a
+            pause after the content, not between the reader and navigation.
+            A category with nothing in it yet is a placeholder, not a page with
+            content worth advertising against, so it gets no unit. */}
+        {list.length ? (
+          <AdUnit placement="category-bottom" format="auto" />
+        ) : null}
 
         <section className="more-categories" aria-labelledby="more-cat-title">
           <h2 id="more-cat-title">Explore other categories</h2>

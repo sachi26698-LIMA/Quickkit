@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import AdUnit from "@/components/ad-unit";
 import CategoryIcon from "@/components/category-icon";
 import { OwnerPlaceholder } from "@/components/legal-page-shell";
 import { categoryMeta, tools, toolsByCategory } from "@/lib/catalog";
@@ -368,6 +369,10 @@ export default function AboutPage() {
                 </li>
               </ul>
             </section>
+
+            {/* One unit at the end of the written content. About has no
+                form or workspace, so nothing interactive is nearby. */}
+            <AdUnit placement="about-end" format="auto" />
 
             <LegalRelated current="/about" />
 

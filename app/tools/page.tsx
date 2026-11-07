@@ -1,3 +1,4 @@
+import AdUnit from "@/components/ad-unit";
 import PageHero from "@/components/page-hero";
 import ToolExplorer from "@/components/tool-explorer";
 import { categories, metaBySlug, type Category } from "@/lib/catalog";
@@ -37,6 +38,10 @@ export default async function ToolsPage({
           initialQuery={params.q ?? ""}
           initialCategory={resolveCategory(params.category)}
         />
+        {/* One unit, below the catalogue. The top of this page is a search field
+            and a filter row, so advertising there would sit beside the controls
+            people are actively using. */}
+        <AdUnit placement="tools-index-bottom" format="auto" />
       </div>
     </div>
   );

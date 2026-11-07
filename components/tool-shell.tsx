@@ -91,6 +91,11 @@ export default function ToolShell({
           ))}
         </nav>
       ) : null}
+      {/* 1 of 3 — directly below the introduction and above the workspace.
+          It is a full-width block with its own spacing and label, so it is
+          never beside Convert / Download / Reset / Upload or any other
+          control the visitor is aiming at. */}
+      <AdUnit placement="tool-after-intro" format="horizontal" />
       {children}
       {!compact ? (
         <p className="privacy-inline">
@@ -121,9 +126,9 @@ export default function ToolShell({
           ))}
         </section>
       </div>
-      {/* Sits below the workspace and its controls, in the reading flow that
-          follows the tool — never beside a button the user is aiming at. */}
-      <AdUnit />
+      {/* 2 of 3 — after the how-to steps and the FAQ, which is where a reader
+          who finished the task naturally pauses. */}
+      <AdUnit placement="tool-after-faq" format="auto" />
       <section className="related">
         <div className="section-heading">
           <h2>Keep the good work going</h2>
@@ -148,6 +153,10 @@ export default function ToolShell({
           ))}
         </div>
       </section>
+      {/* 3 of 3 — the end of the page, separated from the related-tool links
+          above it by the slot's own margin so the ad never reads as another
+          destination to click. */}
+      <AdUnit placement="tool-bottom" format="auto" />
     </div>
   );
 }

@@ -48,6 +48,7 @@ import SettingsForm from "./settings-form";
 import StudioPreview from "./studio-preview";
 import QueueThumbnail from "./queue-thumbnail";
 import styles from "./word-to-pdf.module.css";
+import AdUnit from "@/components/ad-unit";
 
 const mobileSnapshot = () => window.matchMedia("(max-width: 760px)").matches;
 const serverMobileSnapshot = () => false;
@@ -361,6 +362,12 @@ export default function WordToPdf() {
           </span>
         </div>
       </div>
+      {/* 1 of 2 on this page — directly below the studio's introduction, in
+          the flow above the panes. This workspace is one continuous control
+          surface, so its other unit sits at the very end of the page rather
+          than between the panes: no ad is ever beside Convert, Download or an
+          upload control. */}
+      <AdUnit placement="tool-after-intro" format="horizontal" />
       {help && (
         <section className={styles.help} aria-label="Workspace help">
           <strong>
