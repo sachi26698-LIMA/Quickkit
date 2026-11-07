@@ -9,7 +9,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
-import { ownerDetail } from "@/lib/site";
+import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
 export const metadata = pageMetadata(
   "Privacy Policy — how QUICKKIT handles data",
@@ -246,12 +246,12 @@ export default function PrivacyPage() {
         verify.
       </p>
       <p className="legal-owner-line">
-        Hosting provider, region, log retention and subprocessors:{" "}
-        {legalName ? (
-          "to be confirmed from the production deployment configuration."
-        ) : (
-          <OwnerPlaceholder what="hosting provider, region and log-retention details" />
-        )}
+        Hosting provider: <strong>Vercel Inc.</strong> (vercel.com), which
+        serves this site from its own edge network. Which region answers a given
+        request, how long its access logs are kept and which subprocessors it
+        uses are governed by Vercel&rsquo;s default configuration and published
+        policy for this project; the operator has not set a custom retention
+        period, so no retention period is claimed here beyond that.
       </p>
       <p>
         One practical consequence: avoid putting sensitive text into a URL. Tool
@@ -403,6 +403,12 @@ export default function PrivacyPage() {
         Data controller / operator:{" "}
         {legalName ? (
           <strong>{legalName}</strong>
+        ) : publishOperatorAsBrand ? (
+          <>
+            <strong>the QUICKKIT project</strong> — an independently operated
+            website published under the QUICKKIT brand, with no registered
+            company or separate legal entity claimed behind it.
+          </>
         ) : (
           <OwnerPlaceholder what="the operator's legal entity name and contact address" />
         )}
