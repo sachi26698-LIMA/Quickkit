@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight, Mail, ShieldAlert } from "lucide-react";
 import { isoDatetime, legalPageByHref } from "@/lib/legal";
+import AdUnit from "@/components/ad-unit";
 import ContactLink from "@/components/contact-link";
 import LegalRelated from "@/components/legal-related";
 import OwnerPlaceholder from "@/components/owner-placeholder";
@@ -148,6 +149,10 @@ export default function LegalPageShell({
 
           <article className="prose legal legal-body">
             {children}
+
+            {/* The end of the document itself: one unit, after the policy text
+                and before the feedback prompt and the related-pages links. */}
+            <AdUnit placement="legal-article-end" format="auto" />
 
             <hr className="legal-divider" />
 

@@ -476,13 +476,22 @@ h2 {
   scroll-margin-top: 96px;
 }
 
-/* ── AdSense slot ─────────────────────────────────────────────────────────
-   Shared by the homepage unit and the one on each tool page. The height is
-   reserved per breakpoint so a late-arriving ad cannot shift text the reader is
-   already looking at; the unit itself is responsive (data-ad-format="auto"),
-   so no fixed width is ever set here. */
+/* ── AdSense slots ────────────────────────────────────────────────────────
+   One container for every placement on the site. `--ad-min-height` reserves the
+   space an ad will occupy, per format and breakpoint, so a unit that arrives
+   after first paint cannot shift the text a reader is already on (CLS). No
+   width is ever fixed: the unit itself is responsive
+   (data-full-width-responsive="true"), so it fills whatever column it is in on
+   phone, tablet and desktop.
+
+   An unfilled slot — an ad blocker, a slow network, or the weeks before AdSense
+   approval — must stay unobtrusive: this is plain whitespace plus one small
+   label. No border, no grey box, no fake creative, nothing that invites a
+   click. */
 .ad-slot {
+  display: block;
   margin-block: clamp(32px, 5vw, 56px);
+  --ad-min-height: 100px;
 }
 .ad-slot-label {
   display: block;
@@ -496,12 +505,36 @@ h2 {
 .ad-slot .adsbygoogle {
   display: block;
   width: 100%;
-  min-height: 100px;
+  min-height: var(--ad-min-height);
+}
+/* Format families: a banner on a phone, a rectangle where there is room. */
+.ad-slot[data-ad-format="horizontal"] {
+  --ad-min-height: 100px;
+}
+.ad-slot[data-ad-format="rectangle"] {
+  --ad-min-height: 250px;
 }
 @media (min-width: 768px) {
-  .ad-slot .adsbygoogle {
-    min-height: 280px;
+  .ad-slot[data-ad-format="auto"] {
+    --ad-min-height: 280px;
   }
+  .ad-slot[data-ad-format="horizontal"] {
+    --ad-min-height: 120px;
+  }
+  .ad-slot[data-ad-format="rectangle"] {
+    --ad-min-height: 280px;
+  }
+}
+@media (min-width: 1200px) {
+  /* On a wide column a 280px reservation is more gap than the page needs. */
+  .ad-slot[data-ad-format="auto"] {
+    --ad-min-height: 250px;
+  }
+}
+/* Tool pages keep their own tighter vertical rhythm; the slot follows it so the
+   ad reads as part of the page rather than as a spacer. */
+.tool-page .ad-slot {
+  margin-block: clamp(26px, 3.6vw, 44px);
 }
 .section-heading {
   display: flex;

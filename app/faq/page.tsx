@@ -8,6 +8,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
+import AdUnit from "@/components/ad-unit";
 import LegalRelated from "@/components/legal-related";
 
 export const metadata = pageMetadata(
@@ -373,6 +374,9 @@ export default function FaqPage() {
                 </div>
               </section>
             ))}
+
+            {/* One unit after the last answer, before the related links. */}
+            <AdUnit placement="faq-end" format="auto" />
 
             <LegalRelated current="/faq" />
 

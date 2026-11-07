@@ -7,6 +7,7 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
+import AdUnit from "@/components/ad-unit";
 import PageHero from "@/components/page-hero";
 import { pageMetadata } from "@/lib/seo";
 
@@ -97,6 +98,9 @@ export default function HelpPage() {
           ))}
         </div>
 
+        {/* 1 of 2 — after the quick guides, before the FAQ list. */}
+        <AdUnit placement="help-after-guides" format="auto" />
+
         <section id="faq" className="faq-section" aria-labelledby="faq-title">
           <div className="section-heading">
             <div>
@@ -113,6 +117,10 @@ export default function HelpPage() {
             ))}
           </div>
         </section>
+
+        {/* 2 of 2 — after the FAQ, the end of the page's content. The
+            "still stuck?" contact band below it stays untouched. */}
+        <AdUnit placement="help-bottom" format="auto" />
 
         <div className="privacy-band help-cta">
           <span className="privacy-band-icon">

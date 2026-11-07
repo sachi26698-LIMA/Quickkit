@@ -80,10 +80,15 @@ describe("next.config header policy", () => {
         "https://partner.googleadservices.com",
         "https://fundingchoicesmessages.google.com",
       ],
+      // Google-managed formats (anchor, vignette) render their own frames from
+      // pagead2; listing it keeps those formats working without widening
+      // anything else. Still explicit hosts — no wildcard, no scheme-wide entry.
       "frame-src": [
         "https://googleads.g.doubleclick.net",
+        "https://pagead2.googlesyndication.com",
         "https://tpc.googlesyndication.com",
         "https://www.google.com",
+        "https://ep1.adtrafficquality.google",
         "https://ep2.adtrafficquality.google",
         "https://fundingchoicesmessages.google.com",
       ],

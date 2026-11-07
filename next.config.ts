@@ -29,10 +29,12 @@ const ADSENSE_SCRIPTS = [
 
 const ADSENSE_FRAMES = [
   "https://googleads.g.doubleclick.net", // the ad iframe
+  "https://pagead2.googlesyndication.com", // Google-managed formats (vignette)
   "https://tpc.googlesyndication.com",
   "https://www.google.com",
+  "https://ep1.adtrafficquality.google",
   "https://ep2.adtrafficquality.google",
-  "https://fundingchoicesmessages.google.com",
+  "https://fundingchoicesmessages.google.com", // consent message + its dismiss control
 ];
 
 const ADSENSE_IMAGES = [

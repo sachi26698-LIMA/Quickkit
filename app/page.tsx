@@ -99,9 +99,9 @@ export default function Home() {
         </div>
       </section>
       <div className="container">
-        {/* Below the introduction, above the toolkit — never inside the hero's
-            search controls. */}
-        <AdUnit />
+        {/* 1 of 3 — below the introduction, above the toolkit. Never inside the
+            hero's search controls, and never above the fold's content. */}
+        <AdUnit placement="home-after-hero" format="horizontal" />
         <section
           id="categories"
           className="home-section"
@@ -120,6 +120,10 @@ export default function Home() {
             <CategoryGrid />
           </Reveal>
         </section>
+
+        {/* 2 of 3 — between the category grid and the "Why QUICKKIT?" section:
+            mid-page, in the natural pause between two blocks of content. */}
+        <AdUnit placement="home-mid-content" format="auto" />
 
         <section className="home-section" aria-labelledby="why-title">
           <Reveal>
@@ -171,6 +175,10 @@ export default function Home() {
             </Link>
           </section>
         </Reveal>
+
+        {/* 3 of 3 — the page's last block, below the closing call to action and
+            above the footer. */}
+        <AdUnit placement="home-bottom" format="auto" />
       </div>
     </div>
   );

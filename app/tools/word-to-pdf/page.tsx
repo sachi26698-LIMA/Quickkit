@@ -1,3 +1,4 @@
+import AdUnit from "@/components/ad-unit";
 import WordToPdf from "@/components/tools/word-to-pdf";
 import { pageMetadata } from "@/lib/seo";
 import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
@@ -16,6 +17,8 @@ export default function Page() {
       style={toolThemeStyle(toolTheme("word-to-pdf", "PDF Tools"))}
     >
       <WordToPdf />
+      {/* 2 of 2 — the end of the page, outside the workspace component. */}
+      <AdUnit placement="tool-bottom" format="auto" />
     </div>
   );
 }
