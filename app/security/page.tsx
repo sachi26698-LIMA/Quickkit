@@ -172,8 +172,9 @@ export default function SecurityPage() {
           geolocation are disabled for the page.
         </li>
         <li>
-          <strong>X-Robots-Tag</strong> — set to <code>noindex</code> while the
-          site is unapproved for indexing, so a preview build is not crawled.
+          <strong>X-Robots-Tag</strong> — sent only on preview and development
+          deployments, where it keeps them out of search results. The production
+          domain is the indexed one, so it is served without that header.
         </li>
       </ul>
       <p>
