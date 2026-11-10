@@ -124,7 +124,7 @@ export default function CameraPanel({ api }: { api: ScannerApi }) {
 
   const findCode = useCallback(async () => {
     const video = videoRef.current;
-    if (!video || decodeBusy.current) return;
+    if (!video || decodeBusy.current || api.popupItem) return;
     if (Date.now() < cooldownUntil.current) return;
     decodeBusy.current = true;
     try {
@@ -153,6 +153,7 @@ export default function CameraPanel({ api }: { api: ScannerApi }) {
       }
       const committed = api.commitDecoded(raster, decoded, {
         sourceName: "Camera capture",
+        openPopup: true,
       });
       if (api.settings.sound) beep();
       if (api.settings.vibration && "vibrate" in navigator)

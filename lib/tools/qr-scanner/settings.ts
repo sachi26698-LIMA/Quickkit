@@ -16,6 +16,8 @@ export type ScannerSettings = {
   duplicateDetection: boolean;
   /** Copy a freshly decoded payload to the clipboard automatically. */
   autoCopy: boolean;
+  /** Open the scan details & redirect popup automatically when a code is scanned. */
+  popupOnScan: boolean;
   sound: boolean;
   vibration: boolean;
   /** Seconds before the results clear themselves; 0 disables auto-clear. */
@@ -42,6 +44,7 @@ export const defaultSettings: ScannerSettings = {
   continuous: false,
   duplicateDetection: true,
   autoCopy: false,
+  popupOnScan: true,
   sound: true,
   vibration: true,
   autoClearSeconds: 0,
@@ -88,6 +91,7 @@ export function sanitizeSettings(input: unknown): ScannerSettings {
       defaultSettings.duplicateDetection,
     ),
     autoCopy: bool(raw.autoCopy, defaultSettings.autoCopy),
+    popupOnScan: bool(raw.popupOnScan, defaultSettings.popupOnScan),
     sound: bool(raw.sound, defaultSettings.sound),
     vibration: bool(raw.vibration, defaultSettings.vibration),
     autoClearSeconds: Number.isFinite(seconds)

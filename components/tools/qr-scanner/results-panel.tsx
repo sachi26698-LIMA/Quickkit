@@ -6,9 +6,9 @@
  * payload, the pass that read it, the corners it was found at and the time it
  * took are all shown, so a result can be audited rather than believed.
  *
- * Opening a link is deliberately a two-step, confirmable action that is only
- * offered for `http(s)` URLs that passed the security pass, and the destination
- * is printed in full before the button is enabled.
+ * When a payload resolves to a safe redirect destination, its full clickable
+ * redirect link and direct open action are displayed alongside all decoded data,
+ * while high-risk destinations remain blocked.
  */
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -18,6 +18,7 @@ import {
   Download,
   ExternalLink,
   Image as ImageIcon,
+  Maximize2,
   Share2,
   ShieldAlert,
   ShieldCheck,
@@ -27,6 +28,10 @@ import {
 } from "lucide-react";
 import { downloadBlob, downloadText, formatBytes } from "@/lib/tools/download";
 import { recognize, type ContentTypeId } from "@/lib/tools/qr-scanner/content";
+import {
+  resolveRedirectTarget,
+  safeWebHref,
+} from "@/lib/tools/qr-scanner/redirect";
 import { inspectPayload } from "@/lib/tools/qr-scanner/security";
 import {
   exportFilename,
@@ -60,8 +65,6 @@ const TYPE_TONE: Partial<Record<ContentTypeId, string>> = {
 };
 
 export default function ResultsPanel({ api }: { api: ScannerApi }) {
-  const [confirming, setConfirming] = useState<string | null>(null);
-
   const exportOptions = {
     exportTimestamps: api.settings.exportTimestamps,
     exportTypes: api.settings.exportTypes,
@@ -307,10 +310,7 @@ export default function ResultsPanel({ api }: { api: ScannerApi }) {
                 total={item.symbols.length}
                 sourceName={item.sourceName}
                 scannedAt={item.scannedAt}
-                confirming={confirming === `${item.id}-${index}`}
-                onConfirm={(open) =>
-                  setConfirming(open ? `${item.id}-${index}` : null)
-                }
+                onOpenPopup={() => api.openPopup(item)}
                 flash={api.setFlash}
               />
             ))}
@@ -363,8 +363,7 @@ function SymbolCard({
   total,
   sourceName,
   scannedAt,
-  confirming,
-  onConfirm,
+  onOpenPopup,
   flash,
 }: {
   symbol: DecodedSymbol;
@@ -372,8 +371,7 @@ function SymbolCard({
   total: number;
   sourceName: string;
   scannedAt: number;
-  confirming: boolean;
-  onConfirm: (open: boolean) => void;
+  onOpenPopup: () => void;
   flash: (
     next: { kind: "info" | "error" | "success"; text: string } | null,
   ) => void;
@@ -385,6 +383,10 @@ function SymbolCard({
   const inspection = useMemo(
     () => inspectPayload(symbol.data, recognition.type),
     [symbol.data, recognition.type],
+  );
+  const redirect = useMemo(
+    () => resolveRedirectTarget(symbol.data, recognition, inspection),
+    [symbol.data, recognition, inspection],
   );
 
   useEffect(() => {
@@ -491,25 +493,132 @@ function SymbolCard({
 
       {expanded && (
         <>
-          <p className="scanner-summary">{recognition.summary}</p>
+          <p className="scanner-summary">
+            {redirect && !redirect.blocked ? (
+              <a
+                href={redirect.href}
+                target={redirect.opensInNewTab ? "_blank" : undefined}
+                rel={
+                  redirect.opensInNewTab
+                    ? "noopener noreferrer nofollow external"
+                    : undefined
+                }
+                className="scanner-summary-link"
+              >
+                {recognition.summary}{" "}
+                <ExternalLink size={13} aria-hidden="true" />
+              </a>
+            ) : (
+              recognition.summary
+            )}
+          </p>
 
           <pre className="scanner-payload" tabIndex={0}>
             {symbol.data}
           </pre>
 
+          {redirect && !redirect.blocked && (
+            <div className="scanner-redirect-box">
+              <div className="scanner-redirect-head">
+                <span className="scanner-redirect-label">
+                  {redirect.lineLabel}
+                </span>
+                <span className="scanner-redirect-scheme">
+                  {redirect.schemeLabel}
+                </span>
+              </div>
+              <a
+                href={redirect.href}
+                target={redirect.opensInNewTab ? "_blank" : undefined}
+                rel={
+                  redirect.opensInNewTab
+                    ? "noopener noreferrer nofollow external"
+                    : undefined
+                }
+                className="scanner-redirect-line"
+              >
+                <ExternalLink size={14} aria-hidden="true" />
+                <span>{redirect.displayUrl}</span>
+              </a>
+              <div className="scanner-redirect-actions">
+                <a
+                  href={redirect.href}
+                  target={redirect.opensInNewTab ? "_blank" : undefined}
+                  rel={
+                    redirect.opensInNewTab
+                      ? "noopener noreferrer nofollow external"
+                      : undefined
+                  }
+                  className="primary scanner-redirect-cta"
+                >
+                  <ExternalLink size={15} aria-hidden="true" />
+                  {redirect.actionLabel}
+                </a>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={onOpenPopup}
+                >
+                  <Maximize2 size={14} aria-hidden="true" /> Redirect popup
+                </button>
+              </div>
+            </div>
+          )}
+
           {recognition.fields.length > 0 && (
             <dl className="scanner-fields">
-              {recognition.fields.map((field, fieldIndex) => (
-                <div key={`${field.label}-${fieldIndex}`}>
-                  <dt>
-                    {field.label}
-                    {field.sensitive && (
-                      <span className="scanner-secret-tag">sensitive</span>
-                    )}
-                  </dt>
-                  <dd>{field.sensitive ? mask(field.value) : field.value}</dd>
+              {redirect && !redirect.blocked && (
+                <div>
+                  <dt>Source link</dt>
+                  <dd>
+                    <a
+                      href={redirect.href}
+                      target={redirect.opensInNewTab ? "_blank" : undefined}
+                      rel={
+                        redirect.opensInNewTab
+                          ? "noopener noreferrer nofollow external"
+                          : undefined
+                      }
+                      className="scanner-inline-source-link"
+                    >
+                      {redirect.displayUrl}{" "}
+                      <ExternalLink size={12} aria-hidden="true" />
+                    </a>
+                  </dd>
                 </div>
-              ))}
+              )}
+              {recognition.fields.map((field, fieldIndex) => {
+                const fieldHref = !field.sensitive
+                  ? safeWebHref(field.value)
+                  : null;
+                return (
+                  <div key={`${field.label}-${fieldIndex}`}>
+                    <dt>
+                      {field.label}
+                      {field.sensitive && (
+                        <span className="scanner-secret-tag">sensitive</span>
+                      )}
+                    </dt>
+                    <dd>
+                      {field.sensitive ? (
+                        mask(field.value)
+                      ) : fieldHref ? (
+                        <a
+                          href={fieldHref}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow external"
+                          className="scanner-inline-source-link"
+                        >
+                          {field.value}{" "}
+                          <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      ) : (
+                        field.value
+                      )}
+                    </dd>
+                  </div>
+                );
+              })}
             </dl>
           )}
 
@@ -532,66 +641,36 @@ function SymbolCard({
             <button type="button" className="secondary" onClick={downloadOnly}>
               <Download size={15} /> Download result
             </button>
-            {inspection.url && (
+            {redirect && !redirect.blocked && (
               <button
                 type="button"
                 className="secondary"
-                onClick={() => void copy(inspection.url!, "url")}
+                onClick={() => void copy(redirect.href, "url")}
               >
                 {copied === "url" ? <Check size={15} /> : <Copy size={15} />}{" "}
                 Copy URL
               </button>
             )}
+            {(!redirect || redirect.blocked) && (
+              <button type="button" className="secondary" onClick={onOpenPopup}>
+                <Maximize2 size={15} aria-hidden="true" /> View popup
+              </button>
+            )}
           </div>
 
-          {inspection.url && (
+          {inspection.level === "high" && (
             <div className="scanner-open">
-              {confirming ? (
-                <div className="scanner-open-confirm">
-                  <p>
-                    This will open <code>{inspection.url}</code> in a new tab.
-                    QUICKKIT cannot check whether that page is genuine — the
-                    inspection below only describes the address itself.
-                  </p>
-                  <div className="scanner-open-actions">
-                    <a
-                      className="primary"
-                      href={inspection.url}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow external"
-                      onClick={() => onConfirm(false)}
-                    >
-                      <ExternalLink size={15} /> Open in a new tab
-                    </a>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => onConfirm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => onConfirm(true)}
-                  disabled={inspection.level === "high"}
-                  title={
-                    inspection.level === "high"
-                      ? "This destination is flagged as high risk. Copy the address and inspect it elsewhere if you must."
-                      : undefined
-                  }
-                >
-                  <ExternalLink size={15} /> Open link…
-                </button>
-              )}
-              {inspection.level === "high" && (
-                <span className="scanner-open-blocked">
-                  Opening is blocked while this address is flagged as high risk.
-                </span>
-              )}
+              <button
+                type="button"
+                className="secondary"
+                disabled
+                title="This destination is flagged as high risk. Copy the address and inspect it elsewhere if you must."
+              >
+                <ExternalLink size={15} /> Open link…
+              </button>
+              <span className="scanner-open-blocked">
+                Opening is blocked while this address is flagged as high risk.
+              </span>
             </div>
           )}
 

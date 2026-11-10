@@ -75,6 +75,7 @@ export function useScanner() {
   const [settings, setSettings] = useState<ScannerSettings>(defaultSettings);
   const [ready, setReady] = useState(false);
   const [results, setResults] = useState<ScanItem[]>([]);
+  const [popupItem, setPopupItem] = useState<ScanItem | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [flash, setFlash] = useState<Flash>(null);
@@ -184,6 +185,14 @@ export function useScanner() {
 
   const announce = useCallback((next: Flash) => setFlash(next), []);
 
+  const openPopup = useCallback((item: ScanItem) => {
+    setPopupItem(item);
+  }, []);
+
+  const closePopup = useCallback(() => {
+    setPopupItem(null);
+  }, []);
+
   /** Build a ScanItem from a decode and add it to the result list. */
   const commit = useCallback(
     (input: {
@@ -195,6 +204,7 @@ export function useScanner() {
       durationMs: number;
       failure: string | null;
       imageUrl?: string | null;
+      openPopup?: boolean;
     }): ScanItem => {
       const item: ScanItem = {
         id: newId(),
@@ -212,9 +222,12 @@ export function useScanner() {
       if (item.imageUrl) urlsRef.current.add(item.imageUrl);
       setResults((current) => [item, ...current].slice(0, 60));
       recordHistory(item);
+      if (input.openPopup && settings.popupOnScan && item.symbols.length > 0) {
+        setPopupItem(item);
+      }
       return item;
     },
-    [recordHistory],
+    [recordHistory, settings.popupOnScan],
   );
 
   /**
@@ -263,6 +276,7 @@ export function useScanner() {
         sourceName: string;
         sourceBytes?: number;
         imageUrl?: string | null;
+        openPopup?: boolean;
       },
     ) =>
       commit({
@@ -276,6 +290,7 @@ export function useScanner() {
           ? null
           : "No QR code could be decoded in this image.",
         imageUrl: meta.imageUrl ?? null,
+        openPopup: meta.openPopup,
       }),
     [commit],
   );
@@ -290,6 +305,7 @@ export function useScanner() {
         imageUrl?: string | null;
         adjustments?: Partial<ImageAdjustments>;
         profile?: "image" | "frame" | "precise";
+        openPopup?: boolean;
       },
     ) => {
       const decoded = await decodeOnly(raster, {
@@ -332,7 +348,10 @@ export function useScanner() {
 
   /** Scan one uploaded file end to end. */
   const scanFile = useCallback(
-    async (file: File, options: { preview?: boolean } = {}) => {
+    async (
+      file: File,
+      options: { preview?: boolean; openPopup?: boolean } = {},
+    ) => {
       const objectUrl =
         options.preview === false ? null : URL.createObjectURL(file);
       try {
@@ -342,6 +361,7 @@ export function useScanner() {
           sourceName: file.name,
           sourceBytes: file.size,
           imageUrl: objectUrl,
+          openPopup: options.openPopup ?? true,
         });
         if (item && objectUrl) urlsRef.current.add(objectUrl);
         return item;
@@ -362,6 +382,7 @@ export function useScanner() {
   );
 
   const removeResult = useCallback((id: string) => {
+    setPopupItem((current) => (current?.id === id ? null : current));
     setResults((current) => {
       const target = current.find((item) => item.id === id);
       if (target?.imageUrl) {
@@ -378,6 +399,7 @@ export function useScanner() {
   }, []);
 
   const clearResults = useCallback(() => {
+    setPopupItem(null);
     setResults((current) => {
       for (const item of current) {
         if (item.imageUrl) {
@@ -441,6 +463,9 @@ export function useScanner() {
     settings,
     updateSettings,
     results,
+    popupItem,
+    openPopup,
+    closePopup,
     selected,
     toggleSelected,
     selectAll,

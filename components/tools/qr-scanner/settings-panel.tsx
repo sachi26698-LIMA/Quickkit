@@ -172,6 +172,12 @@ export default function SettingsPanel({
           <fieldset>
             <legend>Feedback</legend>
             <Toggle
+              label="Open redirect popup on scan"
+              description="Immediately open a popup with all decoded QR data and a clickable redirect link whenever a code is scanned."
+              checked={api.settings.popupOnScan}
+              onChange={(value) => update({ popupOnScan: value })}
+            />
+            <Toggle
               label="Sound"
               description="A short confirmation tone when a code is decoded. Uses the Web Audio API in this tab only."
               checked={api.settings.sound}

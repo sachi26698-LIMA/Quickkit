@@ -15,7 +15,7 @@ export default function Page() {
       content={{
         steps: [
           "Point your camera at a code and press Start camera, or drop an image, a screenshot or a whole folder of images into the workspace. The scanner decodes images in this tab and its processing logic does not upload them. A separate AdSense script loads site-wide; see the Privacy Policy for that third-party access.",
-          "When a code is found, read the result card. It names the content type, shows the parsed fields, and runs a local security check on the destination. For a link you must confirm before anything opens — nothing opens on its own.",
+          "As soon as a code is scanned, a popup opens with all decoded data, a local security check, and a clickable redirect link so you can jump straight to the source in one tap — nothing auto-redirects without your click, and high-risk destinations remain blocked. The full result card and source link also stay listed in the results panel.",
           "Batch mode works through a stack of images with a bounded number running at once. Export the results you need as CSV, JSON or TXT, or keep them in the local History tab.",
         ],
         faqs: [
