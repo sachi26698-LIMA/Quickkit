@@ -759,10 +759,16 @@ function recognizeUrl(payload: string): Recognition | null {
   if (app) return app;
   let path = "";
   let protocol = "";
+  let port = "";
+  let query = "";
+  let fragment = "";
   try {
     const url = new URL(payload);
     path = url.pathname === "/" ? "" : url.pathname;
     protocol = url.protocol.replace(":", "").toUpperCase();
+    port = url.port;
+    query = url.search ? url.search.slice(1) : "";
+    fragment = url.hash ? url.hash.slice(1) : "";
   } catch {
     /* hostOf already validated it; nothing to add */
   }
@@ -773,7 +779,12 @@ function recognizeUrl(payload: string): Recognition | null {
     primary: payload,
     fields: [
       ...(host ? [{ label: "Host", value: host }] : []),
-      ...(path ? [{ label: "Path", value: decodeURIComponent(path) }] : []),
+      ...(port ? [{ label: "Port", value: port }] : []),
+      ...(path ? [{ label: "Path", value: safeDecodeUri(path) }] : []),
+      ...(query ? [{ label: "Query", value: safeDecodeUri(query) }] : []),
+      ...(fragment
+        ? [{ label: "Fragment", value: safeDecodeUri(fragment) }]
+        : []),
       ...(protocol ? [{ label: "Scheme", value: protocol }] : []),
     ],
     // No "open" action here by design: opening is offered only after the
@@ -781,6 +792,14 @@ function recognizeUrl(payload: string): Recognition | null {
     actions: [{ id: "copy", label: "Copy link" }],
     sensitive: false,
   };
+}
+
+function safeDecodeUri(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 /** Uppercase alphanumeric payload that looks like a GTIN/EAN/UPC barcode. */

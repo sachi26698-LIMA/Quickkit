@@ -72,6 +72,7 @@ export default function UploadPanel({ api }: { api: ScannerApi }) {
           sourceBytes: bytes,
           imageUrl: url,
           adjustments: { rotation, crop, contrast, sharpen },
+          openPopup: true,
         });
       } catch (caught) {
         setError(

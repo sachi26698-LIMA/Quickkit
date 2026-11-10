@@ -28,7 +28,7 @@ test.describe("QR Code Scanner", () => {
     ).toBeVisible();
   });
 
-  test("decodes an uploaded URL and names the content type", async ({
+  test("decodes an uploaded URL, opens the redirect popup and shows clickable redirect links", async ({
     page,
   }) => {
     const payload = "https://quickkit.example/scanned-from-a-test";
@@ -41,10 +41,23 @@ test.describe("QR Code Scanner", () => {
         mimeType: "image/png",
         buffer: await qrPng(payload),
       });
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("a.scanner-redirect-line")).toHaveAttribute(
+      "href",
+      payload,
+    );
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+
     await expect(page.locator(".scanner-payload").first()).toHaveText(payload);
     await expect(page.locator(".scanner-type").first()).toHaveText(
       "Website URL",
     );
+    await expect(
+      page.locator(".scanner-symbol a.scanner-redirect-line").first(),
+    ).toHaveAttribute("href", payload);
     // No "safe" claim is ever made for a URL.
     await expect(page.locator(".scanner-risk").first()).toHaveText(
       "No obvious warning found",
@@ -64,6 +77,8 @@ test.describe("QR Code Scanner", () => {
         mimeType: "image/png",
         buffer: await qrPng(`WIFI:S:TestNet;T:WPA;P:${password};;`),
       });
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.keyboard.press("Escape");
     await expect(page.locator(".scanner-type").first()).toHaveText(
       "Wi-Fi credentials",
     );
@@ -92,6 +107,11 @@ test.describe("QR Code Scanner", () => {
         mimeType: "image/png",
         buffer: await qrPng("https://paypa1.com/verify"),
       });
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("a.scanner-redirect-line")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
     await expect(page.locator(".scanner-risk").first()).toContainText(
       "High risk",
     );
@@ -282,6 +302,13 @@ test.describe("QR Code Scanner", () => {
     await expect(page.locator(".scanner-payload").first()).toHaveText(payload, {
       timeout: 20000,
     });
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("a.scanner-redirect-line")).toHaveAttribute(
+      "href",
+      payload,
+    );
+    await page.keyboard.press("Escape");
     await expect(page.locator(".scanner-paused")).toBeVisible();
 
     // Continuous scanning must not append the same code repeatedly.

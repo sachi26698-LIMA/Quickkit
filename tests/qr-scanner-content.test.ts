@@ -8,6 +8,10 @@
 import { describe, expect, it } from "vitest";
 import { recognize, formatIcalDate } from "../lib/tools/qr-scanner/content";
 import {
+  resolveRedirectTarget,
+  safeWebHref,
+} from "../lib/tools/qr-scanner/redirect";
+import {
   inspectPayload,
   registrableDomain,
 } from "../lib/tools/qr-scanner/security";
@@ -385,5 +389,81 @@ describe("security inspection", () => {
   it("never returns a url for a non-web scheme", () => {
     expect(inspectPayload("tel:+15551234567", "phone").url).toBeNull();
     expect(inspectPayload("mailto:a@b.example", "email").url).toBeNull();
+  });
+});
+
+describe("redirect destination resolution", () => {
+  it("resolves a website URL to a direct clickable redirect target and parses query/fragment fields", () => {
+    const payload = "https://biocraft-bice.vercel.app/products?id=42#top";
+    const recognition = recognize(payload);
+    expect(
+      recognition.fields.find((field) => field.label === "Host")?.value,
+    ).toBe("biocraft-bice.vercel.app");
+    expect(
+      recognition.fields.find((field) => field.label === "Path")?.value,
+    ).toBe("/products");
+    expect(
+      recognition.fields.find((field) => field.label === "Query")?.value,
+    ).toBe("id=42");
+    expect(
+      recognition.fields.find((field) => field.label === "Fragment")?.value,
+    ).toBe("top");
+
+    const target = resolveRedirectTarget(payload, recognition);
+    expect(target).not.toBeNull();
+    expect(target?.href).toBe(payload);
+    expect(target?.displayUrl).toBe(payload);
+    expect(target?.opensInNewTab).toBe(true);
+    expect(target?.blocked).toBe(false);
+    expect(target?.schemeLabel).toBe("HTTPS");
+  });
+
+  it("resolves UPI, email, phone, SMS, geo, WhatsApp, vCard website and embedded text links", () => {
+    expect(
+      resolveRedirectTarget("upi://pay?pa=shop@upi&pn=Shop&am=99")?.href,
+    ).toBe("upi://pay?pa=shop@upi&pn=Shop&am=99");
+    expect(
+      resolveRedirectTarget("mailto:hello@example.com?subject=Hi")?.href,
+    ).toContain("mailto:hello%40example.com");
+    expect(resolveRedirectTarget("tel:+91 98765 43210")?.href).toBe(
+      "tel:+919876543210",
+    );
+    expect(
+      resolveRedirectTarget("SMSTO:+15551234567:Hello there")?.href,
+    ).toContain("sms:+15551234567");
+    expect(resolveRedirectTarget("geo:23.0225,72.5714")?.href).toContain(
+      "https://www.openstreetmap.org/",
+    );
+    expect(
+      resolveRedirectTarget("https://wa.me/919876543210?text=Hi")?.href,
+    ).toBe("https://wa.me/919876543210?text=Hi");
+    expect(
+      resolveRedirectTarget(
+        "BEGIN:VCARD\nVERSION:3.0\nFN:Ada\nURL:https://example.org\nEND:VCARD",
+      )?.href,
+    ).toBe("https://example.org/");
+    expect(
+      resolveRedirectTarget(
+        "Scan complete — visit https://quickkit.example/offer.",
+      )?.href,
+    ).toBe("https://quickkit.example/offer");
+  });
+
+  it("marks high-risk lookalike/credential URLs as blocked and rejects executable schemes", () => {
+    const phish = resolveRedirectTarget("https://paypa1.com/verify");
+    expect(phish?.blocked).toBe(true);
+    expect(safeWebHref("https://paypa1.com/verify")).toBeNull();
+
+    expect(resolveRedirectTarget("javascript:alert(1)")).toBeNull();
+    expect(
+      resolveRedirectTarget("data:text/html;base64,PHNjcmlwdD4="),
+    ).toBeNull();
+    expect(resolveRedirectTarget("file:///etc/passwd")).toBeNull();
+  });
+
+  it("returns null when a payload has no external redirect destination", () => {
+    expect(resolveRedirectTarget("WIFI:S:HomeNet;T:WPA;P:secret;;")).toBeNull();
+    expect(resolveRedirectTarget("Remember to buy milk tomorrow")).toBeNull();
+    expect(resolveRedirectTarget("4006381333931")).toBeNull();
   });
 });

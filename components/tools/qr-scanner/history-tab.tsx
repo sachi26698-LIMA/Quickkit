@@ -7,12 +7,21 @@
  * here and cannot leak through an export, a copy button or a share sheet.
  */
 import { useMemo, useState } from "react";
-import { Clock, Copy, Download, Search, ShieldOff, Trash2 } from "lucide-react";
+import {
+  Clock,
+  Copy,
+  Download,
+  ExternalLink,
+  Search,
+  ShieldOff,
+  Trash2,
+} from "lucide-react";
 import { downloadText } from "@/lib/tools/download";
 import {
   contentTypeLabel,
   type ContentTypeId,
 } from "@/lib/tools/qr-scanner/content";
+import { resolveRedirectTarget } from "@/lib/tools/qr-scanner/redirect";
 import {
   exportFilename,
   rowsFromHistory,
@@ -277,89 +286,145 @@ export default function HistoryTab({ api }: { api: ScannerApi }) {
           </div>
 
           <ul className="scanner-history-list">
-            {records.map((record) => (
-              <li key={record.id} className="scanner-history-item">
-                <label className="scanner-select">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(record.id)}
-                    onChange={() =>
-                      setSelected((current) => {
-                        const next = new Set(current);
-                        if (next.has(record.id)) next.delete(record.id);
-                        else next.add(record.id);
-                        return next;
-                      })
-                    }
-                    aria-label={`Select record ${record.summary}`}
-                  />
-                </label>
-                <div className="scanner-history-body">
-                  <div className="scanner-history-line">
-                    <span className={`scanner-type small`}>
-                      {record.typeLabel}
-                    </span>
-                    <span className="scanner-history-time">
-                      {new Date(record.at).toLocaleString()}
-                    </span>
-                    {record.status === "failed" && (
-                      <span className="scanner-detect none">no code</span>
+            {records.map((record) => {
+              const redirect = record.payload
+                ? resolveRedirectTarget(record.payload)
+                : null;
+              return (
+                <li key={record.id} className="scanner-history-item">
+                  <label className="scanner-select">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(record.id)}
+                      onChange={() =>
+                        setSelected((current) => {
+                          const next = new Set(current);
+                          if (next.has(record.id)) next.delete(record.id);
+                          else next.add(record.id);
+                          return next;
+                        })
+                      }
+                      aria-label={`Select record ${record.summary}`}
+                    />
+                  </label>
+                  <div className="scanner-history-body">
+                    <div className="scanner-history-line">
+                      <span className={`scanner-type small`}>
+                        {record.typeLabel}
+                      </span>
+                      <span className="scanner-history-time">
+                        {new Date(record.at).toLocaleString()}
+                      </span>
+                      {record.status === "failed" && (
+                        <span className="scanner-detect none">no code</span>
+                      )}
+                    </div>
+                    <p className={record.redacted ? "redacted" : ""}>
+                      {redirect && !redirect.blocked ? (
+                        <a
+                          href={redirect.href}
+                          target={redirect.opensInNewTab ? "_blank" : undefined}
+                          rel={
+                            redirect.opensInNewTab
+                              ? "noopener noreferrer nofollow external"
+                              : undefined
+                          }
+                          className="scanner-inline-source-link"
+                        >
+                          {record.summary}{" "}
+                          <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      ) : (
+                        record.summary
+                      )}
+                    </p>
+                    {record.payload && record.payload !== record.summary && (
+                      <code className="scanner-history-payload">
+                        {record.payload}
+                      </code>
+                    )}
+                    {redirect &&
+                      !redirect.blocked &&
+                      redirect.displayUrl !== record.summary && (
+                        <a
+                          href={redirect.href}
+                          target={redirect.opensInNewTab ? "_blank" : undefined}
+                          rel={
+                            redirect.opensInNewTab
+                              ? "noopener noreferrer nofollow external"
+                              : undefined
+                          }
+                          className="scanner-inline-source-link"
+                        >
+                          {redirect.displayUrl}{" "}
+                          <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      )}
+                    {record.sourceName && (
+                      <small>From {record.sourceName}</small>
                     )}
                   </div>
-                  <p className={record.redacted ? "redacted" : ""}>
-                    {record.summary}
-                  </p>
-                  {record.payload && record.payload !== record.summary && (
-                    <code className="scanner-history-payload">
-                      {record.payload}
-                    </code>
-                  )}
-                  {record.sourceName && <small>From {record.sourceName}</small>}
-                </div>
-                <div className="scanner-history-item-actions">
-                  {record.payload && (
+                  <div className="scanner-history-item-actions">
+                    {redirect && !redirect.blocked && (
+                      <a
+                        href={redirect.href}
+                        target={redirect.opensInNewTab ? "_blank" : undefined}
+                        rel={
+                          redirect.opensInNewTab
+                            ? "noopener noreferrer nofollow external"
+                            : undefined
+                        }
+                        className="scanner-icon-button"
+                        aria-label={`Open ${redirect.actionLabel.toLowerCase()}`}
+                        title={redirect.actionLabel}
+                      >
+                        <ExternalLink size={14} />
+                      </a>
+                    )}
+                    {record.payload && (
+                      <button
+                        type="button"
+                        className="scanner-icon-button"
+                        onClick={() =>
+                          void navigator.clipboard
+                            .writeText(record.payload!)
+                            .then(
+                              () =>
+                                api.setFlash({
+                                  kind: "success",
+                                  text: "Copied to the clipboard.",
+                                }),
+                              () =>
+                                api.setFlash({
+                                  kind: "error",
+                                  text: "The clipboard is blocked in this browser.",
+                                }),
+                            )
+                        }
+                        aria-label="Copy this record"
+                      >
+                        <Copy size={14} />
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="scanner-icon-button"
-                      onClick={() =>
-                        void navigator.clipboard
-                          .writeText(record.payload!)
-                          .then(
-                            () =>
-                              api.setFlash({
-                                kind: "success",
-                                text: "Copied to the clipboard.",
-                              }),
-                            () =>
-                              api.setFlash({
-                                kind: "error",
-                                text: "The clipboard is blocked in this browser.",
-                              }),
-                          )
-                      }
-                      aria-label="Copy this record"
+                      onClick={() => {
+                        api.deleteHistoryRecords([record.id]);
+                        setSelected((current) => {
+                          const next = new Set(current);
+                          next.delete(record.id);
+                          return next;
+                        });
+                      }}
+                      aria-label="Delete this record"
                     >
-                      <Copy size={14} />
+                      <Trash2 size={14} />
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="scanner-icon-button"
-                    onClick={() => {
-                      api.deleteHistoryRecords([record.id]);
-                      setSelected((current) => {
-                        const next = new Set(current);
-                        next.delete(record.id);
-                        return next;
-                      });
-                    }}
-                    aria-label="Delete this record"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </li>
-            ))}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

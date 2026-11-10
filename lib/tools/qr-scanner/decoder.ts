@@ -152,7 +152,7 @@ function symbolFrom(
 
 type Pass = {
   name: string;
-  frame: Raster;
+  buildFrame: () => Raster;
   transform: PassTransform;
   inverted: boolean;
 };
@@ -227,35 +227,42 @@ export function decodeRaster(request: ScanRequest): DecodeResult {
     );
 
   const transform = makeTransform(rotated, adjustments.crop ?? null, rotation);
-  const grey = toGreyscale(cropped);
-  const otsu = otsuThreshold(grey);
+  let cachedGrey: Uint8ClampedArray | null = null;
+  const getGrey = () => {
+    if (!cachedGrey) cachedGrey = toGreyscale(cropped);
+    return cachedGrey;
+  };
   const contrast = adjustments.contrast ?? 1;
   const sharpenAmount = adjustments.sharpen ?? 0;
 
   const passes: Pass[] = [
-    { name: "original", frame: cropped, transform, inverted: false },
-  ];
-
-  if (otsu !== null)
-    passes.push({
+    { name: "original", buildFrame: () => cropped, transform, inverted: false },
+    {
       name: "otsu threshold",
-      frame: greyToRaster(
-        Uint8ClampedArray.from(grey, (value) => (value < otsu ? 0 : 255)),
-        cropped.width,
-        cropped.height,
-      ),
+      buildFrame: () => {
+        const grey = getGrey();
+        const otsu = otsuThreshold(grey);
+        if (otsu === null) return cropped;
+        return greyToRaster(
+          Uint8ClampedArray.from(grey, (value) => (value < otsu ? 0 : 255)),
+          cropped.width,
+          cropped.height,
+        );
+      },
       transform,
       inverted: false,
-    });
+    },
+  ];
 
   if (Math.abs(contrast - 1) > 0.01)
     passes.push({
       name: `contrast ${contrast.toFixed(2)}×`,
-      frame: greyToRaster(
-        applyContrast(grey, contrast),
-        cropped.width,
-        cropped.height,
-      ),
+      buildFrame: () =>
+        greyToRaster(
+          applyContrast(getGrey(), contrast),
+          cropped.width,
+          cropped.height,
+        ),
       transform,
       inverted: false,
     });
@@ -263,18 +270,20 @@ export function decodeRaster(request: ScanRequest): DecodeResult {
   if (sharpenAmount > 0.05)
     passes.push({
       name: `sharpen ${sharpenAmount.toFixed(1)}×`,
-      frame: greyToRaster(
-        sharpen(grey, cropped.width, cropped.height, sharpenAmount),
-        cropped.width,
-        cropped.height,
-      ),
+      buildFrame: () =>
+        greyToRaster(
+          sharpen(getGrey(), cropped.width, cropped.height, sharpenAmount),
+          cropped.width,
+          cropped.height,
+        ),
       transform,
       inverted: false,
     });
 
   passes.push({
     name: "inverted",
-    frame: greyToRaster(invertGrey(grey), cropped.width, cropped.height),
+    buildFrame: () =>
+      greyToRaster(invertGrey(getGrey()), cropped.width, cropped.height),
     transform,
     inverted: true,
   });
@@ -283,10 +292,9 @@ export function decodeRaster(request: ScanRequest): DecodeResult {
     for (const extra of [90, 180, 270] as ImageRotation[]) {
       // The extra turn is applied to the already-cropped frame, so its inverse
       // is composed on top of the existing transform.
-      const frame = rotateRaster(cropped, extra);
       passes.push({
         name: `rotated ${extra}°`,
-        frame,
+        buildFrame: () => rotateRaster(cropped, extra),
         transform: {
           ...transform,
           rotation: ((rotation + extra) % 360) as ImageRotation,
@@ -297,12 +305,14 @@ export function decodeRaster(request: ScanRequest): DecodeResult {
   }
 
   const runPass = (pass: Pass) => {
-    const widths = widthLadder(pass.frame.width, profile);
+    if (pass.name === "otsu threshold" && otsuThreshold(getGrey()) === null)
+      return;
+    const frame = pass.buildFrame();
+    const widths = widthLadder(frame.width, profile);
     for (const width of widths) {
       if (aborted()) return;
-      const scaled =
-        width === pass.frame.width ? pass.frame : resample(pass.frame, width);
-      const scale = scaled.width / pass.frame.width;
+      const scaled = width === frame.width ? frame : resample(frame, width);
+      const scale = scaled.width / frame.width;
       const label = `${pass.name}${scale === 1 ? "" : ` @${scaled.width}px`}`;
       const result = jsQR(scaled.rgba, scaled.width, scaled.height, {
         // jsQR never honours "onlyInvert" on its own — it leaves the inverted
@@ -322,14 +332,14 @@ export function decodeRaster(request: ScanRequest): DecodeResult {
           flattened,
         ),
       );
-      // A lock at full resolution is the usual case; stop shrinking once the
-      // frame has produced something, unless more symbols are being hunted.
-      if (profile !== "precise" && found.length) return;
+      // Once a frame locks at a given width, stop shrinking the same pass; the
+      // multi-symbol tile stage below handles collages with several codes.
+      if (found.length) return;
     }
   };
 
   for (const pass of passes) {
-    if (aborted()) break;
+    if (aborted() || found.length > 0) break;
     runPass(pass);
   }
 
@@ -433,7 +443,7 @@ export function decodeRaster(request: ScanRequest): DecodeResult {
   // Locator pass: aim the decoder at each region finder patterns support. This
   // reaches codes the tile sweep can miss — heavily skewed or partly occluded
   // symbols that straddle several tiles.
-  if (profile === "precise" && !aborted()) {
+  if (profile === "precise" && found.length === 0 && !aborted()) {
     const regions = locateSymbolRegions(cropped);
     if (regions.length)
       attempts.push(`${regions.length} finder-pattern region(s)`);

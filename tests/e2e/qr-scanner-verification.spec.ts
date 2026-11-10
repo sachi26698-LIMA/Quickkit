@@ -316,7 +316,7 @@ test.describe("QR Scanner verification — security inspection", () => {
     );
   });
 
-  test("requires confirmation before opening, and never auto-navigates", async ({
+  test("opens the redirect popup with clickable source link and never auto-navigates", async ({
     page,
   }) => {
     await page.goto(ROUTE);
@@ -328,25 +328,28 @@ test.describe("QR Scanner verification — security inspection", () => {
     );
     await waitForSymbol(page);
 
-    // Nothing navigates on its own.
+    // Nothing navigates on its own — instead the redirect popup opens.
     expect(page.url()).toContain(ROUTE);
 
-    await page
-      .getByRole("button", { name: /Open link/ })
-      .first()
-      .click();
-    const confirm = page.locator(".scanner-open-confirm");
-    await expect(confirm).toBeVisible();
-    await expect(confirm).toContainText("https://quickkit.example/landing");
-    const anchor = confirm.getByRole("link", { name: /Open in a new tab/ });
-    await expect(anchor).toHaveAttribute("rel", /noopener/);
-    await expect(anchor).toHaveAttribute("rel", /noreferrer/);
-    await expect(anchor).toHaveAttribute("target", "_blank");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const popupAnchor = dialog.locator("a.scanner-redirect-line");
+    await expect(popupAnchor).toBeVisible();
+    await expect(popupAnchor).toHaveAttribute(
+      "href",
+      "https://quickkit.example/landing",
+    );
+    await expect(popupAnchor).toHaveAttribute("rel", /noopener/);
+    await expect(popupAnchor).toHaveAttribute("rel", /noreferrer/);
+    await expect(popupAnchor).toHaveAttribute("target", "_blank");
 
-    // Cancelling closes the panel and changes nothing.
-    await confirm.getByRole("button", { name: "Cancel" }).click();
-    await expect(confirm).toHaveCount(0);
+    // Closing the popup leaves the page intact and keeps the clickable redirect line in results.
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await expect(dialog).toHaveCount(0);
     expect(page.url()).toContain(ROUTE);
+    await expect(
+      page.locator(".scanner-symbol a.scanner-redirect-line").first(),
+    ).toHaveAttribute("href", "https://quickkit.example/landing");
   });
 });
 
@@ -505,6 +508,9 @@ test.describe("QR Scanner verification — history, duplicates and export", () =
     await page.getByRole("tab", { name: /Upload Image/ }).click();
     await upload(page, "scan.png", await qr(payload));
     await waitForSymbol(page);
+    if (await page.getByRole("dialog").isVisible()) {
+      await page.keyboard.press("Escape");
+    }
   }
 
   test("records history, redacts secrets and survives a reload", async ({
@@ -528,6 +534,9 @@ test.describe("QR Scanner verification — history, duplicates and export", () =
         timeout: 25000,
       },
     );
+    if (await page.getByRole("dialog").isVisible()) {
+      await page.keyboard.press("Escape");
+    }
     await page.getByRole("tab", { name: /History/ }).click();
     await expect(page.locator(".scanner-history-item")).toHaveCount(2);
     const stored = await page.evaluate(
@@ -579,6 +588,9 @@ test.describe("QR Scanner verification — history, duplicates and export", () =
     await expect(page.locator(".scanner-result")).toHaveCount(2, {
       timeout: 25000,
     });
+    if (await page.getByRole("dialog").isVisible()) {
+      await page.keyboard.press("Escape");
+    }
 
     const csv = await download(page, "CSV");
     expect(csv.charCodeAt(0)).toBe(0xfeff);
@@ -670,6 +682,8 @@ test.describe("QR Scanner verification — camera lifecycle", () => {
     await expect(resolution).toHaveValue("auto");
 
     await waitForSymbol(page);
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.keyboard.press("Escape");
     await expect(page.locator(".scanner-payload").first()).toHaveText(PAYLOAD);
     await expect(
       page.locator(".scanner-result-meta strong").first(),
@@ -719,6 +733,9 @@ test.describe("QR Scanner verification — camera lifecycle", () => {
     });
     // Navigate within the app, keeping the JS context alive long enough to read
     // the track state through the history API instead of a full page load.
+    if (await page.getByRole("dialog").isVisible()) {
+      await page.keyboard.press("Escape");
+    }
     await page.getByRole("link", { name: "Home" }).first().click();
     await page.waitForTimeout(800);
     const state = await page.evaluate(
@@ -847,6 +864,9 @@ test.describe("QR Scanner verification — responsive and accessible", () => {
       await qr("https://quickkit.example/touch", 420),
     );
     await waitForSymbol(page);
+    if (await page.getByRole("dialog").isVisible()) {
+      await page.keyboard.press("Escape");
+    }
 
     const targets = page.locator(
       ".scanner-tab, .scanner-dropzone-actions .primary, .scanner-symbol-actions .secondary",
@@ -865,6 +885,19 @@ test.describe("QR Scanner verification — responsive and accessible", () => {
     await page.getByRole("tab", { name: /Upload Image/ }).click();
     await upload(page, "a11y.png", await qr("WIFI:S:AccessNet;T:WPA;P:x;;"));
     await waitForSymbol(page);
+    const modalResults = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const modalSerious = modalResults.violations.filter(
+      (violation) =>
+        violation.impact === "serious" || violation.impact === "critical",
+    );
+    expect(
+      modalSerious.map((violation) => `${violation.id}: ${violation.help}`),
+      "no serious or critical accessibility violations with popup open",
+    ).toEqual([]);
+
+    await page.keyboard.press("Escape");
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
