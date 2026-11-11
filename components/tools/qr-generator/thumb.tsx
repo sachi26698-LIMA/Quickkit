@@ -10,6 +10,11 @@ import { defaultDesign } from "@/lib/tools/qr/style";
 import type { QrDesign } from "@/lib/tools/qr/types";
 import { QR_SAMPLE_URL } from "./use-qr-studio";
 
+const thumbCache = new Map<
+  string,
+  { width: number; rgba: Uint8ClampedArray }
+>();
+
 export function QrThumb({
   payload = QR_SAMPLE_URL,
   design,
@@ -21,12 +26,16 @@ export function QrThumb({
   size?: number;
   label: string;
 }) {
-  const [bitmap, setBitmap] = useState<{
-    width: number;
-    rgba: Uint8ClampedArray;
-  } | null>(null);
   const key = JSON.stringify([payload, design, size]);
+  const cachedBitmap = thumbCache.get(key) ?? null;
+  const [asyncSlot, setAsyncSlot] = useState<{
+    key: string;
+    bitmap: { width: number; rgba: Uint8ClampedArray } | null;
+  } | null>(null);
+  const bitmap =
+    cachedBitmap ?? (asyncSlot?.key === key ? asyncSlot.bitmap : null);
   useEffect(() => {
+    if (thumbCache.has(key)) return;
     let cancelled = false;
     void renderQr({
       payload,
@@ -34,14 +43,16 @@ export function QrThumb({
       artifacts: { preview: size },
     })
       .then((out) => {
-        if (!cancelled && out.preview)
-          setBitmap({
-            width: out.preview.width,
-            rgba: out.preview.rgba,
-          });
+        if (!out.preview) return;
+        const entry = {
+          width: out.preview.width,
+          rgba: out.preview.rgba,
+        };
+        if (thumbCache.size < 200) thumbCache.set(key, entry);
+        if (!cancelled) setAsyncSlot({ key, bitmap: entry });
       })
       .catch(() => {
-        if (!cancelled) setBitmap(null);
+        if (!cancelled) setAsyncSlot({ key, bitmap: null });
       });
     return () => {
       cancelled = true;

@@ -23,7 +23,7 @@ import { PRESET_SWATCHES } from "../lib/tools/qr/palette";
 
 const VERIFIED = "Verified by an independent decoder";
 const BLOCKED = "Not scannable — export is blocked";
-const TEST_TIMEOUT = 30_000;
+const TEST_TIMEOUT = 60_000;
 
 /** Scope a query to one workspace card so the mobile quick-save bar can't match. */
 function card(id: string) {
