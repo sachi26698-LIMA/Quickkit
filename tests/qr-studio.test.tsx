@@ -104,7 +104,7 @@ describe("qr studio — empty state", () => {
     );
   });
 
-  it("offers all twenty-seven content types in one compact picker", () => {
+  it("offers all twenty-eight content types in one compact picker", () => {
     render(<QrGenerator />);
     const select = screen.getByLabelText(
       "QR content type",
@@ -114,6 +114,7 @@ describe("qr studio — empty state", () => {
     );
     expect(labels).toEqual([
       "Website URL",
+      "Payment / UPI",
       "Plain text",
       "Email",
       "Phone number",
@@ -145,7 +146,7 @@ describe("qr studio — empty state", () => {
   });
 
   it(
-    "renders a URL and decodes it back to the same text",
+    "renders a URL with an original Data Template link by default and supports Direct Raw Content",
     async () => {
       render(<QrGenerator />);
       useSmallSize();
@@ -157,16 +158,25 @@ describe("qr studio — empty state", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Show the exact encoded content" }),
       );
-      expect(
-        screen.getByText("https://example.com/pricing?src=qr#top"),
-      ).toBeInTheDocument();
+      const templatePayload =
+        document.querySelector("#qr-payload-view pre")?.textContent ?? "";
+      expect(templatePayload).toContain("/qr?d=");
+
+      // Switching to Direct Raw Content encodes the bare normalized URL.
+      fireEvent.click(
+        screen.getByRole("button", { name: /Direct Raw Content/ }),
+      );
+      await settle();
+      expect(document.querySelector("#qr-payload-view pre")?.textContent).toBe(
+        "https://example.com/pricing?src=qr#top",
+      );
       expect(screen.getByText(/v\d+ · \d+×\d+/)).toBeInTheDocument();
     },
     TEST_TIMEOUT,
   );
 
   it(
-    "escapes Wi-Fi punctuation and dots out the password on screen",
+    "escapes Wi-Fi punctuation and dots out the password on screen in both modes",
     async () => {
       render(<QrGenerator />);
       useSmallSize();
@@ -181,6 +191,16 @@ describe("qr studio — empty state", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Show the exact encoded content" }),
       );
+      const templateView =
+        document.querySelector("#qr-payload-view pre")?.textContent ?? "";
+      expect(templateView).toContain("/qr?d=");
+      expect(templateView).toContain("#s=••••••••");
+      expect(templateView).not.toContain("p@ss");
+
+      fireEvent.click(
+        screen.getByRole("button", { name: /Direct Raw Content/ }),
+      );
+      await settle();
       const view =
         document.querySelector("#qr-payload-view pre")?.textContent ?? "";
       expect(view.startsWith("WIFI:T:WPA;")).toBe(true);
@@ -916,6 +936,75 @@ describe("qr studio — V3 brand colour presets (Phase I)", () => {
         await settle();
         expect(screen.getByText(VERIFIED)).toBeInTheDocument();
       }
+    },
+    TEST_TIMEOUT,
+  );
+});
+
+describe("qr studio — Data Templates, Original Links & Payment QR", () => {
+  it(
+    "creates a verified Payment / UPI QR with an original Data Template link inside the symbol",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      pickType("payment");
+      fireEvent.change(screen.getByLabelText(/Payee \/ business name/), {
+        target: { value: "Aurora Café" },
+      });
+      fireEvent.change(screen.getByLabelText(/UPI ID/), {
+        target: { value: "auroracafe@upi" },
+      });
+      fireEvent.change(screen.getByLabelText(/Amount/), {
+        target: { value: "499" },
+      });
+      await settle();
+
+      const linkAnchor = document.querySelector(
+        "#qr-original-link .qr-dt-link-url",
+      ) as HTMLAnchorElement;
+      expect(linkAnchor).not.toBeNull();
+      expect(linkAnchor.getAttribute("href")).toContain("/qr?d=");
+      expect(screen.getByText("encoded inside QR")).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /Open Data Template/ }),
+      ).toHaveAttribute("href", linkAnchor.getAttribute("href"));
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "generates an original Data Template link for non-link types (vCard) and switches template themes",
+    async () => {
+      render(<QrGenerator />);
+      useSmallSize();
+      pickType("vcard");
+      expect(
+        screen.getByText(/Auto link for vCard contact/),
+      ).toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText(/First name/), {
+        target: { value: "Ada" },
+      });
+      fireEvent.change(screen.getByLabelText(/Last name/), {
+        target: { value: "Lovelace" },
+      });
+      fireEvent.change(screen.getByLabelText(/Mobile/), {
+        target: { value: "+91 98765 43210" },
+      });
+      await settle();
+
+      const summary = document.querySelector(
+        "#qr-data-template-picker summary",
+      ) as HTMLElement;
+      fireEvent.click(summary);
+      fireEvent.click(
+        screen.getByRole("button", { name: "Use Midnight Luxe data template" }),
+      );
+      await settle();
+      expect(
+        document.querySelector('[data-qr-template-theme="midnight"]'),
+      ).not.toBeNull();
+      expect(screen.getByText(VERIFIED)).toBeInTheDocument();
     },
     TEST_TIMEOUT,
   );

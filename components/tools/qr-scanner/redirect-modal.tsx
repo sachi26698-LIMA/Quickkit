@@ -7,7 +7,7 @@
  * direct action button so the user can inspect everything and reach the source
  * in a single tap without scrolling down the page.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   Copy,
@@ -20,10 +20,16 @@ import {
   ShieldAlert,
   ShieldCheck,
   ShieldQuestion,
+  Wand2,
   X,
 } from "lucide-react";
-import { downloadText, formatBytes } from "@/lib/tools/download";
-import { recognize, type ContentTypeId } from "@/lib/tools/qr-scanner/content";
+import { downloadBlob, downloadText, formatBytes } from "@/lib/tools/download";
+import {
+  buildStudioCustomizeHref,
+  recognize,
+  type ContentTypeId,
+} from "@/lib/tools/qr-scanner/content";
+import ScannerCryptoShield, { type AsyncTamperState } from "./crypto-shield";
 import {
   exportFilename,
   toTxt,
@@ -88,6 +94,9 @@ function RedirectModalBody({
   const [activeIndex, setActiveIndex] = useState(0);
   const [copied, setCopied] = useState<string | null>(null);
   const [showSecrets, setShowSecrets] = useState(false);
+  const [tamperByData, setTamperByData] = useState<
+    Record<string, AsyncTamperState>
+  >({});
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const primaryLinkRef = useRef<HTMLAnchorElement | null>(null);
 
@@ -97,10 +106,46 @@ function RedirectModalBody({
     () => inspectPayload(symbol.data, recognition.type),
     [symbol.data, recognition.type],
   );
-  const redirect = useMemo(
+  const rawRedirect = useMemo(
     () => resolveRedirectTarget(symbol.data, recognition, inspection),
     [symbol.data, recognition, inspection],
   );
+  const studioHref = useMemo(
+    () => buildStudioCustomizeHref(symbol.data, recognition),
+    [symbol.data, recognition],
+  );
+
+  const handleTamperChange = useCallback(
+    (state: AsyncTamperState) => {
+      setTamperByData((prev) => {
+        const cur = prev[symbol.data];
+        if (
+          cur &&
+          cur.blocked === state.blocked &&
+          cur.reason === state.reason
+        ) {
+          return prev;
+        }
+        return { ...prev, [symbol.data]: state };
+      });
+    },
+    [symbol.data],
+  );
+
+  const asyncTamper = tamperByData[symbol.data];
+  const redirect = useMemo(() => {
+    if (!rawRedirect) return null;
+    if (asyncTamper?.blocked) {
+      return {
+        ...rawRedirect,
+        blocked: true,
+        blockedReason:
+          asyncTamper.reason ??
+          "Blocked: Cryptographic anti-tamper verification failed.",
+      };
+    }
+    return rawRedirect;
+  }, [asyncTamper, rawRedirect]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -180,14 +225,18 @@ function RedirectModalBody({
     });
   };
 
-  const riskClass =
-    inspection.level === "high"
-      ? "risk-high"
-      : inspection.level === "caution"
-        ? "risk-caution"
-        : inspection.level === "unverified"
-          ? "risk-unverified"
-          : "risk-clear";
+  const effectiveHighRisk =
+    inspection.level === "high" || Boolean(asyncTamper?.blocked);
+  const riskClass = effectiveHighRisk
+    ? "risk-high"
+    : inspection.level === "caution"
+      ? "risk-caution"
+      : inspection.level === "unverified"
+        ? "risk-unverified"
+        : "risk-clear";
+  const effectiveHeadline = asyncTamper?.blocked
+    ? "High risk — Cryptographic seal failed"
+    : inspection.headline;
 
   return (
     <div
@@ -266,16 +315,21 @@ function RedirectModalBody({
               {recognition.label}
             </span>
             <span className={`scanner-popup-risk ${riskClass}`}>
-              {inspection.level === "high" ? (
+              {effectiveHighRisk ? (
                 <ShieldAlert size={13} aria-hidden="true" />
               ) : inspection.level === "caution" ? (
                 <ShieldQuestion size={13} aria-hidden="true" />
               ) : (
                 <ShieldCheck size={13} aria-hidden="true" />
               )}
-              {inspection.headline}
+              {effectiveHeadline}
             </span>
           </div>
+
+          <ScannerCryptoShield
+            payload={symbol.data}
+            onTamperStateChange={handleTamperChange}
+          />
 
           {redirect ? (
             <section
@@ -508,6 +562,43 @@ function RedirectModalBody({
                   >
                     <Download size={14} /> Download
                   </button>
+                  {recognition.type === "vcard" && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        downloadBlob(
+                          new Blob([symbol.data], {
+                            type: "text/vcard;charset=utf-8",
+                          }),
+                          "scanned-contact.vcf",
+                        )
+                      }
+                    >
+                      <Download size={14} /> Save .vcf
+                    </button>
+                  )}
+                  {recognition.type === "event" && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() =>
+                        downloadBlob(
+                          new Blob([symbol.data], {
+                            type: "text/calendar;charset=utf-8",
+                          }),
+                          "scanned-event.ics",
+                        )
+                      }
+                    >
+                      <Download size={14} /> Save .ics
+                    </button>
+                  )}
+                  {studioHref && !effectiveHighRisk && (
+                    <a href={studioHref} className="secondary qr-mini-button">
+                      <Wand2 size={14} aria-hidden="true" /> Customize QR
+                    </a>
+                  )}
                 </div>
               </div>
               <pre className="scanner-popup-payload" tabIndex={0}>

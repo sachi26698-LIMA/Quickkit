@@ -90,6 +90,8 @@ export const AD_EXCLUDED_ROUTES: Record<string, string> = {
     "A pure navigation index of links. There is no content for an ad to sit beside, and it would put advertising between the reader and the page they came to find.",
   "/saved":
     "Not indexable (noindex) and renders the visitor's own browser-local favourites — an empty shell to a crawler, so there is nothing to advertise against.",
+  "/qr":
+    "Not indexable (noindex) and renders user-encoded QR data cards (payments, contacts, Wi-Fi, events) where advertising beside action buttons would invite mis-clicks.",
 };
 
 /** APIs, drafts and error shells are never ad surfaces. */

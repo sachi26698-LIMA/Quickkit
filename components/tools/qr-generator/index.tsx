@@ -76,7 +76,7 @@ export default function QrGenerator() {
     >
       <WorkspaceHeading
         title="QR Code Studio"
-        description="Twelve content types, colour, shape and logo styling, bulk CSV runs and a decoder that checks every code before you can download it. Everything happens in this tab."
+        description="Twenty-eight content types including Payment / UPI, hosted Data Templates with an original link inside every QR, colour, shape and logo styling, bulk CSV runs and an independent decoder check before export."
       />
 
       <div className="qr-tabs" role="tablist" aria-label="QR code workspace">

@@ -58,7 +58,7 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   ]);
   for (const rule of rules) {
     expect(rule.allow).toBe("/");
-    expect(rule.disallow).toEqual(["/api/", "/saved"]);
+    expect(rule.disallow).toEqual(["/api/", "/saved", "/qr"]);
   }
   // An ads.txt is only honoured while its path is allowed.
   expect(JSON.stringify(rules)).not.toContain('"disallow":["/"');
@@ -73,6 +73,9 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   // Nothing private or personal is ever listed.
   expect(routes.map((route) => route.url)).not.toContain(
     "https://test.example/saved",
+  );
+  expect(routes.map((route) => route.url)).not.toContain(
+    "https://test.example/qr",
   );
   expect(routes.map((route) => route.url)).not.toContain(
     "https://test.example/category/ai-tools",

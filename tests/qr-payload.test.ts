@@ -22,6 +22,18 @@ const CASES: Record<
     values: { url: "example.com/a?b=1&c=2#frag" },
     payload: "https://example.com/a?b=1&c=2#frag",
   },
+  payment: {
+    values: {
+      method: "upi",
+      payeeName: "Aurora Café",
+      upiId: "auroracafe@upi",
+      amount: "250",
+      currency: "INR",
+      note: "Order #42",
+    },
+    payload:
+      "upi://pay?pa=auroracafe%40upi&pn=Aurora%20Caf%C3%A9&am=250.00&cu=INR&tn=Order%20%2342",
+  },
   text: {
     values: { text: "Line one\nLine two \u{1F600}" },
     payload: "Line one\nLine two \u{1F600}",
@@ -332,7 +344,7 @@ describe("payload validation and escaping", () => {
 
 describe("content type registry", () => {
   it("has twenty-seven types, each with fields and a builder", () => {
-    expect(QR_CONTENT_TYPES).toHaveLength(27);
+    expect(QR_CONTENT_TYPES).toHaveLength(28);
     for (const type of QR_CONTENT_TYPES) {
       expect(type.fields.length).toBeGreaterThan(0);
       expect(typeof type.build).toBe("function");
@@ -500,5 +512,48 @@ describe("V3 destination types validate their inputs", () => {
         "https://example.com/page",
       );
     }
+  });
+
+  it("Payment / UPI builds standard UPI URIs and validated payment links", () => {
+    expect(
+      buildPayload("payment", {
+        method: "upi",
+        payeeName: "Quickkit Store",
+        upiId: "store@okicici",
+      }),
+    ).toBe("upi://pay?pa=store%40okicici&pn=Quickkit%20Store&cu=INR");
+
+    expect(
+      buildPayload("payment", {
+        method: "link",
+        payeeName: "Quickkit Store",
+        paymentUrl: "razorpay.me/quickkit",
+      }),
+    ).toBe("https://razorpay.me/quickkit");
+
+    expect(() =>
+      buildPayload("payment", {
+        method: "upi",
+        payeeName: "Quickkit Store",
+        upiId: "not-a-vpa",
+      }),
+    ).toThrow(/UPI ID/);
+
+    expect(() =>
+      buildPayload("payment", {
+        method: "upi",
+        payeeName: "Quickkit Store",
+        upiId: "store@upi",
+        amount: "-50",
+      }),
+    ).toThrow(/amount/i);
+
+    expect(() =>
+      buildPayload("payment", {
+        method: "link",
+        payeeName: "Quickkit Store",
+        paymentUrl: "javascript:alert(1)",
+      }),
+    ).toThrow();
   });
 });

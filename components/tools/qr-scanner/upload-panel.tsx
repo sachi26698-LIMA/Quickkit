@@ -16,6 +16,7 @@ import {
   ImagePlus,
   RotateCw,
   ScanLine,
+  ShieldCheck,
   SlidersHorizontal,
   Trash2,
   TriangleAlert,
@@ -50,8 +51,50 @@ export default function UploadPanel({ api }: { api: ScannerApi }) {
   const [sharpen, setSharpen] = useState(0.6);
   const [scanning, setScanning] = useState(false);
   const [showAdjust, setShowAdjust] = useState(false);
+  const [pastedToken, setPastedToken] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const urlRef = useRef<string | null>(null);
+
+  const inspectPastedPayload = (event: React.FormEvent) => {
+    event.preventDefault();
+    const cleanText = pastedToken.trim();
+    if (!cleanText) return;
+    const bytes = new TextEncoder().encode(cleanText);
+    const placeholderRaster: Raster = {
+      width: 1,
+      height: 1,
+      rgba: new Uint8ClampedArray(4),
+    };
+    api.commitDecoded(
+      placeholderRaster,
+      {
+        symbols: [
+          {
+            data: cleanText,
+            bytes,
+            version: 0,
+            errorCorrection: null,
+            corners: {
+              topLeft: { x: 0, y: 0 },
+              topRight: { x: 1, y: 0 },
+              bottomRight: { x: 1, y: 1 },
+              bottomLeft: { x: 0, y: 1 },
+            },
+            pass: "direct-verify",
+            inverted: false,
+          },
+        ],
+        attempts: ["direct-verify: inspected"],
+        durationMs: 1,
+      },
+      {
+        sourceName: "Pasted QR link / encrypted token",
+        sourceBytes: bytes.length,
+        openPopup: true,
+      },
+    );
+    setPastedToken("");
+  };
 
   const release = useCallback(() => {
     if (urlRef.current) {
@@ -344,6 +387,42 @@ export default function UploadPanel({ api }: { api: ScannerApi }) {
           </div>
         </div>
       )}
+
+      <form
+        className="scanner-token-verify"
+        onSubmit={inspectPastedPayload}
+        aria-label="Verify or decrypt a QR link or encrypted token"
+      >
+        <div className="scanner-token-verify-head">
+          <ShieldCheck size={15} aria-hidden="true" />
+          <div>
+            <strong>Verify QR Link, Signature or Encrypted Token</strong>
+            <small>
+              Paste any <code>/qr?d=…</code>, <code>/qr?e=…</code>,{" "}
+              <code>QKE1.…</code> encrypted vault or QR URL to verify
+              anti-tamper signatures, inspect phishing threats or decrypt.
+            </small>
+          </div>
+        </div>
+        <div className="scanner-token-verify-row">
+          <input
+            type="text"
+            value={pastedToken}
+            onChange={(event) => setPastedToken(event.target.value)}
+            placeholder="Paste QR link, UPI URI or QKE1.… encrypted token…"
+            aria-label="QR link or encrypted token to verify"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <button
+            type="submit"
+            className="secondary"
+            disabled={!pastedToken.trim()}
+          >
+            <ShieldCheck size={15} aria-hidden="true" /> Verify &amp; Inspect
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

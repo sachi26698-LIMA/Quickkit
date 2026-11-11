@@ -10,6 +10,7 @@
  * chosen so it cannot be read as a clean bill of health: the best available
  * verdict is "no obvious warning found", never "safe".
  */
+import { inspectQrPayloadSecuritySync } from "../qr/data-template";
 import type { ContentTypeId } from "./content";
 
 export type RiskLevel = "clear" | "caution" | "high" | "unverified";
@@ -398,6 +399,117 @@ export function inspectPayload(
         detail:
           "The hostname contains characters outside plain ASCII. That can be a legitimate international domain, or a homograph attack; the browser will show it in its punycode form (xn--…), which is what you should compare.",
       });
+
+    const rawHost = (
+      /^https?:\/\/(?:[^@/?#]+@)?([^:/?#]+)/i.exec(trimmed)?.[1] ?? host
+    ).toLocaleLowerCase();
+    if (
+      /^0x[0-9a-f]+$/i.test(rawHost) ||
+      /^\d{8,10}$/.test(rawHost) ||
+      /^0\d+\./.test(rawHost)
+    ) {
+      findings.push({
+        level: "high",
+        title: "Obfuscated numeric IP address",
+        detail:
+          "The hostname encodes an IP address in hexadecimal, octal or integer form — a classic phishing technique used to hide the real server.",
+      });
+    }
+
+    try {
+      const parsedUrl = new URL(trimmed);
+      const cleanPath = parsedUrl.pathname.toLocaleLowerCase();
+      if (
+        /\.(apk|exe|msi|scr|bat|cmd|ps1|vbs|hta|jar|dmg|pkg)$/i.test(cleanPath)
+      ) {
+        findings.push({
+          level: "high",
+          title: "Direct executable or app-package download",
+          detail: `This QR link points directly to a downloadable binary (${cleanPath.split(".").pop()?.toUpperCase()}). Malware campaigns use QR codes to bypass app stores and email filters.`,
+        });
+      }
+
+      const redirectParamKeys = [
+        "redirect",
+        "redirect_uri",
+        "redirect_url",
+        "return_to",
+        "returnto",
+        "next",
+        "continue",
+        "dest",
+        "destination",
+      ];
+      for (const paramKey of redirectParamKeys) {
+        const val =
+          parsedUrl.searchParams.get(paramKey) ??
+          parsedUrl.searchParams.get(paramKey.toUpperCase());
+        if (val && /^https?:\/\//i.test(val.trim())) {
+          try {
+            const innerHost = new URL(val.trim()).hostname.toLocaleLowerCase();
+            if (registrableDomain(innerHost) !== registrableDomain(host)) {
+              findings.push({
+                level: "caution",
+                title: "Redirects through another parameter",
+                detail: `Query parameter "${paramKey}" forwards to ${innerHost}, which differs from ${host}. Attackers abuse open redirects on trusted domains to disguise phishing destinations.`,
+              });
+              break;
+            }
+          } catch {
+            /* ignore malformed inner param */
+          }
+        }
+      }
+    } catch {
+      /* already handled */
+    }
+  }
+
+  // Bidirectional / zero-width spoofing check across any payload.
+  if (/[\u202a-\u202e\u2066-\u2069\u200b-\u200d\ufeff]/.test(trimmed)) {
+    findings.push({
+      level: "high",
+      title: "Hidden directional or zero-width characters",
+      detail:
+        "This payload contains invisible Unicode direction-override or zero-width characters commonly used to disguise file extensions or spoof domains.",
+    });
+  }
+
+  // UPI collect / mandate scam detection.
+  if (/^upi:\/\/(collect|mandate)\b/i.test(trimmed)) {
+    findings.push({
+      level: "high",
+      title: "UPI collect or recurring-mandate request",
+      detail:
+        "Scanning a QR code is never required to receive money. This URI initiates an outgoing collect or recurring mandate debit from your account.",
+    });
+  } else if (/^upi:\/\/pay\b/i.test(trimmed)) {
+    try {
+      const qIndex = trimmed.indexOf("?");
+      const upiParams = new URLSearchParams(
+        qIndex >= 0 ? trimmed.slice(qIndex + 1) : "",
+      );
+      if (upiParams.get("mode") === "02" || upiParams.get("purpose") === "14") {
+        findings.push({
+          level: "high",
+          title: "UPI recurring mandate / autopay flag",
+          detail:
+            "This UPI URI sets mandate parameters that authorize recurring debits rather than a one-time payment.",
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Cryptographic seal & tamper check for QUICKKIT Data Templates & Encrypted Vaults.
+  const cryptoSync = inspectQrPayloadSecuritySync(trimmed);
+  if (cryptoSync.kind === "tampered" || cryptoSync.kind === "expired") {
+    findings.push({
+      level: "high",
+      title: cryptoSync.headline,
+      detail: cryptoSync.detail,
+    });
   }
 
   if (contentType === "wifi")

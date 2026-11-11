@@ -30,9 +30,29 @@ import { prepareLogo } from "@/lib/tools/qr/logo";
 import {
   QrUserError,
   type QrContentTypeId,
+  type QrDataTemplateThemeId,
   type QrDesign,
+  type QrEncodingMode,
   type QrLogoImage,
+  type QrSecurityMode,
 } from "@/lib/tools/qr/types";
+import {
+  DEFAULT_PUBLIC_ORIGIN,
+  QR_DATA_TEMPLATES,
+  buildDataTemplateModel,
+  buildDataTemplateUrl,
+  buildProtectedQrPayload,
+  recommendedThemeForType,
+  type ProtectedQrBuildOutput,
+} from "@/lib/tools/qr/data-template";
+import {
+  exportCreatorSignerJson,
+  getOrCreateSigner,
+  importCreatorSignerJson,
+  resolveExpiryUnixSec,
+  rotateCreatorSigner,
+  type QrExpiryOption,
+} from "@/lib/tools/qr/crypto-security";
 import {
   pngBlob,
   qrFilename,
@@ -125,6 +145,7 @@ function labelFor(typeId: QrContentTypeId, values: QrValues) {
   const def = contentTypeDef(typeId);
   const primary: Partial<Record<QrContentTypeId, (string | boolean)[]>> = {
     url: [values.url],
+    payment: [values.payeeName, values.upiId],
     text: [values.text],
     wifi: [values.ssid],
     vcard: [`${values.firstName ?? ""} ${values.lastName ?? ""}`],
@@ -182,6 +203,26 @@ export function useQrStudio() {
   const [printLayout, setPrintLayout] = useState<QrPrintLayoutId>("single");
   const [sheet, setSheet] = useState<SheetOptions>(DEFAULT_SHEET);
   const [landing, setLanding] = useState<LandingConfig>(DEFAULT_LANDING);
+  const [encodingMode, setEncodingMode] = useState<QrEncodingMode>("template");
+  const [securityMode, setSecurityMode] = useState<QrSecurityMode>("signed");
+  const [encryptionPassphrase, setEncryptionPassphrase] = useState<string>("");
+  const [encryptionHint, setEncryptionHint] = useState<string>("");
+  const [expiryPreset, setExpiryPreset] = useState<QrExpiryOption>("none");
+  const [customExpiry, setCustomExpiry] = useState<string>("");
+  const [signerFingerprint, setSignerFingerprint] = useState<string | null>(
+    null,
+  );
+  const [protectedSlot, setProtectedSlot] = useState<{
+    key: string;
+    output: ProtectedQrBuildOutput | null;
+    error?: string;
+  } | null>(null);
+  const [dataTemplateThemeOverride, setDataTemplateTheme] =
+    useState<QrDataTemplateThemeId | null>(null);
+  const [dataTemplateTitle, setDataTemplateTitle] = useState<string>("");
+  const [publicOrigin, setPublicOrigin] = useState<string>(
+    DEFAULT_PUBLIC_ORIGIN,
+  );
   const [sizeSlot, setSizeSlot] =
     useState<Slot<{ size: number; ok: boolean; message: string }[]>>(null);
   const [testing, setTesting] = useState(false);
@@ -196,10 +237,12 @@ export function useQrStudio() {
   );
 
   const def = contentTypeDef(typeId);
+  const dataTemplateTheme: QrDataTemplateThemeId =
+    dataTemplateThemeOverride ?? recommendedThemeForType(typeId);
 
   /* ------------------------------------------------------------- payload */
 
-  const payloadResult = useMemo(() => {
+  const rawPayloadResult = useMemo(() => {
     try {
       const payload = buildPayload(typeId, values);
       return { ok: true as const, payload, bytes: utf8Length(payload) };
@@ -219,17 +262,302 @@ export function useQrStudio() {
     }
   }, [typeId, values]);
 
+  const templateResult = useMemo(() => {
+    if (!rawPayloadResult.ok) {
+      return {
+        ok: false as const,
+        url: "",
+        bytes: 0,
+        model: null,
+        error: rawPayloadResult.error,
+        field: rawPayloadResult.field,
+      };
+    }
+    try {
+      const encoded = buildDataTemplateUrl(
+        {
+          typeId,
+          values,
+          theme: dataTemplateTheme,
+          customTitle: dataTemplateTitle,
+          landingLinks: landing.links,
+        },
+        publicOrigin,
+      );
+      const model = buildDataTemplateModel({
+        typeId,
+        values,
+        theme: dataTemplateTheme,
+        customTitle: dataTemplateTitle,
+        landingLinks: landing.links,
+      });
+      return {
+        ok: true as const,
+        url: encoded.url,
+        bytes: encoded.bytes,
+        model,
+      };
+    } catch (error) {
+      if (error instanceof QrUserError)
+        return {
+          ok: false as const,
+          url: "",
+          bytes: 0,
+          model: null,
+          error: error.message,
+          field: error.field,
+        };
+      return {
+        ok: false as const,
+        url: "",
+        bytes: 0,
+        model: null,
+        error: "This Data Template link could not be built.",
+        field: undefined,
+      };
+    }
+  }, [
+    dataTemplateTheme,
+    dataTemplateTitle,
+    landing.links,
+    publicOrigin,
+    rawPayloadResult,
+    typeId,
+    values,
+  ]);
+
+  const payloadKey = useMemo(
+    () =>
+      JSON.stringify({
+        encodingMode,
+        securityMode,
+        typeId,
+        rawOk: rawPayloadResult.ok ? rawPayloadResult.payload : "",
+        theme: dataTemplateTheme,
+        title: dataTemplateTitle,
+        links: landing.links,
+        origin: publicOrigin,
+        pass: securityMode === "password-aes" ? encryptionPassphrase : "",
+        hint: securityMode === "password-aes" ? encryptionHint : "",
+        exp: expiryPreset,
+        cexp: customExpiry,
+        signer: signerFingerprint,
+      }),
+    [
+      customExpiry,
+      dataTemplateTheme,
+      dataTemplateTitle,
+      encodingMode,
+      encryptionHint,
+      encryptionPassphrase,
+      expiryPreset,
+      landing.links,
+      publicOrigin,
+      rawPayloadResult,
+      securityMode,
+      signerFingerprint,
+      typeId,
+    ],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void getOrCreateSigner()
+      .then((s) => {
+        if (!cancelled) setSignerFingerprint(s.fingerprint);
+      })
+      .catch(() => {
+        /* ignore in unsupported runtimes */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const needsCrypto =
+      securityMode === "password-aes" ||
+      (encodingMode === "template" &&
+        (securityMode === "signed" ||
+          securityMode === "auto-aes" ||
+          expiryPreset !== "none"));
+    if (!needsCrypto || !rawPayloadResult.ok) return;
+    if (
+      securityMode === "password-aes" &&
+      encryptionPassphrase.trim().length < 4
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    const expiresAtSec = resolveExpiryUnixSec(expiryPreset, customExpiry);
+    void buildProtectedQrPayload({
+      encodingMode,
+      securityMode,
+      config: {
+        typeId,
+        values,
+        theme: dataTemplateTheme,
+        customTitle: dataTemplateTitle,
+        landingLinks: landing.links,
+      },
+      origin: publicOrigin,
+      passphrase: encryptionPassphrase,
+      passphraseHint: encryptionHint,
+      expiresAtSec,
+    })
+      .then((built) => {
+        if (cancelled) return;
+        if (built.signerFingerprint) {
+          setSignerFingerprint(built.signerFingerprint);
+        }
+        setProtectedSlot({ key: payloadKey, output: built });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setProtectedSlot({
+          key: payloadKey,
+          output: null,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Cryptographic QR protection failed.",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    customExpiry,
+    dataTemplateTheme,
+    dataTemplateTitle,
+    encodingMode,
+    encryptionHint,
+    encryptionPassphrase,
+    expiryPreset,
+    landing.links,
+    payloadKey,
+    publicOrigin,
+    rawPayloadResult.ok,
+    securityMode,
+    typeId,
+    values,
+  ]);
+
+  const activeProtected =
+    protectedSlot?.key === payloadKey ? protectedSlot : null;
+
+  const payloadResult = useMemo(() => {
+    if (!rawPayloadResult.ok) return rawPayloadResult;
+
+    // Password Vault mode NEVER falls back to unencrypted plaintext.
+    if (securityMode === "password-aes") {
+      if (encryptionPassphrase.trim().length < 4) {
+        return {
+          ok: false as const,
+          payload: "",
+          error:
+            "Enter an encryption passphrase (at least 4 characters) to lock this AES-256-GCM QR Vault.",
+          field: undefined,
+        };
+      }
+      if (activeProtected?.error) {
+        return {
+          ok: false as const,
+          payload: "",
+          error: activeProtected.error,
+          field: undefined,
+        };
+      }
+      if (activeProtected?.output) {
+        return {
+          ok: true as const,
+          payload: activeProtected.output.payload,
+          bytes: activeProtected.output.bytes,
+        };
+      }
+      return {
+        ok: false as const,
+        payload: "",
+        error: "Deriving AES-256-GCM encryption key…",
+        field: undefined,
+      };
+    }
+
+    if (encodingMode === "raw") return rawPayloadResult;
+
+    if (!templateResult.ok) {
+      return {
+        ok: false as const,
+        payload: "",
+        error: templateResult.error,
+        field: templateResult.field,
+      };
+    }
+
+    if (securityMode === "none") {
+      return {
+        ok: true as const,
+        payload: templateResult.url,
+        bytes: templateResult.bytes,
+      };
+    }
+
+    if (activeProtected?.error) {
+      return {
+        ok: false as const,
+        payload: "",
+        error: activeProtected.error,
+        field: undefined,
+      };
+    }
+    if (activeProtected?.output) {
+      return {
+        ok: true as const,
+        payload: activeProtected.output.payload,
+        bytes: activeProtected.output.bytes,
+      };
+    }
+
+    if (securityMode === "auto-aes") {
+      return {
+        ok: false as const,
+        payload: "",
+        error: "Encrypting QR payload with AES-256-GCM…",
+        field: undefined,
+      };
+    }
+
+    return {
+      ok: true as const,
+      payload: templateResult.url,
+      bytes: templateResult.bytes,
+    };
+  }, [
+    activeProtected,
+    encodingMode,
+    encryptionPassphrase,
+    rawPayloadResult,
+    securityMode,
+    templateResult,
+  ]);
+
   const renderKey = useMemo(
     () => renderKeyFor(payloadResult.payload, design, logo),
     [design, logo, payloadResult.payload],
   );
-  const hasContent = useMemo(
-    () =>
-      Object.values(values).some((entry) =>
-        typeof entry === "string" ? entry.trim() !== "" : entry === true,
-      ),
-    [values],
-  );
+  const hasContent = useMemo(() => {
+    const defaults = defaultValuesFor(typeId);
+    return Object.entries(values).some(([key, entry]) => {
+      const base = defaults[key];
+      if (typeof entry === "string") {
+        const baseStr = typeof base === "string" ? base.trim() : "";
+        return entry.trim() !== "" && entry.trim() !== baseStr;
+      }
+      return entry === true && base !== true;
+    });
+  }, [typeId, values]);
 
   /* Nothing is cleared synchronously when the inputs move: the key decides what
    * is current, and the preview keeps the last frame to avoid a flicker. */
@@ -266,8 +594,14 @@ export function useQrStudio() {
     const mode = loadHistoryMode();
     const shared = readShareHash(window.location.hash);
     const parsed = shared ? decodeShareConfig(shared) : null;
+    const browserOrigin =
+      typeof window !== "undefined" &&
+      /^https?:\/\//i.test(window.location.origin)
+        ? window.location.origin
+        : DEFAULT_PUBLIC_ORIGIN;
     if (parsed?.ok) restoredFromLink.current = true;
     queueMicrotask(() => {
+      setPublicOrigin(browserOrigin);
       setPresets(stored);
       setCustomTemplates(savedTemplates);
       setHistory(entries);
@@ -351,6 +685,13 @@ export function useQrStudio() {
 
   useEffect(() => {
     if (!payloadResult.ok) return;
+    if (
+      encodingMode === "template" &&
+      securityMode !== "none" &&
+      !activeProtected?.output
+    ) {
+      return;
+    }
     const seq = ++version.current;
     if (heavyTimer.current) clearTimeout(heavyTimer.current);
     let cancelled = false;
@@ -397,8 +738,18 @@ export function useQrStudio() {
     })();
     return () => {
       cancelled = true;
+      if (heavyTimer.current) clearTimeout(heavyTimer.current);
     };
-  }, [design, logo, payloadResult, renderKey, runHeavy]);
+  }, [
+    activeProtected,
+    design,
+    encodingMode,
+    logo,
+    payloadResult,
+    renderKey,
+    runHeavy,
+    securityMode,
+  ]);
 
   const regenerate = useCallback(() => {
     const seq = ++version.current;
@@ -983,6 +1334,157 @@ export function useQrStudio() {
     }
   }, [landing]);
 
+  const resolvedOriginalLink = useMemo(() => {
+    if (securityMode === "password-aes") {
+      return activeProtected?.output?.hostedUrl ?? null;
+    }
+    if (activeProtected?.output?.hostedUrl) {
+      return activeProtected.output.hostedUrl;
+    }
+    return templateResult.ok ? templateResult.url : null;
+  }, [activeProtected, securityMode, templateResult]);
+
+  const copyOriginalLink = useCallback(async () => {
+    if (!resolvedOriginalLink) return;
+    try {
+      await navigator.clipboard.writeText(resolvedOriginalLink);
+      setFlash({
+        kind: "info",
+        text: "Protected Original QR link copied — includes its cryptographic anti-tamper seal.",
+      });
+    } catch {
+      setFlash({
+        kind: "error",
+        text: "Clipboard access was blocked by the browser. Select the link text and copy it manually.",
+      });
+    }
+  }, [resolvedOriginalLink]);
+
+  const rotateSignerKey = useCallback(async () => {
+    try {
+      const next = await rotateCreatorSigner();
+      setSignerFingerprint(next.fingerprint);
+      setFlash({
+        kind: "info",
+        text: `Generated a fresh ECDSA P-256 signing key (${next.fingerprint}).`,
+      });
+    } catch {
+      setFlash({
+        kind: "error",
+        text: "Could not rotate signing key in this browser.",
+      });
+    }
+  }, []);
+
+  const exportSignerKey = useCallback(async () => {
+    try {
+      const json = await exportCreatorSignerJson();
+      downloadBlob(
+        new Blob([json], { type: "application/json;charset=utf-8" }),
+        `quickkit-qr-signing-key-${(signerFingerprint ?? "key").toLowerCase()}.json`,
+      );
+      setFlash({
+        kind: "info",
+        text: "ECDSA P-256 signing key backup downloaded. Keep this private file secure.",
+      });
+    } catch {
+      setFlash({
+        kind: "error",
+        text: "Signing key export failed.",
+      });
+    }
+  }, [signerFingerprint]);
+
+  const importSignerKey = useCallback(async (file: File | undefined | null) => {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = await importCreatorSignerJson(text);
+      setSignerFingerprint(imported.fingerprint);
+      setFlash({
+        kind: "info",
+        text: `Restored ECDSA P-256 signing key (${imported.fingerprint}).`,
+      });
+    } catch (error) {
+      setFlash({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Invalid signing key backup file.",
+      });
+    }
+  }, []);
+
+  const shareQrImage = useCallback(async () => {
+    if (!output?.png || !output.verification?.ok) return;
+    const filename = qrFilename({
+      label,
+      typeId,
+      ext: "png",
+      size: design.size,
+    });
+    const blob = pngBlob(withPngDpi(output.png, pngDpi));
+    const file = new File([blob], filename, { type: "image/png" });
+    if (
+      typeof navigator !== "undefined" &&
+      typeof navigator.canShare === "function" &&
+      navigator.canShare({ files: [file] })
+    ) {
+      try {
+        await navigator.share({
+          title: label,
+          text: resolvedOriginalLink ?? label,
+          files: [file],
+        });
+        return;
+      } catch {
+        return;
+      }
+    }
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob }),
+      ]);
+      setFlash({
+        kind: "info",
+        text: "Native file sharing is unavailable here — verified PNG copied to your clipboard instead.",
+      });
+    } catch {
+      downloadBlob(blob, filename);
+    }
+  }, [design.size, label, output, pngDpi, resolvedOriginalLink, typeId]);
+
+  const printQr = useCallback(() => {
+    if (
+      !output?.png ||
+      !output.verification?.ok ||
+      typeof window === "undefined"
+    )
+      return;
+    const blob = pngBlob(output.png);
+    const imgUrl = URL.createObjectURL(blob);
+    const popup = window.open(
+      "",
+      "_blank",
+      "noopener,noreferrer,width=720,height=840",
+    );
+    if (!popup) {
+      URL.revokeObjectURL(imgUrl);
+      setFlash({
+        kind: "error",
+        text: "Print window was blocked by your browser's pop-up blocker. Use PDF download instead.",
+      });
+      return;
+    }
+    const safeTitle = label.replace(/[<>&"']/g, "");
+    popup.document.write(
+      `<!doctype html><html><head><title>${safeTitle} — Print QR</title><style>body{font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92vh;margin:0;padding:24px;text-align:center;color:#1b1026}img{max-width:340px;width:100%;height:auto;border:1px solid #e5ddf0;border-radius:16px;padding:16px}h1{font-size:20px;margin:16px 0 4px}p{font-size:12px;color:#655879;margin:0}</style></head><body><img src="${imgUrl}" alt="QR Code" onload="setTimeout(function(){window.print()},150)" /><h1>${safeTitle}</h1><p>Verified QUICKKIT QR Code</p></body></html>`,
+    );
+    popup.document.close();
+    setTimeout(() => URL.revokeObjectURL(imgUrl), 30_000);
+  }, [label, output]);
+
   return {
     typeId,
     def,
@@ -996,6 +1498,32 @@ export function useQrStudio() {
     logo,
     attachLogo,
     removeLogo,
+    encodingMode,
+    setEncodingMode,
+    securityMode,
+    setSecurityMode,
+    encryptionPassphrase,
+    setEncryptionPassphrase,
+    encryptionHint,
+    setEncryptionHint,
+    expiryPreset,
+    setExpiryPreset,
+    customExpiry,
+    setCustomExpiry,
+    signerFingerprint,
+    securitySummary: activeProtected?.output?.securityLabel ?? null,
+    rotateSignerKey,
+    exportSignerKey,
+    importSignerKey,
+    dataTemplateTheme,
+    setDataTemplateTheme,
+    dataTemplateTitle,
+    setDataTemplateTitle,
+    dataTemplates: QR_DATA_TEMPLATES,
+    originalLink: resolvedOriginalLink,
+    dataTemplateModel: templateResult.ok ? templateResult.model : null,
+    rawPayloadResult,
+    copyOriginalLink,
     payloadResult,
     status,
     formError,
@@ -1044,6 +1572,8 @@ export function useQrStudio() {
     copyPayload,
     copyImage,
     shareLink,
+    shareQrImage,
+    printQr,
     testSizes,
     restoreHistory,
     toggleHistoryMode,
