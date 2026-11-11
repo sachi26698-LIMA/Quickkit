@@ -323,3 +323,7 @@ This entry supersedes the earlier sitemap cutoff policy and earlier one-shot/spl
 - Local HTML crawl reports 68 unique titles/descriptions, 68 self-canonicals, 751 headings, 292 valid JSON-LD nodes, 66 internal targets, zero broken targets. Browser visual verification and live production behavior remain unverified.
 
 **Gate:** Phase 3 local closure evidence is documented, with the QR suite reliability limitation still open. No homepage/tool UI/URL/QR Generator design changes, no Phase 4, no push/PR/merge/deployment. Stopped for explicit approval.
+
+## Pull-request follow-up — 2026-11-11 UTC
+
+Per the user's subsequent request, the Phase 3 changes were committed as `af3307fc08b3661f11e3b8917273a759f3ee3443`, pushed only to `arena/6d2c5a1f-quickkit`, and opened as **PR #45** against `main`: https://github.com/sachi26698-LIMA/Quickkit/pull/45 (**OPEN**). No merge or deployment was performed. The unresolved single QR Studio timeout remains noted in the PR description and final signoff report.
