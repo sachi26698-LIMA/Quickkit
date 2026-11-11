@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import AdSenseLoader from "@/components/adsense-loader";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import IconMotionGate from "@/components/icon-motion-gate";
 import JsonLd from "@/components/json-ld";
+import { isAdsEnabled } from "@/lib/ads";
 import { indexingEnabled } from "@/lib/launch";
 import { siteOrigin, siteStructuredData } from "@/lib/seo";
 import "./globals.css";
@@ -35,11 +37,11 @@ const GOOGLE_SITE_VERIFICATION = "Ws39VaIkLt8aOvlE5k6mABJfBxFOHuyzIU4bgERImCY";
 
 export const metadata: Metadata = {
   title: {
-    default: "QUICKKIT — Handy tools. Zero hassle.",
+    default: "Free Online PDF, Image, QR, Code & Math Tools | QUICKKIT",
     template: "%s | QUICKKIT",
   },
   description:
-    "Useful browser tools for PDFs, images, text, JSON, code, hashes, passwords and QR codes. No account, no uploads, zero hassle.",
+    "Use 42 free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities with no account or signup.",
   metadataBase: new URL(
     siteOrigin ||
       (process.env.VERCEL_URL
@@ -62,11 +64,12 @@ export default function Layout({
         {/* Who publishes the site and what it is. One block for the whole site,
             generated from lib/seo.ts — no ratings, no address, nothing guessed. */}
         <JsonLd data={siteStructuredData()} />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"
-          crossOrigin="anonymous"
-        ></script>
+        {isAdsEnabled() ? (
+          <AdSenseLoader
+            enabled
+            scriptSrc="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"
+          />
+        ) : null}
       </head>
       <body>
         <a className="skip-link" href="#main">
@@ -75,8 +78,8 @@ export default function Layout({
         <Header />
         <noscript>
           <p className="container status">
-            These tools need JavaScript to process your inputs locally. Enable
-            JavaScript to use the workspaces; no server upload is required.
+            These tools need JavaScript to run in your browser. Enable
+            JavaScript to use the interactive workspaces.
           </p>
         </noscript>
         <main id="main" tabIndex={-1}>

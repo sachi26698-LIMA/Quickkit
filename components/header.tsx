@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Heart, Menu, Search, X } from "lucide-react";
 import Brand from "@/components/brand";
 import CategoryIcon from "@/components/category-icon";
-import { categoryMeta } from "@/lib/catalog";
+import { categoryMeta, toolsByCategory } from "@/lib/catalog";
 import { useFavorites } from "@/lib/use-favorites";
 
 export default function Header() {
@@ -102,6 +102,7 @@ export default function Header() {
               className="nav-dropdown-toggle"
               aria-expanded={catOpen}
               aria-haspopup="true"
+              aria-controls="header-categories-panel"
               onClick={() => setCatOpen(!catOpen)}
             >
               Categories{" "}
@@ -111,14 +112,20 @@ export default function Header() {
                 className={catOpen ? "chev open" : "chev"}
               />
             </button>
-            {catOpen ? (
-              <div className="dropdown-panel">
-                <ul>
-                  {categoryMeta.map((meta) => (
+            <div
+              id="header-categories-panel"
+              className="dropdown-panel"
+              hidden={!catOpen}
+            >
+              <ul>
+                {categoryMeta.map((meta) => {
+                  const empty = toolsByCategory(meta.name).length === 0;
+                  return (
                     <li key={meta.slug}>
                       <Link
                         className="dropdown-item"
                         href={`/category/${meta.slug}`}
+                        rel={empty ? "nofollow" : undefined}
                         onClick={closeAll}
                       >
                         <span className={`dropdown-icon ${meta.tint}`}>
@@ -127,17 +134,17 @@ export default function Header() {
                         {meta.name}
                       </Link>
                     </li>
-                  ))}
-                </ul>
-                <Link
-                  className="dropdown-footer"
-                  href="/#categories"
-                  onClick={closeAll}
-                >
-                  Browse categories <ArrowRight size={14} aria-hidden="true" />
-                </Link>
-              </div>
-            ) : null}
+                  );
+                })}
+              </ul>
+              <Link
+                className="dropdown-footer"
+                href="/#categories"
+                onClick={closeAll}
+              >
+                Browse categories <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
           </div>
           <Link
             href="/about"
@@ -179,6 +186,7 @@ export default function Header() {
           </Link>
           <Link
             href="/saved"
+            rel="nofollow"
             className="header-search header-saved"
             aria-label={`Saved tools${saved.length ? ` (${saved.length})` : ""}`}
           >

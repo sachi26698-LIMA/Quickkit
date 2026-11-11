@@ -119,7 +119,7 @@ export default function DiscountAdvanced() {
           </button>
         </div>
         <div className="calculator-result" aria-live="polite">
-          <h3>Offer breakdown</h3>
+          <h3>Buy X, get Y breakdown</h3>
           {error ? (
             <p className="calculator-error">{error}</p>
           ) : !result ? (

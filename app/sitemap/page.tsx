@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { categoryMeta, tools } from "@/lib/catalog";
+import { categoryMeta, tools, toolsByCategory } from "@/lib/catalog";
 import { footerGroups, legalPages } from "@/lib/legal";
 import JsonLd from "@/components/json-ld";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Sitemap — every page on this site",
-  "A complete map of QUICKKIT: all tools, categories, company pages, legal documents and trust policies, each on its own page.",
+  "HTML Sitemap — All Tools, Categories & Policies",
+  "Explore the complete HTML sitemap for QUICKKIT: direct links to all 42 online tools, 7 active tool categories, help guides, legal terms and trust policies.",
   "/sitemap",
 );
 
@@ -35,6 +35,13 @@ const legalLinks = legalPages
 const trustLinks = legalPages
   .filter((page) => page.group === "trust")
   .map((page) => ({ href: page.href, label: page.title }));
+
+const nofollowHrefs = new Set<string>([
+  "/saved",
+  ...categoryMeta
+    .filter((c) => toolsByCategory(c.name).length === 0)
+    .map((c) => `/category/${c.slug}`),
+]);
 
 const groups: { title: string; links: { href: string; label: string }[] }[] = [
   {
@@ -113,7 +120,12 @@ export default function SitemapPage() {
               <ul>
                 {links.map(({ href, label }) => (
                   <li key={href + label}>
-                    <Link href={href}>{label}</Link>
+                    <Link
+                      href={href}
+                      rel={nofollowHrefs.has(href) ? "nofollow" : undefined}
+                    >
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -136,9 +148,11 @@ export default function SitemapPage() {
             A machine-readable version is published at <code>/sitemap.xml</code>
             . It lists the public tool, category and policy pages and
             deliberately omits the routes nobody should land on from a search
-            result: the browser-local saved-tools page, the empty categories
-            that have no tools yet, and the POST-only conversion endpoint. Those
-            are also the paths <code>/robots.txt</code> keeps closed.
+            result: the browser-local saved-tools page, the QR card viewer,
+            empty categories that have no tools yet, and the conversion API
+            endpoints (which <code>/robots.txt</code> keeps closed while
+            crawlable utility shells emit explicit <code>noindex</code>{" "}
+            directives).
           </p>
           <p>
             The four footer groups mirror these the other way round:{" "}

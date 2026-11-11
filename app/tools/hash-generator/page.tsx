@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import HashGenerator from "@/components/tools/devtools/hash-generator";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "Hash Generator — MD5, SHA-1, SHA-256 and SHA-512",
-  "Generate MD5, SHA-1, SHA-256 or SHA-512 digests from UTF-8 text or files with local chunked processing, algorithm notes, copy and download.",
+  TOOL_SEO_METADATA["hash-generator"].title,
+  TOOL_SEO_METADATA["hash-generator"].description,
   "/tools/hash-generator",
 );
 

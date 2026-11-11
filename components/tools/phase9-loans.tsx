@@ -10,7 +10,13 @@ const money = (n: number) =>
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(n);
-export default function Loans({ kind }: { kind: string }) {
+export default function Loans({
+  kind,
+  heading,
+}: {
+  kind: string;
+  heading?: string;
+}) {
   const [principal, setPrincipal] = useState("");
   const [rate, setRate] = useState("");
   const [tenure, setTenure] = useState("");
@@ -105,6 +111,7 @@ export default function Loans({ kind }: { kind: string }) {
   return (
     <>
       <Workspace
+        heading={heading}
         result={r ? money(r.payment) + " / month" : ""}
         error={error}
         reset={() => {

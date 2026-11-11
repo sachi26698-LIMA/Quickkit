@@ -4,7 +4,13 @@ import { units, convert, temperature } from "@/lib/tools/phase9-conversion";
 import { Workspace } from "./phase9-shared";
 import { downloadText } from "@/lib/tools/download";
 import { csvCell } from "@/lib/tools/phase9-v2-advanced";
-export default function Converters({ kind }: { kind: string }) {
+export default function Converters({
+  kind,
+  heading,
+}: {
+  kind: string;
+  heading?: string;
+}) {
   const isTemp = kind === "temperature-converter",
     isTime = kind === "time-converter";
   const initial = isTemp
@@ -95,6 +101,7 @@ export default function Converters({ kind }: { kind: string }) {
       ));
   return (
     <Workspace
+      heading={heading}
       result={result}
       error={error}
       reset={() => {

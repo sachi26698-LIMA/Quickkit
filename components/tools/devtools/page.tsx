@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import ToolShell, { type ToolContent } from "@/components/tool-shell";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 const pageContent: Record<string, ToolContent> = {
   "json-validator": {
@@ -214,6 +216,82 @@ const pageContent: Record<string, ToolContent> = {
   },
 };
 
+const pageEnhancements: Record<
+  keyof typeof pageContent,
+  { step: string; faq: { q: string; a: string } }
+> = {
+  "json-validator": {
+    step: "For a large file, validate it first, then use the reported key count, depth, and UTF-8 size to decide whether to inspect or reformat it.",
+    faq: {
+      q: "Can the root value be an array or a string?",
+      a: "Yes. JSON allows an object, array, string, number, boolean, or null at the root. The validator reports the root type rather than requiring an object.",
+    },
+  },
+  "xml-formatter": {
+    step: 'If the result is for an XML consumer that depends on whitespace, keep significant text inside mixed-content elements and use xml:space="preserve" where needed.',
+    faq: {
+      q: "Are namespaces removed or renamed?",
+      a: "No. The parser and serializer preserve namespace declarations and qualified element names; the formatter changes layout whitespace, not namespace intent.",
+    },
+  },
+  "html-formatter": {
+    step: "Compare the UTF-8 byte totals before using the result, especially when the page contains whitespace-sensitive text or inline templates.",
+    faq: {
+      q: "Does HTML minification compress embedded CSS or JavaScript?",
+      a: "No. The local minifier has CSS and JavaScript minification disabled, so embedded style and script contents are not rewritten by this action.",
+    },
+  },
+  "css-minifier": {
+    step: "Keep the original stylesheet alongside the minified copy and run your own browser or application checks before replacing production CSS.",
+    faq: {
+      q: "Why might the output not be the smallest possible CSS?",
+      a: "The tool disables CSSO structure-rewriting optimizations to reduce semantic risk. It removes safe syntax overhead but does not try every transformation that might change cascade behavior.",
+    },
+  },
+  "javascript-minifier": {
+    step: "Keep the original source and run your existing tests against the minified file before deploying it.",
+    faq: {
+      q: "Are top-level variable names changed?",
+      a: "No. Local names may be mangled, but top-level mangling is disabled so exported or externally referenced top-level identifiers are not renamed by that option.",
+    },
+  },
+  "base64-encoder-decoder": {
+    step: "For a decoded download, choose a filename and verify the file type in the receiving application; Base64 itself does not carry a reliable file extension.",
+    faq: {
+      q: "Is Base64 encryption or a privacy feature?",
+      a: "No. Base64 is a reversible text representation of bytes, not encryption or access control. Anyone with the encoded string can decode it.",
+    },
+  },
+  "url-encoder-decoder": {
+    step: "After encoding one parameter value, append it to the URL yourself; use Full URL mode only when the input is an entire URL and its separators should remain structural.",
+    faq: {
+      q: "Why does Component mode encode ampersands?",
+      a: "An ampersand separates query parameters in a URL. Encoding it inside one component keeps it as part of that value instead of starting another parameter.",
+    },
+  },
+  "uuid-generator": {
+    step: "Copy the generated identifiers into your application or data file promptly; the workspace does not provide a persistent history.",
+    faq: {
+      q: "Can UUID v4 guarantee no collision anywhere?",
+      a: "No random identifier scheme can promise that. UUID v4 makes collisions extremely unlikely, and this tool additionally checks duplicates within the current batch.",
+    },
+  },
+  "regex-tester": {
+    step: "Try a small representative sample first, then increase the sample up to the 20,000-character limit; timeouts indicate the pattern needs a safer structure.",
+    faq: {
+      q: "Does the tester support every JavaScript regex flag?",
+      a: "It supports g, i, m, s, and u. Flags outside that set, including sticky and indices, are not offered in this tester.",
+    },
+  },
+  "hash-generator": {
+    step: "Compare the displayed digest with a trusted expected value; matching hashes are useful for checking bytes, but they do not prove who created a file.",
+    faq: {
+      q: "Can I use a hash as a password-storage method?",
+      a: "No. This tool computes general-purpose digests, not password hashes. Password storage needs a dedicated slow, salted password-hashing scheme such as Argon2id, scrypt, or bcrypt.",
+    },
+  },
+};
+
 export default function DeveloperToolPage({
   slug,
   children,
@@ -221,8 +299,23 @@ export default function DeveloperToolPage({
   slug: keyof typeof pageContent;
   children: ReactNode;
 }) {
+  const entry = TOOL_SEO_CONTENT[slug];
+  const metadata = TOOL_SEO_METADATA[slug];
+  const content = pageContent[slug];
+  const enhancement = pageEnhancements[slug];
   return (
-    <ToolShell slug={slug} content={pageContent[slug]}>
+    <ToolShell
+      slug={slug}
+      content={{
+        steps: [...content.steps, enhancement.step],
+        faqs: [...content.faqs, enhancement.faq],
+      }}
+      headingDescription={metadata.description}
+      stepsHeading={entry.stepsHeading}
+      faqsHeading={entry.faqsHeading}
+      relatedHeading={entry.relatedHeading}
+      referenceSection={<ToolReferenceSection slug={slug} entry={entry} />}
+    >
       {children}
     </ToolShell>
   );

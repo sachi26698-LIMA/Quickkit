@@ -399,9 +399,9 @@ export default function DesignStudio({ studio }: { studio: QrStudio }) {
           ))}
         </div>
 
-        <h4 className="qr-subhead">
+        <h3 className="qr-subhead">
           <Palette size={14} aria-hidden="true" /> QUICKKIT brand palette
-        </h4>
+        </h3>
         <div className="qr-swatches">
           {BRAND_SWATCHES.map((swatch) => (
             <button
@@ -441,9 +441,9 @@ export default function DesignStudio({ studio }: { studio: QrStudio }) {
           ))}
         </div>
 
-        <h4 className="qr-subhead">
+        <h3 className="qr-subhead">
           <Eye size={14} aria-hidden="true" /> Finder (eye) colours
-        </h4>
+        </h3>
         <p className="qr-panel-note">
           Tint the three corner finders independently of the modules. Keep them
           dark against a light field — scanners lock onto the finders first.

@@ -10,7 +10,7 @@ import ContactLink from "@/components/contact-link";
 import { contactEmail, ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "Security Policy",
+  "Security Policy — Data Handling & Disclosure",
   legalPageByHref("/security")!.description,
   "/security",
 );
@@ -85,11 +85,13 @@ export default function SecurityPage() {
 
       <h2 id="data-handling">3. Data handling</h2>
       <p>
-        Inputs are processed in tab memory and discarded on reset, refresh or
-        tab close. Preferences use browser storage; optional conversion history
-        is opt-in, capped at 20 items and 10 MB each, and expires on your chosen
-        retention window. Source documents are never written to history — only
-        converted outputs. Details are in the{" "}
+        For the 41 browser-local tools, inputs are processed in tab memory and
+        discarded on reset, refresh or tab close; consented Word to PDF jobs use
+        bounded temporary server files deleted after conversion. Preferences use
+        browser storage; optional conversion history is opt-in, capped at 20
+        items and 10 MB each, and expires on your chosen retention window.
+        Source documents are never written to history — only converted outputs.
+        Details are in the{" "}
         <Link href="/file-handling">File Handling Policy</Link>.
       </p>
       <p>

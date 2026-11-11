@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import PdfToImage from "@/components/tools/pdf-to-image";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Add a PDF from your device or drop it into the upload area. The tool reads the real page count before anything else, so the range hint and the export button tell you the truth. Up to 25 MB and 100 pages per document.",
@@ -47,30 +49,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "PDF to Image — export pages as JPG, PNG or WEBP",
-  "Render PDF pages to JPG, PNG or WEBP in your browser. Export every page or a custom range at 72 to 600 DPI, preview the real pages and download one ZIP.",
+  "PDF to Image Converter — Export JPG, PNG & WebP",
+  "Export PDF pages to JPG, PNG, or WebP in your browser from 72 to 600 DPI. Choose all pages or a page range, preview real pixels, and download a ZIP.",
   "/tools/pdf-to-image",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "PDF to Image Converter",
-    description:
-      "Local browser tool that renders PDF pages to images: all pages or a custom range, JPG, PNG or WEBP output, 72 to 600 DPI with presets, quality and background controls, a real rendered preview, and single-page or ZIP download.",
-    path: "/tools/pdf-to-image",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="pdf-to-image" content={{ steps, faqs }}>
-        <PdfToImage />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="pdf-to-image"
+      stepsHeading="Export PDF pages as images"
+      faqsHeading="PDF-to-image questions"
+      relatedHeading="More ways to work with PDFs"
+      headingDescription="Export PDF pages to JPG, PNG, or WebP in your browser from 72 to 600 DPI. Choose all pages or a page range, preview real pixels, and download a ZIP."
+      referenceSection={
+        <ToolReferenceSection
+          slug="pdf-to-image"
+          entry={TOOL_SEO_CONTENT["pdf-to-image"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <PdfToImage />
+    </ToolShell>
   );
 }

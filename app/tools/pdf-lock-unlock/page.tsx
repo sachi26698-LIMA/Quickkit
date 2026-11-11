@@ -1,10 +1,12 @@
 import ToolShell from "@/components/tool-shell";
 import PdfLockUnlock from "@/components/tools/pdf-lock-unlock";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "PDF Lock & Unlock — AES-256 protection, locally",
-  "Lock PDFs with AES-256 or AES-128, set open and permissions passwords, or unlock a PDF with the existing password. Batch runs and ZIP export in your browser.",
+  "PDF Lock & Unlock — AES-256 Password Protection",
+  "Encrypt PDFs with AES-256 or AES-128 passwords and reader permissions, or unlock authorized PDFs fully locally in your browser using QPDF WebAssembly.",
   "/tools/pdf-lock-unlock",
 );
 
@@ -12,13 +14,23 @@ export default function Page() {
   return (
     <ToolShell
       slug="pdf-lock-unlock"
+      headingDescription="Encrypt PDFs with AES-256 or AES-128 passwords and reader permissions, or unlock authorized PDFs fully locally in your browser using QPDF WebAssembly."
+      stepsHeading="How to password-protect or unlock a PDF"
+      faqsHeading="PDF lock and unlock questions, answered"
+      relatedHeading="More ways to work with PDFs"
+      referenceSection={
+        <ToolReferenceSection
+          slug="pdf-lock-unlock"
+          entry={TOOL_SEO_CONTENT["pdf-lock-unlock"]}
+        />
+      }
       variant="compact"
-      headingDescription="Password-protect or unlock PDFs locally, with verified results."
       content={{
         steps: [
           "Choose Lock or Unlock and add PDFs. QUICKKIT inspects each file locally before processing.",
           "To lock, set and confirm an open password, choose AES-256 or AES-128, and configure permissions. To unlock, enter the correct existing password and confirm authorization.",
           "Process the queue, review each verified result, rename outputs if needed, then download PDFs individually or as a ZIP.",
+          "Keep your source files and test a locked PDF in the reader your recipient will use; permission flags are not strong encryption.",
         ],
         faqs: [
           {

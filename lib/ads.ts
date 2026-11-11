@@ -92,17 +92,32 @@ export const AD_EXCLUDED_ROUTES: Record<string, string> = {
     "Not indexable (noindex) and renders the visitor's own browser-local favourites — an empty shell to a crawler, so there is nothing to advertise against.",
   "/qr":
     "Not indexable (noindex) and renders user-encoded QR data cards (payments, contacts, Wi-Fi, events) where advertising beside action buttons would invite mis-clicks.",
+  "/category/ai-tools":
+    "Not indexable (noindex) and has no published tools yet — an empty Coming Soon placeholder page must not load advertising.",
 };
 
 /** APIs, drafts and error shells are never ad surfaces. */
-const NEVER_ADVERTISED_PREFIXES = ["/api/", "/_next/"];
+const NEVER_ADVERTISED_PREFIXES = ["/api/", "/_next/", "/_"];
+
+/**
+ * Whether AdSense is enabled for this build/runtime.
+ * Defaults to true unless ADS_ENABLED=false or NEXT_PUBLIC_ADS_ENABLED=false.
+ */
+export function isAdsEnabled(): boolean {
+  return (
+    process.env.ADS_ENABLED !== "false" &&
+    process.env.NEXT_PUBLIC_ADS_ENABLED !== "false"
+  );
+}
 
 /**
  * Whether a path is allowed to carry ads. Used by the route-coverage test and
- * available to any future page that wants to decide before rendering a slot.
+ * by the root AdSense loader so excluded routes never load adsbygoogle.js.
  */
 export function isAdEligible(path: string): boolean {
-  const clean = path.split("?")[0].split("#")[0];
+  if (!path) return false;
+  const clean =
+    path === "/" ? "/" : path.split("?")[0].split("#")[0].replace(/\/+$/, "");
   if (NEVER_ADVERTISED_PREFIXES.some((prefix) => clean.startsWith(prefix))) {
     return false;
   }

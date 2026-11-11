@@ -18,8 +18,8 @@ import { pageMetadata } from "@/lib/seo";
 import { toolBySlug, tools } from "@/lib/catalog";
 
 export const metadata = pageMetadata(
-  "Free browser tools for everyday tasks",
-  "Free tools that run on your device: merge, split, compress, lock and unlock PDFs, convert PDF to Word, compress images, make QR codes, format JSON and more.",
+  "Free Online PDF, Image, QR, Code & Math Tools",
+  "Use 42 free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities with no account or signup.",
   "/",
 );
 
@@ -35,7 +35,7 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
   {
     Icon: ShieldCheck,
     title: "Privacy Focused",
-    text: "Your files and data stay on your device. Tools run locally in your browser — nothing is uploaded.",
+    text: "41 of 42 tools run locally in your browser so files stay on your device — and Word to PDF asks before converting on our server.",
   },
   {
     Icon: Sparkles,

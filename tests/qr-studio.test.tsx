@@ -425,7 +425,7 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
     render(<QrGenerator />);
     const titles = [
       ...document.querySelectorAll(
-        ".qr-studio h3, .qr-studio .qr-acc-titles strong",
+        ".qr-studio h3:not(.qr-subhead), .qr-studio .qr-acc-titles strong",
       ),
     ].map((node) => (node.textContent ?? "").trim());
     expect(titles).toEqual([

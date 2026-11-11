@@ -7,7 +7,7 @@ import {
   tools,
 } from "@/lib/catalog";
 import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
-import { breadcrumbStructuredData } from "@/lib/seo";
+import { breadcrumbStructuredData, toolStructuredData } from "@/lib/seo";
 import JsonLd from "./json-ld";
 import AdUnit from "./ad-unit";
 import { ToolIcon3D, toolTone } from "./icon-3d";
@@ -23,6 +23,10 @@ export default function ToolShell({
   content,
   variant = "default",
   headingDescription,
+  stepsHeading = "How to use it",
+  faqsHeading = "A few useful answers",
+  relatedHeading = "Keep the good work going",
+  referenceSection,
 }: {
   slug: string;
   children: React.ReactNode;
@@ -30,6 +34,10 @@ export default function ToolShell({
   /** Compact chrome for document-workspace tools. Default preserves existing pages. */
   variant?: "default" | "compact";
   headingDescription?: string;
+  stepsHeading?: string;
+  faqsHeading?: string;
+  relatedHeading?: string;
+  referenceSection?: React.ReactNode;
 }) {
   const compact = variant === "compact";
   const tool = tools.find((t) => t.slug === slug)!;
@@ -62,17 +70,27 @@ export default function ToolShell({
       </nav>
       {/* The same four levels the breadcrumb above shows. Every one of the 42
           tool pages gets it from here. */}
-      <JsonLd
-        data={breadcrumbStructuredData([
-          { name: "Home", path: "/" },
-          { name: "Tools", path: "/tools" },
-          {
-            name: primaryCategory.name,
-            path: `/category/${primaryCategory.slug}`,
-          },
-          { name: tool.name, path: `/tools/${tool.slug}` },
-        ])}
-      />
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "Tools", path: "/tools" },
+            {
+              name: primaryCategory.name,
+              path: `/category/${primaryCategory.slug}`,
+            },
+            { name: tool.name, path: `/tools/${tool.slug}` },
+          ])}
+        />
+        <JsonLd
+          data={toolStructuredData({
+            name: tool.name,
+            description: headingDescription ?? tool.description,
+            path: `/tools/${tool.slug}`,
+            category: tool.category,
+            slug: tool.slug,
+            faqs: content.faqs,
+          })}
+        />
       {compact ? (
         <header className="tool-title tool-title-compact">
           <ToolIcon3D tool={tool} size={64} />
@@ -89,7 +107,7 @@ export default function ToolShell({
             {toolCategories.join(" · ")} · Free browser tool
           </span>
           <h1>{tool.name}</h1>
-          <p>{tool.description}</p>
+          <p>{headingDescription ?? tool.description}</p>
         </header>
       )}
       {categories.length > 1 ? (
@@ -118,12 +136,13 @@ export default function ToolShell({
           not uploaded or saved by QUICKKIT.
         </p>
       ) : null}
+      {referenceSection}
       <div
         className={`tool-guidance${compact ? " tool-guidance-compact" : ""}`}
       >
         <section>
           <span className="eyebrow">A quick walkthrough</span>
-          <h2>How to use it</h2>
+          <h2>{stepsHeading}</h2>
           <ol>
             {content.steps.map((step) => (
               <li key={step}>{step}</li>
@@ -132,7 +151,7 @@ export default function ToolShell({
         </section>
         <section>
           <span className="eyebrow">Good to know</span>
-          <h2>A few useful answers</h2>
+          <h2>{faqsHeading}</h2>
           {content.faqs.map(({ q, a }) => (
             <details key={q}>
               <summary>{q}</summary>
@@ -146,7 +165,7 @@ export default function ToolShell({
       <AdUnit placement="tool-after-faq" format="auto" />
       <section className="related">
         <div className="section-heading">
-          <h2>Keep the good work going</h2>
+          <h2>{relatedHeading}</h2>
           <Link className="text-link" href="/tools">
             All tools <ArrowUpRight size={16} />
           </Link>

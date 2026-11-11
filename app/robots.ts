@@ -5,12 +5,13 @@ import { siteOrigin } from "@/lib/seo";
 /**
  * Paths that must never be crawled, whether or not the site is indexable.
  *
- * - `/api/` is a POST-only conversion endpoint; a crawl request would only ever
- *   produce a 405 and waste crawl budget.
- * - `/saved` renders the visitor's own browser-local favourites. The page is
- *   empty for a crawler, so listing it would be thin content with no value.
+ * - `/api/` is a conversion API namespace; crawling it only wastes crawl budget.
+ * - `/saved` and `/qr` are intentionally NOT disallowed here because they emit
+ *   explicit `noindex` directives (`<meta name="robots">` + `X-Robots-Tag`).
+ *   Allowing crawlers to fetch them ensures search engines see `noindex` rather
+ *   than indexing link-discovered blocked URLs.
  */
-const PRIVATE_PATHS = ["/api/", "/saved", "/qr"];
+const PRIVATE_PATHS = ["/api/"];
 
 /**
  * Crawlers that must be able to read the public pages for Google to review the

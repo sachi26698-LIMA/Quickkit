@@ -10,7 +10,7 @@ import ContactLink from "@/components/contact-link";
 import { contactEmail, ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "Intellectual Property Policy",
+  "Intellectual Property & Open-Source Licences",
   legalPageByHref("/intellectual-property")!.description,
   "/intellectual-property",
 );

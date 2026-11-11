@@ -22,6 +22,7 @@ export default function QrDataPage() {
             <div className="qr-dt-page">
               <div className="qr-dt-shell">
                 <section className="qr-dt-empty-card" aria-busy="true">
+                  <h1 className="sr-only">QR Data Card</h1>
                   <p>Loading QR Data Card…</p>
                 </section>
               </div>

@@ -9,7 +9,7 @@ import {
 import ContactLink from "@/components/contact-link";
 
 export const metadata = pageMetadata(
-  "Accessibility Statement",
+  "Accessibility Statement — Keyboard & Contrast",
   legalPageByHref("/accessibility")!.description,
   "/accessibility",
 );

@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import UrlCodec from "@/components/tools/devtools/url-codec";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "URL Encoder / Decoder — encode URLs and queries",
-  "Encode or decode full URLs and individual query components with correct Unicode and reserved-character handling. Nothing is fetched or uploaded.",
+  TOOL_SEO_METADATA["url-encoder-decoder"].title,
+  TOOL_SEO_METADATA["url-encoder-decoder"].description,
   "/tools/url-encoder-decoder",
 );
 

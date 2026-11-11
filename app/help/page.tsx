@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ChevronRight,
   Heart,
   LayoutGrid,
   Mail,
@@ -8,12 +9,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import AdUnit from "@/components/ad-unit";
+import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Help Center & FAQ — guides for every tool",
-  "Answers about QUICKKIT tools: privacy and local processing, accounts, saving tools, supported devices and more.",
+  "Help Center — Tool Guides, Privacy & Support",
+  "Get help using QUICKKIT's 42 online tools: how browser-local processing works, the Word to PDF server exception, supported browsers, limits and saved tools.",
   "/help",
 );
 
@@ -24,11 +26,11 @@ const faqs = [
   },
   {
     q: "Do I need to create an account or install anything?",
-    a: "No. QUICKKIT runs entirely in your web browser. Open a tool, use it, and close the tab — nothing to sign up for and nothing to install.",
+    a: "No. QUICKKIT works in your web browser with no account and nothing to install. Open a tool, run your task, and close the tab.",
   },
   {
     q: "Are my files and text uploaded to a server?",
-    a: "No. The tools process your PDFs, images, text, JSON, passwords and QR content locally on your device. Your inputs are not uploaded, stored in a database, or written to application logs. See the Privacy Policy for the full distinction between tool processing and ordinary website requests.",
+    a: "41 of the 42 tools process PDFs, images, OCR, text, JSON, hashes, passwords and QR content locally in your browser without uploading files. Word to PDF is the single explicit-consent exception: it sends DOCX bytes to our server conversion engine only when you confirm conversion, using temporary job files that are deleted afterward. See the Privacy Policy and File Handling Policy for full details.",
   },
   {
     q: "How do I save a tool for later?",
@@ -39,8 +41,8 @@ const faqs = [
     a: "Any modern browser on desktop, tablet or mobile — Chrome, Edge, Firefox, Safari and others. Some outputs (for example image formats) depend on what your browser supports; the tools explain any limits next to the result.",
   },
   {
-    q: "Why can't I find Calculators or AI Tools?",
-    a: "Those categories are on our roadmap and marked “Coming soon”. We're building them carefully rather than rushing — meanwhile every other category is ready to use.",
+    q: "Why is AI Tools marked “Coming soon”?",
+    a: "Seven categories — including all 12 Calculators, PDF Tools, Image Tools, Text & Writing, QR & Barcode, Developer Tools and Security & Privacy — are live today. AI Tools is a roadmap category that stays marked “Coming soon” until its processing and privacy model is ready.",
   },
   {
     q: "Can I use QUICKKIT for work documents?",
@@ -79,6 +81,19 @@ export default function HelpPage() {
   return (
     <div className="home inner-page">
       <div className="container">
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          <Link href="/" prefetch={false}>
+            Home
+          </Link>{" "}
+          <ChevronRight size={13} aria-hidden="true" />{" "}
+          <span aria-current="page">Help Center</span>
+        </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "Help Center", path: "/help" },
+          ])}
+        />
         <PageHero
           eyebrow="HELP CENTER"
           title="How can we"

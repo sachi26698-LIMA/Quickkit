@@ -145,7 +145,7 @@ describe("cross-tool regression: the four split tools", () => {
       expect(related, `related to ${tool.slug} excludes itself`).not.toContain(
         tool.slug,
       );
-      expect(related.length, `related to ${tool.slug}`).toBeLessThanOrEqual(3);
+      expect(related.length, `related to ${tool.slug}`).toBeLessThanOrEqual(6);
       for (const slug of related) {
         expect(
           tools.some((t) => t.slug === slug),

@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import MarkupTool from "@/components/tools/devtools/markup-tool";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "HTML Formatter — format and minify HTML locally",
-  "Beautify or minify HTML with safe syntax highlighting, real UTF-8 size statistics, and local copy and download actions. Embedded code is never executed.",
+  TOOL_SEO_METADATA["html-formatter"].title,
+  TOOL_SEO_METADATA["html-formatter"].description,
   "/tools/html-formatter",
 );
 

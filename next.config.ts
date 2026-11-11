@@ -157,6 +157,37 @@ const config: NextConfig = {
           },
         ],
       },
+      ...(indexingEnabled
+        ? [
+            {
+              // Crawlable in robots.txt so bots can read these headers + meta
+              // tags instead of indexing link-discovered blocked URLs.
+              source: "/saved",
+              headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+            },
+            {
+              source: "/qr",
+              headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+            },
+            {
+              source: "/category/ai-tools",
+              headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+            },
+            {
+              // Parameterized search & category filter views on /tools stay
+              // functional for users while consolidating indexing to /tools
+              // and /category/[slug].
+              source: "/tools",
+              has: [{ type: "query" as const, key: "q" }],
+              headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+            },
+            {
+              source: "/tools",
+              has: [{ type: "query" as const, key: "category" }],
+              headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+            },
+          ]
+        : []),
     ];
   },
 };

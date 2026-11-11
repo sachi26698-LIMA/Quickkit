@@ -282,7 +282,7 @@ test.describe("image resizer audit", () => {
       })
       .map((node: { "@type": string }) => node["@type"]);
     expect(graph).toContain("WebApplication");
-    expect(graph).toContain("HowTo");
+    expect(graph).not.toContain("HowTo");
     expect(graph).toContain("FAQPage");
     await expect(
       page.getByRole("heading", { name: /How to use it/i }),

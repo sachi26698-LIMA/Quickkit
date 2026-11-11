@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import ImagesToPdf from "@/components/tools/images-to-pdf";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Add images from your device or drop them into the upload area. Each image becomes one PDF page, in the order it appears in the queue. Up to 20 images, 15 MB each, 150 MB per batch.",
@@ -47,30 +49,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Images to PDF — build one PDF from your photos",
-  "Turn JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF images into one PDF, one image per page. Reorder and rotate pages, pick A4, A3, A5, Letter or a custom size.",
+  "Images to PDF Converter — JPG, PNG & WebP to PDF",
+  "Combine up to 20 JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, and browser-supported HEIC images into a PDF. Reorder pages; choose A4, Letter, or custom page sizes.",
   "/tools/images-to-pdf",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "Images to PDF Converter",
-    description:
-      "Local browser tool that builds a multi-page PDF from your images: drag-and-drop page ordering, page rotation, A4/A3/A5/Letter/custom paper sizes, portrait or landscape, margins, contain/cover/fill placement, background colour, image quality and a real rendered preview.",
-    path: "/tools/images-to-pdf",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="images-to-pdf" content={{ steps, faqs }}>
-        <ImagesToPdf />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="images-to-pdf"
+      stepsHeading="Arrange images and create a PDF"
+      faqsHeading="Image-to-PDF questions"
+      relatedHeading="More ways to work with PDFs"
+      headingDescription="Combine up to 20 JPG, PNG, WebP, AVIF, GIF, BMP, or TIFF images into one PDF in your browser. Reorder pages and set A4, Letter, or custom mm sizes."
+      referenceSection={
+        <ToolReferenceSection
+          slug="images-to-pdf"
+          entry={TOOL_SEO_CONTENT["images-to-pdf"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <ImagesToPdf />
+    </ToolShell>
   );
 }

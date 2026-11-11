@@ -37,13 +37,39 @@ it("keeps sitemap and robots blocked even with an origin but no approval", async
   ]);
   expect(sitemap()).toEqual([]);
 });
+it("emits genuine Git dates without a wall-clock or operator cutoff", async () => {
+  vi.stubEnv("SITE_URL", "https://test.example");
+  vi.stubEnv("LAUNCH_APPROVED", "true");
+  vi.stubEnv("VERCEL_ENV", "production");
+  // A stale audit ceiling must not suppress a genuine source modification.
+  vi.stubEnv("SITEMAP_LASTMOD_NOT_AFTER", "2026-11-10");
+  vi.resetModules();
+  const { default: sitemap } = await import("../app/sitemap");
+  const routes = sitemap();
+  expect(routes).toHaveLength(65);
+  expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
+  expect(
+    routes.every((route) => {
+      const date =
+        route.lastModified instanceof Date
+          ? route.lastModified.toISOString().slice(0, 10)
+          : route.lastModified;
+      return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date);
+    }),
+  ).toBe(true);
+});
+
 it("emits all real sitemap routes only after explicit production approval", async () => {
   vi.stubEnv("SITE_URL", "https://test.example");
   vi.stubEnv("LAUNCH_APPROVED", "true");
   vi.stubEnv("VERCEL_ENV", "production");
   vi.resetModules();
   const { default: robots } = await import("../app/robots");
-  const { default: sitemap } = await import("../app/sitemap");
+  const {
+    default: sitemap,
+    gitLastModifiedForFiles,
+    routeSourceFiles,
+  } = await import("../app/sitemap");
   // Public pages stay crawlable — including for Search and AdSense reviewers —
   // while the POST-only API and the browser-local /saved page stay out.
   const rules = robots().rules as {
@@ -58,7 +84,10 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   ]);
   for (const rule of rules) {
     expect(rule.allow).toBe("/");
-    expect(rule.disallow).toEqual(["/api/", "/saved", "/qr"]);
+    expect(rule.disallow).toEqual(["/api/"]);
+    // /saved and /qr must stay crawlable so Googlebot can read their noindex directives.
+    expect(rule.disallow).not.toContain("/saved");
+    expect(rule.disallow).not.toContain("/qr");
   }
   // An ads.txt is only honoured while its path is allowed.
   expect(JSON.stringify(rules)).not.toContain('"disallow":["/"');
@@ -70,6 +99,43 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   const { legalPages } = await import("../lib/legal");
   const { tools } = await import("../lib/catalog");
   expect(routes).toHaveLength(4 + legalPages.length + 7 + tools.length);
+  for (const entry of routes) {
+    const path = entry.url.replace("https://test.example", "");
+    const sourceFiles = routeSourceFiles(path);
+    expect(sourceFiles.length, `mapped files for ${path}`).toBeGreaterThan(0);
+    const sitemapDate =
+      entry.lastModified instanceof Date
+        ? entry.lastModified.toISOString().slice(0, 10)
+        : entry.lastModified;
+    expect(sitemapDate, `Git-derived date for ${path}`).toBe(
+      gitLastModifiedForFiles(sourceFiles),
+    );
+    if (sitemapDate !== undefined) {
+      expect(sitemapDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  }
+  expect(routes.every((entry) => entry.lastModified !== undefined)).toBe(true);
+  // Missing route history remains omitted; no build/current date is substituted.
+  expect(
+    gitLastModifiedForFiles(["nonexistent/route-file.tsx"]),
+  ).toBeUndefined();
+  expect(gitLastModifiedForFiles(["app/page.tsx"])).toMatch(
+    /^\d{4}-\d{2}-\d{2}$/,
+  );
+  const { execFileSync } = await import("node:child_process");
+  const disclaimerCommits = execFileSync(
+    "git",
+    ["log", "--no-merges", "--format=%H", "--", "app/disclaimer/page.tsx"],
+    { encoding: "utf8" },
+  )
+    .trim()
+    .split(/\r?\n/)
+    .filter(Boolean);
+  expect(
+    gitLastModifiedForFiles(["app/disclaimer/page.tsx"], {
+      shallowCommits: new Set(disclaimerCommits),
+    }),
+  ).toBeUndefined();
   // Nothing private or personal is ever listed.
   expect(routes.map((route) => route.url)).not.toContain(
     "https://test.example/saved",

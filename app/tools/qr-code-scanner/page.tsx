@@ -1,10 +1,12 @@
 import ToolShell from "@/components/tool-shell";
 import QrScanner from "@/components/tools/qr-scanner";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "QR Code Scanner — camera, screenshots and images",
-  "Scan QR codes from your camera, a photo, a screenshot or a batch of images. Decode every code, inspect the destination and export results as CSV, JSON or TXT.",
+  "QR Code Scanner — Camera, Screenshot & Batch Scan",
+  "Scan QR codes locally from your camera, photos, screenshots, or image batches. Inspect URL safety heuristics before opening and export CSV or JSON.",
   "/tools/qr-code-scanner",
 );
 
@@ -12,11 +14,22 @@ export default function Page() {
   return (
     <ToolShell
       slug="qr-code-scanner"
+      headingDescription="Scan QR codes from your camera, an image, or a batch and inspect the decoded content before opening a link."
+      stepsHeading="Scan a QR code from camera, image, or batch"
+      faqsHeading="QR scanner questions, answered"
+      relatedHeading="More ways to create and scan codes"
+      referenceSection={
+        <ToolReferenceSection
+          slug="qr-code-scanner"
+          entry={TOOL_SEO_CONTENT["qr-code-scanner"]}
+        />
+      }
       content={{
         steps: [
           "Point your camera at a code and press Start camera, or drop an image, a screenshot or a whole folder of images into the workspace. The scanner decodes images in this tab and its processing logic does not upload them. A separate AdSense script loads site-wide; see the Privacy Policy for that third-party access.",
           "As soon as a code is scanned, a popup opens with all decoded data, a local security check, and a clickable redirect link so you can jump straight to the source in one tap — nothing auto-redirects without your click, and high-risk destinations remain blocked. The full result card and source link also stay listed in the results panel.",
           "Batch mode works through a stack of images with a bounded number running at once. Export the results you need as CSV, JSON or TXT, or keep them in the local History tab.",
+          "Treat the warning as a prompt, not a safety verdict: verify the destination domain through a trusted channel before entering credentials or payment details.",
         ],
         faqs: [
           {

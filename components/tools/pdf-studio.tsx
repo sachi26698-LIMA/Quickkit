@@ -656,7 +656,7 @@ export default function PdfStudio() {
     <div className="converter-workspace">
       <div className="workspace-heading">
         <div>
-          <h2>PDF Studio</h2>
+          <h2>Choose PDF actions and arrange pages</h2>
           <p>
             Merge, extract, split, rotate, reorder and compress the pages of
             your PDFs — every file stays on your device.

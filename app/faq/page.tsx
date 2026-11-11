@@ -13,7 +13,7 @@ import AdUnit from "@/components/ad-unit";
 import LegalRelated from "@/components/legal-related";
 
 export const metadata = pageMetadata(
-  "Frequently Asked Questions",
+  "Frequently Asked Questions — Privacy & Limits",
   legalPageByHref("/faq")!.description,
   "/faq",
 );
@@ -34,12 +34,12 @@ const groups: Group[] = [
         a: (
           <>
             Most tools process files in your browser; the application does not
-            upload them for those conversions. The site also loads a Google
-            AdSense verification script on each page. It runs in the page and
+            upload them for those conversions. When advertising is enabled on
+            eligible content pages, a Google AdSense script runs in the page and
             may access page content, so avoid sensitive files if you are not
             comfortable with that third-party access. Word to PDF is a separate
             explicit-consent exception: requesting conversion sends DOCX bytes
-            to an operator-controlled native engine or private worker. Read the
+            to an operator-controlled native engine or private worker. Read the{" "}
             <Link href="/file-handling">File Handling Policy</Link> for details.
           </>
         ),
@@ -48,9 +48,9 @@ const groups: Group[] = [
         q: "Do you use analytics or advertising cookies?",
         a: (
           <>
-            There is no analytics SDK or tracking pixel. A Google AdSense
-            verification script loads on every page and may use cookies or
-            similar identifiers. See the{" "}
+            There is no analytics SDK or tracking pixel. When advertising is
+            enabled, a Google AdSense script loads on eligible content pages and
+            may use cookies or similar identifiers. See the{" "}
             <Link href="/cookies">Cookie Policy</Link> for details and consent
             considerations.
           </>

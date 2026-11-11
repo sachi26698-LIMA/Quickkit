@@ -1,10 +1,12 @@
 import ToolShell from "@/components/tool-shell";
 import PdfToWord from "@/components/tools/pdf-to-word";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "PDF to Word — convert PDFs into editable DOCX",
-  "Convert PDFs to editable DOCX in your browser. Compare the original and the Word file side by side, convert page ranges, and use on-device OCR for scans.",
+  "PDF to Word Converter — PDF to Editable DOCX",
+  "Convert PDFs into editable Word (DOCX) files in your browser with layout or clean-flow modes, page ranges, side-by-side preview, and on-device OCR.",
   "/tools/pdf-to-word",
 );
 
@@ -12,6 +14,16 @@ export default function Page() {
   return (
     <ToolShell
       slug="pdf-to-word"
+      headingDescription="Convert PDFs into editable Word (DOCX) files in your browser with layout or clean-flow modes, page ranges, side-by-side preview, and on-device OCR."
+      stepsHeading="How to convert a PDF into editable Word text"
+      faqsHeading="PDF to Word questions, answered"
+      relatedHeading="More ways to work with PDFs"
+      referenceSection={
+        <ToolReferenceSection
+          slug="pdf-to-word"
+          entry={TOOL_SEO_CONTENT["pdf-to-word"]}
+        />
+      }
       content={{
         steps: [
           "Drop in or choose your PDFs (up to 50 files, 25 MB each). Every file is inspected on your device first — page count, whether it has a text layer, and any problem such as a password or corruption is shown before you convert. Use the eye button to preview the actual PDF page by page.",

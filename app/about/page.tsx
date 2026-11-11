@@ -24,7 +24,7 @@ import LegalRelated from "@/components/legal-related";
 import { ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "About us — free browser tools",
+  "About Us — Browser-First Free Online Tools",
   legalPageByHref("/about")!.description,
   "/about",
 );

@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import ImageCompressor from "@/components/tools/image-compressor";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Drop up to 20 JPEG, PNG, WebP or AVIF images into the workspace, or choose them from your device.",
@@ -42,30 +44,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Compressor — shrink JPEG, PNG, WebP, AVIF",
-  "Compress images to an exact KB or MB target or a quality level, convert between JPEG, PNG, WebP and AVIF, keep transparency and batch up to 20 files at once.",
+  "Image Compressor — Shrink JPG, PNG, WebP & AVIF",
+  "Compress up to 20 JPEG, PNG, WebP, or AVIF images locally by quality slider or exact KB/MB target size, keep or flatten alpha, and download a ZIP.",
   "/tools/image-compressor",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "Image Compressor",
-    description:
-      "Local browser image compressor with quality control, exact target file size, transparency support, batch processing and ZIP download.",
-    path: "/tools/image-compressor",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="image-compressor" content={{ steps, faqs }}>
-        <ImageCompressor />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="image-compressor"
+      headingDescription="Compress up to 20 JPEG, PNG, WebP, or AVIF images locally by quality slider or exact KB/MB target size, keep or flatten alpha, and download a ZIP."
+      stepsHeading="How to shrink images by quality or exact size"
+      faqsHeading="Image compressor questions, answered"
+      relatedHeading="More ways to work with images"
+      referenceSection={
+        <ToolReferenceSection
+          slug="image-compressor"
+          entry={TOOL_SEO_CONTENT["image-compressor"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <ImageCompressor />
+    </ToolShell>
   );
 }

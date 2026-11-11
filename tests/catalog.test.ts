@@ -180,22 +180,116 @@ describe("catalog discovery", () => {
       expect(toolsByCategory("PDF Tools").map((t) => t.slug)).toContain(slug);
     }
   });
-  it("suggests related tools from the same category", () => {
+  it("suggests 3–6 workflow-relevant related tools without unrelated filler", () => {
     const converter = tools.find((t) => t.slug === "image-to-image")!;
     const related = relatedTools(converter).map((t) => t.slug);
-    expect(related).toHaveLength(3);
+    expect(related.length).toBeGreaterThanOrEqual(3);
+    expect(related.length).toBeLessThanOrEqual(6);
     expect(related).not.toContain("image-to-image");
-    expect(related).toEqual([
+    expect(related.slice(0, 3)).toEqual([
       "image-compressor",
       "image-resizer",
       "image-cropper",
     ]);
-    for (const slug of related) {
+
+    // Explicit workflow-domain sets: every related-tool edge must stay within
+    // the source tool's category or a genuine cross-category workflow domain.
+    const domainAllowlist: Record<string, readonly string[]> = {
+      "PDF Tools": [
+        "PDF Tools",
+        "Image Tools",
+        "Text & Writing",
+        "Security & Privacy",
+      ],
+      "Image Tools": ["Image Tools", "PDF Tools", "Text & Writing"],
+      "Text & Writing": [
+        "Text & Writing",
+        "PDF Tools",
+        "Image Tools",
+        "Developer Tools",
+      ],
+      "QR & Barcode": [
+        "QR & Barcode",
+        "Developer Tools",
+        "Security & Privacy",
+        "Image Tools",
+        "PDF Tools",
+      ],
+      "Security & Privacy": [
+        "Security & Privacy",
+        "Developer Tools",
+        "PDF Tools",
+        "QR & Barcode",
+      ],
+      "Developer Tools": [
+        "Developer Tools",
+        "Security & Privacy",
+        "QR & Barcode",
+        "Text & Writing",
+      ],
+      Calculators: ["Calculators"],
+    };
+
+    const inbound = new Map<string, number>(tools.map((t) => [t.slug, 0]));
+    for (const tool of tools) {
+      const list = relatedTools(tool);
       expect(
-        toolsByCategory("Image Tools").some((t) => t.slug === slug),
-        `${slug} is an Image Tools neighbour`,
-      ).toBe(true);
+        list.length,
+        `${tool.slug} has at least 3 relevant tools`,
+      ).toBeGreaterThanOrEqual(3);
+      expect(
+        list.length,
+        `${tool.slug} has at most 6 relevant tools`,
+      ).toBeLessThanOrEqual(6);
+      const slugs = list.map((item) => item.slug);
+      expect(new Set(slugs).size, `${tool.slug} unique related`).toBe(
+        list.length,
+      );
+      expect(slugs).not.toContain(tool.slug);
+
+      const allowedCats = domainAllowlist[tool.category] ?? [tool.category];
+      for (const item of list) {
+        expect(
+          allowedCats,
+          `${tool.slug} (${tool.category}) -> ${item.slug} (${item.category})`,
+        ).toContain(item.category);
+        inbound.set(item.slug, (inbound.get(item.slug) ?? 0) + 1);
+      }
     }
+
+    // Every tool remains reachable via at least one genuine inbound related
+    // link (without forcing unrelated tools to link to single-tool sub-clusters
+    // such as bmi-calculator just to satisfy an artificial threshold).
+    for (const tool of tools) {
+      expect(
+        inbound.get(tool.slug) ?? 0,
+        `${tool.slug} inbound related-tool links`,
+      ).toBeGreaterThanOrEqual(1);
+    }
+
+    // Regression checks for all 8 narrow-cluster tools audited in Phase 2:
+    // never pad with unrelated cross-sub-cluster tools.
+    const bySlug = (slug: string) =>
+      relatedTools(tools.find((t) => t.slug === slug)!).map((t) => t.slug);
+
+    expect(bySlug("temperature-converter")).toEqual([
+      "unit-converter",
+      "time-converter",
+      "scientific-calculator",
+    ]);
+    expect(bySlug("unit-converter")).not.toContain("bmi-calculator");
+    expect(bySlug("unit-converter")).not.toContain("discount-calculator");
+    expect(bySlug("bmi-calculator")).toEqual([
+      "age-calculator",
+      "unit-converter",
+      "percentage-calculator",
+    ]);
+    expect(bySlug("percentage-calculator")).not.toContain("bmi-calculator");
+    expect(bySlug("scientific-calculator")).not.toContain("bmi-calculator");
+    expect(bySlug("scientific-calculator")).not.toContain("emi-calculator");
+    expect(bySlug("word-counter")).not.toContain("html-formatter");
+    expect(bySlug("case-converter")).not.toContain("json-formatter");
+    expect(bySlug("uuid-generator")).not.toContain("javascript-minifier");
   });
   it("gives every tool at least one real category", () => {
     for (const tool of tools) {

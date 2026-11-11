@@ -7,7 +7,11 @@ import ToolCard from "@/components/tool-card";
 import JsonLd from "@/components/json-ld";
 import CalculatorCategoryGrid from "@/components/calculator-category-grid";
 import { categoryMeta, metaBySlug, toolsByCategory } from "@/lib/catalog";
-import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import {
+  breadcrumbStructuredData,
+  collectionPageStructuredData,
+  pageMetadata,
+} from "@/lib/seo";
 import { categoryContent } from "@/lib/category-content";
 
 export function generateStaticParams() {
@@ -24,7 +28,7 @@ export async function generateMetadata({
   const published = toolsByCategory(meta.name).length > 0;
   return {
     ...pageMetadata(
-      `${meta.name} — free online tools`,
+      meta.seoTitle,
       meta.description,
       `/category/${meta.slug}`,
     ),
@@ -59,13 +63,28 @@ export default async function CategoryPage({
         </nav>
         {/* Mirrors the trail above, level for level. Only emitted because this
             page shows a breadcrumb to the reader. */}
-        <JsonLd
-          data={breadcrumbStructuredData([
-            { name: "Home", path: "/" },
-            { name: "All Tools", path: "/tools" },
-            { name: meta.name, path: `/category/${meta.slug}` },
-          ])}
-        />
+        {list.length > 0 ? (
+          <>
+            <JsonLd
+              data={breadcrumbStructuredData([
+                { name: "Home", path: "/" },
+                { name: "All Tools", path: "/tools" },
+                { name: meta.name, path: `/category/${meta.slug}` },
+              ])}
+            />
+            <JsonLd
+              data={collectionPageStructuredData({
+                name: `${meta.name} — QUICKKIT`,
+                description: meta.description,
+                path: `/category/${meta.slug}`,
+                items: list.map((tool) => ({
+                  name: tool.name,
+                  path: `/tools/${tool.slug}`,
+                })),
+              })}
+            />
+          </>
+        ) : null}
 
         <header
           className={`category-hero ${meta.tint} cat-${categoryTone(meta.name)}`}
@@ -86,13 +105,16 @@ export default async function CategoryPage({
         {list.length && meta.slug === "calculators" ? (
           <CalculatorCategoryGrid tools={list} />
         ) : list.length ? (
-          <div
-            className={`tool-grid category-tools cat-${categoryTone(meta.name)}`}
-          >
-            {list.map((tool) => (
-              <ToolCard key={tool.slug} tool={tool} category={meta.name} />
-            ))}
-          </div>
+          <>
+            <h2 className="sr-only">Available {meta.name}</h2>
+            <div
+              className={`tool-grid category-tools cat-${categoryTone(meta.name)}`}
+            >
+              {list.map((tool) => (
+                <ToolCard key={tool.slug} tool={tool} category={meta.name} />
+              ))}
+            </div>
+          </>
         ) : (
           <div className="empty coming-soon">
             <Clock size={34} aria-hidden="true" />
@@ -142,16 +164,20 @@ export default async function CategoryPage({
         <section className="more-categories" aria-labelledby="more-cat-title">
           <h2 id="more-cat-title">Explore other categories</h2>
           <div className="more-categories-row">
-            {others.map((other) => (
-              <Link
-                key={other.slug}
-                className={`more-category-chip ${other.tint} cat-${categoryTone(other.name)}`}
-                href={`/category/${other.slug}`}
-              >
-                <CategoryIcon3D meta={other} size={38} />
-                {other.name}
-              </Link>
-            ))}
+            {others.map((other) => {
+              const empty = toolsByCategory(other.name).length === 0;
+              return (
+                <Link
+                  key={other.slug}
+                  className={`more-category-chip ${other.tint} cat-${categoryTone(other.name)}`}
+                  href={`/category/${other.slug}`}
+                  rel={empty ? "nofollow" : undefined}
+                >
+                  <CategoryIcon3D meta={other} size={38} />
+                  {other.name}
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>

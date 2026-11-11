@@ -165,7 +165,7 @@ export const legalPages: LegalPage[] = [
     intro:
       "A free browser toolkit for the small tasks that interrupt a working day — built to run on your device.",
     description:
-      "What QUICKKIT is, the categories it covers, how the tools process data locally, which devices are supported and what is on the roadmap.",
+      "Learn what QUICKKIT builds, how 41 of 42 tools process files locally in your browser, how Word to PDF handles server conversion, and which devices work.",
     group: "company",
     indexable: true,
     sections: [
@@ -297,7 +297,7 @@ export const legalPages: LegalPage[] = [
     intro:
       "Tool by tool: where your file goes, what is kept in memory, what is written to storage, and when it is deleted.",
     description:
-      "How each QUICKKIT tool handles files: local processing, memory, browser storage, downloads, retention and deletion, and where tools differ.",
+      "Tool-by-tool file handling on QUICKKIT: enforced MB and page limits, Web Worker memory, IndexedDB opt-in history, and Word to PDF server cleanup.",
     group: "trust",
     indexable: true,
     sections: [
@@ -309,16 +309,20 @@ export const legalPages: LegalPage[] = [
       { id: "pdf-merger", label: "PDF Merger" },
       { id: "pdf-splitter", label: "PDF Splitter" },
       { id: "pdf-compressor", label: "PDF Compressor" },
+      { id: "pdf-lock-unlock", label: "PDF Lock & Unlock" },
+      { id: "word-to-pdf", label: "Word to PDF (server conversion)" },
       { id: "pdf-to-word", label: "PDF to Word (with optional OCR)" },
       { id: "pdf-translator", label: "PDF Translator (not implemented)" },
       { id: "image-to-image", label: "Image to Image Converter" },
       { id: "image-compressor", label: "Image Compressor" },
       { id: "image-resizer", label: "Image Resizer" },
       { id: "image-cropper", label: "Image Cropper" },
+      { id: "image-to-text", label: "Image to Text (OCR)" },
       { id: "images-to-pdf", label: "Images to PDF" },
       { id: "pdf-to-image", label: "PDF to Image" },
       { id: "pdf-studio", label: "PDF Studio" },
       { id: "qr-generator", label: "QR Code Generator" },
+      { id: "qr-scanner", label: "QR Code Scanner" },
       { id: "calculators", label: "Calculators and other browser tools" },
       { id: "external", label: "External processing dependencies" },
       { id: "downloads", label: "Download handling" },
@@ -333,7 +337,7 @@ export const legalPages: LegalPage[] = [
     intro:
       "What QUICKKIT owns, what it licenses from others, and what you may and may not do with the site's material.",
     description:
-      "QUICKKIT's intellectual property position: brand and content ownership, open-source licences, permitted use and how to request permission.",
+      "QUICKKIT intellectual property policy: brand and editorial ownership, MIT and Apache-2.0 open-source licences, user output rights and permissions.",
     group: "legal",
     indexable: true,
     sections: [
@@ -380,7 +384,10 @@ export const footerGroups: {
       { href: "/category/pdf-tools", label: "PDF Tools" },
       { href: "/category/image-tools", label: "Image Tools" },
       { href: "/category/qr-barcode", label: "QR & Barcode" },
+      { href: "/category/text-writing", label: "Text & Writing" },
+      { href: "/category/developer-tools", label: "Developer Tools" },
       { href: "/category/calculators", label: "Calculators" },
+      { href: "/category/security-privacy", label: "Security & Privacy" },
     ],
   },
   {
