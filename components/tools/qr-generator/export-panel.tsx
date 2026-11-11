@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   Maximize2,
   Printer,
+  ScanLine,
   Share2,
 } from "lucide-react";
 import { PAPER_SIZES, qrFilename, type QrPaper } from "@/lib/tools/qr/export";
@@ -175,10 +176,26 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
           <button
             type="button"
             className="secondary"
+            onClick={() => void studio.shareQrImage()}
+            disabled={!ready}
+          >
+            <Share2 size={14} /> Share PNG
+          </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => studio.printQr()}
+            disabled={!ready}
+          >
+            <Printer size={14} /> Print QR
+          </button>
+          <button
+            type="button"
+            className="secondary"
             onClick={() => void studio.shareLink()}
             disabled={!payloadResult.ok}
           >
-            <Share2 size={14} /> Share link
+            <Share2 size={14} /> Share studio link
           </button>
           <button
             type="button"
@@ -193,6 +210,14 @@ export default function ExportPanel({ studio }: { studio: QrStudio }) {
           >
             <FileArchive size={14} /> Save as preset
           </button>
+          <a
+            href="/tools/qr-code-scanner"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="secondary qr-mini-button"
+          >
+            <ScanLine size={14} /> Open QR Scanner
+          </a>
         </div>
 
         <div className="qr-filenames" aria-label="File names that will be used">

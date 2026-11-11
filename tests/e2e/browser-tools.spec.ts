@@ -46,6 +46,12 @@ test("QR generator verifies its own export and names the downloaded file", async
   await page
     .getByRole("button", { name: "Show the exact encoded content" })
     .click();
+  await expect(page.locator("#qr-payload-view pre")).toContainText("/qr?d=");
+
+  await page.getByRole("button", { name: /Direct Raw Content/ }).click();
+  await expect(
+    page.getByText("Verified by an independent decoder"),
+  ).toBeVisible();
   await expect(page.locator("#qr-payload-view pre")).toHaveText(encoded);
   const pending = page.waitForEvent("download");
   await page

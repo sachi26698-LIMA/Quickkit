@@ -10,7 +10,7 @@ import { siteOrigin } from "@/lib/seo";
  * - `/saved` renders the visitor's own browser-local favourites. The page is
  *   empty for a crawler, so listing it would be thin content with no value.
  */
-const PRIVATE_PATHS = ["/api/", "/saved"];
+const PRIVATE_PATHS = ["/api/", "/saved", "/qr"];
 
 /**
  * Crawlers that must be able to read the public pages for Google to review the

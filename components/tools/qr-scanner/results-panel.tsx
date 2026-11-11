@@ -10,7 +10,7 @@
  * redirect link and direct open action are displayed alongside all decoded data,
  * while high-risk destinations remain blocked.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -24,10 +24,16 @@ import {
   ShieldCheck,
   ShieldQuestion,
   Trash2,
+  Wand2,
   X,
 } from "lucide-react";
 import { downloadBlob, downloadText, formatBytes } from "@/lib/tools/download";
-import { recognize, type ContentTypeId } from "@/lib/tools/qr-scanner/content";
+import {
+  buildStudioCustomizeHref,
+  recognize,
+  type ContentTypeId,
+} from "@/lib/tools/qr-scanner/content";
+import ScannerCryptoShield, { type AsyncTamperState } from "./crypto-shield";
 import {
   resolveRedirectTarget,
   safeWebHref,
@@ -378,16 +384,46 @@ function SymbolCard({
 }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(true);
+  const [asyncTamper, setAsyncTamper] = useState<AsyncTamperState>({
+    blocked: false,
+    reason: null,
+  });
 
   const recognition = useMemo(() => recognize(symbol.data), [symbol.data]);
   const inspection = useMemo(
     () => inspectPayload(symbol.data, recognition.type),
     [symbol.data, recognition.type],
   );
-  const redirect = useMemo(
+  const rawRedirect = useMemo(
     () => resolveRedirectTarget(symbol.data, recognition, inspection),
     [symbol.data, recognition, inspection],
   );
+  const studioHref = useMemo(
+    () => buildStudioCustomizeHref(symbol.data, recognition),
+    [symbol.data, recognition],
+  );
+
+  const handleTamperChange = useCallback((state: AsyncTamperState) => {
+    setAsyncTamper((prev) =>
+      prev.blocked === state.blocked && prev.reason === state.reason
+        ? prev
+        : state,
+    );
+  }, []);
+
+  const redirect = useMemo(() => {
+    if (!rawRedirect) return null;
+    if (asyncTamper.blocked) {
+      return {
+        ...rawRedirect,
+        blocked: true,
+        blockedReason:
+          asyncTamper.reason ??
+          "Blocked: Cryptographic anti-tamper verification failed.",
+      };
+    }
+    return rawRedirect;
+  }, [asyncTamper, rawRedirect]);
 
   useEffect(() => {
     if (!copied) return;
@@ -449,14 +485,17 @@ function SymbolCard({
     });
   };
 
-  const riskClass =
-    inspection.level === "high"
-      ? "risk-high"
-      : inspection.level === "caution"
-        ? "risk-caution"
-        : inspection.level === "unverified"
-          ? "risk-unverified"
-          : "risk-clear";
+  const effectiveHighRisk = inspection.level === "high" || asyncTamper.blocked;
+  const riskClass = effectiveHighRisk
+    ? "risk-high"
+    : inspection.level === "caution"
+      ? "risk-caution"
+      : inspection.level === "unverified"
+        ? "risk-unverified"
+        : "risk-clear";
+  const effectiveHeadline = asyncTamper.blocked
+    ? "High risk — Cryptographic seal failed"
+    : inspection.headline;
 
   return (
     <article
@@ -471,14 +510,14 @@ function SymbolCard({
           {recognition.label}
         </span>
         <span className={`scanner-risk ${riskClass}`}>
-          {inspection.level === "high" ? (
+          {effectiveHighRisk ? (
             <ShieldAlert size={13} aria-hidden="true" />
           ) : inspection.level === "caution" ? (
             <ShieldQuestion size={13} aria-hidden="true" />
           ) : (
             <ShieldCheck size={13} aria-hidden="true" />
           )}
-          {inspection.headline}
+          {effectiveHeadline}
         </span>
         <button
           type="button"
@@ -516,6 +555,11 @@ function SymbolCard({
           <pre className="scanner-payload" tabIndex={0}>
             {symbol.data}
           </pre>
+
+          <ScannerCryptoShield
+            payload={symbol.data}
+            onTamperStateChange={handleTamperChange}
+          />
 
           {redirect && !redirect.blocked && (
             <div className="scanner-redirect-box">
@@ -656,9 +700,14 @@ function SymbolCard({
                 <Maximize2 size={15} aria-hidden="true" /> View popup
               </button>
             )}
+            {studioHref && !effectiveHighRisk && (
+              <a href={studioHref} className="secondary qr-mini-button">
+                <Wand2 size={15} aria-hidden="true" /> Customize in QR Studio
+              </a>
+            )}
           </div>
 
-          {inspection.level === "high" && (
+          {effectiveHighRisk && (
             <div className="scanner-open">
               <button
                 type="button"

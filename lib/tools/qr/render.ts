@@ -4,7 +4,7 @@
  * Everything the workspace needs from one call, so the preview, the export
  * panel and the bulk pipeline all render through exactly the same code.
  */
-import { buildScene, type QrScene } from "./scene";
+import { buildScene, codeRegionRatio, type QrScene } from "./scene";
 import { createMatrix, type QrMatrix } from "./matrix";
 import { clampDesign, defaultDesign, type DesignAdjustment } from "./style";
 import { analyzeScannability, type SafetyReport } from "./safety";
@@ -13,7 +13,12 @@ import { encodePng } from "./png";
 import { sceneToSvg } from "./svg";
 import { verifyBitmap, type QrVerification } from "./verify";
 import { utf8Length } from "./capacity";
-import { QrUserError, type QrDesign, type QrLogoImage } from "./types";
+import {
+  QrUserError,
+  type QrDesign,
+  type QrErrorLevel,
+  type QrLogoImage,
+} from "./types";
 
 export type RenderArtifacts = {
   /** Full-resolution RGBA — needed for PNG export and final verification. */
@@ -55,9 +60,21 @@ export async function renderQr(request: RenderRequest): Promise<RenderOutput> {
   const { design, adjustments } = clampDesign(base, {
     hasLogo: Boolean(request.logo),
   });
-  const matrix = createMatrix(payload, design.errorLevel, {
+  let matrix = createMatrix(payload, design.errorLevel, {
     boost: design.boost,
   });
+  // When no center logo is present and a compact pixel export would crowd
+  // modules below ~3.5 px due to high ECC overhead, step ECC down so modules
+  // stay large, crisp and reliably decodable (including light-on-dark palettes).
+  if (!request.logo) {
+    const region = design.size * codeRegionRatio(design);
+    const minModulePx = 3.5;
+    const candidates: QrErrorLevel[] = ["Q", "M", "L"];
+    for (const candidate of candidates) {
+      if (region / (matrix.size + design.margin * 2) >= minModulePx) break;
+      matrix = createMatrix(payload, candidate, { boost: false });
+    }
+  }
   const scene = buildScene(matrix, design, request.logo ?? null);
   const safety = analyzeScannability(design, matrix, {
     hasLogo: Boolean(request.logo),

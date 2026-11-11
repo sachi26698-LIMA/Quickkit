@@ -7,6 +7,20 @@
  * `unknown` and is shown verbatim — a scanner that labels a random string as a
  * "Wi-Fi network" is a liability, not a feature.
  */
+import {
+  decodeDataTemplate,
+  inspectQrPayloadSecuritySync,
+  isQuickkitDataTemplateUrl,
+  isQuickkitEncryptedTemplateUrl,
+} from "../qr/data-template";
+import {
+  DIRECT_ENCRYPTED_PREFIX,
+  inspectEncryptedEnvelope,
+} from "../qr/crypto-security";
+import { encodeShareConfig } from "../qr/share";
+import { defaultDesign } from "../qr/style";
+import type { QrContentTypeId } from "../qr/types";
+
 export type ContentTypeId =
   | "url"
   | "text"
@@ -750,8 +764,132 @@ function recognizeApp(host: string, payload: string): Recognition | null {
   };
 }
 
+function recognizeEncryptedVault(payload: string): Recognition | null {
+  if (!payload.startsWith(DIRECT_ENCRYPTED_PREFIX)) return null;
+  const info = inspectEncryptedEnvelope(payload);
+  const fields: Field[] = [
+    {
+      label: "Encryption",
+      value: "AES-256-GCM + PBKDF2-HMAC-SHA256 (128-bit Auth Tag)",
+    },
+  ];
+  if (info?.hint) fields.push({ label: "Passphrase hint", value: info.hint });
+  if (info?.issuedAtSec) {
+    fields.push({
+      label: "Encrypted at",
+      value: new Date(info.issuedAtSec * 1000).toUTCString(),
+    });
+  }
+  if (info?.expiresAtSec) {
+    fields.push({
+      label: "Expires at",
+      value: new Date(info.expiresAtSec * 1000).toUTCString(),
+    });
+  }
+  return {
+    type: "text",
+    label: "Encrypted QR Vault (AES-256-GCM)",
+    summary: info?.hint
+      ? `AES-256-GCM Vault · Hint: ${info.hint}`
+      : "AES-256-GCM Password-Locked QR Vault",
+    primary: payload,
+    fields,
+    actions: [{ id: "copy", label: "Copy encrypted token" }],
+    sensitive: true,
+  };
+}
+
 function recognizeUrl(payload: string): Recognition | null {
   if (!URL_PATTERN.test(payload)) return null;
+  if (isQuickkitEncryptedTemplateUrl(payload)) {
+    const syncSec = inspectQrPayloadSecuritySync(payload);
+    const isAutoKey = syncSec.kind === "encrypted-fragment";
+    const fields: Field[] = [
+      {
+        label: "Encryption",
+        value: isAutoKey
+          ? "AES-256-GCM Zero-Knowledge (#k= URL Fragment Key)"
+          : "AES-256-GCM + PBKDF2-HMAC-SHA256 Passphrase Vault",
+      },
+    ];
+    if (syncSec.signerFingerprint) {
+      fields.push({
+        label: "ECDSA P-256 Signer",
+        value: syncSec.signerFingerprint,
+      });
+    }
+    if (syncSec.hint) {
+      fields.push({ label: "Passphrase hint", value: syncSec.hint });
+    }
+    if (syncSec.expiresAtSec) {
+      fields.push({
+        label: "Expires at",
+        value: new Date(syncSec.expiresAtSec * 1000).toUTCString(),
+      });
+    }
+    fields.push({
+      label: "Encrypted Link",
+      value: payload,
+      sensitive: isAutoKey,
+    });
+    return {
+      type: "url",
+      label: "Encrypted Data Template (AES-256-GCM)",
+      summary: isAutoKey
+        ? "Zero-Knowledge AES-256-GCM Data Card"
+        : syncSec.hint
+          ? `AES-256-GCM Locked Card · Hint: ${syncSec.hint}`
+          : "AES-256-GCM Password-Locked Data Card",
+      primary: payload,
+      fields,
+      actions: [
+        { id: "copy", label: "Copy encrypted link" },
+        {
+          id: "open-url",
+          label: isAutoKey ? "Open Data Template" : "Unlock Data Template",
+          href: payload,
+        },
+      ],
+      sensitive: true,
+    };
+  }
+  if (isQuickkitDataTemplateUrl(payload)) {
+    const decoded = decodeDataTemplate(payload);
+    if (decoded.ok) {
+      const { model } = decoded;
+      const syncSec = inspectQrPayloadSecuritySync(payload);
+      const summary = model.subheadline
+        ? `${model.headline} · ${model.subheadline}`
+        : model.headline;
+      return {
+        type: "url",
+        label: `Data Template · ${model.badge}`,
+        summary: summary.length > 90 ? `${summary.slice(0, 89)}…` : summary,
+        primary: payload,
+        fields: [
+          ...model.fields.map((field) => ({
+            label: field.label,
+            value: field.value,
+            ...(field.secret ? { sensitive: true } : {}),
+          })),
+          ...(syncSec.signerFingerprint
+            ? [
+                {
+                  label: "Security Seal",
+                  value: `ECDSA P-256 · ${syncSec.signerFingerprint}`,
+                },
+              ]
+            : []),
+          { label: "Template Link", value: payload },
+        ],
+        actions: [
+          { id: "copy", label: "Copy template link" },
+          { id: "open-url", label: "Open Data Template", href: payload },
+        ],
+        sensitive: model.fields.some((field) => Boolean(field.secret)),
+      };
+    }
+  }
   const host = hostOf(payload);
   const social = host ? recognizeSocial(host, payload) : null;
   if (social) return social;
@@ -847,6 +985,7 @@ export function recognize(payload: string): Recognition {
   const trimmed = payload.trim();
 
   const recognisers: (() => Recognition | null)[] = [
+    () => recognizeEncryptedVault(trimmed),
     () => recognizeWifi(trimmed),
     () => recognizeVcard(trimmed),
     () => recognizeEvent(trimmed),
@@ -893,3 +1032,72 @@ export function recognize(payload: string): Recognition {
 
 export const contentTypeLabel = (type: ContentTypeId) => LABELS[type];
 export { LABELS as contentLabels };
+
+/**
+ * Build a zero-server `#c=…` QR Generator studio link from a scanned QR payload
+ * so the user can re-style, sign, encrypt or print any scanned QR in one click.
+ */
+export function buildStudioCustomizeHref(
+  payload: string,
+  givenRecognition?: Recognition,
+): string | null {
+  const trimmed = payload.trim();
+  if (!trimmed || trimmed.length > 1400) return null;
+  const rec = givenRecognition ?? recognize(trimmed);
+  if (rec.sensitive) return null;
+
+  const findField = (label: string) =>
+    rec.fields.find((f) => f.label === label)?.value ?? "";
+
+  let typeId: QrContentTypeId = "text";
+  let values: Record<string, string | boolean> = { text: trimmed };
+
+  if (rec.type === "url" || rec.type === "social" || rec.type === "app") {
+    typeId = "url";
+    values = { url: trimmed };
+  } else if (rec.type === "payment" && /^upi:\/\//i.test(trimmed)) {
+    typeId = "payment";
+    values = {
+      method: "upi",
+      payeeName: findField("Payee name") || "Merchant",
+      upiId: findField("Payee address (VPA)"),
+      amount: findField("Amount"),
+      currency: findField("Currency") || "INR",
+      note: findField("Note"),
+    };
+  } else if (rec.type === "email") {
+    typeId = "email";
+    values = {
+      to: findField("To") || rec.primary,
+      subject: findField("Subject"),
+      body: findField("Body"),
+    };
+  } else if (rec.type === "phone") {
+    typeId = "phone";
+    values = { phone: rec.primary };
+  } else if (rec.type === "sms") {
+    typeId = "sms";
+    values = {
+      phone: findField("Number"),
+      body: findField("Message"),
+    };
+  } else if (rec.type === "geo") {
+    const lat = findField("Latitude");
+    const lon = findField("Longitude");
+    if (lat && lon) {
+      typeId = "location";
+      values = { latitude: lat, longitude: lon, label: findField("Query") };
+    }
+  }
+
+  try {
+    const encoded = encodeShareConfig({
+      typeId,
+      values,
+      design: defaultDesign(),
+    });
+    return `/tools/qr-generator#c=${encoded}`;
+  } catch {
+    return null;
+  }
+}

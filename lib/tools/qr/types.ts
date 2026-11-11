@@ -4,6 +4,7 @@ export type QrErrorLevel = "L" | "M" | "Q" | "H";
 
 export type QrContentTypeId =
   | "url"
+  | "payment"
   | "text"
   | "email"
   | "phone"
@@ -30,6 +31,22 @@ export type QrContentTypeId =
   | "video"
   | "socials"
   | "landing";
+
+/** Whether the QR symbol encodes the hosted Data Template link or raw protocol text. */
+export type QrEncodingMode = "template" | "raw";
+
+/**
+ * Cryptographic security mode applied to generated QR codes:
+ * - `"signed"` (default): ECDSA P-256 anti-tamper digital signature (`&sg=…`).
+ * - `"auto-aes"`: Zero-knowledge AES-256-GCM encrypted link (`?e=…#k=…`) + ECDSA seal.
+ * - `"password-aes"`: Passphrase-locked AES-256-GCM + PBKDF2-SHA256 vault (`/qr?e=…` or `QKE1.…`).
+ * - `"none"`: Unsigned standard link / raw payload.
+ */
+export type QrSecurityMode = "signed" | "auto-aes" | "password-aes" | "none";
+
+/** Visual themes for the scanned QR Data Template page. */
+export type QrDataTemplateThemeId =
+  "plum" | "emerald" | "midnight" | "minimal" | "sunset" | "royal";
 
 /** How a fill (foreground modules or the background) is painted. */
 export type QrFillKind = "solid" | "linear" | "radial";

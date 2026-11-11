@@ -301,6 +301,79 @@ const URL_FIELDS: QrField[] = [
   },
 ];
 
+const PAYMENT_FIELDS: QrField[] = [
+  {
+    key: "method",
+    label: "Payment mode",
+    type: "select",
+    defaultValue: "upi",
+    options: [
+      { value: "upi", label: "UPI (GPay, PhonePe, Paytm, BHIM)" },
+      { value: "link", label: "Payment link (Razorpay, PayPal, Stripe…)" },
+    ],
+    half: true,
+  },
+  {
+    key: "payeeName",
+    label: "Payee / business name",
+    type: "text",
+    required: true,
+    placeholder: "Aurora Café",
+    half: true,
+    max: 80,
+  },
+  {
+    key: "upiId",
+    label: "UPI ID (VPA)",
+    type: "text",
+    placeholder: "auroracafe@upi",
+    help: "Required for UPI mode — e.g. shop@okicici, 9876543210@ybl.",
+    half: true,
+    max: 100,
+  },
+  {
+    key: "paymentUrl",
+    label: "Payment link (for link mode or fallback)",
+    type: "text",
+    placeholder: "https://razorpay.me/auroracafe",
+    help: "Required for Payment link mode; optional web checkout fallback for UPI.",
+    half: true,
+    max: 1000,
+  },
+  {
+    key: "amount",
+    label: "Amount (optional)",
+    type: "text",
+    placeholder: "250.00",
+    half: true,
+    max: 16,
+  },
+  {
+    key: "currency",
+    label: "Currency",
+    type: "select",
+    defaultValue: "INR",
+    options: [
+      { value: "INR", label: "INR (₹)" },
+      { value: "USD", label: "USD ($)" },
+      { value: "EUR", label: "EUR (€)" },
+      { value: "GBP", label: "GBP (£)" },
+      { value: "AED", label: "AED" },
+      { value: "SGD", label: "SGD" },
+      { value: "CAD", label: "CAD" },
+      { value: "AUD", label: "AUD" },
+    ],
+    half: true,
+  },
+  {
+    key: "note",
+    label: "Payment note / order ID (optional)",
+    type: "text",
+    placeholder: "Order #1042",
+    max: 120,
+  },
+];
+
 const TEXT_FIELDS: QrField[] = [
   {
     key: "text",
@@ -951,8 +1024,64 @@ const SOCIAL_URLS: Record<string, (handle: string) => string> = {
   whatsapp: (h) => `https://wa.me/${h.replace(/\D/g, "")}`,
 };
 
+const UPI_ID_RE = /^[A-Za-z0-9._-]{2,64}@[A-Za-z0-9._-]{2,64}$/;
+
+export function normalizePaymentAmount(raw: string, field = "amount"): string {
+  const trimmed = raw.trim().replace(/,/g, "");
+  if (!trimmed) return "";
+  if (!/^\d{1,8}(?:\.\d{1,2})?$/.test(trimmed))
+    throw new QrUserError(
+      "Enter a valid positive amount with up to two decimal places, for example 250 or 250.50.",
+      field,
+    );
+  const amount = Number(trimmed);
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 10_000_000)
+    throw new QrUserError("Amount must be greater than 0.", field);
+  return amount.toFixed(2);
+}
+
 function buildUrl(v: QrValues) {
   return normalizeUrl(requireValue(v, "url", "Web address"));
+}
+
+function buildPayment(v: QrValues) {
+  const method = value(v, "method") || "upi";
+  const payeeName = requireValue(v, "payeeName", "Payee / business name");
+  const amount = normalizePaymentAmount(value(v, "amount"));
+  const currency = (value(v, "currency") || "INR").toUpperCase();
+  const note = value(v, "note");
+  const rawPaymentUrl = value(v, "paymentUrl");
+
+  if (method === "link") {
+    const cleanUrl = normalizeUrl(
+      requireValue(v, "paymentUrl", "Payment link"),
+      "paymentUrl",
+    );
+    const rawUpi = value(v, "upiId");
+    if (rawUpi && !UPI_ID_RE.test(rawUpi))
+      throw new QrUserError(
+        "Enter a valid UPI ID such as merchant@upi.",
+        "upiId",
+      );
+    return cleanUrl;
+  }
+
+  const upiId = requireValue(v, "upiId", "UPI ID (VPA)");
+  if (!UPI_ID_RE.test(upiId))
+    throw new QrUserError(
+      "Enter a valid UPI ID such as merchant@upi or 9876543210@ybl.",
+      "upiId",
+    );
+  if (rawPaymentUrl) normalizeUrl(rawPaymentUrl, "paymentUrl");
+
+  const params: string[] = [
+    `pa=${enc(upiId)}`,
+    `pn=${enc(payeeName)}`,
+    ...(amount ? [`am=${enc(amount)}`] : []),
+    `cu=${enc(currency)}`,
+    ...(note ? [`tn=${enc(note)}`] : []),
+  ];
+  return `upi://pay?${params.join("&")}`;
 }
 
 function buildText(v: QrValues) {
@@ -1510,6 +1639,14 @@ export const QR_CONTENT_TYPES: QrContentTypeDef[] = [
     build: buildUrl,
   },
   {
+    id: "payment",
+    label: "Payment / UPI",
+    blurb: "Accept UPI apps (GPay, PhonePe, Paytm, BHIM) or a payment link.",
+    icon: "payment",
+    fields: PAYMENT_FIELDS,
+    build: buildPayment,
+  },
+  {
     id: "text",
     label: "Plain text",
     blurb: "Any message, up to 2,500 characters.",
@@ -1745,6 +1882,14 @@ export function isKnownContentType(id: string): id is QrContentTypeId {
  */
 export const QR_SAMPLE_VALUES: Record<QrContentTypeId, QrValues> = {
   url: { url: "https://quickkit.tools/?src=qr-example" },
+  payment: {
+    method: "upi",
+    payeeName: "Aurora Café",
+    upiId: "auroracafe@upi",
+    amount: "250.00",
+    currency: "INR",
+    note: "Coffee & croissant",
+  },
   text: { text: "Hello from QUICKKIT — scan me!" },
   email: {
     to: "hello@quickkit.tools",
@@ -1874,14 +2019,44 @@ function maskWifiTag(payload: string, tag: string, dots: string) {
   return touched ? `${prefix}${masked}` : payload;
 }
 
+/**
+ * True when the content type's native payload is already an `http(s)://` URL.
+ * Non-link types (`vcard`, `wifi`, `text`, `email`, `phone`, `sms`, `event`,
+ * `business`, `geo:` locations, `upi://` payments, etc.) have no web address of
+ * their own unless wrapped in a Data Template link.
+ */
+const NON_LINK_TYPE_IDS = new Set<QrContentTypeId>([
+  "text",
+  "email",
+  "phone",
+  "sms",
+  "wifi",
+  "vcard",
+  "event",
+  "business",
+]);
+
+export function hasDirectWebLink(
+  id: QrContentTypeId,
+  rawPayload?: string,
+): boolean {
+  if (rawPayload) return /^https?:\/\//i.test(rawPayload.trim());
+  if (NON_LINK_TYPE_IDS.has(id)) return false;
+  if (id === "payment") return false;
+  return true;
+}
+
 export function redactForDisplay(
   payload: string,
   id: QrContentTypeId,
   values: QrValues,
 ) {
-  let shown = payload;
+  let shown = payload
+    .replace(/([#&])s=[A-Za-z0-9._-]+/, "$1s=••••••••")
+    .replace(/([#&])k=[A-Za-z0-9._-]+/, "$1k=••••••••");
   for (const key of sensitiveKeysFor(id)) {
     const secret = String(values[key] ?? "");
+    if (!secret) continue;
     if (id === "wifi") {
       shown = maskWifiTag(
         shown,

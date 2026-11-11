@@ -160,6 +160,7 @@ test.describe("V3 routes return expected HTTP responses", () => {
   const routes = [
     "/",
     "/tools/qr-generator",
+    "/qr",
     "/category/qr-barcode",
     "/saved",
     "/about",

@@ -46,13 +46,50 @@ function expectedPayload(id: string): string {
   return buildPayload(id as never, sampleValuesFor(id as never));
 }
 
-async function sampleStudio(page: import("@playwright/test").Page, id = "url") {
+async function sampleStudio(
+  page: import("@playwright/test").Page,
+  id = "url",
+  options: { raw?: boolean } = {},
+) {
   await gotoStudio(page);
   await pickType(page, id);
+  if (options.raw !== false) {
+    await page.getByRole("button", { name: /Direct Raw Content/ }).click();
+  }
   await trySample(page);
   await setExportSize(page, 512);
   await waitVerified(page);
 }
+
+test.describe("Data Templates & Original Link inside QR", () => {
+  test("vCard and Payment / UPI encode an original `/qr?d=…` link that opens the hosted Data Card", async ({
+    page,
+  }) => {
+    await sampleStudio(page, "vcard", { raw: false });
+    const vcardPng = await downloadByButton(page, /^PNG/);
+    const vcardUrl = decodePng(vcardPng.buffer);
+    expect(vcardUrl).toContain("/qr?d=");
+    await page.goto(vcardUrl!);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Ada Lovelace" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Save Contact \(\.vcf\)/ }),
+    ).toBeVisible();
+
+    await sampleStudio(page, "payment", { raw: false });
+    const payPng = await downloadByButton(page, /^PNG/);
+    const payUrl = decodePng(payPng.buffer);
+    expect(payUrl).toContain("/qr?d=");
+    await page.goto(payUrl!);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Aurora Café" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /Pay ₹250\.00 via UPI/ }),
+    ).toHaveAttribute("href", /^upi:\/\/pay\?/);
+  });
+});
 
 test.describe("V3 content types — every type exports a decodable PNG", () => {
   for (const type of QR_CONTENT_TYPES) {

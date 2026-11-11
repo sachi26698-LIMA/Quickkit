@@ -16,6 +16,7 @@ import {
   Camera,
   ChevronDown,
   Contact,
+  CreditCard,
   FileText,
   Images,
   LayoutTemplate,
@@ -41,11 +42,13 @@ import { MAX_QR_PAYLOAD_BYTES, utf8Length } from "@/lib/tools/qr/capacity";
 import { QR_CONTENT_TYPES, redactForDisplay } from "@/lib/tools/qr/payload";
 import type { QrContentTypeId } from "@/lib/tools/qr/types";
 import { QrDisclosure, QrFieldGrid } from "./shared";
+import DataTemplatePanel from "./data-template-panel";
 import LandingBuilder from "./landing-builder";
 import type { QrStudio } from "./use-qr-studio";
 
 const ICONS: Record<string, typeof QrCode> = {
   link: Link,
+  payment: CreditCard,
   text: Type,
   mail: Mail,
   phone: Phone,
@@ -169,6 +172,8 @@ export default function ContentPanel({ studio }: { studio: QrStudio }) {
       {typeId === "landing" || typeId === "socials" ? (
         <LandingBuilder studio={studio} />
       ) : null}
+
+      <DataTemplatePanel studio={studio} />
 
       <div className="qr-payload-bar">
         <button
