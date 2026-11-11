@@ -49,7 +49,7 @@ Exact fields and source pages: [`docs/OWNER_INPUTS.md`](docs/OWNER_INPUTS.md). N
 
 The instructions below remain available for cloning/reconnecting on your own machine. Do not add a duplicate `origin` or repeat completed setup blindly.
 
-1. On your own device, install Git and Node 22 (`nvm install 22` / `nvm use` if using nvm).
+1. On your own device, install Git and Node 26 (`nvm install 26` / `nvm use` if using nvm), matching `.nvmrc`, `package.json` engines and CI. The Phase 5 sandbox used Node 22.22.3; its successful build is not a substitute for validating on Node 26.
 2. Obtain the **whole repository with `.git` history** from `/home/user/quickkit`, not only visible source snippets. Workspace ZIP/download tools may omit hidden `.git`; verify `git log` after extraction. If history is absent, request a history-preserving export before initializing over anything.
 3. In GitHub, create your chosen repository under the correct user/organization. Use **private initially**. For this already-initialized project, create an **empty repository without README/licence/gitignore** to avoid unrelated initial history.
 4. Authenticate using GitHub CLI browser login (`gh auth login`, choose browser/device login) or normal Git SSH setup. Authorize in your browser. **Never paste a password/PAT/private key into this chat.** The GitHub connector lookup is unsupported here; ordinary Git/CLI still works.
@@ -90,7 +90,7 @@ git status --short --branch
 1. In Vercel, select your intended account/team. Use **Add New → Project → Import Git Repository** (UI labels may vary).
 2. Connect/authorize the official GitHub integration in your browser and grant access only to the intended repository. Import it after the approved changes are available. If your repository is not listed, adjust that GitHub App installation’s repository permissions.
 3. Root directory: `.` when pushing this repository itself. Use `quickkit/` only if you intentionally push the parent workspace containing that folder. Root must contain this `package.json` and `vercel.json`.
-4. Framework: **Next.js**. Node: **22.x**. Install: **`npm ci`**. Build: **`npm run build`**. Output: **framework default**; do not force a static-export directory.
+4. Framework: **Next.js**. Node: **26.x**. Install: **`npm ci`**. Build: **`npm run build`**. Output: **framework default**; do not force a static-export directory.
 5. `vercel.json`, `.nvmrc`, package engines and CI describe these settings. `.vercel/` and credentials are ignored. No tool API keys or secrets are needed.
 6. Keep **`LAUNCH_APPROVED=false`** for every environment. Leave `SITE_URL` unset until you choose/verify the actual origin. Do not add arbitrary `VERCEL_ENV`/`VERCEL_URL`; Vercel supplies them.
 7. Create a **preview** from the feature branch before production approval. With `main` as the production branch, pushing/merging `main` can create an unindexed production deployment; do not equate that with approval to launch. Review automatic deployment behavior first.
@@ -121,7 +121,7 @@ The code requires BOTH a configured origin AND explicit approval to allow indexi
 
 ## 8. Remaining owner actions, in order
 
-1. Review the 15 residual dev findings and supply the legal/contact/hosting inputs.
+1. Re-run `npm audit` for the release candidate (Phase 5 on 10 November 2026 reported zero production and full-tree findings); review the historical dependency note if advisory metadata changes, and supply the legal/contact/hosting inputs.
 2. Choose repository owner/name/visibility and follow the GitHub browser-login steps.
 3. Select the authorized Vercel team/project and import that repository; connection itself is already validated.
 4. Complete preview/manual testing and verify your actual domain.

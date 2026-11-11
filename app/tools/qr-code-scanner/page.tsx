@@ -26,7 +26,7 @@ export default function Page() {
       }
       content={{
         steps: [
-          "Point your camera at a code and press Start camera, or drop an image, a screenshot or a whole folder of images into the workspace. The scanner decodes images in this tab and its processing logic does not upload them. A separate AdSense script loads site-wide; see the Privacy Policy for that third-party access.",
+          "Point your camera at a code and press Start camera, or drop an image, a screenshot or a whole folder of images into the workspace. The scanner decodes images in this tab and its processing logic does not upload them. When advertising is enabled, a separate AdSense script loads on eligible pages; see the Privacy Policy for that third-party access.",
           "As soon as a code is scanned, a popup opens with all decoded data, a local security check, and a clickable redirect link so you can jump straight to the source in one tap — nothing auto-redirects without your click, and high-risk destinations remain blocked. The full result card and source link also stay listed in the results panel.",
           "Batch mode works through a stack of images with a bounded number running at once. Export the results you need as CSV, JSON or TXT, or keep them in the local History tab.",
           "Treat the warning as a prompt, not a safety verdict: verify the destination domain through a trusted channel before entering credentials or payment details.",
@@ -34,7 +34,7 @@ export default function Page() {
         faqs: [
           {
             q: "Are my images or scanned codes uploaded?",
-            a: "The scanner reads and decodes images locally and does not upload them for processing. A separate Google AdSense verification script loads on every page and runs in the page; see the Privacy Policy for its possible access to page or browser information. History is stored in this browser's local storage and you can turn it off or clear it at any time.",
+            a: "The scanner reads and decodes images locally and does not upload them for processing. When advertising is enabled, a separate Google AdSense verification script loads on eligible pages and runs in the page; see the Privacy Policy for its possible access to page or browser information. History is stored in this browser's local storage and you can turn it off or clear it at any time.",
           },
           {
             q: "Can it read more than one QR code in a screenshot?",

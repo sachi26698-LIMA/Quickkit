@@ -39,9 +39,9 @@ export default function FileHandlingPage() {
         returned, worked on in JavaScript (on the main thread or in a dedicated
         Web Worker inside the same tab), and turned into a new <code>Blob</code>{" "}
         that you download. The application&rsquo;s tool-processing pipeline does
-        not send the bytes anywhere. Separately, the site-wide AdSense script
-        runs in the page; see the <Link href="/privacy">Privacy Policy</Link>{" "}
-        for that third-party access.
+        not send the bytes anywhere. Separately, when advertising is enabled,
+        the AdSense script loads on eligible pages and runs in the page; see the
+        <Link href="/privacy">Privacy Policy</Link> for that third-party access.
       </p>
       <p>
         Three properties of the architecture make that verifiable, not just
@@ -58,27 +58,28 @@ export default function FileHandlingPage() {
           <strong>Browser connections are restricted.</strong> The Content
           Security Policy allows scripts, frames, images and fetch/XHR
           connections only from this site&rsquo;s own origin and the named
-          Google AdSense hosts — no wildcards, no other third parties. That
-          script runs in the page and may access page content; do not use
-          sensitive files if you are not comfortable with that third-party
-          access. The application does not intentionally send selected files to
-          AdSense.
+          Google AdSense hosts — no wildcards, no other third parties. When
+          advertising is enabled, its script runs in the page and may access
+          page content; do not use sensitive files if you are not comfortable
+          with that third-party access. The application does not intentionally
+          send selected files to AdSense.
         </li>
         <li>
           <strong>Processing engines are self-hosted.</strong> The PDF engine,
           OCR engine and language data, and QR library are served from this
           site&rsquo;s own origin, not a CDN. Loading a tool makes no request to
           a third-party processing engine, and the application&rsquo;s local
-          engines do not send file data away. The AdSense script is a separate
-          site-wide request, not a file-processing service. Word to PDF uses the
-          operator-controlled native engine only with explicit upload consent.
+          engines do not send file data away. When advertising is enabled, the
+          AdSense script is a separate request, not a file-processing service.
+          Word to PDF uses the operator-controlled native engine only with
+          explicit upload consent.
         </li>
       </ul>
       <p>
         What is <em>not</em> covered by the above: ordinary requests to the
-        hosting provider, and the request for the site-wide AdSense script from
-        Google. That script executes in the page and may access page or browser
-        information; details are in the{" "}
+        hosting provider, and, when advertising is enabled, the request for the
+        AdSense script from Google. That script executes in the page and may
+        access page or browser information; details are in the{" "}
         <Link href="/privacy">Privacy Policy</Link> and{" "}
         <Link href="/cookies">Cookie Policy</Link>.
       </p>
@@ -245,8 +246,8 @@ export default function FileHandlingPage() {
       <h2 id="word-to-pdf">10. Word to PDF (server conversion)</h2>
       <ul>
         <li>
-          <strong>Input:</strong> up to 10 DOCX files per batch, 20 MiB each,
-          80 MiB total queue, up to 1,000 pages and 50 MiB per rendered PDF.
+          <strong>Input:</strong> up to 10 DOCX files per batch, 20 MiB each, 80
+          MiB total queue, up to 1,000 pages and 50 MiB per rendered PDF.
         </li>
         <li>
           <strong>Processing:</strong> unlike the browser-local tools on this
@@ -276,9 +277,8 @@ export default function FileHandlingPage() {
           extractable text can be rasterised and passed to a locally hosted OCR
           engine (tesseract.js with WebAssembly, plus eight self-hosted language
           packs — <code>eng</code>, <code>hin</code>, <code>guj</code>,{" "}
-          <code>mar</code>, <code>ben</code>, <code>tam</code>,{" "}
-          <code>tel</code> and <code>urd</code> — served from <code>/ocr</code>{" "}
-          on this site).
+          <code>mar</code>, <code>ben</code>, <code>tam</code>, <code>tel</code>{" "}
+          and <code>urd</code> — served from <code>/ocr</code> on this site).
         </li>
         <li>
           <strong>Storage:</strong> optional. If you turn history on, converted
@@ -391,9 +391,9 @@ export default function FileHandlingPage() {
       <h2 id="image-to-text">17. Image to Text (OCR)</h2>
       <ul>
         <li>
-          <strong>Input:</strong> up to 40 images or 40 PDF pages per batch,
-          25 MB per file and 200 MB per batch; images larger than 4,000 px on
-          the longest side are downscaled before recognition.
+          <strong>Input:</strong> up to 40 images or 40 PDF pages per batch, 25
+          MB per file and 200 MB per batch; images larger than 4,000 px on the
+          longest side are downscaled before recognition.
         </li>
         <li>
           <strong>Processing:</strong> preprocessing, deskewing and optical
@@ -548,8 +548,8 @@ export default function FileHandlingPage() {
         <li>
           <strong>tesseract.js</strong> (Apache-2.0) with WebAssembly cores and
           eight self-hosted language packs (<code>eng</code>, <code>hin</code>,{" "}
-          <code>guj</code>, <code>mar</code>, <code>ben</code>,{" "}
-          <code>tam</code>, <code>tel</code> and <code>urd</code>), served from{" "}
+          <code>guj</code>, <code>mar</code>, <code>ben</code>, <code>tam</code>
+          , <code>tel</code> and <code>urd</code>), served from{" "}
           <code>/ocr</code>.
         </li>
         <li>

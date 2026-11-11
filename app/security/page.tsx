@@ -148,14 +148,16 @@ export default function SecurityPage() {
           hosts such as <code>https://pagead2.googlesyndication.com</code> and{" "}
           <code>https://googleads.g.doubleclick.net</code>. There are no
           wildcards and no scheme-wide sources, so no other third party can be
-          loaded or contacted. <code>worker-src &apos;self&apos; blob:</code>{" "}
-          permits same-origin workers and the temporary regex worker;{" "}
+          loaded or contacted. When advertising is enabled, the allowlisted
+          Google script and related hosts may be contacted.{" "}
+          <code>worker-src &apos;self&apos; blob:</code> permits same-origin
+          workers and the temporary regex worker;{" "}
           <code>object-src &apos;none&apos;</code>,{" "}
           <code>base-uri &apos;self&apos;</code>,{" "}
           <code>form-action &apos;self&apos;</code> and{" "}
-          <code>frame-ancestors &apos;none&apos;</code> remain in force. The
-          allowlisted third-party script executes in the page; see the{" "}
-          <Link href="/privacy">Privacy Policy</Link> and{" "}
+          <code>frame-ancestors &apos;none&apos;</code> remain in force. When
+          advertising is enabled, the allowlisted third-party script executes in
+          the page; see the <Link href="/privacy">Privacy Policy</Link> and{" "}
           <Link href="/cookies">Cookie Policy</Link>.
         </li>
         <li>
@@ -196,10 +198,10 @@ export default function SecurityPage() {
       <h2 id="dependencies">6. External dependencies</h2>
       <p>
         The tool engines are bundled and served from this origin rather than a
-        CDN. The AdSense verification script is the site&rsquo;s externally
-        hosted script exception: it is supplied by Google, runs in the page and
-        may process browser or page information. It is not used by the
-        application to process files; see the{" "}
+        CDN. When advertising is enabled, the AdSense verification script is the
+        site&rsquo;s externally hosted script exception: it is supplied by
+        Google, runs in the page and may process browser or page information. It
+        is not used by the application to process files; see the{" "}
         <Link href="/privacy">Privacy Policy</Link> and{" "}
         <Link href="/cookies">Cookie Policy</Link>. The production dependency
         audit reports no known vulnerabilities. A residual set of moderate

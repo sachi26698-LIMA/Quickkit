@@ -309,9 +309,24 @@ describe("BreadcrumbList JSON-LD", () => {
     );
     expect(types).toContain("Organization");
     expect(types).toContain("WebSite");
-    // The AdSense loader and the Search Console meta must survive untouched.
+    // The AdSense loader stays absent by default, keeping this build local-only.
     expect(
       holder.querySelectorAll(
+        'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]',
+      ),
+    ).toHaveLength(0);
+
+    // Only an explicit opt-in adds the external advertising script.
+    vi.stubEnv("ADS_ENABLED", "true");
+    vi.resetModules();
+    const { default: EnabledLayout } = await import("../app/layout");
+    const enabledMarkup = renderToStaticMarkup(
+      createElement(EnabledLayout, null, createElement("main", null, "x")),
+    );
+    const enabledHolder = document.createElement("div");
+    enabledHolder.innerHTML = enabledMarkup;
+    expect(
+      enabledHolder.querySelectorAll(
         'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]',
       ),
     ).toHaveLength(1);
@@ -462,7 +477,10 @@ describe("page metadata lengths", () => {
       if (/QUICKKIT/i.test(info.seoTitle)) {
         problems.push(`/tools/${slug}: seoTitle repeats the brand`);
       }
-      if (info.description.length > DESC_BUDGET || info.description.length < 120) {
+      if (
+        info.description.length > DESC_BUDGET ||
+        info.description.length < 120
+      ) {
         problems.push(
           `/tools/${slug}: description is ${info.description.length} chars`,
         );
@@ -702,8 +720,9 @@ describe("Phase 2 technical SEO contracts", () => {
 
     for (const [route, element] of samples) {
       const { container, unmount } = render(element);
-      const levels = [...container.querySelectorAll("h1, h2, h3, h4, h5, h6")]
-        .map((el) => Number(el.tagName.slice(1)));
+      const levels = [
+        ...container.querySelectorAll("h1, h2, h3, h4, h5, h6"),
+      ].map((el) => Number(el.tagName.slice(1)));
       expect(
         levels.filter((l) => l === 1),
         `${route} must have exactly one H1`,

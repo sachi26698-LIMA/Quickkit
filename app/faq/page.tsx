@@ -103,9 +103,10 @@ const groups: Group[] = [
         a: (
           <>
             Yes — every tool currently on the site is free, with no paid tier.
-            The AdSense verification script is loaded on each page for site
-            verification. This change does not add ad placements; serving ads
-            would require further CSP and consent configuration.
+            When advertising is enabled, the AdSense verification script loads
+            on eligible content pages. Ads remain disabled unless explicitly
+            enabled; serving them also requires appropriate CSP and consent
+            configuration.
           </>
         ),
       },

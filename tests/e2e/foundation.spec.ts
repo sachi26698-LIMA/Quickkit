@@ -27,7 +27,7 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   await page.getByRole("button", { name: "Clear search", exact: true }).click();
   await expect(page.locator(".tool-card")).toHaveCount(tools.length);
 });
-test("AdSense verification script is in the shared head on every route", async ({
+test("AdSense verification script stays absent by default on public routes", async ({
   page,
 }) => {
   await page.route("https://pagead2.googlesyndication.com/**", (route) =>
@@ -42,9 +42,7 @@ test("AdSense verification script is in the shared head on every route", async (
     const script = page.locator(
       'head script[src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"]',
     );
-    await expect(script).toHaveCount(1);
-    await expect(script).toHaveAttribute("async", "");
-    await expect(script).toHaveAttribute("crossorigin", "anonymous");
+    await expect(script).toHaveCount(0);
   }
 });
 test("hero search suggests tools and opens results in All Tools", async ({

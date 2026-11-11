@@ -311,10 +311,17 @@ describe("Phase 3 Batch C — 30 tool pages", () => {
         const steps = stepsHeading?.parentElement?.querySelectorAll("ol > li");
         expect(steps?.length, `${slug} step count`).toBeGreaterThanOrEqual(4);
       } else {
+        const stepsHeading = container.querySelector(".tool-guidance h2");
+        expect(stepsHeading?.textContent).toBe("How Word to PDF works");
         const steps = container.querySelectorAll(".tool-guidance ol > li");
-        expect(steps.length, "word-to-pdf step count").toBeGreaterThanOrEqual(
-          4,
-        );
+        expect(steps.length, "word-to-pdf step count").toBe(4);
+        expect(visibleFaqs).toHaveLength(5);
+        expect(visibleFaqs.join(" ")).toMatch(/uploaded automatically/i);
+        expect(visibleFaqs.join(" ")).toMatch(/look exactly/i);
+        expect(visibleFaqs.join(" ")).toMatch(/fonts/i);
+        expect(visibleFaqs.join(" ")).toMatch(/limits/i);
+        expect(visibleFaqs.join(" ")).toMatch(/kept after conversion/i);
+        expect(container.querySelectorAll(".related-grid > a")).toHaveLength(4);
       }
       rendered.unmount();
     }

@@ -1,5 +1,19 @@
 import { readFile } from "node:fs/promises";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+import { isAdsEnabled } from "../lib/ads";
+
+it("keeps the AdSense loader off unless explicitly enabled", () => {
+  vi.stubEnv("ADS_ENABLED", "");
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "");
+  expect(isAdsEnabled()).toBe(false);
+
+  vi.stubEnv("ADS_ENABLED", "true");
+  expect(isAdsEnabled()).toBe(true);
+
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "false");
+  expect(isAdsEnabled()).toBe(false);
+  vi.unstubAllEnvs();
+});
 
 /**
  * AdSense needs two files to agree: the client id in the site-wide script and

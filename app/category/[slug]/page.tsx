@@ -27,11 +27,7 @@ export async function generateMetadata({
   if (!meta) return {};
   const published = toolsByCategory(meta.name).length > 0;
   return {
-    ...pageMetadata(
-      meta.seoTitle,
-      meta.description,
-      `/category/${meta.slug}`,
-    ),
+    ...pageMetadata(meta.seoTitle, meta.description, `/category/${meta.slug}`),
     // A category with nothing in it yet is a placeholder, not a destination:
     // keep it reachable from the nav but out of the index until it ships tools.
     ...(published ? {} : { robots: { index: false, follow: true } }),

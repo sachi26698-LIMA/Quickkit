@@ -1,21 +1,21 @@
 # QUICKKIT Phase 3 — Final Targeted Independent Signoff
 
-**Original verification date:** 2026-11-10 per the session date; closure verification occurred 2026-11-11 UTC.
-**Repository / branch:** `sachi26698-LIMA/Quickkit` / `arena/6d2c5a1f-quickkit`
-**PR branch base:** `e06be8a2c02a5dd37ea98a8487a78fb92d6d96ff` (`main` merge for PR #44); the later closure updates are recorded in the dated sections below.
-**Closure verification:** 2026-11-11 UTC. The initial audit narrative below records the prior verification and is superseded by the dated **Closure update** at the end for cutoff, test, and status conclusions. Phase 3 implementation, the truthful sitemap policy, and the focused tests are included in the PR worktree. No existing Git commits were rewritten; Phase 4 was not started.
+**Original verification date:** 2026-11-10 per the session date. **Latest closure verification:** 2026-11-11 UTC.
+**Repository / active branch:** `sachi26698-LIMA/Quickkit` / `arena/ce249373-quickkit`, based at `16863986657f42583acfda216e228e8c2f5f8aa6`.
+**Prior Phase 3 PR:** #45 was merged into `main`; this re-verification did not push, open a PR, merge, or deploy.
 
-## Overall result: LOCAL CHECKS PASS; QR TEST RELIABILITY LIMITATION REMAINS
+## Final verdict: NEEDS ATTENTION
 
-The sitemap now emits genuine, deterministic route-source Git dates without a current-time fallback or an operator cutoff. The Vercel record confirms the promoted `main` deployment became ready at `2026-11-11 06:07:54.843 UTC`; its date-only calendar date matches the 61 latest route-source dates, but the deployment predates the later active-branch SEO commits and does not verify their production behavior. The current local production build and 68-route/65-sitemap crawl pass. The repository has **1,735 distinct tests**: the latest full run had 1,734 pass and one existing QR Studio test timed out at its unchanged 60-second limit; rerunning the non-QR partition passed 1,695/1,695, and the isolated timeout-prone test passed on its own. Root cause is not conclusively isolated, so suite reliability remains an explicit limitation.
+The production Vercel record now shows a READY/PROMOTED deployment on the **exact same commit** as both the merged Phase 3 checkpoint and this active branch: `16863986657f42583acfda216e228e8c2f5f8aa6`. Thus no Phase 3 source changes are missing at the deployment commit level. This metadata is not a live HTTP/content crawl, which was not performed. Local source/Git validation confirms all 65 sitemap dates are genuine, and the optimized local build and 68-route crawl pass. Two consecutive one-worker full-suite runs passed all 1,735 tests; a four-worker run failed two tests under parallel load (including a QR Studio timeout), and earlier one-worker runs also recorded an intermittent 60-second QR timeout. No assertions or timeout were weakened; the intermittent concurrency/resource-related reliability issue remains unresolved.
 
 | Area | Status | Conclusion |
 |---|---|---|
-| Route-owned sitemap dates | **NEEDS ATTENTION** | All 65 route-source histories were inspected. 61 latest source dates are genuinely `2026-11-11`; three are `2026-11-07`, one is `2026-11-04`. A cutoff of Nov 10 omits the 61 by design; a cutoff of Nov 11 includes them. Clock authority for public release must be settled. |
-| Tests | **PASS split / NEEDS ATTENTION combined** | 1,735 distinct tests pass across the specified split commands. Two combined invocations timed out one test at its existing 60-second limit; there was no assertion failure. The cause is not conclusively isolated. |
-| Final local regression | **PASS** | Current-HEAD production build, 68 routes, 65 sitemap URLs, robots, canonical, heading, structured-data, and internal-link checks passed locally. |
-| Browser/public production | **NOT VERIFIED** | No browser executable or public production access was available. The local optimized production server is not a live deployment or visual-browser check. |
-| Scope preservation | **PASS** | The remediation diff contains no homepage source, QR Generator source, tool-processing modules, or route/catalog changes. |
+| Vercel deployment / checkpoint | **PASS, commit-level** | Latest promoted production deployment and active branch both identify SHA `16863986657f42583acfda216e228e8c2f5f8aa6`. No Phase 3 source change is absent by commit ancestry. Live response content was not directly checked. |
+| Route-owned sitemap dates | **PASS locally** | All 65 local sitemap entries have valid lastmod values matching route-mapped Git history: 61 `2026-11-11`, 3 `2026-11-07`, 1 `2026-11-04`. No wall-clock fallback, arbitrary cutoff, or backdating. Production-generated XML was not directly fetched. |
+| Tests | **NEEDS ATTENTION** | Current one-worker attempts: 2 × 1,735/1,735 pass. Four-worker attempt: 1,733/1,735; two failures include QR Studio timeout and a Word-to-PDF temp-file ENOENT. Isolated affected tests pass. Prior single-worker 60-second QR timeouts also occurred. |
+| Final local regression | **PASS locally** | TypeScript, build, and local crawl pass; ESLint has zero errors/four existing image warnings. Local optimized crawl: 68 routes, 65 sitemap URLs, zero audit issues. |
+| Browser / live behavior | **NOT VERIFIED** | Vercel deployment metadata confirms the promoted commit only. No browser visual verification or direct public production content crawl was performed. |
+| Scope preservation | **PASS** | No code edits were made in this final verification; homepage/tool functionality, URLs, category UI, and QR Generator design remain unchanged. |
 
 ## 1. Sitemap `lastmod`: all 65 routes and cutoff assessment
 
@@ -216,3 +216,113 @@ The test file uses `afterEach(cleanup())`, restores mocks and globals, clears lo
 ## Pull-request follow-up — 2026-11-11 UTC
 
 After the user requested a PR, the Phase 3 worktree was committed as `af3307fc08b3661f11e3b8917273a759f3ee3443` on the required branch `arena/6d2c5a1f-quickkit`, pushed to that branch, and opened as **PR #45** against `main`: https://github.com/sachi26698-LIMA/Quickkit/pull/45. The PR is **OPEN**. No merge or deployment was performed. The QR Studio full-suite timeout remains disclosed in the PR description and above.
+
+---
+
+## Final Phase 3 closure re-verification — 2026-11-11 UTC
+
+This section is the latest closure record and supersedes all earlier statements in this report about deployment lag, PR state, and current test outcomes.
+
+### 1. QR Studio reliability: repeated runs and investigation
+
+The repository has **1,735 distinct tests in 103 files**. Current-turn full-suite runs on the merged checkpoint produced:
+
+| Run | Execution mode | Result |
+|---|---|---|
+| Full suite 1 | `npx vitest run --maxWorkers=1` | **103/103 files; 1,735/1,735 tests passed**, 256.05 s. The “replaces the whole look…” case took 6.666 s. |
+| Full suite 2 | `npx vitest run --maxWorkers=1` | **103/103 files; 1,735/1,735 tests passed**, 259.38 s. The same case took 7.006 s. |
+| Full suite 3 | `npx vitest run --maxWorkers=4` | **101/103 files; 1,733/1,735 passed**. QR Studio “keeps download disabled until a valid link is present, and caps links at 8” timed out at the default 5 s; `word-to-pdf-engine.test.ts` also failed with `ENOENT` for a temporary `args.json` during process-cancel/cleanup. |
+| QR file alone | `npx vitest run --maxWorkers=1 tests/qr-studio.test.tsx` | **40/40 passed**, 66.54 s test time. |
+| Focused template pair | one worker, two template cases | **2 passed, 38 skipped**; 12.11 s test time. |
+| Parallel-run QR timeout isolated | one worker, timed-out “caps links at 8” case | **1 passed, 39 skipped**, 2.66 s test time. |
+| Parallel-run Word-to-PDF failure isolated | one worker, cancellation test | **1 passed, 6 skipped**, 0.28 s test time. |
+
+Earlier closure runs on the same source also recorded intermittent 60-second timeouts in QR Studio (including the whole-look template test and the vCard/Data Template test), with 1,734/1,735 passing. Thus two current serial full runs are green, but the suite is not reliably green under parallel workers, and the older 60-second timeouts show intermittent serial flakiness too.
+
+Inspection found explicit React Testing Library `cleanup()` in `afterEach`, restored spies/globals, `localStorage.clear()` in `beforeEach`, and hook cleanup that clears the heavy-render debounce timer and marks stale light-render effects cancelled. The hook also version-guards heavy-render results. Rendering/decoding can still consume CPU once started; it is not abortable mid-operation. The four-worker run's two failures disappear when those individual tests are run alone, which is direct evidence of resource contention/race sensitivity under concurrent test files. The precise cause of the historical 60-second serial outliers is not proven. `TEST_TIMEOUT = 60_000` and all assertions remain unchanged; no test or product code was modified during this re-verification. **Residual test-reliability limitation remains; report it rather than treating the two latest serial passes as proof the flake is eliminated.**
+
+### 2. Production deployment reconciliation
+
+Read-only Vercel deployment metadata identifies the latest production deployment as `dpl_G4vHXxq5zGh1nircc4y3TyQzQJiE`:
+
+- State/substate: **READY / PROMOTED**, target `production`; alias `quickkit-rosy.vercel.app`.
+- Source: GitHub `main`, SHA **`16863986657f42583acfda216e228e8c2f5f8aa6`**.
+- Created: **2026-11-11 14:50:02.498 UTC**; build began **14:50:05.009 UTC**; ready **14:51:55.741 UTC**; alias assigned **14:51:55.923 UTC**.
+- The current active branch `arena/ce249373-quickkit` has HEAD **the same SHA**. That merge commit has `af3307fc08b3661f11e3b8917273a759f3ee3443` (Phase 3 implementation) and `2c051b3b0191ba4bb423a9a4cbe8119b70a93c83` (PR follow-up docs) as ancestors. The earlier production deployment `dpl_AnhN9aDexzE7wU4wU6caXJQK6KNM` was on `e06be8a2c02a5dd37ea98a8487a78fb92d6d96ff`; the newer promoted deployment replaced that pre-Phase-3 base.
+
+**Deployment-gap result:** No Phase 3 source changes are absent at the deployed-commit level: the promoted production SHA exactly matches the active branch checkpoint and includes the Phase 3 feature commit. The deployment was created automatically after the earlier PR merge; this final verification did not create, trigger, or modify a deployment. The Vercel API response proves deployment metadata and promotion, **not** the current site's rendered content or sitemap response. No direct production HTTP crawl, browser session, or visual check was performed; live behavior remains unverified.
+
+### 3. Sitemap history verification
+
+`app/sitemap.ts` selects the latest valid, non-merge Git committer date for each route's mapped source files. It has no `Date.now()`, build-time/current-time, filesystem `mtime`, fixed environment cutoff, fabricated date, or fallback to an older commit. It omits `lastmod` only when no verifiable route-source history remains (including a shallow-history boundary). `SITEMAP_LASTMOD_NOT_AFTER` is not read. The repository history was fetched in full for this local verification; the fetch changed no branch or commit.
+
+The 11-test launch suite passed. It checks each of the **65** sitemap entries against `gitLastModifiedForFiles(routeSourceFiles(path))`, including ISO calendar-date validation and no-history omission. A fresh optimized local build was supplied a deliberately stale `SITEMAP_LASTMOD_NOT_AFTER=2026-11-10`; the setting had no effect. Its XML contained **65/65 unique URLs and 65/65 valid dates**: 61 × `2026-11-11`, 3 × `2026-11-07`, 1 × `2026-11-04`. These local values are the route-source Git dates, not deployment timestamps. The Vercel deployment uses the matching source SHA, but its served sitemap contents were not fetched; live sitemap dates are not independently verified.
+
+### 4. Final regression and scope
+
+- `npm run typecheck`: **PASS**.
+- `npm run lint`: **PASS**, zero errors and four existing QR-scanner `<img>` warnings.
+- Production `npm run build`: **PASS**.
+- Local optimized production crawl: **68/68 routes HTTP 200**, **65/65 sitemap URLs HTTP 200**, robots 200, 68 unique titles and descriptions, 68 self-canonicals, 292 valid JSON-LD nodes, 68 distinct internal targets checked and zero broken targets; no crawl issues.
+- The installed sandbox runtime was Node **22.22.3**, while `package.json` and the Vercel project specify Node **26.x**. The local build/type/lint/tests passed despite npm's engine warning; the deployed Vercel build metadata reports Node 26.x.
+- No code changes were made in this final verification. No Phase 4 work, push, PR creation, merge, or deployment occurred in this turn. The original homepage/hero, category UI, tool functionality and URLs, and QR Generator design remain unchanged.
+
+**Final verdict: NEEDS ATTENTION.** The Vercel commit gap is closed at source-commit level, local sitemap provenance and route/build/type/lint checks pass, and two repeated serial full-suite runs pass. The parallel suite reproduced QR/temporary-file failures, and historical 60-second QR timeouts remain intermittent and not fully diagnosed. Production-rendered behavior and browser visuals remain unverified. Waiting for explicit approval; no additional changes are proposed.
+
+---
+
+## Final production HTTP and reliability audit — 2026-11-11 UTC
+
+This is the latest audit record. It supersedes any prior implication that live production content was verified.
+
+### Live production access result: NOT PERFORMED / EGRESS-BLOCKED
+
+The exact READY deployment reported by Vercel is:
+
+- Deployment URL: **https://quickkit-reji1y66a-sachi26698-6758s-projects.vercel.app**
+- Production alias: **https://quickkit-rosy.vercel.app**
+- Deployment ID: `dpl_G4vHXxq5zGh1nircc4y3TyQzQJiE`
+- Vercel state: **READY / PROMOTED**, production target
+- Deployed SHA: **`16863986657f42583acfda216e228e8c2f5f8aa6`**
+
+The active branch `arena/ce249373-quickkit` is at the same SHA. PR #45's Phase 3 implementation commit `af3307fc08b3661f11e3b8917273a759f3ee3443` is an ancestor. Vercel metadata also marks the deployment `public: false`; I do not infer public accessibility from its alias.
+
+I could **not** issue direct HTTP requests to either Vercel hostname or the production domain from this sandbox: outbound internet is restricted to GitHub, npm/PyPI hosts, and those host allowlists do not include Quickkit/Vercel. The Vercel connector provides deployment metadata, not a public-page HTTP client. Therefore:
+
+- **68-route production crawl:** not performed; all live route statuses, redirects, response headers, canonical tags, robots directives, rendered headings, JSON-LD, and internal-link statuses are **unknown**, not reported as HTTP failures.
+- **Live `/sitemap.xml` and `/robots.txt`:** not fetched; their live status/body/date values are **unknown**.
+- **Live-vs-local HTML comparison:** not possible without live responses. Source commit equality is verified; runtime/environment/content equality is not.
+- **Browser/visual verification:** not performed; no browser claim is made.
+
+Vercel's read-only deployment metadata verifies a READY/PROMOTED production deployment on the checkpoint SHA. It does not substitute for the blocked HTTP crawl. No deployment was created or changed in this audit.
+
+### Current local verification and preservation
+
+The prior current-checkpoint optimized local build/crawl remains the local evidence: build passed; **68/68** local routes and **65/65** local sitemap URLs returned HTTP 200; 65 sitemap dates were Git-history checked (61 `2026-11-11`, 3 `2026-11-07`, 1 `2026-11-04`); 68 unique titles/descriptions and self-canonicals; 292 JSON-LD nodes; 68 internal targets and zero broken targets. This is local output, not live production evidence.
+
+The active branch is `arena/ce249373-quickkit`, HEAD `16863986657f42583acfda216e228e8c2f5f8aa6`. The only worktree differences are `PHASE_3_FINAL_SIGNOFF_REPORT.md` and `SEO_PROGRESS.md`, both requested verification records. No application file differs from HEAD in this audit. Thus the audit made no homepage, hero, category-card, tool-functionality, URL, or QR Generator design change. No Phase 4, push, PR, merge, or deployment occurred.
+
+### Parallel test failure investigation — repeat details
+
+In addition to the two consecutive full one-worker passes and isolated passes above, I repeated the four-worker full suite:
+
+| Four-worker run | Result |
+|---|---|
+| Run 1 (`npx vitest run --maxWorkers=4`) | **1,733/1,735 passed**; QR Studio “keeps download disabled until a valid link is present, and caps links at 8” hit its default 5-second timeout; Word-to-PDF cancellation test failed reading missing `/tmp/quickkit-engine-test-MUUJDu/args.json` (`ENOENT`). |
+| Run 2 (`npx vitest run --maxWorkers=4`) | **1,734/1,735 passed**; QR Studio case passed in 2.365 s; Word-to-PDF cancellation test again failed reading missing `/tmp/quickkit-engine-test-Wf1Z95/args.json` (`ENOENT`). |
+
+The Word-to-PDF cancellation test passes alone and the full file passes **7/7** alone (0.871 s test time). The test creates a unique directory with `mkdtemp`, writes a unique fake executable and `args.json`, schedules `AbortController.abort()` after **250 ms**, then reads the fake executable's argument record after cancellation. The process code uses a detached child, abort listener, and `finally` removal of its private working directory. The unique temp-directory pattern argues against two tests sharing the same path. Under parallel CPU pressure the 250 ms abort can plausibly fire before the fake child starts and writes its record; the subsequent unconditional `readFile(record)` then surfaces `ENOENT`. This explains the evidence but is not proven by a trace. No temp-file assertion or 250 ms test delay was changed.
+
+The QR Studio test that failed in worker-4 run 1 passes alone in 2.656 s; the whole QR test file passes **40/40** alone and both current one-worker full suites pass **1,735/1,735**. RTL cleanup, mock/global restoration, localStorage clearing, debounce cancellation, and stale-render guards were inspected. Parallel contention from other CPU-heavy tests explains the default 5-second timeout more directly than shared DOM/storage state. The historical 60-second serial timeout remains intermittent and unexplained; current serial repeats do not prove it eliminated. The `60_000` timeout and assertions remain unchanged.
+
+**Reliability disposition:** serial suite is green twice consecutively; parallel execution reproduced the Word-to-PDF race twice and the QR Studio short-timeout once. These failures are reproducible as concurrency sensitivity, not as a deterministic product regression. The timeout/race root cause remains unresolved; no application or test code was altered.
+
+## Final verdict: NEEDS ATTENTION
+
+- **Vercel deployment metadata:** PASS — exact READY/PROMOTED deployment SHA matches active Phase 3 checkpoint.
+- **Local build/crawl and source sitemap history:** PASS — see evidence above.
+- **Live production HTTP/routes/sitemap:** NOT VERIFIED — blocked by sandbox egress; statuses and differences are unknown, not assumed good or bad.
+- **Real-browser verification:** NOT PERFORMED.
+- **Test reliability:** NEEDS ATTENTION — two single-worker full passes, but repeat parallel failures and historical intermittent QR timeout remain.
+
+No further work is being performed. Stopped for explicit approval.

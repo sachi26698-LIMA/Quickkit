@@ -8,6 +8,7 @@
  * in a single tap without scrolling down the page.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   Check,
   Copy,
@@ -447,9 +448,13 @@ function RedirectModalBody({
 
             {item.imageUrl && (
               <div className="scanner-popup-preview">
-                <img
+                <Image
                   src={item.imageUrl}
                   alt={`Scanned QR from ${item.sourceName}`}
+                  width={item.imageWidth}
+                  height={item.imageHeight}
+                  unoptimized
+                  loading="eager"
                 />
                 <div>
                   <strong>{recognition.summary}</strong>

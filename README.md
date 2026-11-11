@@ -14,7 +14,7 @@
 
 ## Setup
 
-Launch audit verified Node.js 22.23.4. Use Node 22 (`.nvmrc`, package engines and CI are aligned). Earlier Node 20 results are historical, not the chosen deployment runtime.
+Historical launch-audit checks ran on Node.js 22.23.4. The current project target is Node.js 26.x (`.nvmrc`, `package.json` engines and CI); Phase 5 ran on Node.js 22.22.3 and the production build passed, but that does not verify the declared Node 26 deployment runtime. Use Node 26 for release validation. Earlier Node 20/22 runtime instructions are historical.
 
 ```sh
 npm ci
@@ -82,11 +82,11 @@ Every page states plainly that it is a draft pending owner details and legal rev
 
 ## Security and privacy
 
-Tool inputs remain in browser memory; no uploads, persistent tool storage, accounts, payment handling, ad SDK or analytics. Storage is limited to `localStorage` preferences (saved tools, QR presets/history, retention choices) and opt-in IndexedDB conversion history that holds converted outputs only; the site sets no cookies and no analytics, so there is no consent banner. Legal pages accurately mark operator identity/contact, jurisdiction and provider retention details as owner-supplied launch requirements. Fonts are bundled. Copying and downloading use the device clipboard/filesystem; these have their own privacy implications. Hosting still receives ordinary page/asset requests.
+Tool inputs remain in browser memory; no uploads, persistent tool storage, accounts, payment handling or analytics. AdSense integration is present but its loader is off unless `ADS_ENABLED=true` is explicitly configured; ads are not enabled by default. Storage is limited to `localStorage` preferences (saved tools, QR presets/history, retention choices) and opt-in IndexedDB conversion history that holds converted outputs only; the site sets no cookies and no analytics, so there is no consent banner. Legal pages accurately mark operator identity/contact, jurisdiction and provider retention details as owner-supplied launch requirements. Fonts are bundled. Copying and downloading use the device clipboard/filesystem; these have their own privacy implications. Hosting still receives ordinary page/asset requests.
 
-Security headers include CSP, HSTS, nosniff, referrer policy and permissions policy. CSP permits inline framework scripts/styles because the current static Next.js shell requires them; it forbids eval, objects and remote script sources. A future nonce-based CSP would require reviewing dynamic rendering/cache implications. Framing restrictions are not added because the Arena preview needs embedding; review `frame-ancestors` for the actual standalone deployment.
+Security headers include CSP, HSTS, nosniff, referrer policy and permissions policy. CSP permits inline framework scripts/styles because the current static Next.js shell requires them; it forbids JavaScript `eval` and plugin objects. Explicit Google AdSense hosts remain allow-listed in CSP for a separately enabled ad integration, but the loader is off by default. `frame-ancestors 'none'` blocks framing/clickjacking; review this if the actual hosting preview requires embedding. A future nonce-based CSP would require reviewing dynamic rendering/cache implications.
 
-Production audit: **0 vulnerabilities**. Original full audit: **16 moderate entries**, all one inherited minimatch GHSA. Scoped override upgrades only the TypeScript parser’s minimatch 10.2.6 to 11.0.3; an 80-case pre-upgrade corpus and real project-service parser call verify the supported consumer API. Older ESLint/plugin callable v3 APIs are preserved. **15 raw moderate dev-only entries remain** on minimatch 3.1.5 ancestry. Source review finds the described v7+ optimizer absent in v3, but this is our assessment, not an upstream change to the advisory or a clean full audit. Owner/security acceptance or compatible upstream remediation remains a release gate. Full per-entry chains and evidence: `docs/security/DEPENDENCY_REVIEW.md`. No audit suppression, global breaking override, forced downgrade or lint-rule deletion was used.
+Fresh Phase 5 audits on 10 November 2026: `npm audit --audit-level=moderate` and `npm audit --omit=dev --audit-level=moderate` both reported **0 vulnerabilities**. `docs/security/DEPENDENCY_REVIEW.md` records an earlier, dated advisory review and its then-current minimatch findings; those historical counts are not the current audit result. No audit suppression, global breaking override, forced downgrade or lint-rule deletion is used.
 
 The package remains private and is now marked UNLICENSED pending an owner-approved source licence decision, rather than granting the npm initializer’s default ISC licence. Third-party licence obligations remain applicable.
 

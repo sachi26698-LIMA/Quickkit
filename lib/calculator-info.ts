@@ -151,7 +151,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Adult WHO screening bands",
-        expression: "<18.5 Underweight · 18.5–24.9 Healthy · 25–29.9 Overweight · ≥30 Obesity",
+        expression:
+          "<18.5 Underweight · 18.5–24.9 Healthy · 25–29.9 Overweight · ≥30 Obesity",
         note: "suppressed unless age 20+ is confirmed",
       },
     ],
@@ -231,12 +232,14 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Buy X, get Y free",
-        expression: "Free = ⌊Qty ÷ (X + Y)⌋ × Y + max(0, (Qty mod (X + Y)) − X)",
+        expression:
+          "Free = ⌊Qty ÷ (X + Y)⌋ × Y + max(0, (Qty mod (X + Y)) − X)",
         note: "paid units = Qty − Free",
       },
       {
         label: "Margin vs markup",
-        expression: "Margin = (Sale − Cost) ÷ Sale × 100 · Markup = (Sale − Cost) ÷ Cost × 100",
+        expression:
+          "Margin = (Sale − Cost) ÷ Sale × 100 · Markup = (Sale − Cost) ÷ Cost × 100",
         note: "calculated on pre-tax proceeds",
       },
     ],
@@ -306,7 +309,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "GST-inclusive (remove GST)",
-        expression: "Taxable = Gross ÷ (1 + Rate ÷ 100) · GST = Gross − Taxable",
+        expression:
+          "Taxable = Gross ÷ (1 + Rate ÷ 100) · GST = Gross − Taxable",
         note: "equivalent to Gross × Rate ÷ (100 + Rate)",
       },
       {
@@ -325,7 +329,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       {
         scenario: "Add 18% GST to ₹10,000 (exclusive)",
         calculation: "Taxable ₹10,000.00 + ₹1,800.00 GST",
-        result: "₹11,800.00 total (CGST ₹900.00 + SGST ₹900.00, or IGST ₹1,800.00)",
+        result:
+          "₹11,800.00 total (CGST ₹900.00 + SGST ₹900.00, or IGST ₹1,800.00)",
       },
       {
         scenario: "Extract 18% GST from ₹11,800 MRP (inclusive)",
@@ -333,8 +338,10 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
         result: "₹1,800.00 GST extracted (not 18% of 11,800 = ₹2,124)",
       },
       {
-        scenario: "Invoice line: 2 units × ₹1,500, 10% discount, 18% exclusive GST",
-        calculation: "Gross ₹3,000.00 − ₹300.00 discount = ₹2,700.00 taxable + ₹486.00 GST",
+        scenario:
+          "Invoice line: 2 units × ₹1,500, 10% discount, 18% exclusive GST",
+        calculation:
+          "Gross ₹3,000.00 − ₹300.00 discount = ₹2,700.00 taxable + ₹486.00 GST",
         result: "₹3,186.00 line total",
       },
     ],
@@ -381,7 +388,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
     formulas: [
       {
         label: "Completed months",
-        expression: "m = (Year₂ − Year₁) × 12 + (Month₂ − Month₁), minus 1 if addMonths(Birth, m) > Target",
+        expression:
+          "m = (Year₂ − Year₁) × 12 + (Month₂ − Month₁), minus 1 if addMonths(Birth, m) > Target",
         note: "Years = ⌊m ÷ 12⌋, Months = m mod 12",
       },
       {
@@ -391,7 +399,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Total elapsed days & weeks",
-        expression: "Days = (Target − Birth) ÷ 86,400,000 ms · Weeks = Days ÷ 7",
+        expression:
+          "Days = (Target − Birth) ÷ 86,400,000 ms · Weeks = Days ÷ 7",
         note: "exact Gregorian leap-year day count",
       },
       {
@@ -405,7 +414,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       {
         scenario: "Born 1996-05-15, age on 2026-11-10",
         calculation: "365 completed months + (2026-11-10 − 2026-10-15)",
-        result: "30 years, 5 months, 26 days (11,136 total days; next birthday in 186 days)",
+        result:
+          "30 years, 5 months, 26 days (11,136 total days; next birthday in 186 days)",
       },
       {
         scenario: "Leap-day birth 2000-02-29, age on 2025-02-28",
@@ -456,12 +466,14 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
     formulas: [
       {
         label: "Calendar day span",
-        expression: "Days = (End − Start) ÷ 86,400,000 ms + (Inclusive ? 1 : 0)",
+        expression:
+          "Days = (End − Start) ÷ 86,400,000 ms + (Inclusive ? 1 : 0)",
         note: "Weeks = Days ÷ 7",
       },
       {
         label: "Monday–Friday business days",
-        expression: "⌊Days ÷ 7⌋ × 5 + weekday remainder − unique weekday holidays in span",
+        expression:
+          "⌊Days ÷ 7⌋ × 5 + weekday remainder − unique weekday holidays in span",
         note: "weekend holidays are never double-subtracted",
       },
       {
@@ -473,7 +485,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
     examplesBlockTitle: "Worked date-span examples",
     examples: [
       {
-        scenario: "2026-03-01 to 2026-03-31 (end excluded, 1 weekday holiday 2026-03-04)",
+        scenario:
+          "2026-03-01 to 2026-03-31 (end excluded, 1 weekday holiday 2026-03-04)",
         calculation: "30 calendar days · 21 weekdays − 1 holiday",
         result: "0 years, 0 months, 30 days · 20 business days",
       },
@@ -539,7 +552,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Monthly schedule step",
-        expression: "Interestₘ = Balanceₘ₋₁ × r · Principalₘ = Paymentₘ − Interestₘ",
+        expression:
+          "Interestₘ = Balanceₘ₋₁ × r · Principalₘ = Paymentₘ − Interestₘ",
         note: "extra monthly or one-time prepayment adds to Principalₘ",
       },
     ],
@@ -548,12 +562,14 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       {
         scenario: "₹10,00,000 loan at 8.5% p.a. for 120 months (10 years)",
         calculation: "r = 0.085 ÷ 12, n = 120 reducing-balance months",
-        result: "₹12,398.57 / month EMI · ₹4,87,828.27 total interest · ₹14,87,828.27 total",
+        result:
+          "₹12,398.57 / month EMI · ₹4,87,828.27 total interest · ₹14,87,828.27 total",
       },
       {
         scenario: "Same ₹10,00,000 loan + ₹2,000 extra payment every month",
         calculation: "₹14,398.57 paid monthly toward interest + principal",
-        result: "Paid off in 96 months (2 years early) · ₹1,06,446.83 interest saved",
+        result:
+          "Paid off in 96 months (2 years early) · ₹1,06,446.83 interest saved",
       },
     ],
     disclaimer:
@@ -604,17 +620,20 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Periodic payment (k payments/year)",
-        expression: "Payment = P × r ÷ (1 − (1 + r)⁻ⁿ),  where r = Rate ÷ (100 × k)",
+        expression:
+          "Payment = P × r ÷ (1 − (1 + r)⁻ⁿ),  where r = Rate ÷ (100 × k)",
         note: "k = 12 monthly, 4 quarterly, 1 annual",
       },
       {
         label: "Debt-to-income payment budget",
-        expression: "Budget = max(0, GrossMonthlyIncome × (MaxRatio ÷ 100) − ExistingDebt)",
+        expression:
+          "Budget = max(0, GrossMonthlyIncome × (MaxRatio ÷ 100) − ExistingDebt)",
         note: "MaxLoan = Budget ÷ PaymentPerUnitPrincipal",
       },
       {
         label: "Variable-rate reset",
-        expression: "Re-computes Payment over remaining periods (N − p + 1) at each rate change",
+        expression:
+          "Re-computes Payment over remaining periods (N − p + 1) at each rate change",
         note: "entered as period:annualRate pairs",
       },
     ],
@@ -623,17 +642,22 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       {
         scenario: "₹50,00,000 fixed loan at 9% p.a. for 20 years (240 months)",
         calculation: "r = 0.09 ÷ 12 = 0.0075, n = 240 months",
-        result: "₹44,986.30 / month · ₹57,96,711.47 total interest · ₹1,07,96,711.47 total",
+        result:
+          "₹44,986.30 / month · ₹57,96,711.47 total interest · ₹1,07,96,711.47 total",
       },
       {
-        scenario: "Affordability at ₹1,20,000 income, ₹15,000 existing debt, 36% cap",
+        scenario:
+          "Affordability at ₹1,20,000 income, ₹15,000 existing debt, 36% cap",
         calculation: "(₹1,20,000 × 0.36) − ₹15,000 = ₹43,200 − ₹15,000",
         result: "₹28,200 / month available loan payment budget",
       },
       {
-        scenario: "₹20,00,000 60-month variable loan: 8.5% initially, 9.25% at month 25",
-        calculation: "Months 1–24 at 8.5%, re-amortized over 36 remaining months at 9.25%",
-        result: "₹41,033.06 initial payment → ₹41,486.29 from month 25 · ₹4,78,299.92 total interest",
+        scenario:
+          "₹20,00,000 60-month variable loan: 8.5% initially, 9.25% at month 25",
+        calculation:
+          "Months 1–24 at 8.5%, re-amortized over 36 remaining months at 9.25%",
+        result:
+          "₹41,033.06 initial payment → ₹41,486.29 from month 25 · ₹4,78,299.92 total interest",
       },
     ],
     disclaimer:
@@ -679,7 +703,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
     formulas: [
       {
         label: "Precedence (highest → lowest)",
-        expression: "() & functions → n! → a^b (right-assoc.) → unary +/− → * / → + −",
+        expression:
+          "() & functions → n! → a^b (right-assoc.) → unary +/− → * / → + −",
         note: "e.g. 2^3^2 = 2^(3^2) = 512; −3^2 = −(3^2) = −9",
       },
       {
@@ -689,12 +714,14 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Logs, roots & constants",
-        expression: "log(x) [base 10], ln(x) [base e], sqrt(x), abs(x), pi, e, ans",
+        expression:
+          "log(x) [base 10], ln(x) [base e], sqrt(x), abs(x), pi, e, ans",
         note: "hyperbolic sinh, cosh, tanh, asinh, acosh, atanh also included",
       },
       {
         label: "Factorials & combinatorics",
-        expression: "n!  ·  nCr(n, r) = n! ÷ (r!(n − r)!)  ·  nPr(n, r) = n! ÷ (n − r)!",
+        expression:
+          "n!  ·  nCr(n, r) = n! ÷ (r!(n − r)!)  ·  nPr(n, r) = n! ÷ (n − r)!",
         note: "integers 0 ≤ r ≤ n ≤ 170",
       },
     ],
@@ -762,17 +789,20 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Decimal vs binary data",
-        expression: "1 GB = 10⁹ B (1,000 MB)  ·  1 GiB = 2³⁰ B = 1,073,741,824 B (1,024 MiB)",
+        expression:
+          "1 GB = 10⁹ B (1,000 MB)  ·  1 GiB = 2³⁰ B = 1,073,741,824 B (1,024 MiB)",
         note: "both SI decimal and IEC binary prefixes included",
       },
       {
         label: "US vs Imperial volume",
-        expression: "1 US gallon = 3.785411784 L  ·  1 Imperial gallon = 4.54609 L",
+        expression:
+          "1 US gallon = 3.785411784 L  ·  1 Imperial gallon = 4.54609 L",
         note: "Imperial gallon is ~20.095% larger",
       },
       {
         label: "Reciprocal fuel economy",
-        expression: "L/100 km = 235.214583 ÷ US mpg  =  282.480936 ÷ Imperial mpg",
+        expression:
+          "L/100 km = 235.214583 ÷ US mpg  =  282.480936 ÷ Imperial mpg",
         note: "requires a positive fuel value > 0",
       },
     ],
@@ -918,7 +948,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
     formulas: [
       {
         label: "Fixed duration units",
-        expression: "1 min = 60 s · 1 hr = 3,600 s · 1 day = 86,400 s · 1 wk = 604,800 s",
+        expression:
+          "1 min = 60 s · 1 hr = 3,600 s · 1 day = 86,400 s · 1 wk = 604,800 s",
         note: "duration Month = 30 d (720 hr); duration Year = 365 d (8,760 hr)",
       },
       {
@@ -928,12 +959,14 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
       },
       {
         label: "Calendar duration shift",
-        expression: "shiftCalendar(Date, ±N, days|weeks|months|years) keeping HH:MM",
+        expression:
+          "shiftCalendar(Date, ±N, days|weeks|months|years) keeping HH:MM",
         note: "clamps month-end dates and rejects nonexistent DST gap times",
       },
       {
         label: "IANA time-zone planner",
-        expression: "Local Civil Time (Source Zone) → UTC Instant → Target Zones (1–10)",
+        expression:
+          "Local Civil Time (Source Zone) → UTC Instant → Target Zones (1–10)",
         note: "detects DST spring-forward gaps & fall-back repeated hours (1900–2099)",
       },
     ],
@@ -945,7 +978,8 @@ export const calculatorInfo: Record<string, CalculatorInfoEntry> = {
         result: "60 Hours (3,600 Minutes)",
       },
       {
-        scenario: "Working hours: Mon 2026-11-09 14:00 to Wed 2026-11-11 11:30 (Mon–Fri, 09:00–17:00)",
+        scenario:
+          "Working hours: Mon 2026-11-09 14:00 to Wed 2026-11-11 11:30 (Mon–Fri, 09:00–17:00)",
         calculation: "3.0 hr (Mon) + 8.0 hr (Tue) + 2.5 hr (Wed)",
         result: "13.50 working hours (out of 45.50 elapsed hours)",
       },

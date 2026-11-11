@@ -25,27 +25,31 @@ export const metadata = pageMetadata(
 const WORD_TO_PDF_FAQS = [
   {
     q: "Are my DOCX files uploaded automatically?",
-    a: "No. You must check the consent box and choose Convert, Refresh, or separately enable automatic re-uploads. Without consent, the files stay on your device and are not sent.",
+    a: "No. The files stay on your device until you check the explicit server-processing consent box and start conversion. Refreshing or enabling automatic re-uploads also requires consent; without it, no file is sent.",
   },
   {
-    q: "How long are uploaded files kept?",
-    a: "Files are processed in an ephemeral temporary directory and deleted after processing. Conversion results stay in this tab until you clear them or close it.",
+    q: "Will the PDF look exactly like it does in Microsoft Word?",
+    a: "Not always. The available engine is shown before conversion, and the preview and conversion report identify the result and any warnings. Native LibreOffice conversion generally preserves Office layout more closely; QUICKKIT’s built-in renderer can differ on advanced layout, fields, and floating objects. Review the converted pages before downloading.",
   },
   {
-    q: "Which Word files can I convert?",
-    a: "The workspace accepts DOCX files up to 20 MiB each, with up to 10 files per queue, 80 MiB total, and 1,000 pages. Legacy .doc and encrypted DOCX files are rejected.",
+    q: "What happens if my document uses fonts that are not available?",
+    a: "Font substitution can change line breaks and page layout. QUICKKIT’s built-in renderer embeds its bundled Noto fonts; native LibreOffice conversion uses fonts available to that conversion environment. Check the preview and report for layout differences, especially in documents that depend on specialized fonts.",
   },
   {
-    q: "Can I edit pages before downloading?",
-    a: "Yes. After conversion, page-level changes, ordering, appearance settings, and export settings update the preview. Download is enabled only when the preview and exported PDF are synchronized.",
+    q: "What are the file and batch limits?",
+    a: "Add up to 10 DOCX files, with a maximum of 20 MiB per file and 80 MiB total in the queue. The workspace supports up to 1,000 pages. Legacy .doc and encrypted DOCX files are not accepted.",
+  },
+  {
+    q: "Are uploaded documents kept after conversion?",
+    a: "The server processes each upload in a temporary directory and removes that directory after processing, including on conversion failure. The generated result remains in this tab until you clear it or close the tab; it is not retained by the conversion endpoint.",
   },
 ];
 
 const WORD_TO_PDF_STEPS = [
-  "Add one or more .docx files and inspect the queue, page counts, and available conversion engine.",
-  "Choose global or per-file conversion settings; select page ranges or use the page editor after the first conversion.",
-  "Check the explicit consent box before any upload, then choose Convert documents. Each request uses a no-store policy and the server deletes temporary files after processing.",
-  "Review the actual PDF.js preview and any fidelity notes, adjust pages if needed, then download individual PDFs or a ZIP with the conversion report.",
+  "Add up to 10 .docx files and review the queue, page counts, limits, and currently available conversion engine.",
+  "Choose the document and page settings. You can set page ranges before conversion and make further page or appearance edits in the workspace afterward.",
+  "Read and accept the server-processing consent before starting conversion. Files are sent only after consent; each request is non-cacheable and temporary server files are removed after processing.",
+  "Review the converted PDF in the page preview, check engine notes and any fidelity warnings, then download an individual PDF or the batch ZIP and report.",
 ];
 
 export default function Page() {
@@ -87,7 +91,7 @@ export default function Page() {
         <div className="tool-guidance">
           <section>
             <span className="eyebrow">A quick walkthrough</span>
-            <h2>How to convert DOCX files to PDF</h2>
+            <h2>How Word to PDF works</h2>
             <ol>
               {WORD_TO_PDF_STEPS.map((step) => (
                 <li key={step}>{step}</li>
@@ -115,7 +119,7 @@ export default function Page() {
             </Link>
           </div>
           <div className="related-grid">
-            {related.map((t) => (
+            {related.slice(0, 4).map((t) => (
               <Link
                 className={`related-card cat-${toolTone(t)}`}
                 key={t.slug}

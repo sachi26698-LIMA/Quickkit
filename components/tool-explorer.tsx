@@ -15,7 +15,9 @@ import {
 import ToolCard from "@/components/tool-card";
 import { useHydrated } from "@/lib/use-hydrated";
 
-export function resolveExplorerCategory(value: string | null | undefined): Category {
+export function resolveExplorerCategory(
+  value: string | null | undefined,
+): Category {
   if (!value) return "All tools";
   const bySlug = metaBySlug(value);
   if (bySlug) return bySlug.name;
@@ -190,7 +192,8 @@ function ToolExplorerWithUrlParams({
   const searchParams = useSearchParams();
   const qParam = searchParams?.get("q");
   const catParam = searchParams?.get("category");
-  const resolvedQuery = qParam !== null && qParam !== undefined ? qParam : (initialQuery ?? "");
+  const resolvedQuery =
+    qParam !== null && qParam !== undefined ? qParam : (initialQuery ?? "");
   const resolvedCategory =
     catParam !== null && catParam !== undefined
       ? resolveExplorerCategory(catParam)

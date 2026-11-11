@@ -70,27 +70,27 @@ export default function ToolShell({
       </nav>
       {/* The same four levels the breadcrumb above shows. Every one of the 42
           tool pages gets it from here. */}
-        <JsonLd
-          data={breadcrumbStructuredData([
-            { name: "Home", path: "/" },
-            { name: "Tools", path: "/tools" },
-            {
-              name: primaryCategory.name,
-              path: `/category/${primaryCategory.slug}`,
-            },
-            { name: tool.name, path: `/tools/${tool.slug}` },
-          ])}
-        />
-        <JsonLd
-          data={toolStructuredData({
-            name: tool.name,
-            description: headingDescription ?? tool.description,
-            path: `/tools/${tool.slug}`,
-            category: tool.category,
-            slug: tool.slug,
-            faqs: content.faqs,
-          })}
-        />
+      <JsonLd
+        data={breadcrumbStructuredData([
+          { name: "Home", path: "/" },
+          { name: "Tools", path: "/tools" },
+          {
+            name: primaryCategory.name,
+            path: `/category/${primaryCategory.slug}`,
+          },
+          { name: tool.name, path: `/tools/${tool.slug}` },
+        ])}
+      />
+      <JsonLd
+        data={toolStructuredData({
+          name: tool.name,
+          description: headingDescription ?? tool.description,
+          path: `/tools/${tool.slug}`,
+          category: tool.category,
+          slug: tool.slug,
+          faqs: content.faqs,
+        })}
+      />
       {compact ? (
         <header className="tool-title tool-title-compact">
           <ToolIcon3D tool={tool} size={64} />
