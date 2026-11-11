@@ -528,7 +528,7 @@ export default function ImagesToPdf() {
     <div className="converter-workspace">
       <div className="workspace-heading">
         <div>
-          <h2>Images to PDF Converter</h2>
+          <h2>Arrange images and set PDF page options</h2>
           <p>
             Put your pictures into one PDF, one image per page, with real page
             sizes, margins and ordering.

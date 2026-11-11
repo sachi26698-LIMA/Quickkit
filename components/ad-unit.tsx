@@ -55,8 +55,12 @@ export default function AdUnit({
 }) {
   const insRef = useRef<HTMLModElement | null>(null);
   const pushed = useRef(false);
+  const disabled =
+    process.env.ADS_ENABLED === "false" ||
+    process.env.NEXT_PUBLIC_ADS_ENABLED === "false";
 
   useEffect(() => {
+    if (disabled) return;
     // React may mount twice (StrictMode, Fast Refresh) and the App Router may
     // swap pages; a second push on the same <ins> logs an AdSense error, so each
     // mounted element pushes exactly once. An element AdSense has already
@@ -71,7 +75,9 @@ export default function AdUnit({
     } catch {
       // Ad blocker, offline, or not yet approved: the slot simply stays empty.
     }
-  }, []);
+  }, [disabled]);
+
+  if (disabled) return null;
 
   return (
     <aside

@@ -219,7 +219,51 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="pdf-to-word">9. PDF to Word (with optional OCR)</h2>
+      <h2 id="pdf-lock-unlock">9. PDF Lock &amp; Unlock</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> up to 20 PDFs, 50 MB each, 100 MB per batch,
+          1,000 pages per file and 2,000 pages per batch.
+        </li>
+        <li>
+          <strong>Processing:</strong> a dedicated Web Worker runs a self-hosted
+          QPDF WebAssembly build (<code>/qpdf/0.3.1</code>) to encrypt PDFs with
+          AES-256 or AES-128 or to remove encryption when you supply the valid
+          open or owner password.
+        </li>
+        <li>
+          <strong>Storage:</strong> none. Passwords you enter live only in
+          worker memory for the length of the operation and are never logged,
+          persisted or transmitted.
+        </li>
+        <li>
+          <strong>Limits:</strong> generated output is capped at 128 MB; signed
+          documents and unknown passwords cannot be unlocked.
+        </li>
+      </ul>
+
+      <h2 id="word-to-pdf">10. Word to PDF (server conversion)</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> up to 10 DOCX files per batch, 20 MiB each,
+          80 MiB total queue, up to 1,000 pages and 50 MiB per rendered PDF.
+        </li>
+        <li>
+          <strong>Processing:</strong> unlike the browser-local tools on this
+          page, Word to PDF sends your selected DOCX bytes to{" "}
+          <code>/api/word-to-pdf</code> only after explicit same-origin server
+          conversion consent (<code>x-quickkit-consent: server-conversion</code>
+          ). Page selection, headers/footers and PDF.js previews run alongside
+          operator-controlled conversion.
+        </li>
+        <li>
+          <strong>Storage:</strong> responses carry{" "}
+          <code>Cache-Control: no-store</code>; temporary server job files are
+          deleted after conversion, with no default permanent document store.
+        </li>
+      </ul>
+
+      <h2 id="pdf-to-word">11. PDF to Word (with optional OCR)</h2>
       <ul>
         <li>
           <strong>Input:</strong> up to 50 PDFs, 25 MB each, 250 MB per batch,
@@ -230,8 +274,11 @@ export default function FileHandlingPage() {
           recover text runs, headings, lists, tables and images; those are
           rebuilt into a DOCX with a bundled document library. Pages with no
           extractable text can be rasterised and passed to a locally hosted OCR
-          engine (tesseract.js with WebAssembly, plus English, Hindi and
-          Gujarati language data served from <code>/ocr</code> on this site).
+          engine (tesseract.js with WebAssembly, plus eight self-hosted language
+          packs — <code>eng</code>, <code>hin</code>, <code>guj</code>,{" "}
+          <code>mar</code>, <code>ben</code>, <code>tam</code>,{" "}
+          <code>tel</code> and <code>urd</code> — served from <code>/ocr</code>{" "}
+          on this site).
         </li>
         <li>
           <strong>Storage:</strong> optional. If you turn history on, converted
@@ -246,7 +293,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="pdf-translator">10. PDF Translator (not implemented)</h2>
+      <h2 id="pdf-translator">12. PDF Translator (not implemented)</h2>
       <p>
         There is no PDF translator in QUICKKIT today. Nothing on the site
         translates a document, and no document text is sent anywhere for
@@ -257,7 +304,7 @@ export default function FileHandlingPage() {
         treat &ldquo;PDF Translator&rdquo; as unavailable.
       </p>
 
-      <h2 id="image-to-image">11. Image to Image Converter</h2>
+      <h2 id="image-to-image">13. Image to Image Converter</h2>
       <ul>
         <li>
           <strong>Input:</strong> up to 20 images per batch, 15 MB each, 24
@@ -282,7 +329,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="image-compressor">12. Image Compressor</h2>
+      <h2 id="image-compressor">14. Image Compressor</h2>
       <ul>
         <li>
           <strong>Input:</strong> up to 20 JPEG, PNG, WebP or AVIF images per
@@ -305,7 +352,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="image-resizer">13. Image Resizer</h2>
+      <h2 id="image-resizer">15. Image Resizer</h2>
       <ul>
         <li>
           <strong>Input:</strong> up to 20 images per batch, 15 MB each, 24
@@ -323,7 +370,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="image-cropper">14. Image Cropper</h2>
+      <h2 id="image-cropper">16. Image Cropper</h2>
       <ul>
         <li>
           <strong>Input:</strong> up to 20 images per batch, 15 MB each, 24
@@ -341,7 +388,29 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="images-to-pdf">15. Images to PDF</h2>
+      <h2 id="image-to-text">17. Image to Text (OCR)</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> up to 40 images or 40 PDF pages per batch,
+          25 MB per file and 200 MB per batch; images larger than 4,000 px on
+          the longest side are downscaled before recognition.
+        </li>
+        <li>
+          <strong>Processing:</strong> preprocessing, deskewing and optical
+          character recognition run locally in your browser using self-hosted{" "}
+          <code>tesseract.js</code> WebAssembly and eight language packs (
+          <code>eng</code>, <code>hin</code>, <code>guj</code>, <code>mar</code>
+          , <code>ben</code>, <code>tam</code>, <code>tel</code> and{" "}
+          <code>urd</code>) served from <code>/ocr</code>.
+        </li>
+        <li>
+          <strong>Storage:</strong> none persistent — recognised text, undo
+          steps (up to 100) and TXT/DOCX/PDF/CSV/JSON exports stay in tab memory
+          until downloaded or cleared.
+        </li>
+      </ul>
+
+      <h2 id="images-to-pdf">18. Images to PDF</h2>
       <ul>
         <li>
           <strong>Input:</strong> multiple images; 15 MB per image and 25 MB per
@@ -358,7 +427,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="pdf-to-image">16. PDF to Image</h2>
+      <h2 id="pdf-to-image">19. PDF to Image</h2>
       <ul>
         <li>
           <strong>Input:</strong> one PDF, 25 MB, up to 100 pages rendered per
@@ -380,7 +449,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="pdf-studio">17. PDF Studio</h2>
+      <h2 id="pdf-studio">20. PDF Studio</h2>
       <ul>
         <li>
           <strong>Input:</strong> multiple PDFs, subject to the same per-file
@@ -398,16 +467,19 @@ export default function FileHandlingPage() {
         </li>
       </ul>
 
-      <h2 id="qr-generator">18. QR Code Generator</h2>
+      <h2 id="qr-generator">21. QR Code Generator</h2>
       <ul>
         <li>
-          <strong>Input:</strong> text you type, up to about 2,000 UTF-8 bytes.
-          No file upload is required.
+          <strong>Input:</strong> structured or raw payloads up to about 2,000
+          UTF-8 bytes across 28 content types, plus optional CSV batch rows and
+          centre-logo images.
         </li>
         <li>
           <strong>Processing:</strong> the matrix is generated in the browser,
-          rendered to PNG/SVG/PDF, and passed through a bundled decoder before
-          download so a non-scannable design is blocked rather than shipped.
+          optionally signed with ECDSA or encrypted with AES-256-GCM for{" "}
+          <code>/qr</code> Data Templates, rendered to PNG/SVG/PDF, and passed
+          through a bundled decoder before download so a non-scannable design is
+          blocked rather than shipped.
         </li>
         <li>
           <strong>Storage:</strong> design presets and a recent-generations
@@ -416,14 +488,34 @@ export default function FileHandlingPage() {
           example a Wi-Fi password) are never written.
         </li>
         <li>
-          <strong>Sharing:</strong> a share link packs the configuration into
-          the URL fragment after <code>#</code>, which browsers do not transmit
-          to a server. Do not treat a shared link as secret — anyone holding it
-          can read the QR content.
+          <strong>Sharing:</strong> a share link or Data Template packs payload
+          data into URL parameters or fragments decoded in the browser. Do not
+          treat an unencrypted QR link as secret — anyone holding it can read
+          the content.
         </li>
       </ul>
 
-      <h2 id="calculators">19. Calculators and other browser tools</h2>
+      <h2 id="qr-scanner">22. QR Code Scanner</h2>
+      <ul>
+        <li>
+          <strong>Input:</strong> live camera frames (requested via{" "}
+          <code>getUserMedia</code> only when you start the camera) or image
+          files and screenshots up to 25 MB and 40 megapixels each.
+        </li>
+        <li>
+          <strong>Processing:</strong> frames and images are decoded locally in
+          a Web Worker to detect one or multiple QR codes per picture and
+          classify destinations before you open any link.
+        </li>
+        <li>
+          <strong>Storage:</strong> optional local scan history in{" "}
+          <code>localStorage</code> (capped at 200 entries), clearable from the
+          workspace at any time; camera video frames are never recorded or
+          uploaded.
+        </li>
+      </ul>
+
+      <h2 id="calculators">23. Calculators and other browser tools</h2>
       <p>
         Word Counter, Case Converter, JSON Formatter and Validator, HTML and XML
         Formatters, CSS and JavaScript Minifiers, Base64 and URL tools, UUID and
@@ -438,10 +530,10 @@ export default function FileHandlingPage() {
         to read.
       </p>
 
-      <h2 id="external">20. External processing dependencies</h2>
+      <h2 id="external">24. Local and server processing engines</h2>
       <p>
-        None of these receive your data — they are all served from this origin —
-        but for completeness, the engines doing the work are:
+        Browser-local engines are served from this origin and do not transmit
+        your files externally:
       </p>
       <ul>
         <li>
@@ -450,32 +542,41 @@ export default function FileHandlingPage() {
         </li>
         <li>
           <strong>@cantoo/pdf-lib</strong> (MIT) for writing and restructuring
-          PDF documents.
+          PDF documents, and <strong>@neslinesli93/qpdf-wasm</strong> for local
+          PDF encryption and decryption under <code>/qpdf/0.3.1</code>.
         </li>
         <li>
           <strong>tesseract.js</strong> (Apache-2.0) with WebAssembly cores and
-          the <code>eng</code>, <code>hin</code> and <code>guj</code> language
-          data (MIT), served from <code>/ocr</code>.
+          eight self-hosted language packs (<code>eng</code>, <code>hin</code>,{" "}
+          <code>guj</code>, <code>mar</code>, <code>ben</code>,{" "}
+          <code>tam</code>, <code>tel</code> and <code>urd</code>), served from{" "}
+          <code>/ocr</code>.
         </li>
         <li>
           <strong>docx</strong> (MIT) and <strong>docx-preview</strong>{" "}
-          (Apache-2.0) for generating and previewing Word documents.
+          (Apache-2.0) for generating and previewing Word documents, plus{" "}
+          <strong>@minify-html/wasm</strong> under <code>/html-minifier</code>.
         </li>
         <li>
-          <strong>qrcode</strong> (MIT) plus the project&rsquo;s own encoders
-          for QR matrices, PNG, SVG and PDF output.
+          <strong>qrcode</strong> (MIT) and <strong>jsQR</strong> plus the
+          project&rsquo;s own encoders and Web Workers for QR generation and
+          scanning.
         </li>
         <li>
           <strong>fflate</strong> (MIT) for ZIP archives.
         </li>
       </ul>
       <p>
-        If the operator ever adds a remote processing API, this section and the{" "}
-        <Link href="/privacy">Privacy Policy</Link> must change before that
-        feature ships, and the tool itself must say so on screen.
+        For the single server-assisted workflow (
+        <a href="#word-to-pdf">Word to PDF, section 10</a>), DOCX conversion
+        runs through <code>/api/word-to-pdf</code> on an operator-controlled
+        engine only after explicit on-screen consent. Any future remote
+        processing feature must likewise state its behaviour on screen and in
+        this policy and the <Link href="/privacy">Privacy Policy</Link> before
+        release.
       </p>
 
-      <h2 id="downloads">21. Download handling</h2>
+      <h2 id="downloads">25. Download handling</h2>
       <p>
         Downloads are created with a temporary <code>blob:</code> URL and an
         anchor element with the <code>download</code> attribute. The browser
@@ -490,7 +591,7 @@ export default function FileHandlingPage() {
         and keeps no list of files you saved.
       </p>
 
-      <h2 id="retention">22. Retention and deletion</h2>
+      <h2 id="retention">26. Retention and deletion</h2>
       <div className="legal-table-wrap">
         <table className="legal-table">
           <caption className="sr-only">
@@ -561,7 +662,7 @@ export default function FileHandlingPage() {
         <Link href="/privacy#rights">Privacy Policy §13</Link>.
       </p>
 
-      <h2 id="limitations">23. Technical limitations</h2>
+      <h2 id="limitations">27. Technical limitations</h2>
       <ul>
         <li>
           Large files can fail on low-memory devices even below the published

@@ -1,20 +1,33 @@
 import ToolShell from "@/components/tool-shell";
 import QrGenerator from "@/components/tools/qr-generator";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 export const metadata = pageMetadata(
-  "QR Code Generator — logo, colors, CSV, PNG & SVG",
-  "Create QR codes for links, Wi-Fi, contacts and events. Style colors, dots, eyes and a logo, verify each code by decoding it, then export PNG, SVG, PDF or CSV.",
+  "QR Code Generator — Logo, Colors, SVG & Bulk CSV",
+  "Create verified QR codes across 28 types including URLs, Wi-Fi, vCard, and UPI. Style colors and logos, sign or encrypt, and export PNG, SVG, or PDF.",
   "/tools/qr-generator",
 );
 export default function Page() {
   return (
     <ToolShell
       slug="qr-generator"
+      headingDescription="Create verified QR codes across 28 types including URLs, Wi-Fi, vCard, and UPI. Style colors and logos, sign or encrypt, and export PNG, SVG, or PDF."
+      stepsHeading="How to create a QR code that scans first time"
+      faqsHeading="QR generator questions, answered"
+      relatedHeading="More ways to create and scan codes"
+      referenceSection={
+        <ToolReferenceSection
+          slug="qr-generator"
+          entry={TOOL_SEO_CONTENT["qr-generator"]}
+        />
+      }
       content={{
         steps: [
           "Choose a content type (link, text, email, phone, SMS, WhatsApp, Wi-Fi, contact, location, event, social profile or app link) and fill in its fields — the preview builds as you type.",
           "Open Design Studio for colors, gradients, dot and eye styles, a logo or a template. The preview is decoded after every change, so a warning appears if a style stops scanning.",
           "Download the verified PNG, SVG or PDF, or switch to Bulk to queue one QR per CSV row and download the batch as a ZIP. Test a printed code at its final size before publishing.",
+          "For print, use a larger export and preserve a clear quiet zone around the code; scan a physical proof with more than one phone before ordering a batch.",
         ],
         faqs: [
           {

@@ -10,7 +10,13 @@ import {
 import { Workspace } from "./phase9-shared";
 import CalendarView from "./phase9-calendar-view";
 import { zodiac } from "@/lib/tools/phase9-zodiac";
-export default function Dates({ kind }: { kind: string }) {
+export default function Dates({
+  kind,
+  heading,
+}: {
+  kind: string;
+  heading?: string;
+}) {
   const ready = useHydrated();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -73,6 +79,7 @@ export default function Dates({ kind }: { kind: string }) {
   }
   return (
     <Workspace
+      heading={heading}
       result={result}
       snapshot={JSON.stringify({
         start,

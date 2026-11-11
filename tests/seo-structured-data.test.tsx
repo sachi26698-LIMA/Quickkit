@@ -449,9 +449,35 @@ describe("page metadata lengths", () => {
   it("keeps registry-driven titles and descriptions inside the same budget", async () => {
     const { categoryMeta } = await import("../lib/catalog");
     const { legalPages } = await import("../lib/legal");
+    const { calculatorInfo } = await import("../lib/calculator-info");
 
     const problems: string[] = [];
+    for (const [slug, info] of Object.entries(calculatorInfo)) {
+      const renderedTitle = info.seoTitle.length + " | QUICKKIT".length;
+      if (renderedTitle > TITLE_BUDGET || renderedTitle < 45) {
+        problems.push(
+          `/tools/${slug}: seoTitle renders ${renderedTitle} chars`,
+        );
+      }
+      if (/QUICKKIT/i.test(info.seoTitle)) {
+        problems.push(`/tools/${slug}: seoTitle repeats the brand`);
+      }
+      if (info.description.length > DESC_BUDGET || info.description.length < 120) {
+        problems.push(
+          `/tools/${slug}: description is ${info.description.length} chars`,
+        );
+      }
+    }
     for (const meta of categoryMeta) {
+      const renderedTitle = meta.seoTitle.length + " | QUICKKIT".length;
+      if (renderedTitle > TITLE_BUDGET) {
+        problems.push(
+          `/category/${meta.slug}: seoTitle renders ${renderedTitle} chars`,
+        );
+      }
+      if (/QUICKKIT/i.test(meta.seoTitle)) {
+        problems.push(`/category/${meta.slug}: seoTitle repeats the brand`);
+      }
       if (meta.description.length > DESC_BUDGET) {
         problems.push(
           `/category/${meta.slug}: description is ${meta.description.length} chars`,
@@ -495,5 +521,215 @@ describe("page metadata lengths", () => {
       }
     }
     expect(problems).toEqual([]);
+  });
+});
+
+// ── Phase 2 technical SEO contracts ─────────────────────────────────────────
+describe("Phase 2 technical SEO contracts", () => {
+  beforeEach(() => {
+    vi.stubEnv("SITE_URL", "https://quickkit.example");
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("emits accurate WebApplication schema without deprecated HowTo across tool types", async () => {
+    const { toolStructuredData } = await import("../lib/seo");
+
+    const pdfApp = toolStructuredData({
+      name: "Merge PDF",
+      description: "Combine PDFs locally.",
+      path: "/tools/merge-pdf",
+      category: "PDF Tools",
+      slug: "merge-pdf",
+      faqs: [{ q: "Free?", a: "Yes." }],
+    });
+    const pdfTypes = pdfApp["@graph"].map((node) => node["@type"]);
+    expect(pdfTypes).toEqual(["WebApplication", "FAQPage"]);
+    expect(pdfTypes).not.toContain("HowTo");
+    expect(pdfApp["@graph"][0]).toMatchObject({
+      "@type": "WebApplication",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Any",
+      isAccessibleForFree: true,
+    });
+    expect(String(pdfApp["@graph"][0].browserRequirements)).toMatch(/locally/i);
+
+    const financeApp = toolStructuredData({
+      name: "EMI Calculator",
+      description: "Calculate monthly EMI.",
+      path: "/tools/emi-calculator",
+      category: "Calculators",
+      slug: "emi-calculator",
+      faqs: [],
+    });
+    expect(financeApp["@graph"]).toHaveLength(1);
+    expect(financeApp["@graph"][0].applicationCategory).toBe(
+      "FinanceApplication",
+    );
+
+    const wordToPdfApp = toolStructuredData({
+      name: "Word to PDF Converter",
+      description: "Convert DOCX to PDF.",
+      path: "/tools/word-to-pdf",
+      category: "PDF Tools",
+      slug: "word-to-pdf",
+      faqs: [],
+    });
+    expect(String(wordToPdfApp["@graph"][0].browserRequirements)).toMatch(
+      /explicit-consent server processing/i,
+    );
+  });
+
+  it("emits CollectionPage on /tools and active categories, but not on empty noindex categories", async () => {
+    const ToolsPage = (await import("../app/tools/page")).default;
+    const CategoryPage = (await import("../app/category/[slug]/page")).default;
+
+    const { container: toolsDom } = render(createElement(ToolsPage));
+    const toolsSchemas = jsonLd(toolsDom);
+    const toolsCollection = toolsSchemas.find(
+      (b) => b["@type"] === "CollectionPage",
+    );
+    expect(toolsCollection).toBeDefined();
+    expect(
+      (toolsCollection?.mainEntity as { numberOfItems: number }).numberOfItems,
+    ).toBe(42);
+    expect(breadcrumbs(toolsDom)).toHaveLength(1);
+
+    const activeCatEl = await CategoryPage({
+      params: Promise.resolve({ slug: "pdf-tools" }),
+    });
+    const { container: activeCatDom } = render(activeCatEl);
+    expect(
+      jsonLd(activeCatDom).some((b) => b["@type"] === "CollectionPage"),
+    ).toBe(true);
+    expect(breadcrumbs(activeCatDom)).toHaveLength(1);
+
+    const emptyCatEl = await CategoryPage({
+      params: Promise.resolve({ slug: "ai-tools" }),
+    });
+    const { container: emptyCatDom } = render(emptyCatEl);
+    expect(
+      jsonLd(emptyCatDom).some((b) => b["@type"] === "CollectionPage"),
+    ).toBe(false);
+    expect(breadcrumbs(emptyCatDom)).toHaveLength(0);
+  });
+
+  it("exposes crawlable category links in both Header (SSR hidden dropdown) and Footer", async () => {
+    const Header = (await import("../components/header")).default;
+    const Footer = (await import("../components/footer")).default;
+    const { categoryMeta, toolsByCategory } = await import("../lib/catalog");
+
+    const activeSlugs = categoryMeta
+      .filter((c) => toolsByCategory(c.name).length > 0)
+      .map((c) => `/category/${c.slug}`);
+
+    const { container: headerDom } = render(createElement(Header));
+    const panel = headerDom.querySelector("#header-categories-panel");
+    expect(panel).not.toBeNull();
+    expect(panel?.hasAttribute("hidden")).toBe(true);
+    const headerHrefs = [...headerDom.querySelectorAll("a")].map((a) =>
+      a.getAttribute("href"),
+    );
+    for (const href of activeSlugs) {
+      expect(headerHrefs, `Header links to ${href}`).toContain(href);
+    }
+    expect(
+      headerDom.querySelector('a[href="/saved"]')?.getAttribute("rel"),
+    ).toBe("nofollow");
+    expect(
+      headerDom
+        .querySelector('a[href="/category/ai-tools"]')
+        ?.getAttribute("rel"),
+    ).toBe("nofollow");
+
+    const { container: footerDom } = render(createElement(Footer));
+    const footerHrefs = [...footerDom.querySelectorAll("a")].map((a) =>
+      a.getAttribute("href"),
+    );
+    for (const href of activeSlugs) {
+      expect(footerHrefs, `Footer links to ${href}`).toContain(href);
+    }
+  });
+
+  it("suppresses adsbygoogle.js when ADS_ENABLED=false or on excluded routes", async () => {
+    const AdSenseLoader = (await import("../components/adsense-loader"))
+      .default;
+    const { isAdsEnabled } = await import("../lib/ads");
+
+    vi.stubEnv("ADS_ENABLED", "false");
+    expect(isAdsEnabled()).toBe(false);
+
+    const { container: disabledDom } = render(
+      createElement(AdSenseLoader, {
+        enabled: isAdsEnabled(),
+        scriptSrc:
+          "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341",
+      }),
+    );
+    expect(disabledDom.querySelector("script")).toBeNull();
+  });
+
+  it("maintains strict H1->H2->H3 hierarchy without level skips across Batch A pages", async () => {
+    const HomePage = (await import("../app/page")).default;
+    const ToolsPage = (await import("../app/tools/page")).default;
+    const CategoryPage = (await import("../app/category/[slug]/page")).default;
+    const HelpPage = (await import("../app/help/page")).default;
+    const SitemapPage = (await import("../app/sitemap/page")).default;
+    const ContactPage = (await import("../app/contact/page")).default;
+    const FileHandlingPage = (await import("../app/file-handling/page"))
+      .default;
+    const { legalPageByHref } = await import("../lib/legal");
+
+    const samples: Array<[string, React.ReactElement]> = [
+      ["/", createElement(HomePage)],
+      ["/tools", createElement(ToolsPage)],
+      [
+        "/category/pdf-tools",
+        await CategoryPage({ params: Promise.resolve({ slug: "pdf-tools" }) }),
+      ],
+      [
+        "/category/ai-tools",
+        await CategoryPage({ params: Promise.resolve({ slug: "ai-tools" }) }),
+      ],
+      ["/help", createElement(HelpPage)],
+      ["/sitemap", createElement(SitemapPage)],
+      ["/contact", createElement(ContactPage)],
+      ["/file-handling", createElement(FileHandlingPage)],
+    ];
+
+    for (const [route, element] of samples) {
+      const { container, unmount } = render(element);
+      const levels = [...container.querySelectorAll("h1, h2, h3, h4, h5, h6")]
+        .map((el) => Number(el.tagName.slice(1)));
+      expect(
+        levels.filter((l) => l === 1),
+        `${route} must have exactly one H1`,
+      ).toHaveLength(1);
+      for (let i = 1; i < levels.length; i++) {
+        expect(
+          levels[i] - levels[i - 1],
+          `${route} skipped heading level H${levels[i - 1]} -> H${levels[i]}`,
+        ).toBeLessThanOrEqual(1);
+      }
+      if (route === "/contact") {
+        const h3Texts = [...container.querySelectorAll("h3")].map((el) =>
+          el.textContent?.trim(),
+        );
+        expect(new Set(h3Texts).size).toBe(h3Texts.length);
+      }
+      if (route === "/file-handling") {
+        for (const section of legalPageByHref("/file-handling")!.sections ??
+          []) {
+          expect(
+            container.querySelector(`#${CSS.escape(section.id)}`),
+            `/file-handling missing #${section.id}`,
+          ).not.toBeNull();
+        }
+      }
+      unmount();
+    }
   });
 });

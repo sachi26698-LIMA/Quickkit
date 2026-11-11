@@ -531,7 +531,7 @@ export default function PdfToImage() {
     <div className="converter-workspace">
       <div className="workspace-heading">
         <div>
-          <h2>PDF to Image Converter</h2>
+          <h2>Choose PDF pages and image export settings</h2>
           <p>
             Render the pages of a PDF to JPG, PNG or WEBP. Pick a page range,
             choose the resolution, then download single pages or the whole ZIP.

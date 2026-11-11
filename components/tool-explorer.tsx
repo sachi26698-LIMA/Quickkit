@@ -1,11 +1,13 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Clock, Search, SlidersHorizontal, X } from "lucide-react";
 import {
   categories,
   filterTools,
   metaByCategory,
+  metaBySlug,
   tools,
   toolsByCategory,
   type Category,
@@ -13,11 +15,16 @@ import {
 import ToolCard from "@/components/tool-card";
 import { useHydrated } from "@/lib/use-hydrated";
 
-/**
- * The All Tools explorer: search + category filters + saveable tool cards.
- * Lives on /tools and accepts initial state from URL params (?q, ?category).
- */
-export default function ToolExplorer({
+export function resolveExplorerCategory(value: string | null | undefined): Category {
+  if (!value) return "All tools";
+  const bySlug = metaBySlug(value);
+  if (bySlug) return bySlug.name;
+  return (categories as readonly string[]).includes(value)
+    ? (value as Category)
+    : "All tools";
+}
+
+function ToolExplorerContent({
   initialQuery = "",
   initialCategory = "All tools",
 }: {
@@ -121,6 +128,8 @@ export default function ToolExplorer({
         {results.length} tools found
       </p>
 
+      <h2 className="sr-only">Browse tools</h2>
+
       {results.length ? (
         <div className="tool-grid">
           {results.map((tool) => (
@@ -168,5 +177,61 @@ export default function ToolExplorer({
         </div>
       )}
     </>
+  );
+}
+
+function ToolExplorerWithUrlParams({
+  initialQuery,
+  initialCategory,
+}: {
+  initialQuery?: string;
+  initialCategory?: Category;
+}) {
+  const searchParams = useSearchParams();
+  const qParam = searchParams?.get("q");
+  const catParam = searchParams?.get("category");
+  const resolvedQuery = qParam !== null && qParam !== undefined ? qParam : (initialQuery ?? "");
+  const resolvedCategory =
+    catParam !== null && catParam !== undefined
+      ? resolveExplorerCategory(catParam)
+      : (initialCategory ?? "All tools");
+
+  return (
+    <ToolExplorerContent
+      key={`${resolvedQuery}::${resolvedCategory}`}
+      initialQuery={resolvedQuery}
+      initialCategory={resolvedCategory}
+    />
+  );
+}
+
+/**
+ * The All Tools explorer: search + category filters + saveable tool cards.
+ *
+ * Pre-renders the complete 42-tool catalog statically (`○`) via its Suspense
+ * fallback while still hydrating `?q=` and `?category=` query parameters on the
+ * client when visitors navigate from HeroSearch or filtered links.
+ */
+export default function ToolExplorer({
+  initialQuery = "",
+  initialCategory = "All tools",
+}: {
+  initialQuery?: string;
+  initialCategory?: Category;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <ToolExplorerContent
+          initialQuery={initialQuery}
+          initialCategory={initialCategory}
+        />
+      }
+    >
+      <ToolExplorerWithUrlParams
+        initialQuery={initialQuery}
+        initialCategory={initialCategory}
+      />
+    </Suspense>
   );
 }

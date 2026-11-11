@@ -65,7 +65,7 @@ export default function PdfStudioSettings({
     <>
       <details className="converter-block" open>
         <summary>
-          <h3 id="settings-studio">PDF Studio</h3>
+          <h3 id="settings-studio">PDF action settings</h3>
           <ChevronDown
             size={14}
             aria-hidden="true"

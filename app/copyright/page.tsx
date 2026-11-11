@@ -10,7 +10,7 @@ import ContactLink from "@/components/contact-link";
 import { contactEmail, ownerDetail } from "@/lib/site";
 
 export const metadata = pageMetadata(
-  "Copyright and DMCA Policy",
+  "Copyright & DMCA Policy — Ownership & Notices",
   legalPageByHref("/copyright")!.description,
   "/copyright",
 );

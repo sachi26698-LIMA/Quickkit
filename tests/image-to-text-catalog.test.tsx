@@ -98,11 +98,11 @@ describe("catalogue entry", () => {
     }
   });
 
-  it("suggests its own category first, then fills from the catalogue", () => {
+  it("suggests its own category first, then fills with relevant OCR/document neighbours", () => {
     const related = relatedTools(toolBySlug(SLUG)!);
-    expect(related).toHaveLength(3);
+    expect(related).toHaveLength(6);
     expect(related.map((tool) => tool.slug)).not.toContain(SLUG);
-    // Round-robin starts inside the tool's own category.
+    // Starts inside the tool's own category.
     expect(related[0].category).toBe("Text & Writing");
     expect(related[1].category).toBe("Text & Writing");
     for (const tool of related) expect(toolBySlug(tool.slug)).toBeDefined();
@@ -128,12 +128,18 @@ describe("page structure", () => {
       screen.getByRole("heading", { level: 1, name: "Image to Text (OCR)" }),
     ).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "How to use it" })).toBeTruthy();
     expect(
-      screen.getByRole("heading", { name: "A few useful answers" }),
+      screen.getByRole("heading", {
+        name: "Extract text from images and scanned PDFs",
+      }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("heading", { name: "Keep the good work going" }),
+      screen.getByRole("heading", { name: "Image-to-text and OCR questions" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: "More tools for working with documents",
+      }),
     ).toBeTruthy();
     // The FAQ must answer the questions people actually ask, and it must be
     // visible content, not only JSON-LD.
@@ -145,7 +151,7 @@ describe("page structure", () => {
     ).toBeTruthy();
   });
 
-  it("ships structured data for the page", () => {
+  it("ships structured data for the page without deprecated HowTo", () => {
     const { container } = render(<Page />);
     const script = container.querySelector(
       'script[type="application/ld+json"]',
@@ -155,7 +161,8 @@ describe("page structure", () => {
     const types = data["@graph"].map(
       (node: { "@type": string }) => node["@type"],
     );
-    expect(types).toEqual(["WebApplication", "HowTo", "FAQPage"]);
-    expect(data["@graph"][2].mainEntity.length).toBeGreaterThanOrEqual(6);
+    expect(types).toEqual(["WebApplication", "FAQPage"]);
+    expect(types).not.toContain("HowTo");
+    expect(data["@graph"][1].mainEntity.length).toBeGreaterThanOrEqual(6);
   });
 });

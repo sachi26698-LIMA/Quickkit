@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import ImageToImage from "@/components/tools/image-to-image";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Add images from your device or drop them into the upload area. The queue shows the real format, dimensions and file size of every file as soon as it is read. Up to 20 files, 15 MB each, 150 MB per batch.",
@@ -47,30 +49,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Converter — JPG, PNG, WEBP, AVIF and TIFF",
-  "Convert images between JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF, with quality or target-size compression, resize, crop, transparency and before/after sizes.",
+  "Image Converter — JPG, PNG, WebP, AVIF & TIFF",
+  "Convert up to 20 images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF locally in your browser with resize, crop, target KB/MB size, and ZIP export.",
   "/tools/image-to-image",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "Image to Image Converter",
-    description:
-      "Local browser image converter: batch conversion between JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF with quality-first compression, target file sizes, resize, crop, rotate, transparency handling and ZIP downloads.",
-    path: "/tools/image-to-image",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="image-to-image" content={{ steps, faqs }}>
-        <ImageToImage />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="image-to-image"
+      stepsHeading="Convert image formats and adjust output"
+      faqsHeading="Image conversion questions"
+      relatedHeading="More ways to edit images"
+      headingDescription="Convert up to 20 images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF locally in your browser with resize, crop, target KB/MB size, and ZIP export."
+      referenceSection={
+        <ToolReferenceSection
+          slug="image-to-image"
+          entry={TOOL_SEO_CONTENT["image-to-image"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <ImageToImage />
+    </ToolShell>
   );
 }

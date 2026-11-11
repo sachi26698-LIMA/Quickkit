@@ -119,7 +119,10 @@ describe("footer navigation", () => {
       "/category/pdf-tools",
       "/category/image-tools",
       "/category/qr-barcode",
+      "/category/text-writing",
+      "/category/developer-tools",
       "/category/calculators",
+      "/category/security-privacy",
       ...legalPages.map((page) => page.href),
     ]);
     const seen = new Set<string>();

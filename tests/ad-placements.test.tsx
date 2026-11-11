@@ -193,10 +193,12 @@ describe("route coverage", () => {
     for (const path of excluded) {
       expect(AD_EXCLUDED_ROUTES[path]?.length ?? 0).toBeGreaterThan(20);
     }
-    // The browser-local favourites page is outside the sitemap and still
-    // excluded, so it is never advertised against.
+    // Excluded non-sitemap routes are never advertised against either.
     expect(isAdEligible("/saved")).toBe(false);
+    expect(isAdEligible("/qr")).toBe(false);
+    expect(isAdEligible("/category/ai-tools")).toBe(false);
     expect(isAdEligible("/api/contact")).toBe(false);
+    expect(isAdEligible("/_not-found")).toBe(false);
   });
 
   it("renders ads on every eligible route family", async () => {
@@ -319,9 +321,7 @@ describe("duplicate protection", () => {
     const categoryElement = await CategoryPage({
       params: Promise.resolve({ slug: "pdf-tools" }),
     });
-    const toolsElement = await ToolsPage({
-      searchParams: Promise.resolve({}),
-    });
+    const toolsElement = ToolsPage();
     // Elements are built lazily so a single page's slot list can be inspected
     // in isolation, and so no element sits in an array without a key.
     const pages: [string, () => ReactElement][] = [

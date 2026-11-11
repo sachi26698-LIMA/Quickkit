@@ -153,7 +153,7 @@ export default function OfferComparison() {
           </button>
         </div>
         <div className="calculator-result" aria-live="polite">
-          <h3>Offer breakdown</h3>
+          <h3>Comparison breakdown</h3>
           {reverseError && <p className="calculator-error">{reverseError}</p>}
           {reverse !== undefined && (
             <p>

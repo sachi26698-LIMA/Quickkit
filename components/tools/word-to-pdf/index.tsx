@@ -254,9 +254,15 @@ export default function WordToPdf() {
           </span>
           <div>
             <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
-              <Link href="/tools">QUICKKIT</Link>
-              <ChevronRight size={11} />
+              <Link href="/" prefetch={false}>
+                Home
+              </Link>
+              <ChevronRight size={11} aria-hidden="true" />
+              <Link href="/tools">Tools</Link>
+              <ChevronRight size={11} aria-hidden="true" />
               <Link href="/category/pdf-tools">PDF Tools</Link>
+              <ChevronRight size={11} aria-hidden="true" />
+              <span aria-current="page">Word to PDF Converter</span>
             </nav>
             <h1>Word to PDF Converter</h1>
           </div>

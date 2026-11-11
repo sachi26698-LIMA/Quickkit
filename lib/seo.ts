@@ -23,12 +23,18 @@ export function pageMetadata(
   description: string,
   path: string,
 ): Metadata {
+  const brandedTitle = /\bQUICKKIT\b/i.test(title)
+    ? title
+    : `${title} | QUICKKIT`;
   return {
-    title,
+    // Next.js only applies `app/layout.tsx` `title.template` to child route
+    // segments, never to `app/page.tsx` (`path === "/"`), so `/` needs an
+    // explicit `absolute` title to include ` | QUICKKIT` in `<title>`.
+    title: path === "/" ? { absolute: brandedTitle } : title,
     description,
     alternates: siteOrigin ? { canonical: siteOrigin + path } : undefined,
     openGraph: {
-      title,
+      title: brandedTitle,
       description,
       type: "website",
       siteName: "QUICKKIT",
@@ -47,7 +53,7 @@ export function pageMetadata(
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: brandedTitle,
       description,
       ...(siteOrigin ? { images: [siteOrigin + "/opengraph-image"] } : {}),
     },
@@ -134,52 +140,136 @@ export function siteStructuredData() {
  * JSON-LD for a tool page: WebApplication + HowTo + FAQPage.
  * Static content only; no user input is serialised.
  */
-export function toolStructuredData({
+const FINANCE_CALCULATOR_SLUGS = new Set([
+  "emi-calculator",
+  "loan-calculator",
+  "gst-calculator",
+  "discount-calculator",
+  "percentage-calculator",
+]);
+
+function resolveApplicationCategory(category?: string, slug?: string): string {
+  if (slug && FINANCE_CALCULATOR_SLUGS.has(slug)) return "FinanceApplication";
+  switch (category) {
+    case "Image Tools":
+      return "MultimediaApplication";
+    case "PDF Tools":
+      return "BusinessApplication";
+    case "Developer Tools":
+      return "DeveloperApplication";
+    case "Security & Privacy":
+      return "SecurityApplication";
+    case "Calculators":
+    case "QR & Barcode":
+    case "Text & Writing":
+    default:
+      return "UtilitiesApplication";
+  }
+}
+
+/**
+ * Schema.org CollectionPage + ItemList for tool index hubs (`/tools` and
+ * published `/category/[slug]` pages). Returns `undefined` when `SITE_URL` is
+ * unset or the collection has no published items (e.g. Coming Soon categories).
+ */
+export function collectionPageStructuredData({
   name,
   description,
   path,
-  steps,
-  faqs,
+  items,
 }: {
   name: string;
   description: string;
   path: string;
-  steps: string[];
-  faqs: { q: string; a: string }[];
+  items: { name: string; path: string }[];
 }) {
-  const url = siteOrigin ? siteOrigin + path : undefined;
+  if (!siteOrigin || items.length === 0) return undefined;
+  const url = path === "/" ? siteOrigin : `${siteOrigin}${path}`;
   return {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebApplication",
-        name: `${name} — QUICKKIT`,
-        description,
-        ...(url ? { url } : {}),
-        applicationCategory: "MultimediaApplication",
-        operatingSystem: "Any modern browser",
-        browserRequirements:
-          "Requires JavaScript. Images are processed locally.",
-        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        isAccessibleForFree: true,
-      },
-      {
-        "@type": "HowTo",
-        name: `How to use the QUICKKIT ${name}`,
-        step: steps.map((step, index) => ({
-          "@type": "HowToStep",
-          position: index + 1,
-          text: step,
-        })),
-      },
-      {
-        "@type": "FAQPage",
-        mainEntity: faqs.map(({ q, a }) => ({
-          "@type": "Question",
-          name: q,
-          acceptedAnswer: { "@type": "Answer", text: a },
-        })),
-      },
-    ],
+    "@type": "CollectionPage",
+    "@id": `${url}#collection`,
+    name,
+    description,
+    url,
+    inLanguage: "en",
+    isPartOf: { "@id": `${siteOrigin}/#website` },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: items.length,
+      itemListElement: items.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        url: item.path === "/" ? siteOrigin : `${siteOrigin}${item.path}`,
+      })),
+    },
+  };
+}
+
+/**
+ * Schema.org structured data for a live tool page (`WebApplication` plus an
+ * optional `FAQPage` when visible FAQs are rendered on the page).
+ *
+ * Deprecated `HowTo` markup is intentionally omitted, and `applicationCategory`
+ * + `browserRequirements` reflect each tool's real behaviour.
+ */
+export function toolStructuredData({
+  name,
+  description,
+  path,
+  category,
+  slug,
+  faqs = [],
+}: {
+  name: string;
+  description: string;
+  path: string;
+  category?: string;
+  slug?: string;
+  steps?: string[];
+  faqs?: { q: string; a: string }[];
+}) {
+  const url = siteOrigin ? siteOrigin + path : undefined;
+  const serverProcessed =
+    slug === "word-to-pdf" || path === "/tools/word-to-pdf";
+  const graph: Record<string, unknown>[] = [
+    {
+      "@type": "WebApplication",
+      ...(url ? { "@id": `${url}#app`, url } : {}),
+      name: `${name} — QUICKKIT`,
+      description,
+      inLanguage: "en",
+      applicationCategory: resolveApplicationCategory(category, slug),
+      operatingSystem: "Any",
+      browserRequirements: serverProcessed
+        ? "Requires JavaScript. Converts DOCX documents via explicit-consent server processing."
+        : "Requires JavaScript. Runs locally in modern browsers without uploading tool inputs.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      isAccessibleForFree: true,
+      ...(siteOrigin
+        ? {
+            isPartOf: { "@id": `${siteOrigin}/#website` },
+            publisher: { "@id": `${siteOrigin}/#organization` },
+          }
+        : {}),
+    },
+  ];
+
+  if (faqs.length > 0) {
+    graph.push({
+      "@type": "FAQPage",
+      ...(url ? { "@id": `${url}#faq` } : {}),
+      mainEntity: faqs.map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    });
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": graph,
   };
 }

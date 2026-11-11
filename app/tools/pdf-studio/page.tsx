@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import PdfStudio from "@/components/tools/pdf-studio";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Add one or more PDFs from your device, or drop them into the upload area. Each file's real page count is read before anything else, so the page grid, the plan summary and the button all describe what is actually there. Up to 25 MB and 100 pages per document.",
@@ -47,30 +49,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "PDF Studio — merge, split, extract, rotate pages",
-  "Merge PDFs, extract page ranges, rotate, reorder and remove pages, then compress the result in your browser. Live thumbnails, page counts and verified output.",
+  "PDF Studio — Merge, Split, Rotate & Reorder Pages",
+  "Merge, split, extract, rotate, reorder, remove, and compress PDF pages in one local browser workspace with live page thumbnails and batch ZIP export.",
   "/tools/pdf-studio",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "PDF Studio",
-    description:
-      "Local browser tool for page-level PDF work: merge multiple documents, extract or split page ranges, rotate, reorder and remove individual pages, compress image streams, with live thumbnails, real page counts and single-file or ZIP download.",
-    path: "/tools/pdf-studio",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="pdf-studio" content={{ steps, faqs }}>
-        <PdfStudio />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="pdf-studio"
+      stepsHeading="Edit, organize, and export PDF pages"
+      faqsHeading="PDF Studio questions"
+      relatedHeading="More ways to work with PDFs"
+      headingDescription="Merge, split, extract, rotate, reorder, remove, and compress PDF pages in one local browser workspace with live page thumbnails and batch ZIP export."
+      referenceSection={
+        <ToolReferenceSection
+          slug="pdf-studio"
+          entry={TOOL_SEO_CONTENT["pdf-studio"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <PdfStudio />
+    </ToolShell>
   );
 }

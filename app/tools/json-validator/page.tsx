@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import JsonValidator from "@/components/tools/devtools/json-validator";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "JSON Validator — check syntax and find errors",
-  "Validate JSON locally, locate syntax errors by line and column, and read clear explanations for missing commas, brackets and invalid values.",
+  TOOL_SEO_METADATA["json-validator"].title,
+  TOOL_SEO_METADATA["json-validator"].description,
   "/tools/json-validator",
 );
 

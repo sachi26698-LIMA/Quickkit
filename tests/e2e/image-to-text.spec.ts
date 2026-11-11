@@ -109,7 +109,8 @@ test.describe("Image to Text (OCR)", () => {
       .allTextContents();
     const graph = jsonLd.join(" ");
     expect(graph).toContain("FAQPage");
-    expect(graph).toContain("HowTo");
+    expect(graph).toContain("WebApplication");
+    expect(graph).not.toContain("HowTo");
 
     // Privacy is stated on the page, not only in the marketing copy.
     await expect(page.getByText(/100% on-device/i).first()).toBeVisible();

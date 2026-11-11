@@ -16,7 +16,13 @@ const money = (n: number, currency = "INR") =>
     currency,
     maximumFractionDigits: 2,
   }).format(n);
-export default function Calculator({ kind }: { kind: string }) {
+export default function Calculator({
+  kind,
+  heading = "Calculate",
+}: {
+  kind: string;
+  heading?: string;
+}) {
   const [a, setA] = useState("");
   const [b, setB] = useState("");
   const [extra, setExtra] = useState("");
@@ -159,7 +165,7 @@ export default function Calculator({ kind }: { kind: string }) {
     >
       <div className="workspace-heading">
         <div>
-          <h2>Calculate</h2>
+          <h2>{heading}</h2>
           <p>Enter your values below. Results update as you type.</p>
         </div>
         <span className="local-badge">Local processing</span>

@@ -273,8 +273,9 @@ export default function ContactPage() {
                 <p className="contact-privacy-note">
                   <ShieldCheck size={16} aria-hidden="true" /> Please
                   don&rsquo;t send passwords, private documents or personal
-                  data. QUICKKIT tools never need your file sent anywhere, so a
-                  description is enough for us to reproduce a problem.
+                  data. Support never needs your private files attached — a
+                  description of the steps and file type is enough to reproduce
+                  a problem.
                 </p>
               </aside>
 
@@ -293,7 +294,7 @@ export default function ContactPage() {
                 </p>
                 <ContactForm />
                 <div className="contact-form-notes">
-                  <h3 id="privacy-requests">Privacy requests</h3>
+                  <h3 id="privacy-requests">Privacy request notes</h3>
                   <p>
                     Because QUICKKIT stores no files, there is usually nothing
                     to export or delete on our side. What we can answer is
@@ -301,14 +302,14 @@ export default function ContactPage() {
                     any browser-side storage entry yourself. See{" "}
                     <Link href="/privacy#rights">Privacy Policy §13</Link>.
                   </p>
-                  <h3 id="copyright">Copyright complaints</h3>
+                  <h3 id="copyright">Copyright notice checklist</h3>
                   <p>
                     Notices should include the six elements listed in the{" "}
                     <Link href="/copyright#reporting">Copyright Policy</Link>. A
                     complete notice is actioned faster than a link with no
                     detail.
                   </p>
-                  <h3 id="business">Business enquiries</h3>
+                  <h3 id="business">Business &amp; IP enquiries</h3>
                   <p>
                     Describe the use, where it will appear and for how long.{" "}
                     <Link href="/intellectual-property#permission">
@@ -316,7 +317,7 @@ export default function ContactPage() {
                     </Link>{" "}
                     are handled through the same route.
                   </p>
-                  <h3 id="security-reports">Security reports</h3>
+                  <h3 id="security-reports">Vulnerability reporting notes</h3>
                   <p>
                     Report vulnerabilities through the disclosure process in the{" "}
                     <Link href="/security#reporting">Security Policy</Link> —

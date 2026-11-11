@@ -671,7 +671,7 @@ export default function ImageToImage() {
     <div className="converter-workspace">
       <div className="workspace-heading">
         <div>
-          <h2>Image to Image Converter</h2>
+          <h2>Choose an image format and conversion settings</h2>
           <p>
             Convert between JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF with real
             quality controls — all inside this tab.

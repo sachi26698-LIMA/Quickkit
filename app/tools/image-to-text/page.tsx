@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import ImageToText from "@/components/tools/image-to-text";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Drop in or choose the images — JPG, PNG, WEBP, BMP, TIFF, AVIF — or a scanned PDF. Up to 40 files and 25 MB each; every file stays in the tab and is decoded on your device.",
@@ -57,24 +59,21 @@ export const metadata = pageMetadata(
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "Image to Text (OCR)",
-    description:
-      "On-device OCR for images and scanned PDFs with multi-language support, table and field extraction, an editable side-by-side editor and Unicode-safe DOCX, PDF, CSV, JSON and TXT export.",
-    path: "/tools/image-to-text",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="image-to-text" content={{ steps, faqs }}>
-        <ImageToText />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="image-to-text"
+      stepsHeading="Extract text from images and scanned PDFs"
+      faqsHeading="Image-to-text and OCR questions"
+      relatedHeading="More tools for working with documents"
+      referenceSection={
+        <ToolReferenceSection
+          slug="image-to-text"
+          entry={TOOL_SEO_CONTENT["image-to-text"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <ImageToText />
+    </ToolShell>
   );
 }

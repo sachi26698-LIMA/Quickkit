@@ -13,13 +13,29 @@ describe("production SEO configuration", () => {
       pageMetadata("Title", "Description", "/about").alternates,
     ).toBeUndefined();
   });
-  it("emits canonicals for an owner-configured HTTPS origin", async () => {
+  it("emits canonicals and QUICKKIT-branded social titles for an owner-configured HTTPS origin", async () => {
     vi.stubEnv("SITE_URL", "https://test.example");
     vi.resetModules();
     const { pageMetadata } = await import("../lib/seo");
-    expect(
-      pageMetadata("Title", "Description", "/about").alternates?.canonical,
-    ).toBe("https://test.example/about");
+    const subpage = pageMetadata("About Us", "Description", "/about");
+    expect(subpage.alternates?.canonical).toBe("https://test.example/about");
+    expect(subpage.openGraph?.title).toBe("About Us | QUICKKIT");
+    expect(subpage.twitter?.title).toBe("About Us | QUICKKIT");
+
+    const home = pageMetadata(
+      "Free Online PDF, Image, QR, Code & Math Tools",
+      "Description",
+      "/",
+    );
+    expect(home.title).toEqual({
+      absolute: "Free Online PDF, Image, QR, Code & Math Tools | QUICKKIT",
+    });
+    expect(home.openGraph?.title).toBe(
+      "Free Online PDF, Image, QR, Code & Math Tools | QUICKKIT",
+    );
+    expect(home.twitter?.title).toBe(
+      "Free Online PDF, Image, QR, Code & Math Tools | QUICKKIT",
+    );
   });
   it.each([
     "http://test.example",

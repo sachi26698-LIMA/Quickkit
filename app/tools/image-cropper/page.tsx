@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import ImageCropper from "@/components/tools/image-cropper";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Drop up to 20 JPEG, PNG or WebP images into the workspace, or choose them from your device. Each file is decoded locally and its EXIF orientation is applied before anything is shown.",
@@ -42,30 +44,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Cropper — freeform, social, circle, batch",
-  "Crop JPEG, PNG and WebP images with freeform or fixed ratios, Instagram, YouTube and Facebook presets, circle and square crops, rotation and per-image batches.",
+  "Image Cropper — Aspect Ratios, Circle & Social",
+  "Crop up to 20 JPEG, PNG, and WebP images locally with freeform frames, fixed aspect ratios, circle masks, social presets, 50-step undo, and ZIP export.",
   "/tools/image-cropper",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "Image Cropper",
-    description:
-      "Local browser image cropper with freeform and fixed ratios, social media presets, circle and square masks, rotate, flip, zoom, pan, custom output sizes, batch cropping and ZIP downloads.",
-    path: "/tools/image-cropper",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="image-cropper" content={{ steps, faqs }}>
-        <ImageCropper />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="image-cropper"
+      stepsHeading="Crop and export images"
+      faqsHeading="Image cropping questions"
+      relatedHeading="More ways to edit images"
+      headingDescription="Crop up to 20 JPEG, PNG, and WebP images locally with freeform frames, fixed aspect ratios, circle masks, social presets, 50-step undo, and ZIP export."
+      referenceSection={
+        <ToolReferenceSection
+          slug="image-cropper"
+          entry={TOOL_SEO_CONTENT["image-cropper"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <ImageCropper />
+    </ToolShell>
   );
 }

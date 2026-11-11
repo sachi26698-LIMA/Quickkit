@@ -580,7 +580,7 @@ test.describe("image compressor", () => {
       })
       .map((node: { "@type": string }) => node["@type"]);
     expect(graph).toContain("WebApplication");
-    expect(graph).toContain("HowTo");
+    expect(graph).not.toContain("HowTo");
     expect(graph).toContain("FAQPage");
     const faqs = await page
       .locator(".tool-guidance section")

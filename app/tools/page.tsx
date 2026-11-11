@@ -1,46 +1,60 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import AdUnit from "@/components/ad-unit";
+import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
 import ToolExplorer from "@/components/tool-explorer";
-import { categories, metaBySlug, type Category } from "@/lib/catalog";
-import { pageMetadata } from "@/lib/seo";
+import { tools } from "@/lib/catalog";
+import {
+  breadcrumbStructuredData,
+  collectionPageStructuredData,
+  pageMetadata,
+} from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "All Tools — every free browser tool in one place",
-  "Browse all 42 browser tools: PDF and image utilities, text and OCR tools, JSON and HTML formatters, CSS and JavaScript minifiers, encoders, regex and hashes.",
+  "All 42 Free Online Tools — PDF, Image & Code",
+  "Browse all 42 free online tools on QUICKKIT: PDF merge, split, compress and Word converters, image editors, 8-language OCR, QR tools, dev utilities & math.",
   "/tools",
 );
 
-function resolveCategory(value: string | undefined): Category {
-  if (!value) return "All tools";
-  const bySlug = metaBySlug(value);
-  if (bySlug) return bySlug.name;
-  return (categories as readonly string[]).includes(value)
-    ? (value as Category)
-    : "All tools";
-}
-
-export default async function ToolsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; category?: string }>;
-}) {
-  const params = await searchParams;
+export default function ToolsPage() {
   return (
     <div className="home inner-page">
       <div className="container">
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          <Link href="/" prefetch={false}>
+            Home
+          </Link>{" "}
+          <ChevronRight size={13} aria-hidden="true" />{" "}
+          <span aria-current="page">All Tools</span>
+        </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "All Tools", path: "/tools" },
+          ])}
+        />
+        <JsonLd
+          data={collectionPageStructuredData({
+            name: "All Free Online Tools — QUICKKIT",
+            description:
+              "Complete directory of free browser-based PDF, image, QR, text, developer, calculator and security tools on QUICKKIT.",
+            path: "/tools",
+            items: tools.map((tool) => ({
+              name: tool.name,
+              path: `/tools/${tool.slug}`,
+            })),
+          })}
+        />
         <PageHero
-          eyebrow="THE FULL TOOLKIT"
-          title="All"
-          titleAccent="Tools"
-          lede="Every QUICKKIT utility, ready to use. Search, filter by category, and tap the heart to save your favourites."
+          eyebrow={`${tools.length} FREE TOOLS · LOCAL IN YOUR BROWSER`}
+          title="Every tool in"
+          titleAccent="one calm place."
+          lede="Search by task, filter by category, or tap the heart on any card to keep your favourites one click away."
         />
-        <ToolExplorer
-          initialQuery={params.q ?? ""}
-          initialCategory={resolveCategory(params.category)}
-        />
-        {/* One unit, below the catalogue. The top of this page is a search field
-            and a filter row, so advertising there would sit beside the controls
-            people are actively using. */}
+        <ToolExplorer />
+
+        {/* 1 of 1 — below the tool grid, never inside the search or filter bar. */}
         <AdUnit placement="tools-index-bottom" format="auto" />
       </div>
     </div>

@@ -11,6 +11,7 @@ export function Workspace({
   snapshot,
   restore,
   resultExport,
+  heading = "Calculate",
 }: {
   children: ReactNode;
   result: string;
@@ -20,6 +21,7 @@ export function Workspace({
   snapshot?: string;
   restore?: (snapshot: string) => void;
   resultExport?: { filename: string; rows: string[][] };
+  heading?: string;
 }) {
   const [notice, setNotice] = useState("");
   const [history, setHistory] = useState<
@@ -32,7 +34,7 @@ export function Workspace({
     >
       <div className="workspace-heading">
         <div>
-          <h2>Calculate</h2>
+          <h2>{heading}</h2>
           <p>Results update as you enter values.</p>
         </div>
         <span className="local-badge">Local processing</span>

@@ -1,10 +1,12 @@
 import ToolShell from "@/components/tool-shell";
 import PdfMerger from "@/components/tools/merge-pdf";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "Merge PDF — combine PDFs locally with page picks",
-  "Combine multiple PDFs in your browser. Reorder files, choose pages, unlock supported PDFs locally, add bookmarks and download a validated merged PDF. No upload.",
+  "Merge PDF Online — Combine & Reorder PDF Pages",
+  "Combine up to 25 PDFs locally in your browser. Reorder files, pick page ranges, unlock authorized PDFs, add bookmarks, and download a validated PDF.",
   "/tools/merge-pdf",
 );
 
@@ -12,6 +14,16 @@ export default function Page() {
   return (
     <ToolShell
       slug="merge-pdf"
+      headingDescription="Combine up to 25 PDFs locally in your browser. Reorder files, pick page ranges, unlock authorized PDFs, add bookmarks, and download a validated PDF."
+      stepsHeading="How to merge PDFs in the right order"
+      faqsHeading="Merge PDF questions, answered"
+      relatedHeading="More ways to work with PDFs"
+      referenceSection={
+        <ToolReferenceSection
+          slug="merge-pdf"
+          entry={TOOL_SEO_CONTENT["merge-pdf"]}
+        />
+      }
       content={{
         steps: [
           "Drop in or choose at least two PDFs. Each file is inspected on your device; unreadable, oversized, password-protected, signed and XFA files are identified with a specific next step.",

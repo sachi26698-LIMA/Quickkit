@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import Base64Tool from "@/components/tools/devtools/base64";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "Base64 Encoder / Decoder — text and files",
-  "Encode UTF-8 text or files to Base64 and decode Base64 as text or a binary download. Detect invalid input and process everything locally.",
+  TOOL_SEO_METADATA["base64-encoder-decoder"].title,
+  TOOL_SEO_METADATA["base64-encoder-decoder"].description,
   "/tools/base64-encoder-decoder",
 );
 

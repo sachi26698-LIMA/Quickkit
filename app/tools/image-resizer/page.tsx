@@ -1,6 +1,8 @@
 import ToolShell from "@/components/tool-shell";
 import ImageResizer from "@/components/tools/image-resizer";
-import { pageMetadata, toolStructuredData } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
   "Drop up to 20 JPEG, PNG, WebP or AVIF images into the workspace, or choose them from your device.",
@@ -42,30 +44,28 @@ const faqs = [
 ];
 
 export const metadata = pageMetadata(
-  "Image Resizer — pixels, percentage, social sizes",
-  "Resize by exact pixels, percentage, longest side or social preset, crop and rotate, convert to JPEG, PNG, WebP or AVIF, batch up to 20 images, download a ZIP.",
+  "Image Resizer — Pixels, Percent & Social Presets",
+  "Resize JPEG, PNG or WebP images by pixels, percentage, longest side, or social presets. Export JPEG, PNG, WebP, or AVIF when supported; crop and ZIP locally.",
   "/tools/image-resizer",
 );
 
 export default function Page() {
-  const jsonLd = toolStructuredData({
-    name: "Image Resizer",
-    description:
-      "Local browser image editor and resizer with cropping, rotation, colour adjustments, batch processing and ZIP download.",
-    path: "/tools/image-resizer",
-    steps,
-    faqs,
-  });
   return (
-    <>
-      <script
-        type="application/ld+json"
-        // Static, server-rendered structured data; no user input is interpolated.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ToolShell slug="image-resizer" content={{ steps, faqs }}>
-        <ImageResizer />
-      </ToolShell>
-    </>
+    <ToolShell
+      slug="image-resizer"
+      stepsHeading="Resize and export images"
+      faqsHeading="Image resizing questions"
+      relatedHeading="More ways to edit images"
+      headingDescription="Resize up to 20 JPEG, PNG, WebP, or AVIF images in your browser by exact pixels, percentage, longest side, or social presets with crop and ZIP export."
+      referenceSection={
+        <ToolReferenceSection
+          slug="image-resizer"
+          entry={TOOL_SEO_CONTENT["image-resizer"]}
+        />
+      }
+      content={{ steps, faqs }}
+    >
+      <ImageResizer />
+    </ToolShell>
   );
 }

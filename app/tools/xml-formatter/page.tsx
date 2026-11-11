@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import MarkupTool from "@/components/tools/devtools/markup-tool";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "XML Formatter — format and compact XML safely",
-  "Format or minify well-formed XML with syntax highlighting, size statistics and local copy or download. DTD declarations are rejected to prevent entity risks.",
+  TOOL_SEO_METADATA["xml-formatter"].title,
+  TOOL_SEO_METADATA["xml-formatter"].description,
   "/tools/xml-formatter",
 );
 

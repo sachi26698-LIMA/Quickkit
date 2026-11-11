@@ -11,7 +11,7 @@ type Entry = {
   degrees: boolean;
   previousAnswer: number | undefined;
 };
-export default function Scientific() {
+export default function Scientific({ heading }: { heading?: string } = {}) {
   const [expr, setExpr] = useState("");
   const [degrees, setDegrees] = useState(true);
   const [precision, setPrecision] = useState(12);
@@ -76,6 +76,7 @@ export default function Scientific() {
   return (
     <>
       <Workspace
+        heading={heading}
         result={result}
         error={error}
         reset={() => {

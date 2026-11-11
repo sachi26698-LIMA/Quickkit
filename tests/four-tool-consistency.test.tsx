@@ -26,25 +26,42 @@ const PAGES = [
     slug: "image-to-image",
     Page: ImageToImagePage,
     name: "Image to Image Converter",
+    sections: [
+      "Convert image formats and adjust output",
+      "Image conversion questions",
+      "More ways to edit images",
+    ],
   },
   {
     slug: "images-to-pdf",
     Page: ImagesToPdfPage,
     name: "Images to PDF Converter",
+    sections: [
+      "Arrange images and create a PDF",
+      "Image-to-PDF questions",
+      "More ways to work with PDFs",
+    ],
   },
   {
     slug: "pdf-to-image",
     Page: PdfToImagePage,
     name: "PDF to Image Converter",
+    sections: [
+      "Export PDF pages as images",
+      "PDF-to-image questions",
+      "More ways to work with PDFs",
+    ],
   },
-  { slug: "pdf-studio", Page: PdfStudioPage, name: "PDF Studio" },
-] as const;
-
-/** The three ToolShell-owned sections every tool page must carry. */
-const SHELL_SECTIONS = [
-  "How to use it",
-  "A few useful answers",
-  "Keep the good work going",
+  {
+    slug: "pdf-studio",
+    Page: PdfStudioPage,
+    name: "PDF Studio",
+    sections: [
+      "Edit, organize, and export PDF pages",
+      "PDF Studio questions",
+      "More ways to work with PDFs",
+    ],
+  },
 ] as const;
 
 describe("the four converter tools share one structure", () => {
@@ -52,7 +69,7 @@ describe("the four converter tools share one structure", () => {
   // across renders and every query would match four times.
   afterEach(cleanup);
 
-  for (const { Page, name } of PAGES) {
+  for (const { Page, name, sections } of PAGES) {
     describe(name, () => {
       it("renders the shared header, breadcrumb and instructions", () => {
         render(<Page />);
@@ -71,7 +88,7 @@ describe("the four converter tools share one structure", () => {
             .getByRole("navigation", { name: "Breadcrumb" })
             .querySelectorAll("a").length,
         ).toBeGreaterThan(0);
-        for (const section of SHELL_SECTIONS)
+        for (const section of sections)
           expect(
             screen.getByRole("heading", { level: 2, name: section })
               .textContent,
@@ -89,7 +106,7 @@ describe("the four converter tools share one structure", () => {
         render(<Page />);
 
         const steps = within(
-          screen.getByRole("heading", { level: 2, name: "How to use it" })
+          screen.getByRole("heading", { level: 2, name: sections[0] })
             .parentElement!,
         ).getAllByRole("listitem");
         // A page with one vestigial step would satisfy a bare length check, so
@@ -101,7 +118,7 @@ describe("the four converter tools share one structure", () => {
         // FAQs are <details>/<summary>, not buttons.
         const faqSection = screen.getByRole("heading", {
           level: 2,
-          name: "A few useful answers",
+          name: sections[1],
         }).parentElement!;
         const questions = faqSection.querySelectorAll("details > summary");
         expect(questions.length).toBeGreaterThanOrEqual(4);
@@ -119,7 +136,7 @@ describe("the four converter tools share one structure", () => {
         const related = within(
           screen.getByRole("heading", {
             level: 2,
-            name: "Keep the good work going",
+            name: sections[2],
           }).parentElement!,
         );
         expect(related.getAllByRole("link").length).toBeGreaterThan(0);
@@ -131,17 +148,17 @@ describe("the four converter tools share one structure", () => {
   }
 
   it("gives every tool the same shell sections in the same order", () => {
-    const shapes = PAGES.map(({ slug, Page }) => {
+    const shapes = PAGES.map(({ slug, Page, sections }) => {
       const { container } = render(<Page />);
       const headings = [...container.querySelectorAll("h1, h2")].map((h) =>
         h.textContent!.trim(),
       );
-      return { slug, headings };
+      return { slug, headings, sections };
     });
 
-    for (const { slug, headings } of shapes) {
-      const order = SHELL_SECTIONS.filter((h) => headings.includes(h));
-      expect(order, slug).toEqual([...SHELL_SECTIONS]);
+    for (const { slug, headings, sections } of shapes) {
+      const order = sections.filter((h) => headings.includes(h));
+      expect(order, slug).toEqual([...sections]);
     }
   });
 });

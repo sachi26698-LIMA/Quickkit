@@ -15,6 +15,7 @@ export type Category = (typeof categories)[number];
 export type CategoryMeta = {
   name: ToolCategory;
   slug: string;
+  seoTitle: string;
   blurb: string;
   description: string;
   tint: string;
@@ -26,72 +27,80 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "PDF Tools",
     slug: "pdf-tools",
+    seoTitle: "Free Online PDF Tools — Merge, Split & Convert",
     blurb: "Merge, split, convert, lock and manage PDF files.",
     description:
-      "Combine, split, compress, convert and protect PDFs locally — export pages as images, turn photos into a PDF, and lock or unlock files with AES encryption.",
+      "Merge, split, compress, edit, lock/unlock and convert PDFs to Word or images. Browser-local PDF utilities plus consent-based Word to PDF conversion.",
     tint: "tint-pdf",
     icon: "pdf",
   },
   {
     name: "Image Tools",
     slug: "image-tools",
+    seoTitle: "Free Online Image Tools — Compress, Resize & Crop",
     blurb: "Edit, convert, compress and optimize images.",
     description:
-      "Shrink and optimize your images for the web, email and sharing — processed locally on your device.",
+      "Compress images to an exact KB size, resize by pixels or presets, crop ratios or circles, and convert JPG, PNG, WebP, AVIF and TIFF locally in your browser.",
     tint: "tint-image",
     icon: "image",
   },
   {
     name: "QR & Barcode",
     slug: "qr-barcode",
+    seoTitle: "QR Code Generator & Scanner — Free Online Tools",
     blurb: "Create and scan QR codes and barcodes.",
     description:
-      "Turn links and text into scannable QR codes in seconds, ready to download and share anywhere.",
+      "Create custom scannable QR codes with logos, colours, Payment/UPI links and CSV batches, or scan QR codes from your camera and screenshots in your browser.",
     tint: "tint-qr",
     icon: "qr",
   },
   {
     name: "Text & Writing",
     slug: "text-writing",
+    seoTitle: "Text & OCR Tools — Word Counter & Case Converter",
     blurb: "Format, analyze and transform text easily.",
     description:
-      "Count words, fix casing and polish your writing with simple tools that work as you type.",
+      "Count words, characters and reading time, convert between 10 text case styles, and extract text from images or scanned PDFs in 8 languages locally.",
     tint: "tint-text",
     icon: "text",
   },
   {
     name: "Developer Tools",
     slug: "developer-tools",
+    seoTitle: "Developer Tools — JSON, Minifiers, Regex & Hashes",
     blurb: "Encode, decode, format and work with dev utilities.",
     description:
-      "Format, validate, minify and inspect code, text, identifiers and hashes — processed locally in your browser.",
+      "Format and validate JSON, XML and HTML, minify CSS and JavaScript, test regex in a worker, encode Base64/URLs, and generate UUID v4 or SHA hashes locally.",
     tint: "tint-dev",
     icon: "code",
   },
   {
     name: "Calculators",
     slug: "calculators",
+    seoTitle: "Online Calculators — EMI, GST, BMI & Unit Tools",
     blurb: "Simple and advanced calculations for everyday use.",
     description:
-      "Practical calculators for everyday numbers, with clear explanations and local processing.",
+      "Calculate EMI and loan schedules, Indian GST, discounts, percentages, BMI, exact age, business-day differences, scientific math and unit conversions locally.",
     tint: "tint-calc",
     icon: "calc",
   },
   {
     name: "Security & Privacy",
     slug: "security-privacy",
+    seoTitle: "Security & Privacy — Browser Password Generator",
     blurb: "Generate, check and manage your data securely.",
     description:
-      "Create strong passwords and handle sensitive data with tools that never leave your device.",
+      "Generate high-entropy 8–64 character random passwords in your browser using Web Crypto (crypto.getRandomValues) with zero network requests or storage.",
     tint: "tint-security",
     icon: "shield",
   },
   {
     name: "AI Tools",
     slug: "ai-tools",
+    seoTitle: "AI Tools (Coming Soon) — Roadmap Category",
     blurb: "Smart tools powered by artificial intelligence.",
     description:
-      "AI-powered helpers are on our roadmap. This category is coming soon — explore the rest of the toolkit today.",
+      "AI-assisted document and text utilities are on the QUICKKIT roadmap. Explore all 42 live PDF, image, OCR, QR, developer and calculator tools today.",
     tint: "tint-ai",
     icon: "sparkles",
   },
@@ -600,30 +609,340 @@ export const toolBySlug = (slug: string): Tool | undefined =>
 export const toolsByCategory = (category: ToolCategory) =>
   tools.filter((tool) => toolCategoriesOf(tool).includes(category));
 
+const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
+  // PDF Tools (9)
+  "images-to-pdf": [
+    "pdf-to-image",
+    "compress-pdf",
+    "merge-pdf",
+    "pdf-studio",
+    "image-compressor",
+    "image-resizer",
+  ],
+  "pdf-to-image": [
+    "images-to-pdf",
+    "split-pdf",
+    "compress-pdf",
+    "pdf-studio",
+    "image-to-image",
+    "image-to-text",
+  ],
+  "pdf-studio": [
+    "merge-pdf",
+    "split-pdf",
+    "compress-pdf",
+    "pdf-lock-unlock",
+    "word-to-pdf",
+    "pdf-to-word",
+  ],
+  "merge-pdf": [
+    "split-pdf",
+    "compress-pdf",
+    "pdf-studio",
+    "images-to-pdf",
+    "word-to-pdf",
+    "pdf-lock-unlock",
+  ],
+  "split-pdf": [
+    "merge-pdf",
+    "pdf-studio",
+    "compress-pdf",
+    "pdf-to-image",
+    "pdf-to-word",
+    "pdf-lock-unlock",
+  ],
+  "compress-pdf": [
+    "merge-pdf",
+    "split-pdf",
+    "pdf-studio",
+    "word-to-pdf",
+    "images-to-pdf",
+    "pdf-lock-unlock",
+  ],
+  "word-to-pdf": [
+    "pdf-to-word",
+    "merge-pdf",
+    "compress-pdf",
+    "pdf-studio",
+    "pdf-lock-unlock",
+    "split-pdf",
+  ],
+  "pdf-to-word": [
+    "word-to-pdf",
+    "image-to-text",
+    "split-pdf",
+    "pdf-studio",
+    "merge-pdf",
+    "word-counter",
+  ],
+  "pdf-lock-unlock": [
+    "pdf-studio",
+    "merge-pdf",
+    "compress-pdf",
+    "split-pdf",
+    "word-to-pdf",
+    "password-generator",
+  ],
+
+  // Image Tools (4): same-category Image Tools first, then genuine image workflows
+  "image-compressor": [
+    "image-resizer",
+    "image-cropper",
+    "image-to-image",
+    "images-to-pdf",
+    "pdf-to-image",
+    "image-to-text",
+  ],
+  "image-resizer": [
+    "image-cropper",
+    "image-to-image",
+    "image-compressor",
+    "images-to-pdf",
+    "pdf-to-image",
+    "image-to-text",
+  ],
+  "image-cropper": [
+    "image-to-image",
+    "image-compressor",
+    "image-resizer",
+    "image-to-text",
+    "images-to-pdf",
+    "pdf-to-image",
+  ],
+  "image-to-image": [
+    "image-compressor",
+    "image-resizer",
+    "image-cropper",
+    "images-to-pdf",
+    "pdf-to-image",
+    "image-to-text",
+  ],
+
+  // Text & Writing (3): same-category Text & Writing first, then document/text workflows
+  "word-counter": [
+    "case-converter",
+    "image-to-text",
+    "pdf-to-word",
+    "word-to-pdf",
+  ],
+  "case-converter": [
+    "word-counter",
+    "image-to-text",
+    "pdf-to-word",
+    "regex-tester",
+    "url-encoder-decoder",
+  ],
+  "image-to-text": [
+    "word-counter",
+    "case-converter",
+    "pdf-to-word",
+    "pdf-to-image",
+    "image-cropper",
+    "images-to-pdf",
+  ],
+
+  // QR & Barcode (2): QR encoding, scanning, security and print-asset workflows
+  "qr-generator": [
+    "qr-code-scanner",
+    "url-encoder-decoder",
+    "password-generator",
+    "image-resizer",
+    "images-to-pdf",
+  ],
+  "qr-code-scanner": [
+    "qr-generator",
+    "url-encoder-decoder",
+    "base64-encoder-decoder",
+    "hash-generator",
+    "image-cropper",
+  ],
+
+  // Security & Privacy (1): local cryptography, passwords and document/QR protection
+  "password-generator": [
+    "hash-generator",
+    "pdf-lock-unlock",
+    "uuid-generator",
+    "base64-encoder-decoder",
+    "qr-generator",
+  ],
+
+  // Developer Tools (11)
+  "json-formatter": [
+    "json-validator",
+    "xml-formatter",
+    "html-formatter",
+    "base64-encoder-decoder",
+    "url-encoder-decoder",
+    "regex-tester",
+  ],
+  "json-validator": [
+    "json-formatter",
+    "xml-formatter",
+    "html-formatter",
+    "regex-tester",
+    "base64-encoder-decoder",
+    "url-encoder-decoder",
+  ],
+  "xml-formatter": [
+    "json-formatter",
+    "json-validator",
+    "html-formatter",
+    "css-minifier",
+  ],
+  "html-formatter": [
+    "css-minifier",
+    "javascript-minifier",
+    "xml-formatter",
+    "json-formatter",
+    "url-encoder-decoder",
+    "regex-tester",
+  ],
+  "css-minifier": ["javascript-minifier", "html-formatter", "xml-formatter"],
+  "javascript-minifier": ["css-minifier", "html-formatter", "regex-tester"],
+  "base64-encoder-decoder": [
+    "url-encoder-decoder",
+    "hash-generator",
+    "uuid-generator",
+    "json-formatter",
+    "password-generator",
+    "qr-code-scanner",
+  ],
+  "url-encoder-decoder": [
+    "base64-encoder-decoder",
+    "regex-tester",
+    "case-converter",
+    "json-formatter",
+    "html-formatter",
+    "qr-generator",
+  ],
+  "uuid-generator": [
+    "hash-generator",
+    "password-generator",
+    "base64-encoder-decoder",
+    "json-formatter",
+    "json-validator",
+  ],
+  "regex-tester": [
+    "word-counter",
+    "case-converter",
+    "url-encoder-decoder",
+    "json-validator",
+    "html-formatter",
+    "javascript-minifier",
+  ],
+  "hash-generator": [
+    "password-generator",
+    "uuid-generator",
+    "base64-encoder-decoder",
+  ],
+
+  // Calculators (12): strictly clustered by finance/rate, date/time, health, and physical/math conversion
+  "emi-calculator": [
+    "loan-calculator",
+    "percentage-calculator",
+    "gst-calculator",
+    "discount-calculator",
+    "date-difference-calculator",
+  ],
+  "loan-calculator": [
+    "emi-calculator",
+    "percentage-calculator",
+    "gst-calculator",
+    "discount-calculator",
+    "date-difference-calculator",
+  ],
+  "gst-calculator": [
+    "discount-calculator",
+    "percentage-calculator",
+    "emi-calculator",
+    "loan-calculator",
+  ],
+  "discount-calculator": [
+    "gst-calculator",
+    "percentage-calculator",
+    "emi-calculator",
+    "loan-calculator",
+  ],
+  "percentage-calculator": [
+    "discount-calculator",
+    "gst-calculator",
+    "emi-calculator",
+    "loan-calculator",
+    "scientific-calculator",
+  ],
+  "age-calculator": [
+    "date-difference-calculator",
+    "time-converter",
+    "bmi-calculator",
+  ],
+  "date-difference-calculator": [
+    "age-calculator",
+    "time-converter",
+    "emi-calculator",
+    "loan-calculator",
+  ],
+  "time-converter": [
+    "date-difference-calculator",
+    "age-calculator",
+    "unit-converter",
+    "temperature-converter",
+    "scientific-calculator",
+  ],
+  "bmi-calculator": [
+    "age-calculator",
+    "unit-converter",
+    "percentage-calculator",
+  ],
+  "unit-converter": [
+    "temperature-converter",
+    "time-converter",
+    "scientific-calculator",
+    "percentage-calculator",
+  ],
+  "temperature-converter": [
+    "unit-converter",
+    "time-converter",
+    "scientific-calculator",
+  ],
+  "scientific-calculator": [
+    "percentage-calculator",
+    "unit-converter",
+    "temperature-converter",
+    "time-converter",
+  ],
+};
+
 /**
- * Related tools for a detail page: round-robin across the tool's categories so
- * a tool listed in two categories surfaces neighbours from both, then fill
- * with the rest of the catalogue.
+ * Contextual related tools for a detail page: returns only genuinely relevant
+ * workflow/category neighbours (3–6 tools depending on natural cluster size),
+ * never padding smaller sub-clusters with unrelated filler just to hit 6.
  */
-export function relatedTools(tool: Tool, limit = 3): Tool[] {
-  const categories = toolCategoriesOf(tool);
-  const pool = tools.filter((candidate) => candidate.slug !== tool.slug);
-  const buckets = categories.map((name) =>
-    pool.filter((candidate) => toolCategoriesOf(candidate).includes(name)),
-  );
+export function relatedTools(tool: Tool, limit = 6): Tool[] {
   const ordered: Tool[] = [];
-  for (let index = 0; ; index += 1) {
-    let found = false;
-    for (const bucket of buckets) {
-      const next = bucket[index];
-      if (!next) continue;
-      found = true;
-      if (!ordered.includes(next)) ordered.push(next);
-    }
-    if (!found) break;
-  }
-  for (const candidate of pool)
+  const pushUnique = (candidate: Tool | undefined) => {
+    if (!candidate || candidate.slug === tool.slug) return;
     if (!ordered.includes(candidate)) ordered.push(candidate);
+  };
+
+  const curatedSlugs = RELATED_TOOL_AFFINITIES[tool.slug];
+  if (curatedSlugs) {
+    for (const slug of curatedSlugs) {
+      pushUnique(toolBySlug(slug));
+    }
+    return ordered.slice(0, limit);
+  }
+
+  // Fallback for any newly added tool not yet listed in RELATED_TOOL_AFFINITIES:
+  // rotate through same-category peers only, without cross-category filler.
+  for (const categoryName of toolCategoriesOf(tool)) {
+    const peers = toolsByCategory(categoryName);
+    const selfIdx = peers.findIndex((item) => item.slug === tool.slug);
+    for (let offset = 1; offset <= peers.length; offset += 1) {
+      const idx = selfIdx >= 0 ? (selfIdx + offset) % peers.length : offset - 1;
+      pushUnique(peers[idx]);
+    }
+  }
+
   return ordered.slice(0, limit);
 }
 

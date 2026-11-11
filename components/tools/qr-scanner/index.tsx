@@ -69,7 +69,7 @@ export default function QrScanner() {
         aria-label="QR code scanner workspace"
       >
         <WorkspaceHeading
-          title="QR Code Scanner"
+          title="Scan a QR code"
           description="Read a QR code from a camera, a photo, a screenshot or a whole batch — then see exactly what it contains and what the destination deserves before you open it."
         />
 

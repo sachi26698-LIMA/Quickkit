@@ -1,10 +1,12 @@
 import ToolShell from "@/components/tool-shell";
 import PdfCompressor from "@/components/tools/compress-pdf";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "Compress PDF — reduce PDF size locally",
-  "Compress PDFs with low, medium, high or maximum presets, custom image quality, an optional target size, previews and validated PDF or ZIP downloads.",
+  "Compress PDF Online — Shrink PDF Size Locally",
+  "Reduce PDF file size locally in your browser with 4 presets, custom image quality, or a target KiB/MiB cap while keeping text and vector lines sharp.",
   "/tools/compress-pdf",
 );
 
@@ -12,6 +14,16 @@ export default function Page() {
   return (
     <ToolShell
       slug="compress-pdf"
+      headingDescription="Reduce PDF file size locally in your browser with 4 presets, custom image quality, or a target KiB/MiB cap while keeping text and vector lines sharp."
+      stepsHeading="How to shrink a PDF without losing text"
+      faqsHeading="Compress PDF questions, answered"
+      relatedHeading="More ways to work with PDFs"
+      referenceSection={
+        <ToolReferenceSection
+          slug="compress-pdf"
+          entry={TOOL_SEO_CONTENT["compress-pdf"]}
+        />
+      }
       content={{
         steps: [
           "Add one or more PDFs. QUICKKIT inspects each file locally for page count, dimensions, embedded images, encryption and features that should not be rewritten silently.",

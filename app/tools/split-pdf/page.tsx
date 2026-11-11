@@ -1,10 +1,12 @@
 import ToolShell from "@/components/tool-shell";
 import PdfSplitter from "@/components/tools/split-pdf";
 import { pageMetadata } from "@/lib/seo";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "Split PDF — extract ranges and pages locally",
-  "Split a PDF by custom ranges, selected pages, every N pages or one PDF per page. Preview pages, name outputs and download validated PDFs or a ZIP. No upload.",
+  "Split PDF Online — Extract Pages & Custom Ranges",
+  "Split a PDF by custom page ranges, selected pages, every N pages, or one file per page locally in your browser. Preview outputs and download a ZIP.",
   "/tools/split-pdf",
 );
 
@@ -12,6 +14,16 @@ export default function Page() {
   return (
     <ToolShell
       slug="split-pdf"
+      headingDescription="Split a PDF by custom page ranges, selected pages, every N pages, or one file per page locally in your browser. Preview outputs and download a ZIP."
+      stepsHeading="How to split a PDF into separate files"
+      faqsHeading="Split PDF questions, answered"
+      relatedHeading="More ways to work with PDFs"
+      referenceSection={
+        <ToolReferenceSection
+          slug="split-pdf"
+          entry={TOOL_SEO_CONTENT["split-pdf"]}
+        />
+      }
       content={{
         steps: [
           "Drop in or choose one PDF. QUICKKIT inspects it on your device and explains the next step if it is oversized, unreadable, password-protected, signed or a dynamic XFA form.",

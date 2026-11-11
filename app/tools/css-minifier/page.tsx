@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import MinifierTool from "@/components/tools/devtools/minifier";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "CSS Minifier — compress CSS and compare sizes",
-  "Minify CSS with a syntax-aware parser, remove unnecessary whitespace and comments, compare input and output byte sizes, and download locally.",
+  TOOL_SEO_METADATA["css-minifier"].title,
+  TOOL_SEO_METADATA["css-minifier"].description,
   "/tools/css-minifier",
 );
 

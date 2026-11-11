@@ -1,10 +1,11 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import UuidGenerator from "@/components/tools/devtools/uuid-generator";
 import { pageMetadata } from "@/lib/seo";
+import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export const metadata = pageMetadata(
-  "UUID Generator — secure bulk UUID v4 values",
-  "Generate cryptographically random UUID v4 identifiers in configurable, duplicate-checked batches. Copy or download up to 2,000 local UUIDs at once.",
+  TOOL_SEO_METADATA["uuid-generator"].title,
+  TOOL_SEO_METADATA["uuid-generator"].description,
   "/tools/uuid-generator",
 );
 
