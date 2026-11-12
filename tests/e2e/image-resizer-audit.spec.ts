@@ -285,10 +285,10 @@ test.describe("image resizer audit", () => {
     expect(graph).not.toContain("HowTo");
     expect(graph).toContain("FAQPage");
     await expect(
-      page.getByRole("heading", { name: /How to use it/i }),
+      page.getByRole("heading", { name: /Resize and export images/i }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /A few useful answers/i }),
+      page.getByRole("heading", { name: /Image resizing questions/i }),
     ).toBeVisible();
     const faqs = await page
       .locator(".tool-guidance section")

@@ -41,7 +41,10 @@ test("loan affordability and LTV", async ({ page }) => {
   await page.goto("/tools/loan-calculator");
   await page.getByLabel("Annual interest rate (%)").fill("0");
   await page.getByLabel("Tenure (months)", { exact: true }).fill("12");
-  await page.getByText("Down payment & affordability estimate").click();
+  await page
+    .locator("summary")
+    .filter({ hasText: "Down payment & affordability estimate" })
+    .click();
   await page.getByLabel("Purchase price (₹)").fill("1000000");
   await page.getByLabel("Down payment (₹)").fill("200000");
   await page.getByLabel("Monthly gross income (₹)").fill("100000");

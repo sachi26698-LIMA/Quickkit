@@ -12,7 +12,7 @@ test("scientific functions, keyboard answer and restore", async ({ page }) => {
   await input.press("Enter");
   await page.getByRole("button", { name: "Restore" }).last().click();
   await expect(input).toHaveValue("nCr(5,2)");
-  await page.getByText("More functions").click();
+  await page.locator("summary").filter({ hasText: "More functions" }).click();
   await page.getByRole("button", { name: "Backspace" }).click();
   await expect(input).toHaveValue("nCr(5,2");
 });
@@ -20,7 +20,10 @@ test("date holiday and calendar shifts", async ({ page }) => {
   await page.goto("/tools/date-difference-calculator");
   await page.getByLabel("Start date").fill("2024-03-01");
   await page.getByLabel("End date", { exact: true }).fill("2024-03-05");
-  await page.getByText("Holiday exclusions").click();
+  await page
+    .locator("summary")
+    .filter({ hasText: "Holiday exclusions" })
+    .click();
   await page.getByLabel("Holiday dates", { exact: false }).fill("2024-03-04");
   await expect(page.getByText(/1 business days/)).toBeVisible();
   await page.getByLabel("Add or subtract duration", { exact: false }).fill("1");
@@ -36,7 +39,10 @@ test("conversion comparison and session restore", async ({ page }) => {
   await page
     .getByRole("button", { name: "Save conversion", exact: true })
     .click();
-  await page.getByText("Advanced conversion settings").click();
+  await page
+    .locator("summary")
+    .filter({ hasText: "Advanced conversion settings" })
+    .click();
   await page.getByLabel("Show all target units").check();
   await expect(
     page.getByText("4.448221615 Newton", { exact: false }),
@@ -50,7 +56,10 @@ test("loan prepayment and CSV download", async ({ page }) => {
   await page.getByLabel("Principal (₹)", { exact: true }).fill("1200");
   await page.getByLabel("Annual interest rate (%)").fill("0");
   await page.getByLabel("Tenure (months)", { exact: true }).fill("12");
-  await page.getByText("One-time prepayment").click();
+  await page
+    .locator("summary")
+    .getByText("One-time prepayment", { exact: true })
+    .click();
   await page.getByLabel("Extra amount (₹)").fill("500");
   await page.getByLabel("Payment month").fill("2");
   await expect(page.getByText(/Paid off in 7 months/)).toBeVisible();
@@ -93,19 +102,31 @@ for (const slug of [
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/tools/${slug}`);
       if (slug === "scientific-calculator")
-        await page.getByText("More functions").click();
+        await page
+          .locator("summary")
+          .filter({ hasText: "More functions" })
+          .click();
       if (
         ["unit-converter", "temperature-converter", "time-converter"].includes(
           slug,
         )
       )
-        await page.getByText("Advanced conversion settings").click();
+        await page
+          .locator("summary")
+          .filter({ hasText: "Advanced conversion settings" })
+          .click();
       if (slug === "date-difference-calculator")
-        await page.getByText("Holiday exclusions").click();
+        await page
+          .locator("summary")
+          .filter({ hasText: "Holiday exclusions" })
+          .click();
       if (slug === "age-calculator")
-        await page.getByText("Compare another person").click();
+        await page.getByText("Compare another person", { exact: true }).click();
       if (["loan-calculator", "emi-calculator"].includes(slug))
-        await page.getByText("One-time prepayment").click();
+        await page
+          .locator("summary")
+          .getByText("One-time prepayment", { exact: true })
+          .click();
       if (slug === "bmi-calculator") {
         await page.getByLabel("Age group").selectOption("adult");
         await page.getByText("Target BMI", { exact: true }).click();

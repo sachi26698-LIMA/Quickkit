@@ -335,6 +335,9 @@ export default function ContactPage() {
                   </p>
                 </div>
                 <LegalRelated current="/contact" />
+                <div className="legal-backtotop">
+                  <a href="#main">Back to top</a>
+                </div>
               </section>
             </div>
           </div>

@@ -21,6 +21,7 @@ import {
 } from "@/lib/tools/word-to-pdf/page-plan";
 import { selectedPages } from "@/lib/tools/word-to-pdf/settings";
 import { usePdf, Thumb, WindowedPages } from "./preview-resources";
+import { MAX_PAGES } from "@/lib/tools/word-to-pdf/page-limits";
 import styles from "./word-to-pdf.module.css";
 export default function PageEditor({
   plan,
@@ -91,7 +92,10 @@ export default function PageEditor({
       <div className={styles.panelHeading}>
         <span className={styles.eyebrow}>VISUAL PAGE EDITOR</span>
         <h2>
-          Shape your document <span>{plan.pages.length}/100</span>
+          Shape your document{" "}
+          <span>
+            {plan.pages.length}/{MAX_PAGES}
+          </span>
         </h2>
         <p className={styles.note}>
           Edits change the actual PDF. Drag a page or use the touch-friendly

@@ -477,7 +477,7 @@ test("V3 mobile touch page reordering, edit/preview panels and accessible export
   }
 });
 
-test("V3 actual 100-page browser fixture windows/revokes thumbnails and enforces the edit cap", async ({
+test("V3 100-page browser fixture windows thumbnails and supports edits under the 1,000-page limit", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -546,10 +546,13 @@ test("V3 actual 100-page browser fixture windows/revokes thumbnails and enforces
   await editor
     .getByRole("button", { name: "Insert blank page", exact: true })
     .click();
-  await expect(editor.getByRole("alert")).toContainText("1–100");
+  await expect(
+    editor.getByRole("heading", { name: "Shape your document 101/1000" }),
+  ).toBeVisible();
+  await expect(editor.getByRole("alert")).toHaveCount(0);
   await synced(page);
   const file = await download(page);
-  expect((await PDFDocument.load(file.bytes)).getPageCount()).toBe(100);
+  expect((await PDFDocument.load(file.bytes)).getPageCount()).toBe(101);
   const metrics = await page.evaluate(() => {
     const w = window as unknown as {
       thumbMetrics: () => { live: number; peak: number };

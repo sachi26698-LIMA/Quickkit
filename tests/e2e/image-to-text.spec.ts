@@ -97,10 +97,12 @@ test.describe("Image to Text (OCR)", () => {
 
     // FAQ copy is real content inside the shared tool shell.
     await expect(
-      page.getByRole("heading", { name: /a few useful answers/i }),
+      page.getByRole("heading", { name: /Image-to-text and OCR questions/i }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /how to use it/i }),
+      page.getByRole("heading", {
+        name: /Extract text from images and scanned PDFs/i,
+      }),
     ).toBeVisible();
 
     // JSON-LD declares the tool and its FAQ.
@@ -388,6 +390,7 @@ test.describe("Image to Text (OCR)", () => {
     await expect(page.getByLabel("Add images or scanned PDFs")).toBeVisible();
     await upload(page, ["small-text.png"]);
     const start = page.getByRole("button", { name: "Start OCR" });
+    await start.scrollIntoViewIfNeeded();
     await expect(start).toBeInViewport();
     await expect(start).toBeEnabled();
   });

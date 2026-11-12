@@ -79,7 +79,9 @@ test("real journey: convert, preview, restyle, download (desktop)", async ({
     timeout: 30_000,
   });
 
-  // Change an export setting that must reach the generated PDF.
+  // Change an export setting that must reach the generated PDF. Page controls
+  // live in a collapsed section until the user opens it.
+  await page.locator("summary").filter({ hasText: "Page Management" }).click();
   const format = page.getByLabel("Custom number template");
   await page.getByLabel("Add page numbers").check();
   await format.fill("Page {n} of {total}");

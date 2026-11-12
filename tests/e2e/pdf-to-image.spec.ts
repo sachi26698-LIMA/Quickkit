@@ -140,7 +140,7 @@ test.describe("PDF to Image Converter", () => {
   }) => {
     await expect(page.getByTestId("converter-item")).toHaveCount(0);
     await expect(page.getByTestId("converter-run")).toBeDisabled();
-    await expect(page.getByTestId("converter-preview-panel")).toContainText(
+    await expect(page.locator("#converter-preview-panel")).toContainText(
       /add a pdf/i,
     );
   });
@@ -228,7 +228,9 @@ test.describe("PDF to Image Converter", () => {
     await upload(page, [await makePdf(5)]);
     await page.getByLabel("Page image format").selectOption("png");
     await page.getByLabel("Pages to export").fill("2-3");
-    await expect(page.getByText("2 of 5 pages selected")).toBeVisible();
+    await expect(
+      page.getByText("2 of 5 pages selected", { exact: true }).first(),
+    ).toBeVisible();
     await runConversion(page);
 
     await expect(page.getByTestId("converter-result")).toHaveCount(2);
@@ -370,15 +372,17 @@ test.describe("PDF to Image Converter — preview and access", () => {
   }) => {
     await upload(page, [await makePdf(2)]);
     await page.getByLabel("Page image format").selectOption("png");
+    await page
+      .getByRole("group", { name: "DPI presets" })
+      .getByText("96")
+      .click();
     await runConversion(page);
     await page
       .getByRole("button", { name: /Preview .*page-002/ })
       .first()
       .click();
     await expect(page.getByTestId("converter-result-image")).toBeVisible();
-    await expect(page.getByTestId("converter-preview-panel")).toContainText(
-      "794",
-    );
+    await expect(page.locator("#converter-preview-panel")).toContainText("794");
   });
 
   test("stays accessible from a 375px phone to a desktop", async ({ page }) => {

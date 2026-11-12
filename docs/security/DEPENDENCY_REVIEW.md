@@ -1,6 +1,8 @@
 # Dependency advisory review — 31 October 2026
 
-## Verdict — not a clean full-audit claim
+> **Historical snapshot:** This review records the advisory metadata and npm audit state on 31 October 2026. A fresh Phase 5 run on 10 November 2026 reported zero findings from both `npm audit --audit-level=moderate` and `npm audit --omit=dev --audit-level=moderate`. Re-run the audit for each release candidate; the results below should not be read as the current count.
+
+## Verdict — not a clean full-audit claim (as of 31 October 2026)
 
 Before: **16 moderate npm entries**. After scoped remediation: **15 moderate npm entries**, all development-only; production audit remains clean. No advisory exclusions, `--force`, global minimatch override, package downgrade or removal of lint rules was used.
 

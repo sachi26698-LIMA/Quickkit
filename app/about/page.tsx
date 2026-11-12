@@ -250,12 +250,12 @@ export default function AboutPage() {
                 scripts, frames, images and network connections only from this
                 site&rsquo;s own origin plus the specific Google hosts AdSense
                 needs to serve and measure ads — no wildcards, no other third
-                parties. That third-party script runs in the page and may access
-                page or browser information; the application does not
-                intentionally send tool inputs to it. Avoid entering sensitive
-                material if you are not comfortable with that access. This
-                policy does not prevent consented server processing by the Word
-                to PDF private worker.
+                parties. When advertising is enabled, that third-party script
+                runs in the page and may access page or browser information; the
+                application does not intentionally send tool inputs to it. Avoid
+                entering sensitive material if you are not comfortable with that
+                access. This policy does not prevent consented server processing
+                by the Word to PDF private worker.
               </p>
               <p>
                 Where privacy is <em>not</em> absolute, we say so: the hosting

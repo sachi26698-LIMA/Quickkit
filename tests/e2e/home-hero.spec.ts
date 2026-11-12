@@ -267,10 +267,17 @@ for (const width of [390, 1440]) {
 test("feedback reports storage failure without pretending it was saved", async ({
   page,
 }) => {
+  // The laptop intentionally floats continuously; freeze motion for this
+  // storage-failure interaction so Playwright can reliably click its control.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.evaluate(() => {
-    Storage.prototype.setItem = () => {
-      throw new Error("Storage unavailable");
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "quickkit-hero-feedback-v1") {
+        throw new Error("Storage unavailable");
+      }
+      return originalSetItem.call(this, key, value);
     };
   });
   const screen = page.getByRole("group", { name: "QUICKKIT laptop preview" });

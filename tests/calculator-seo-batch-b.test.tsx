@@ -54,9 +54,7 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
   it("defines unique, intent-focused metadata and 4 specific FAQs for all 12 calculators", async () => {
     vi.stubEnv("SITE_URL", "https://quickkit.online");
     vi.resetModules();
-    const { generateMetadata } = await import(
-      "../app/tools/[calculator]/page"
-    );
+    const { generateMetadata } = await import("../app/tools/[calculator]/page");
 
     expect(Object.keys(calculatorInfo).sort()).toEqual(
       [...CALCULATOR_SLUGS].sort(),
@@ -73,9 +71,10 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
       });
 
       const renderedTitle = `${info.seoTitle} | QUICKKIT`;
-      expect(renderedTitle.length, `${slug} title length`).toBeGreaterThanOrEqual(
-        50,
-      );
+      expect(
+        renderedTitle.length,
+        `${slug} title length`,
+      ).toBeGreaterThanOrEqual(50);
       expect(renderedTitle.length, `${slug} title length`).toBeLessThanOrEqual(
         60,
       );
@@ -197,9 +196,9 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
 
       expect(faqPage).toBeDefined();
       expect(faqPage.mainEntity).toHaveLength(4);
-      expect(
-        faqPage.mainEntity.map((q: { name: string }) => q.name),
-      ).toEqual(info.faqs.map((f) => f.q));
+      expect(faqPage.mainEntity.map((q: { name: string }) => q.name)).toEqual(
+        info.faqs.map((f) => f.q),
+      );
 
       // 3. Related calculator cards are all within Calculators (3..5 items)
       const relatedLinks = [...container.querySelectorAll(".related-card")].map(
@@ -274,9 +273,13 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
 
     // 5. Age Calculator
     const a1 = age(parseDate("1996-05-15"), parseDate("2026-11-10"));
-    expect([a1.years, a1.months, a1.remainder, a1.days, a1.untilBirthday]).toEqual([
-      30, 5, 26, 11136, 186,
-    ]);
+    expect([
+      a1.years,
+      a1.months,
+      a1.remainder,
+      a1.days,
+      a1.untilBirthday,
+    ]).toEqual([30, 5, 26, 11136, 186]);
     const aLeap = age(parseDate("2000-02-29"), parseDate("2025-02-28"));
     expect([aLeap.years, aLeap.months, aLeap.remainder, aLeap.days]).toEqual([
       25, 0, 0, 9131,
@@ -295,9 +298,13 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
       parseDate("2026-03-31"),
       true,
     );
-    expect([ddIn.years, ddIn.months, ddIn.remainder, ddIn.days, ddIn.business]).toEqual(
-      [0, 1, 0, 31, 22],
-    );
+    expect([
+      ddIn.years,
+      ddIn.months,
+      ddIn.remainder,
+      ddIn.days,
+      ddIn.business,
+    ]).toEqual([0, 1, 0, 31, 22]);
     expect(shiftCalendar(parseDate("2026-01-31"), 1, "months")).toBe(
       "2026-02-28",
     );
@@ -340,9 +347,10 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
       1073.741824,
       10,
     );
-    expect(
-      convert(30, "Fuel consumption", "US mpg", "L/100 km"),
-    ).toBeCloseTo(7.8404861, 7);
+    expect(convert(30, "Fuel consumption", "US mpg", "L/100 km")).toBeCloseTo(
+      7.8404861,
+      7,
+    );
 
     // 11. Temperature Converter
     expect(temperature(100, "Celsius", "Fahrenheit")).toBe(212);

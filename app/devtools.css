@@ -274,6 +274,7 @@
 }
 .tool-page[data-tool] .devtool-help {
   margin-top: 12px;
+  overflow-wrap: anywhere;
 }
 .tool-page[data-tool] .devtool-action-row {
   display: flex;
@@ -662,4 +663,9 @@
   margin-top: 16px;
   color: var(--t-muted);
   font-size: 11px;
+}
+
+/* Long, unbroken input and example snippets must wrap instead of clipping on phones. */
+.tool-page[data-tool] .advanced-workspace .advanced-item li {
+  overflow-wrap: anywhere;
 }

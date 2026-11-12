@@ -15,7 +15,10 @@ const inputs: Record<string, (p: Page) => Promise<void>> = {
   "age-calculator": async (p) => {
     await p.getByLabel("Date of birth", { exact: true }).fill("2000-02-29");
     await p.getByLabel("Age on date").fill("2023-02-28");
-    await p.getByText("Compare another person").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Compare another person" })
+      .click();
     await p.getByLabel("Second date of birth").fill("1998-02-28");
     await expect(
       p.getByText(/Next decade milestone: 30 years on 2030-02-28/),
@@ -24,7 +27,10 @@ const inputs: Record<string, (p: Page) => Promise<void>> = {
   "date-difference-calculator": async (p) => {
     await p.getByLabel("Start date").fill("2024-03-01");
     await p.getByLabel("End date", { exact: true }).fill("2024-03-05");
-    await p.getByText("Holiday exclusions").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Holiday exclusions" })
+      .click();
     await p.getByLabel("Holiday dates", { exact: false }).fill("2024-03-04");
     await expect(p.getByText(/1 business days/)).toBeVisible();
     await p.getByText("View start-month calendar").click();
@@ -33,7 +39,10 @@ const inputs: Record<string, (p: Page) => Promise<void>> = {
   "bmi-calculator": async (p) => {
     await p.getByLabel("Height (cm)").fill("170");
     await p.getByLabel("Weight (kg)", { exact: true }).fill("65");
-    await p.getByText("Compare previous weight").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Compare previous weight" })
+      .click();
     await p.getByLabel("Previous weight (kg)").fill("70");
     await expect(p.getByText(/Previous BMI: 24.2215/)).toBeVisible();
   },
@@ -61,21 +70,30 @@ const inputs: Record<string, (p: Page) => Promise<void>> = {
   "scientific-calculator": async (p) => {
     await p.getByLabel("Expression").fill("nCr(5,2)+sin(30)");
     await p.getByLabel("Expression").press("Enter");
-    await p.getByText("More functions").click();
+    await p.locator("summary").filter({ hasText: "More functions" }).click();
     await expect(p.locator("output")).toHaveText("10.5");
   },
   "unit-converter": async (p) => {
     await p.getByLabel("Value", { exact: true }).fill("1000");
-    await p.getByText("Advanced conversion settings").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Advanced conversion settings" })
+      .click();
     await p.getByLabel("Show all target units").check();
     await expect(p.locator("output")).toContainText("1 Kilometre");
   },
   "temperature-converter": async (p) => {
     await p.getByLabel("Value", { exact: true }).fill("0");
-    await p.getByText("Advanced conversion settings").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Advanced conversion settings" })
+      .click();
     await p.getByLabel("Show all target units").check();
     await expect(p.locator("output")).toContainText("32 Fahrenheit");
-    await p.getByText("Compare another temperature").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Compare another temperature" })
+      .click();
     await p.getByLabel("Comparison temperature").fill("50");
     await p.getByLabel("Comparison unit").selectOption("Fahrenheit");
     await expect(
@@ -86,7 +104,10 @@ const inputs: Record<string, (p: Page) => Promise<void>> = {
   },
   "time-converter": async (p) => {
     await p.getByLabel("Value", { exact: true }).fill("2");
-    await p.getByText("Advanced conversion settings").click();
+    await p
+      .locator("summary")
+      .filter({ hasText: "Advanced conversion settings" })
+      .click();
     await p.getByLabel("Show all target units").check();
     await p.getByLabel("Starting local date and time").fill("2024-01-31T10:30");
     await p.getByLabel("Calendar duration (negative to subtract)").fill("1");

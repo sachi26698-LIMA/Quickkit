@@ -731,7 +731,11 @@ export default function WordToPdf() {
                           )}
                           {["error", "cancelled"].includes(r.status) && (
                             <button
-                              disabled={!studio.available || !studio.consent}
+                              disabled={
+                                !r.inputValid ||
+                                !studio.available ||
+                                !studio.consent
+                              }
                               onClick={() => void studio.run(r.id)}
                             >
                               Retry
@@ -1048,7 +1052,7 @@ export default function WordToPdf() {
           )}
           {studio.available === true &&
             !studio.consent &&
-            rows.some((row) => !ready(row)) && (
+            rows.some((row) => row.inputValid && !ready(row)) && (
               <span className={styles.exportHint}>
                 Tick the consent box to enable Convert documents.
               </span>
@@ -1067,7 +1071,7 @@ export default function WordToPdf() {
               disabled={
                 !studio.available ||
                 !studio.consent ||
-                !rows.some((r) => !ready(r)) ||
+                !rows.some((r) => r.inputValid && !ready(r)) ||
                 studio.localBusy
               }
               onClick={() => void studio.run()}

@@ -122,7 +122,10 @@ for (const item of [
 
 test("loan down payment and affordability workflow", async ({ page }) => {
   await page.goto("/tools/loan-calculator");
-  await page.getByText("Down payment & affordability estimate").click();
+  await page
+    .locator("summary")
+    .filter({ hasText: "Down payment & affordability estimate" })
+    .click();
   await page.getByLabel("Purchase price (₹)").fill("1000000");
   await page.getByLabel("Down payment (₹)").fill("200000");
   await page.getByLabel("Monthly gross income (₹)").fill("100000");

@@ -221,11 +221,11 @@ export default function TermsPage() {
         <Link href="/intellectual-property#open-source">
           Intellectual Property Policy
         </Link>
-        . The site separately loads a Google AdSense verification script; it is
-        not used to process files. See the{" "}
-        <Link href="/privacy">Privacy Policy</Link> for its data handling. Any
-        future remote processing API will be documented before use and clearly
-        labelled in the affected tool.
+        . When advertising is enabled, the site separately loads a Google
+        AdSense verification script on eligible pages; it is not used to process
+        files. See the <Link href="/privacy">Privacy Policy</Link> for its data
+        handling. Any future remote processing API will be documented before use
+        and clearly labelled in the affected tool.
       </p>
 
       <h2 id="availability">10. Service availability</h2>

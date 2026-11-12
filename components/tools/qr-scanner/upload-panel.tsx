@@ -10,6 +10,7 @@
  * an angle.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   ClipboardPaste,
   Crop,
@@ -362,9 +363,13 @@ export default function UploadPanel({ api }: { api: ScannerApi }) {
           )}
 
           <div className="scanner-adjust-preview">
-            <img
+            <Image
               src={loaded.url}
               alt={`Preview of ${loaded.name}`}
+              width={loaded.raster.width}
+              height={loaded.raster.height}
+              unoptimized
+              loading="eager"
               style={{
                 transform: `rotate(${rotation}deg)`,
                 maxHeight: 260,
@@ -488,7 +493,15 @@ function CropEditor({
       onPointerCancel={() => setDrag(null)}
       role="presentation"
     >
-      <img src={image} alt="" style={{ transform: `rotate(${rotation}deg)` }} />
+      <Image
+        src={image}
+        alt=""
+        width={width}
+        height={height}
+        unoptimized
+        loading="eager"
+        style={{ transform: `rotate(${rotation}deg)` }}
+      />
       {crop && crop.width > 0.01 && crop.height > 0.01 && (
         <span
           className="scanner-crop-box"

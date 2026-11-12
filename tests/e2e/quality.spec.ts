@@ -13,6 +13,7 @@ const routes = [
   "/tools/word-counter",
   "/tools/case-converter",
   "/tools/json-formatter",
+  "/tools/url-encoder-decoder",
   "/tools/password-generator",
   "/tools/qr-generator",
   "/tools/image-compressor",
@@ -82,6 +83,38 @@ for (const route of routes) {
       ).toBe(true);
     });
 }
+for (const route of [
+  "/tools/base64-encoder-decoder",
+  "/tools/hash-generator",
+  "/tools/json-formatter",
+  "/tools/json-validator",
+  "/tools/url-encoder-decoder",
+])
+  test(`reference examples wrap without clipping ${route}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto(route);
+    const clippedItems = await page
+      .locator(".advanced-workspace .advanced-item li")
+      .evaluateAll((items) =>
+        items
+          .filter((item) => item.scrollWidth > item.clientWidth)
+          .map((item) => item.textContent?.trim().slice(0, 80)),
+      );
+    expect(clippedItems).toEqual([]);
+  });
+
+test("Word to PDF advertising labels meet WCAG AA contrast", async ({
+  page,
+}) => {
+  await page.goto("/tools/word-to-pdf");
+  const result = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(result.violations).toEqual([]);
+});
+
 test("mobile navigation opens, closes on Escape and navigates", async ({
   page,
 }) => {

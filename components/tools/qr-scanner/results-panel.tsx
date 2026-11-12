@@ -11,6 +11,7 @@
  * while high-risk destinations remain blocked.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import {
   Check,
   ChevronDown,
@@ -251,9 +252,13 @@ export default function ResultsPanel({ api }: { api: ScannerApi }) {
 
             {item.imageUrl && (
               <div className="scanner-result-image">
-                <img
+                <Image
                   src={item.imageUrl}
                   alt={`Scanned source ${item.sourceName}`}
+                  width={item.imageWidth}
+                  height={item.imageHeight}
+                  unoptimized
+                  loading="eager"
                 />
                 <div className="scanner-result-image-actions">
                   <span>

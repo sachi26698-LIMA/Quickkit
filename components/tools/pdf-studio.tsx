@@ -394,6 +394,11 @@ export default function PdfStudio() {
           const details = await inspectInput(item.file);
           if (details.kind === "pdf") {
             const pages = await readPdfPageCount(item.file);
+            if (pages < 1) {
+              throw new Error(
+                "No readable pages were found. The PDF may be password-protected or damaged; remove its password or choose a valid PDF.",
+              );
+            }
             updateItem(item.id, {
               status: "ready",
               pageCount: pages,

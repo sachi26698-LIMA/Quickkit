@@ -49,7 +49,7 @@ test("word counter premium: sample, goal, density and download", async ({
   const text = await page.getByLabel("Your text", { exact: true }).inputValue();
   expect(text).toContain("Great writing");
   await page.getByLabel("Word goal (optional)").fill("10");
-  await expect(page.getByText("Goal reached")).toBeVisible();
+  await expect(page.getByText(/Goal reached — \d+ of 10 words/)).toBeVisible();
   await expect(page.locator(".density-list li").first()).toBeVisible();
   await expect(
     page.getByText("Speaking time · 150 wpm", { exact: true }),
@@ -120,7 +120,7 @@ test("password premium: strength meter, history and hide toggle", async ({
   page,
 }) => {
   await page.goto("/tools/password-generator");
-  await expect(page.getByText("bits of entropy")).toBeVisible();
+  await expect(page.getByText(/^\d+ bits of entropy$/)).toBeVisible();
   await page.getByLabel("Password length in characters").fill("8");
   await expect(page.locator(".strength-head")).not.toContainText("Excellent");
   await page.getByLabel("Password length in characters").fill("64");
@@ -142,6 +142,10 @@ test("QR premium: sizes decode, SVG downloads, styling and low contrast are chec
   await page.goto("/tools/qr-generator");
   const text = "https://example.com/premium";
   await page.getByLabel(/Web address/).fill(text);
+  await page
+    .getByRole("group", { name: "QR scan mode" })
+    .getByRole("button", { name: /Direct Raw Content/ })
+    .click();
   await expect(
     page.getByText("Verified by an independent decoder"),
   ).toBeVisible();
@@ -374,7 +378,11 @@ test("keyboard-only journey: generate a password without a mouse", async ({
   page,
 }) => {
   await page.goto("/tools/password-generator");
-  await page.getByLabel("Password length", { exact: true }).focus();
+  const passwordLength = page.getByLabel("Password length", { exact: true });
+  // The tool workspace is intentionally disabled until hydration completes.
+  // Wait for the real keyboard starting point before exercising Tab order.
+  await expect(passwordLength).toBeEnabled();
+  await passwordLength.focus();
   // Tab from the slider through the options to the Generate button,
   // checking every stop has a visible focus treatment.
   let reachedGenerate = false;
