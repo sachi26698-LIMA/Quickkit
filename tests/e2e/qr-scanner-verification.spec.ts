@@ -311,9 +311,11 @@ test.describe("QR Scanner verification — security inspection", () => {
     await expect(risk).toHaveText("No obvious warning found");
     await expect(risk).not.toContainText(/safe|secure|verified/i);
     // The caveat is on screen, not just in the docs.
-    await expect(page.locator(".scanner-security-note")).toContainText(
-      "not a guarantee",
-    );
+    await expect(
+      page
+        .locator(".scanner-security-note")
+        .filter({ hasText: "not a guarantee" }),
+    ).toContainText("not a guarantee");
   });
 
   test("opens the redirect popup with clickable source link and never auto-navigates", async ({
@@ -344,7 +346,7 @@ test.describe("QR Scanner verification — security inspection", () => {
     await expect(popupAnchor).toHaveAttribute("target", "_blank");
 
     // Closing the popup leaves the page intact and keeps the clickable redirect line in results.
-    await dialog.getByRole("button", { name: "Close" }).click();
+    await dialog.getByRole("button", { name: "Close", exact: true }).click();
     await expect(dialog).toHaveCount(0);
     expect(page.url()).toContain(ROUTE);
     await expect(

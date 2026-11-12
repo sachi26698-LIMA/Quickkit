@@ -54,7 +54,7 @@ const faqs = [
 
 export const metadata = pageMetadata(
   "Image to Text (OCR) — extract text locally",
-  "Extract text from photos, screenshots and scanned PDFs in 8 languages, with confidence highlighting and TXT, DOCX, PDF, CSV or JSON export. Nothing is uploaded.",
+  "Run OCR on photos, screenshots and scanned PDFs in 8 languages. See confidence highlights and export TXT, DOCX, PDF, CSV or JSON. Nothing is uploaded.",
   "/tools/image-to-text",
 );
 

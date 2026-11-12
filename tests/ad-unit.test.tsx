@@ -157,6 +157,30 @@ describe("AdUnit", () => {
     expect(container.querySelector("a, button")).toBeNull();
   });
 
+  it("gives each ad landmark a unique accessible name", () => {
+    const { container } = render(
+      <>
+        <AdUnit placement="tool-after-intro" />
+        <AdUnit placement="tool-after-faq" />
+        <AdUnit placement="tool-bottom" />
+      </>,
+    );
+    const slots = [...container.querySelectorAll(".ad-slot")];
+    const labels = slots.map((slot) => slot.getAttribute("aria-label"));
+    expect(labels).toEqual([
+      "Advertisement — tool-after-intro",
+      "Advertisement — tool-after-faq",
+      "Advertisement — tool-bottom",
+    ]);
+    expect(new Set(labels).size).toBe(slots.length);
+    // The visible, neutral label stays unchanged for sighted visitors.
+    expect(
+      [...container.querySelectorAll(".ad-slot-label")].map(
+        (element) => element.textContent,
+      ),
+    ).toEqual(["Advertisement", "Advertisement", "Advertisement"]);
+  });
+
   it("writes its placement onto the DOM so a duplicate is detectable", () => {
     const { container } = render(<AdUnit placement="tool-after-faq" />);
     expect(container.querySelector(".ad-slot")).toHaveAttribute(

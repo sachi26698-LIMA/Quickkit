@@ -38,7 +38,10 @@ for (const slug of [
   test(`${slug} comparison CSV and restorable precision`, async ({ page }) => {
     await page.goto(`/tools/${slug}`);
     await page.getByLabel("Value", { exact: true }).fill("2");
-    await page.getByText("Advanced conversion settings").click();
+    await page
+      .locator("summary")
+      .filter({ hasText: "Advanced conversion settings" })
+      .click();
     await page.getByLabel("Precision (significant digits)").selectOption("4");
     await page.getByLabel("Show all target units").check();
     await page

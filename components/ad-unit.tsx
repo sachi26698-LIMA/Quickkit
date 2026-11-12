@@ -82,7 +82,7 @@ export default function AdUnit({
   return (
     <aside
       className={`ad-slot ${className}`.trim()}
-      aria-label={label}
+      aria-label={`${label} — ${placement}`}
       data-ad-placement={placement}
       data-ad-format={format}
     >

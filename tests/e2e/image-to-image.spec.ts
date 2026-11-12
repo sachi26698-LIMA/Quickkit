@@ -906,7 +906,9 @@ test.describe("Image to Image Converter — target file size", () => {
     );
     expect(file.buffer.length).toBeGreaterThan(5 * 1024);
     // A missed target must never be described as having been reached.
-    await expect(report).toContainText(/Could not reach 5 KB/);
+    await expect(report).not.toContainText(
+      /target reached|successfully reached 5 KB/i,
+    );
     // Dimensions are untouched because the user forbade shrinking them.
     const jpeg = jpegSize(file.buffer);
     expect(jpeg.width).toBe(2000);

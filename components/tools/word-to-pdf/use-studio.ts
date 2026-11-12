@@ -37,6 +37,8 @@ export type StudioRow = {
   outputKey?: string;
   outputSettings?: Settings;
   version: number;
+  /** True only after the browser has confirmed the file is a valid DOCX ZIP. */
+  inputValid: boolean;
 };
 type Preferences = { global: Settings; individual: Record<string, Settings> };
 const LIMIT = 120 * 1024 * 1024;
@@ -100,6 +102,7 @@ const newRow = (file: File): StudioRow => ({
   status: fileProblem(file) ? "error" : "checking",
   message: fileProblem(file) || "Checking document…",
   version: 0,
+  inputValid: false,
 });
 export function useStudio() {
   const [rows, setRows] = useState<StudioRow[]>([]),
@@ -287,6 +290,7 @@ export function useStudio() {
       return;
     patch(id, {
       status: probe.ok ? "queued" : "error",
+      inputValid: probe.ok,
       message: probe.message,
     });
   }
@@ -355,7 +359,7 @@ export function useStudio() {
   async function run(only?: string, force = false) {
     if (active.current || !consent || !available) return;
     const jobs = rowsRef.current.filter(
-      (r) => (!only || r.id === only) && (force || !ready(r)),
+      (r) => r.inputValid && (!only || r.id === only) && (force || !ready(r)),
     );
     if (!jobs.length) return;
     try {

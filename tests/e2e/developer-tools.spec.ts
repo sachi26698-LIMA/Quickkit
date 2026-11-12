@@ -71,38 +71,47 @@ async function expectCopyAndDownload(
 }
 
 test.describe("the eleven Developer Tools", () => {
-  test("routes render, pass accessibility checks and fit desktop and mobile", async ({
-    page,
-  }) => {
-    const routes = [
-      ["json-formatter", "JSON Formatter"],
-      ["json-validator", "JSON Validator"],
-      ["html-formatter", "HTML Formatter"],
-      ["css-minifier", "CSS Minifier"],
-      ["javascript-minifier", "JavaScript Minifier"],
-      ["base64-encoder-decoder", "Base64 Encoder / Decoder"],
-      ["url-encoder-decoder", "URL Encoder / Decoder"],
-      ["uuid-generator", "UUID Generator"],
-      ["regex-tester", "Regex Tester"],
-      ["hash-generator", "Hash Generator"],
-      ["xml-formatter", "XML Formatter"],
-    ] as const;
-    const pageErrors: string[] = [];
-    page.on("pageerror", (error) => pageErrors.push(error.message));
-    page.on("console", (message) => {
-      if (message.type() === "error") pageErrors.push(message.text());
-    });
+  const routes = [
+    ["json-formatter", "JSON Formatter"],
+    ["json-validator", "JSON Validator"],
+    ["html-formatter", "HTML Formatter"],
+    ["css-minifier", "CSS Minifier"],
+    ["javascript-minifier", "JavaScript Minifier"],
+    ["base64-encoder-decoder", "Base64 Encoder / Decoder"],
+    ["url-encoder-decoder", "URL Encoder / Decoder"],
+    ["uuid-generator", "UUID Generator"],
+    ["regex-tester", "Regex Tester"],
+    ["hash-generator", "Hash Generator"],
+    ["xml-formatter", "XML Formatter"],
+  ] as const;
 
-    for (const [slug, name] of routes) {
+  for (const [slug, name] of routes) {
+    test(`${slug} renders, passes accessibility checks and fits desktop and mobile`, async ({
+      page,
+    }) => {
+      const pageErrors: string[] = [];
+      page.on("pageerror", (error) => pageErrors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") pageErrors.push(message.text());
+      });
+
       await page.setViewportSize({ width: 1440, height: 1200 });
       const response = await page.goto(`/tools/${slug}`, {
-        waitUntil: "networkidle",
+        // The page's visible heading assertion and Axe scan provide the
+        // readiness checks; waiting for network idle is unnecessary here.
+        waitUntil: "domcontentloaded",
       });
       expect(response?.status(), slug).toBe(200);
       await expect(
         page.getByRole("heading", { level: 1, name, exact: true }),
       ).toBeVisible();
-      expect(await page.title(), slug).toContain(name);
+      expect(await page.title(), slug).toContain(
+        slug === "base64-encoder-decoder"
+          ? "Base64 Encoder & Decoder"
+          : slug === "url-encoder-decoder"
+            ? "URL Encoder & Decoder"
+            : name,
+      );
 
       const accessibility = await new AxeBuilder({ page }).analyze();
       expect(accessibility.violations, `${slug} accessibility`).toEqual([]);
@@ -117,9 +126,9 @@ test.describe("the eleven Developer Tools", () => {
       await expect(
         page.getByRole("heading", { level: 1, name, exact: true }),
       ).toBeVisible();
-    }
-    expect(pageErrors).toEqual([]);
-  });
+      expect(pageErrors, slug).toEqual([]);
+    });
+  }
 
   test("Developer Tools category count, search and route links stay in sync", async ({
     page,

@@ -354,7 +354,9 @@ test.describe("Image Cropper", () => {
     await expect(page.getByText("Nothing to crop yet")).toBeVisible();
     await expect(page.getByLabel("Add images")).toBeAttached();
     await expect(page.getByText(/Freeform or locked aspect/)).toBeVisible();
-    await page.getByText("A few useful answers").scrollIntoViewIfNeeded();
+    await page
+      .getByRole("heading", { name: "Image cropping questions" })
+      .scrollIntoViewIfNeeded();
     await expect(
       page.getByText("Are my images uploaded to a server?"),
     ).toBeVisible();

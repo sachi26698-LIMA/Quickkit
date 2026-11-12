@@ -2,11 +2,25 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { mkdir } from "node:fs/promises";
+import { strToU8, zipSync } from "fflate";
+const mockedDocx = Buffer.from(
+  zipSync({
+    "[Content_Types].xml": strToU8(
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>',
+    ),
+    "_rels/.rels": strToU8(
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+    ),
+    "word/document.xml": strToU8(
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body/></w:document>',
+    ),
+  }),
+);
 const docx = (name = "report.docx") => ({
   name,
   mimeType:
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  buffer: Buffer.from("mock DOCX input — transport tests only"),
+  buffer: mockedDocx,
 });
 
 test("an installation without an engine fails closed and never uploads", async ({
@@ -40,11 +54,16 @@ test("an installation without an engine fails closed and never uploads", async (
       exact: true,
     }),
   ).toBeVisible();
-  await page
-    .getByLabel("Choose DOCX files")
-    .setInputFiles([docx(), docx("unsupported.doc")]);
+  await page.getByLabel("Choose DOCX files").setInputFiles([
+    docx(),
+    {
+      ...docx("unsupported.doc"),
+      // Real legacy Word files use an OLE/CFB signature, not a DOCX ZIP.
+      buffer: Buffer.from([0xd0, 0xcf, 0x11, 0xe0]),
+    },
+  ]);
   await expect(
-    page.getByText("Only .docx documents", { exact: false }),
+    page.getByText(/password-protected or legacy binary Word file/i),
   ).toBeVisible();
   await page.getByLabel("I agree to upload").check();
   await expect(

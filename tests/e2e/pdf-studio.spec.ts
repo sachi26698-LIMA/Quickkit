@@ -172,14 +172,9 @@ test.describe("PDF Studio", () => {
 
     // Move the last page to the front using the keyboard-reachable arrows.
     const rows = page.getByTestId("converter-studio-page");
-    await rows
-      .nth(2)
-      .getByRole("button", { name: /earlier/i })
-      .click();
-    await rows
-      .nth(2)
-      .getByRole("button", { name: /earlier/i })
-      .click();
+    const pageThree = rows.filter({ hasText: "p3" });
+    await pageThree.getByRole("button", { name: /earlier/i }).click();
+    await pageThree.getByRole("button", { name: /earlier/i }).click();
     await expect(
       page.getByTestId("converter-studio-page").first(),
     ).toContainText("p3");
@@ -313,6 +308,8 @@ test.describe("PDF Studio", () => {
   }) => {
     const pdf = await makePdf(2);
     await page.getByTestId("pdf-studio-input").setInputFiles(pdf);
+    await expect(page.getByTestId("converter-studio-page")).toHaveCount(2);
+    await page.getByLabel("PDF studio action").selectOption("extract");
 
     await page.getByLabel("Page ranges").fill("1-2");
     await page.getByRole("button", { name: /remove the range/i }).click();
@@ -324,10 +321,10 @@ test.describe("PDF Studio", () => {
 
   test("an encrypted PDF is refused with a clear message", async ({ page }) => {
     await page.getByTestId("pdf-studio-input").setInputFiles(encryptedPdf());
-    await expect(page.getByTestId("converter-studio-page")).toHaveCount(1);
-    await runConversion(page);
-    await expect(page.getByTestId("converter-status")).toContainText(
-      /password/i,
+    await expect(page.locator(".converter-file-error")).toContainText(
+      /Password-protected PDFs are not supported.*Remove the password/i,
     );
+    await expect(page.getByTestId("converter-studio-page")).toHaveCount(0);
+    await expect(page.getByTestId("converter-run")).toBeDisabled();
   });
 });
