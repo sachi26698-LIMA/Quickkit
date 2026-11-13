@@ -613,7 +613,7 @@ describe("Phase 2 technical SEO contracts", () => {
     expect(toolsCollection).toBeDefined();
     expect(
       (toolsCollection?.mainEntity as { numberOfItems: number }).numberOfItems,
-    ).toBe(42);
+    ).toBe(43);
     expect(breadcrumbs(toolsDom)).toHaveLength(1);
 
     const activeCatEl = await CategoryPage({

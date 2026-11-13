@@ -46,7 +46,7 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
   const routes = sitemap();
-  expect(routes).toHaveLength(65);
+  expect(routes).toHaveLength(66);
   expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
     routes.every((route) => {

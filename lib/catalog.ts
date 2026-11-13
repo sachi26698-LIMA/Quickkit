@@ -311,6 +311,18 @@ export const tools = [
     phase: 14,
   },
   {
+    slug: "barcode-generator",
+    name: "Barcode Generator",
+    category: "QR & Barcode",
+    description:
+      "Create Code 128, EAN, UPC, ITF-14 and GS1-128 barcodes with real check-digit validation, then style, print or bulk-export them — and scan barcodes back from a camera or an image.",
+    keywords:
+      "barcode generator maker create code 128 code128 code 39 code39 ean 13 ean13 ean 8 ean8 upc-a upca upc-e upce itf-14 itf14 gtin sscc gs1-128 application identifier codabar msi pharmacode label printing printer pdf svg png bulk csv zip reader scanner camera image quiet zone check digit offline free",
+    icon: "barcode",
+    color: "red",
+    phase: 15,
+  },
+  {
     slug: "image-compressor",
     name: "Image Compressor",
     category: "Image Tools",
@@ -743,18 +755,25 @@ const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
 
   // QR & Barcode (2): QR encoding, scanning, security and print-asset workflows
   "qr-generator": [
+    "barcode-generator",
     "qr-code-scanner",
     "url-encoder-decoder",
-    "password-generator",
-    "image-resizer",
     "images-to-pdf",
+    "image-resizer",
   ],
   "qr-code-scanner": [
+    "barcode-generator",
     "qr-generator",
     "url-encoder-decoder",
-    "base64-encoder-decoder",
-    "hash-generator",
     "image-cropper",
+    "hash-generator",
+  ],
+  "barcode-generator": [
+    "qr-generator",
+    "qr-code-scanner",
+    "images-to-pdf",
+    "image-resizer",
+    "url-encoder-decoder",
   ],
 
   // Security & Privacy (1): local cryptography, passwords and document/QR protection

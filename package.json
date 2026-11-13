@@ -36,6 +36,7 @@
     "@tesseract.js-data/tel": "1.0.0",
     "@tesseract.js-data/urd": "1.0.0",
     "@xmldom/xmldom": "^0.9.12",
+    "@zxing/library": "^0.23.0",
     "csso": "^5.0.5",
     "docx": "^9.15.1",
     "docx-preview": "^0.4.1",

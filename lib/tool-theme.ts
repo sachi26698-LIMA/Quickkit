@@ -40,6 +40,7 @@ export const toolThemes: Record<string, ToolTheme> = {
   // QR & Barcode — red
   "qr-code-scanner": t("185 28 28", "251 113 133", "#991b1b"),
   "qr-generator": t("200 16 46", "255 59 48", "#b91c1c"),
+  "barcode-generator": t("194 40 22", "245 158 11", "#9a3412"),
   // Text & Writing — plum / lavender
   "word-counter": t("107 33 168", "183 148 246", "#6b21a8"),
   "image-to-text": t("134 25 143", "236 72 153", "#86198f"),

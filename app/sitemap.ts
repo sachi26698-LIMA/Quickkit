@@ -12,6 +12,20 @@ import {
 } from "@/lib/catalog";
 import { legalPages } from "@/lib/legal";
 
+/**
+ * Tools whose engine lives outside `lib/tools/<slug>`.
+ *
+ * The default mapping assumes one folder per route; a multi-mode tool keeps its
+ * engine in a shared directory instead, and the sitemap's lastmod should still
+ * follow that code.
+ */
+const EXTRA_ROUTE_SOURCES: Readonly<Record<string, readonly string[]>> = {
+  "/tools/barcode-generator": [
+    "lib/tools/barcode",
+    "components/tools/barcode-studio",
+  ],
+};
+
 const CALCULATOR_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
   "age-calculator": ["components/tools/phase9-dates.tsx"],
   "date-difference-calculator": ["components/tools/phase9-dates.tsx"],
@@ -178,6 +192,8 @@ export function routeSourceFiles(
       }
       const libDir = `lib/tools/${slug}`;
       if (repoFileExists(repoPath(repoRoot, libDir))) found.push(libDir);
+      for (const extra of EXTRA_ROUTE_SOURCES[path] ?? [])
+        if (repoFileExists(repoPath(repoRoot, extra))) found.push(extra);
       return [...new Set(found)];
     }
 

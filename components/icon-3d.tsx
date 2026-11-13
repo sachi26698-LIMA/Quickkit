@@ -51,6 +51,7 @@ export type GlyphName =
   | "sparkles"
   | "wordCount"
   | "qrReader"
+  | "barcode"
   | "ocrText"
   | "case"
   | "json"
@@ -637,6 +638,34 @@ const glyphs: Record<GlyphName, (p: Paint) => ReactNode> = {
       ))}
       <rect x={33.5} y={33.5} width={4.5} height={4.5} rx={1.3} fill={p.w} />
       <rect x={40} y={36.5} width={4.5} height={4.5} rx={1.3} fill={p.w} />
+    </>
+  ),
+
+  /* ---------------- Barcode ---------------- */
+  barcode: (p) => (
+    <>
+      {[
+        [15, 3],
+        [20.2, 1.6],
+        [23.6, 3.6],
+        [29.4, 1.6],
+        [32.8, 2.6],
+        [37.6, 1.6],
+        [41, 3.6],
+        [46.8, 1.6],
+        [50.2, 2.4],
+      ].map(([x, width]) => (
+        <rect
+          key={`bc-${x}`}
+          x={x}
+          y={16}
+          width={width}
+          height={24}
+          rx={0.9}
+          fill={p.w}
+        />
+      ))}
+      <rect x={13} y={44} width={38} height={3.4} rx={1.7} fill={p.a} />
     </>
   ),
 
@@ -1448,6 +1477,7 @@ export const toolArt: Record<string, GlyphName> = {
   "password-generator": "key",
   "qr-generator": "qrScan",
   "qr-code-scanner": "qrReader",
+  "barcode-generator": "barcode",
   "image-to-text": "ocrText",
   "image-compressor": "imgCompress",
   "image-resizer": "imgResize",
@@ -1483,6 +1513,7 @@ const fallbackArt: Record<string, GlyphName> = {
   code: "code",
   key: "key",
   qr: "qr",
+  barcode: "barcode",
   image: "image",
   pdf: "pdf",
   calc: "calc",

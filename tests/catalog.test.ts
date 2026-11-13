@@ -112,10 +112,11 @@ describe("catalog discovery", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(3);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("PDF Tools")).toHaveLength(9);
-    // QR & Barcode holds the generator and, since phase 14, the scanner.
+    // QR & Barcode holds the generator, the scanner, and the barcode studio.
     expect(toolsByCategory("QR & Barcode").map((t) => t.slug)).toEqual([
       "qr-generator",
       "qr-code-scanner",
+      "barcode-generator",
     ]);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);

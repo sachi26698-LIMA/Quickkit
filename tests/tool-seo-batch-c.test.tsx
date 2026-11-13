@@ -36,6 +36,7 @@ const ROUTES = {
   "image-to-image": () => import("../app/tools/image-to-image/page"),
   "qr-generator": () => import("../app/tools/qr-generator/page"),
   "qr-code-scanner": () => import("../app/tools/qr-code-scanner/page"),
+  "barcode-generator": () => import("../app/tools/barcode-generator/page"),
   "password-generator": () => import("../app/tools/password-generator/page"),
   "json-formatter": () => import("../app/tools/json-formatter/page"),
   "json-validator": () => import("../app/tools/json-validator/page"),
@@ -61,10 +62,10 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("Phase 3 Batch C — 30 tool pages", () => {
+describe("Phase 3 Batch C — 31 tool pages", () => {
   it("has unique, intent-focused metadata and verified reference content for every route", () => {
     const slugs = Object.keys(ROUTES) as (keyof typeof ROUTES)[];
-    expect(slugs).toHaveLength(30);
+    expect(slugs).toHaveLength(31);
     expect(Object.keys(TOOL_SEO_CONTENT).sort()).toEqual([...slugs].sort());
 
     const titles = new Set<string>();
