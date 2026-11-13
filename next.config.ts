@@ -154,8 +154,9 @@ const config: NextConfig = {
           },
         ],
       },
-      // Two pages can use a camera — the QR Code Scanner and the Barcode
-      // Studio's scanner tab. A Permissions-Policy on `/:path*` would otherwise
+      // Three pages can use a camera — the QR Code Scanner, the Barcode
+      // Studio's scanner tab and the stand-alone Barcode Scanner. A
+      // Permissions-Policy on `/:path*` would otherwise
       // be inherited by them and the browser would refuse getUserMedia even
       // after the visitor granted permission, so these rules — which win for
       // the exact paths — re-allow the camera for those pages only. Microphone
@@ -171,6 +172,15 @@ const config: NextConfig = {
       },
       {
         source: "/tools/barcode-generator",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        source: "/tools/barcode-scanner",
         headers: [
           {
             key: "Permissions-Policy",
@@ -205,6 +215,14 @@ const config: NextConfig = {
             {
               source: "/tools",
               has: [{ type: "query" as const, key: "category" }],
+              headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+            },
+            {
+              // The checker accepts a ?brand= preselection from a brand
+              // record. That view is a convenience, not a second page: keep the
+              // canonical on the clean tool URL.
+              source: "/tools/batch-code-checker",
+              has: [{ type: "query" as const, key: "brand" }],
               headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
             },
           ]

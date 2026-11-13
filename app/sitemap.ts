@@ -11,6 +11,7 @@ import {
   toolsByCategory,
 } from "@/lib/catalog";
 import { legalPages } from "@/lib/legal";
+import { BRANDS } from "@/lib/tools/batch-code/brands";
 
 /**
  * Tools whose engine lives outside `lib/tools/<slug>`.
@@ -178,6 +179,15 @@ export function routeSourceFiles(
   if (path === "/help") return ["app/help/page.tsx"];
   if (path === "/sitemap") return ["app/sitemap/page.tsx"];
 
+  // Brand detail pages live one level below a tool route but are generated
+  // statically from the batch-code records, so they are mapped explicitly.
+  if (path.startsWith("/tools/batch-code-checker/brand/")) {
+    return [
+      "app/tools/batch-code-checker/brand/[slug]/page.tsx",
+      "lib/tools/batch-code",
+    ];
+  }
+
   if (path.startsWith("/tools/")) {
     const slug = path.slice("/tools/".length);
     const staticPage = `app/tools/${slug}/page.tsx`;
@@ -259,6 +269,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         )
         .map((category) => `/category/${category.slug}`),
       ...tools.map((tool) => `/tools/${tool.slug}`),
+      // One page per brand record: each states that brand's decoder status,
+      // limitation and shelf-life source, so it is not a duplicate of another.
+      ...BRANDS.map((brand) => `/tools/batch-code-checker/brand/${brand.slug}`),
     ]),
   ];
 

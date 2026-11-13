@@ -34,11 +34,16 @@ export type StudioFlash = {
 export function useBarcodeStudio() {
   // The whole studio mounts only after hydration (see `index.tsx`), so reading
   // local storage in the initialiser cannot disagree with the server markup.
-  const [settings, setSettings] = useState<BarcodeStudioSettings>(() => loadSettings());
+  const [settings, setSettings] = useState<BarcodeStudioSettings>(() =>
+    loadSettings(),
+  );
   const [flash, setFlash] = useState<StudioFlash>(null);
   // Verification is stored next to the exact SVG it was run against: editing
   // anything invalidates the badge by derivation, not by an effect.
-  const [verdict, setVerdict] = useState<{ svg: string; result: BarcodeVerification } | null>(null);
+  const [verdict, setVerdict] = useState<{
+    svg: string;
+    result: BarcodeVerification;
+  } | null>(null);
   const [checking, setChecking] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -53,18 +58,29 @@ export function useBarcodeStudio() {
         numberSystem: settings.numberSystem,
         guardBars: settings.guardBars,
       }),
-    [settings.format, settings.data, settings.checksum, settings.numberSystem, settings.guardBars],
+    [
+      settings.format,
+      settings.data,
+      settings.checksum,
+      settings.numberSystem,
+      settings.guardBars,
+    ],
   );
 
   const renderOptions = useMemo(() => renderOptionsFrom(settings), [settings]);
 
   const layout = useMemo(
-    () => (result.ok ? buildLayout({ spec: result.spec, options: renderOptions }) : null),
+    () =>
+      result.ok
+        ? buildLayout({ spec: result.spec, options: renderOptions })
+        : null,
     [result, renderOptions],
   );
 
   const payload = result.ok ? result.spec : null;
-  const label = payload ? `${formatMeta(settings.format).name} ${payload.display}` : "Barcode";
+  const label = payload
+    ? `${formatMeta(settings.format).name} ${payload.display}`
+    : "Barcode";
 
   const svg = useMemo(
     () =>
@@ -82,7 +98,10 @@ export function useBarcodeStudio() {
   const verification = svg && verdict?.svg === svg ? verdict.result : null;
 
   const update = useCallback(
-    <K extends keyof BarcodeStudioSettings>(key: K, value: BarcodeStudioSettings[K]) => {
+    <K extends keyof BarcodeStudioSettings>(
+      key: K,
+      value: BarcodeStudioSettings[K],
+    ) => {
       setSettings((current) => sanitizeSettings({ ...current, [key]: value }));
     },
     [],
@@ -136,9 +155,16 @@ export function useBarcodeStudio() {
     if (!svg) return;
     downloadBlob(
       svgBlob(svg),
-      barcodeFilename({ format: settings.format, value: payload?.value ?? "label", ext: "svg" }),
+      barcodeFilename({
+        format: settings.format,
+        value: payload?.value ?? "label",
+        ext: "svg",
+      }),
     );
-    setFlash({ kind: "success", text: "SVG saved — vector bars, so it prints at any size." });
+    setFlash({
+      kind: "success",
+      text: "SVG saved — vector bars, so it prints at any size.",
+    });
   }, [svg, settings.format, payload]);
 
   const downloadPng = useCallback(async () => {
@@ -163,7 +189,10 @@ export function useBarcodeStudio() {
     } catch (error) {
       setFlash({
         kind: "error",
-        text: error instanceof Error ? error.message : "The PNG could not be created.",
+        text:
+          error instanceof Error
+            ? error.message
+            : "The PNG could not be created.",
       });
     } finally {
       setBusy(null);
@@ -184,7 +213,10 @@ export function useBarcodeStudio() {
     const doc = frame.contentDocument;
     if (!doc) {
       frame.remove();
-      setFlash({ kind: "error", text: "This browser blocked the print view — use the PDF export instead." });
+      setFlash({
+        kind: "error",
+        text: "This browser blocked the print view — use the PDF export instead.",
+      });
       return;
     }
     const escape = (value: string) =>

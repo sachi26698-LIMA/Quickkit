@@ -1478,6 +1478,8 @@ export const toolArt: Record<string, GlyphName> = {
   "qr-generator": "qrScan",
   "qr-code-scanner": "qrReader",
   "barcode-generator": "barcode",
+  "batch-code-checker": "calendar",
+  "barcode-scanner": "barcode",
   "image-to-text": "ocrText",
   "image-compressor": "imgCompress",
   "image-resizer": "imgResize",
@@ -1523,6 +1525,8 @@ export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
 
 /** Tool cards share the 3D system while each Developer Tool has its own accent. */
 const toolAccentTones: Record<string, Tone> = {
+  "batch-code-checker": "amber",
+  "barcode-scanner": "cyan",
   "json-formatter": "indigo",
   "json-validator": "cyan",
   "html-formatter": "coral",

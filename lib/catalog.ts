@@ -323,6 +323,30 @@ export const tools = [
     phase: 15,
   },
   {
+    slug: "batch-code-checker",
+    name: "Batch Code Checker",
+    category: "QR & Barcode",
+    description:
+      "Check a cosmetics batch or lot code against documented decoders: a GS1 element string or a date inside the code, with printed dates and PAO kept separate and no invented expiry dates.",
+    keywords:
+      "batch code checker lot number check cosmetics skincare expiry manufacture date decoder gs1 application identifier production date expiration date pao period after opening open jar symbol shelf life brand directory verified estimated not decodable offline free",
+    icon: "calc",
+    color: "amber",
+    phase: 16,
+  },
+  {
+    slug: "barcode-scanner",
+    name: "Barcode Scanner",
+    category: "QR & Barcode",
+    description:
+      "Scan EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF-14 and Codabar from a camera or an image on your device, copy values, keep local history and optionally look up a GTIN.",
+    keywords:
+      "barcode scanner scan reader decode camera webcam upload image ean 13 ean13 ean 8 upc-a upca upc-e upce code 128 code128 code 39 code39 itf-14 codabar gtin product lookup history copy offline free",
+    icon: "barcode",
+    color: "cyan",
+    phase: 16,
+  },
+  {
     slug: "image-compressor",
     name: "Image Compressor",
     category: "Image Tools",
@@ -774,6 +798,20 @@ const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
     "images-to-pdf",
     "image-resizer",
     "url-encoder-decoder",
+  ],
+  "batch-code-checker": [
+    "barcode-scanner",
+    "barcode-generator",
+    "qr-code-scanner",
+    "date-difference-calculator",
+    "age-calculator",
+  ],
+  "barcode-scanner": [
+    "barcode-generator",
+    "batch-code-checker",
+    "qr-code-scanner",
+    "qr-generator",
+    "image-cropper",
   ],
 
   // Security & Privacy (1): local cryptography, passwords and document/QR protection

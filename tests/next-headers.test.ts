@@ -153,7 +153,7 @@ describe("next.config header policy", () => {
     }
   });
 
-  it("allows the camera on the two scanner pages only", async () => {
+  it("allows the camera on the three scanner pages only", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
     try {
@@ -165,12 +165,13 @@ describe("next.config header policy", () => {
           .flatMap((rule) => rule.headers as HeaderEntry[])
           .find((header) => header.key === "Permissions-Policy")?.value ?? "";
 
-      // Both scanners need a camera for their live mode, and a scoped rule is
-      // the only way to say yes to two pages without saying yes to the whole
+      // Each scanner needs a camera for its live mode, and a scoped rule is the
+      // only way to say yes to three pages without saying yes to the whole
       // site.
       const cameraPages = [
         "/tools/qr-code-scanner",
         "/tools/barcode-generator",
+        "/tools/barcode-scanner",
       ];
       for (const source of cameraPages)
         expect(permissionRule(source), source).toContain("camera=(self)");
