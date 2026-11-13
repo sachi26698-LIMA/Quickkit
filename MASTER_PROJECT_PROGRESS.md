@@ -38,7 +38,7 @@ merged, not deployed, not indexed.**
   in both directions, sitemap route + route-source mapping, SEO content entry and
   reference section.
 - **Verification:** `tsc` exit 0; `eslint .` clean; Prettier clean; **Vitest 109
-  files / 1,861 tests passed** (122 new barcode tests across four files);
+  files / 1,862 tests passed** (122 new barcode tests across four files);
   production build clean with **77 static pages** and `/tools/barcode-generator`
   prerendered static; `npm audit` and `--omit=dev` 0 vulnerabilities; SSR smoke
   over `next start` returned 200 with one `<h1>`, FAQ JSON-LD and the studio shell;
