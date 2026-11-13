@@ -1,5 +1,59 @@
 # QUICKKIT Master Project Progress
 
+## Phase 16 — Batch Code Checker + stand-alone Barcode Scanner (13 November 2026 UTC)
+
+**Branch:** `arena/6102e674-quickkit` (base `2ea1825`). **New routes:**
+`/tools/batch-code-checker` (with one record page per brand) and
+`/tools/barcode-scanner` — the fourth and fifth tools in **QR & Barcode**, which
+now holds five. Committed locally; **not pushed, not merged, not deployed, not
+indexed.**
+
+- **Batch code engine (`lib/tools/batch-code`):** 59 brand records with parent
+  group, categories, aliases, decoder id + version, status, code pattern, date
+  logic, source reference, limitation, shelf-life guidance + source, optional
+  official site and `lastVerified`. Exactly three decoders ship: GS1 element
+  strings (AI 11 / 17 / 10, including the day-00 rule), an explicit-date pattern
+  (with every ambiguous reading listed), and `none`. **Zero brand-specific
+  decoders are claimed** because no manufacturer document describing a lot
+  format was reachable, so every proprietary format says so.
+- **Checker states:** VERIFIED (standards field or a date printed on the pack),
+  ESTIMATED (pattern match, or manufacture + cited category shelf-life), NOT
+  DECODABLE (explanation, official route to ask, printed-date prompt, PAO
+  explanation). Printed expiry, manufacture + shelf life and opened + PAO are
+  separate labelled calculations; printed always governs. Calendar maths handles
+  leap years and month-end clamping; no date is ever invented.
+- **Brand surface:** autocomplete with accent/apostrophe-insensitive search and
+  aliases, category filters, A–Z directory, and 59 statically generated record
+  pages documenting the decoder, limitation, shelf-life source and coverage.
+- **Scanner (`/tools/barcode-scanner`):** camera (permission on click, rear
+  preferred, device switching, torch where reported, described failures) and
+  image upload (25 MB / 40 MP, multiple symbols), on-device worker decoding with
+  a main-thread fallback, copy, local history (opt-out, 100 records, per-record
+  delete), and an optional GTIN lookup through **`/api/product-lookup`** (a
+  same-origin proxy for Open Food Facts, labelled as a community database and
+  never as manufacturer-verified). The page states before anything else that a
+  barcode carries no batch, date, expiry or authenticity.
+- **SEO:** three distinct titles/descriptions/canonicals, breadcrumb + FAQ
+  JSON-LD, brand-record FAQ schema, brand pages and tools in the sitemap,
+  `?brand=` view marked `noindex, follow`.
+- **Integration:** catalogue (45 tools), 3D glyphs (`barcodeScan`, `batchCheck`),
+  theme tones, sitemap (`routeSourceFiles` for brand paths), camera
+  `Permissions-Policy` for `/tools/barcode-scanner`, and doc counts.
+- **Evidence:** `tsc` 0, ESLint clean, `npm run format:check` clean,
+  **Vitest 113 files / 1,937 tests passed** (75 new: engine, UI, route, pages),
+  production build clean (**138 static pages**: 77 + 2 tools + 59 brand pages),
+  key routes and sampled brand pages return HTTP 200 on the built server, and no
+  dependency changed so the previously reported `npm audit` result stands.
+  Browser E2E and a live GTIN lookup are **not** executed here (Playwright
+  download blocked; this sandbox has no route to Open Food Facts).
+- **Not built, and documented as blocked:** Supabase tables/RLS and a Master
+  Admin decoder-review surface. This repository contains no Supabase client, no
+  migrations, no database dependency and no `/admin` route, so there is nothing
+  to extend and no schema to review. No client, table or RLS policy was invented.
+
+Full evidence, the honest coverage table and the 15-section review:
+`QUICKKIT_BARCODE_AND_BATCH_CHECKER_FINAL_REPORT.md`.
+
 ## Phase 15 — Advanced Barcode Studio (13 November 2026 UTC)
 
 **Branch:** `arena/6102e674-quickkit` (base `2ea1825`).

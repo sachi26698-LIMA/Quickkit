@@ -10,6 +10,41 @@
 
 **Previous active-tool record (historical):** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
 
+## Batch Code Checker + Barcode Scanner (phase 16) — implemented, awaiting owner approval
+
+**Status:** implemented in the repository on `arena/6102e674-quickkit`;
+**not merged, not deployed, not indexed and not owner-approved.**
+
+Two separate tools, each with its own route, engine, validation, results UI,
+SEO copy, FAQ and tests. They are deliberately **not** merged with each other or
+with the Studio:
+
+| Route                       | What it does                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/tools/batch-code-checker` | Brand autocomplete (59 records, aliases, category filters, A–Z directory, one statically generated record page per brand), lot-code input, optional product name, printed manufacture/expiry, purchase/opened dates and PAO 3–36M. Three results only: **VERIFIED**, **ESTIMATED**, **NOT DECODABLE**. Printed, decoded, estimated and after-opening dates are separate labelled cards; the printed date always governs. |
+| `/tools/barcode-scanner`    | Camera (rear preferred, switching, described permission/device/secure-context errors) and image upload, multiple symbols per photo, EAN-13/EAN-8/UPC-A/UPC-E/Code 128/GS1-128/Code 39/ITF-14/Codabar, copy, browser-local history, and an optional GTIN lookup through a same-origin proxy for Open Food Facts — labelled as a community database, never manufacturer-verified.                                          |
+
+**Engine honesty:** three decoders ship — a GS1 element string parser (AI 11
+production date, AI 17 expiration date, AI 10 batch, with GS1's day-00 rule), an
+explicit-date pattern that lists every ambiguous reading instead of choosing one,
+and `none`. **No brand-specific decoder is claimed for any of the 59 brands**,
+because no manufacturer document describing a proprietary lot format could be
+verified; each record states that, its limitation and its shelf-life source, and
+`lastVerified` is `null` until a real review happens.
+
+**Not built (documented blocker):** Supabase tables/RLS and a Master Admin
+decoder-review surface. The repository has no Supabase client, no migrations, no
+database dependency and no `/admin` route, so there is no schema to review and
+nothing to extend. Nothing was invented, no service-role key exists and no
+migration was applied.
+
+**Evidence:** `tsc` 0, ESLint clean, `npm run format:check` clean, Vitest
+**113 files / 1,937 tests passed** (75 new), production build clean with **138
+static pages**, SSR smoke HTTP 200 for the new routes and brand pages. Browser
+E2E (Playwright download blocked) and a live GTIN lookup (no outbound route to
+Open Food Facts) were not executed. Full report:
+`QUICKKIT_BARCODE_AND_BATCH_CHECKER_FINAL_REPORT.md`.
+
 ## Barcode Studio (phase 15) — implemented, awaiting owner approval
 
 **Status:** implemented in the repository on `arena/6102e674-quickkit`;

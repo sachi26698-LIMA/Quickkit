@@ -803,15 +803,13 @@ const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
     "barcode-scanner",
     "barcode-generator",
     "qr-code-scanner",
-    "date-difference-calculator",
-    "age-calculator",
+    "qr-generator",
   ],
   "barcode-scanner": [
     "barcode-generator",
     "batch-code-checker",
     "qr-code-scanner",
     "qr-generator",
-    "image-cropper",
   ],
 
   // Security & Privacy (1): local cryptography, passwords and document/QR protection

@@ -112,11 +112,14 @@ describe("catalog discovery", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(3);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("PDF Tools")).toHaveLength(9);
-    // QR & Barcode holds the generator, the scanner, and the barcode studio.
+    // QR & Barcode holds the QR generator and scanner, the barcode studio,
+    // the stand-alone barcode scanner and the batch code checker.
     expect(toolsByCategory("QR & Barcode").map((t) => t.slug)).toEqual([
       "qr-generator",
       "qr-code-scanner",
       "barcode-generator",
+      "batch-code-checker",
+      "barcode-scanner",
     ]);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);

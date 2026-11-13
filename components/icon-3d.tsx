@@ -52,6 +52,8 @@ export type GlyphName =
   | "wordCount"
   | "qrReader"
   | "barcode"
+  | "barcodeScan"
+  | "batchCheck"
   | "ocrText"
   | "case"
   | "json"
@@ -666,6 +668,77 @@ const glyphs: Record<GlyphName, (p: Paint) => ReactNode> = {
         />
       ))}
       <rect x={13} y={44} width={38} height={3.4} rx={1.7} fill={p.a} />
+    </>
+  ),
+
+  barcodeScan: (p) => (
+    <>
+      {[
+        [15, 2.4],
+        [20, 1.6],
+        [24, 3],
+        [29.6, 1.6],
+        [33.6, 2.6],
+        [38.6, 1.6],
+        [42.6, 3],
+      ].map(([x, width]) => (
+        <rect
+          key={`bs-${x}`}
+          x={x}
+          y={14}
+          width={width}
+          height={15}
+          rx={0.8}
+          fill={p.w}
+        />
+      ))}
+      <circle
+        cx={32}
+        cy={37}
+        r={11}
+        fill="none"
+        stroke={p.w}
+        strokeWidth={4.2}
+      />
+      <path
+        d="M40.5 45.5 L49 54"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={5}
+        {...round}
+      />
+    </>
+  ),
+
+  batchCheck: (p) => (
+    <>
+      <rect x={14} y={16} width={36} height={34} rx={8} fill={p.w} />
+      <rect x={12} y={12} width={40} height={8.5} rx={4.2} fill={p.a} />
+      <rect
+        x={21}
+        y={28}
+        width={9}
+        height={3.4}
+        rx={1.7}
+        fill={p.a}
+        opacity={0.7}
+      />
+      <rect
+        x={21}
+        y={34.5}
+        width={14}
+        height={3.4}
+        rx={1.7}
+        fill={p.a}
+        opacity={0.45}
+      />
+      <path
+        d="M28 43 L33 48 L43 36.5"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={4.2}
+        {...round}
+      />
     </>
   ),
 
@@ -1478,8 +1551,8 @@ export const toolArt: Record<string, GlyphName> = {
   "qr-generator": "qrScan",
   "qr-code-scanner": "qrReader",
   "barcode-generator": "barcode",
-  "batch-code-checker": "calendar",
-  "barcode-scanner": "barcode",
+  "batch-code-checker": "batchCheck",
+  "barcode-scanner": "barcodeScan",
   "image-to-text": "ocrText",
   "image-compressor": "imgCompress",
   "image-resizer": "imgResize",
@@ -1525,8 +1598,6 @@ export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
 
 /** Tool cards share the 3D system while each Developer Tool has its own accent. */
 const toolAccentTones: Record<string, Tone> = {
-  "batch-code-checker": "amber",
-  "barcode-scanner": "cyan",
   "json-formatter": "indigo",
   "json-validator": "cyan",
   "html-formatter": "coral",
