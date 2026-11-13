@@ -32,7 +32,8 @@ function digitString(value: string) {
 /** EAN-13 and UPC-A are the same symbol with one implicit leading digit. */
 export function matchesExpected(expected: string[], actual: string) {
   const target = normalise(actual);
-  for (const candidate of expected) if (normalise(candidate) === target) return true;
+  for (const candidate of expected)
+    if (normalise(candidate) === target) return true;
   const actualDigits = digitString(target);
   if (!actualDigits) return false;
   return expected.some((candidate) => {
@@ -56,7 +57,9 @@ export function verifyBarcode(
   const raster = rasterizeLayout(layout, { scale: 2 });
   const { barcodes, attempts } = decodeBarcodes(raster, { profile: "image" });
   const expected = [spec.value, spec.display];
-  const match = barcodes.find((candidate) => matchesExpected(expected, candidate.text));
+  const match = barcodes.find((candidate) =>
+    matchesExpected(expected, candidate.text),
+  );
   if (match)
     return {
       ok: true,

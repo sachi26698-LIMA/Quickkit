@@ -200,7 +200,7 @@ describe("Phase 3 Batch C — 31 tool pages", () => {
     expect(passwordEntropy(noAmbiguous)).toBe(93);
   });
 
-  it("renders 30 routes with one H1, no skipped heading levels, 4+ steps and FAQs, and matching FAQ JSON-LD", async () => {
+  it("renders 31 routes with one H1, no skipped heading levels, 4+ steps and FAQs, and matching FAQ JSON-LD", async () => {
     vi.stubEnv("SITE_URL", ORIGIN);
     if (!window.matchMedia) {
       Object.defineProperty(window, "matchMedia", {
@@ -326,7 +326,7 @@ describe("Phase 3 Batch C — 31 tool pages", () => {
       }
       rendered.unmount();
     }
-    expect(renderedTitles.size).toBe(30);
-    expect(renderedDescriptions.size).toBe(30);
+    expect(renderedTitles.size).toBe(31);
+    expect(renderedDescriptions.size).toBe(31);
   }, 30_000);
 });

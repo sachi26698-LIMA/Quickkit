@@ -93,7 +93,8 @@ export const BARCODE_FORMATS: BarcodeFormatMeta[] = [
     id: "upca",
     name: "UPC-A",
     group: "Retail",
-    blurb: "The North American retail standard, 12 digits including the check digit.",
+    blurb:
+      "The North American retail standard, 12 digits including the check digit.",
     example: "03600029145",
     placeholder: "11 digits, e.g. 03600029145",
     rules: [
@@ -209,16 +210,24 @@ export const BARCODE_FORMATS: BarcodeFormatMeta[] = [
   },
 ];
 
-export const FORMAT_GROUPS: BarcodeFormatGroup[] = ["Retail", "Logistics", "Industrial", "GS1"];
+export const FORMAT_GROUPS: BarcodeFormatGroup[] = [
+  "Retail",
+  "Logistics",
+  "Industrial",
+  "GS1",
+];
 
 export function formatMeta(id: BarcodeFormatId): BarcodeFormatMeta {
   return BARCODE_FORMATS.find((entry) => entry.id === id) ?? BARCODE_FORMATS[0];
 }
 
 /** Sample data used by "Try" chips and by the bulk template. */
-export const FORMAT_SAMPLES: Record<BarcodeFormatId, string> = Object.fromEntries(
-  BARCODE_FORMATS.map((entry) => [entry.id, entry.example]),
-) as Record<BarcodeFormatId, string>;
+export const FORMAT_SAMPLES: Record<BarcodeFormatId, string> =
+  Object.fromEntries(
+    BARCODE_FORMATS.map((entry) => [entry.id, entry.example]),
+  ) as Record<BarcodeFormatId, string>;
 
 /** Formats the scanner can read, in picker order. */
-export const SCANNABLE_FORMATS = BARCODE_FORMATS.filter((entry) => entry.scannable);
+export const SCANNABLE_FORMATS = BARCODE_FORMATS.filter(
+  (entry) => entry.scannable,
+);

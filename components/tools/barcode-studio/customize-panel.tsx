@@ -31,7 +31,11 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-const ALIGNMENTS: { id: BarcodeTextAlign; label: string; icon: typeof AlignLeft }[] = [
+const ALIGNMENTS: {
+  id: BarcodeTextAlign;
+  label: string;
+  icon: typeof AlignLeft;
+}[] = [
   { id: "left", label: "Left", icon: AlignLeft },
   { id: "center", label: "Centre", icon: AlignCenter },
   { id: "right", label: "Right", icon: AlignRight },
@@ -42,7 +46,8 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
   const meta = formatMeta(settings.format);
   const minimumQuiet = meta.quietZone;
   const ratio = contrastRatio(settings.foreground, settings.background);
-  const inverted = luminance(settings.foreground) > luminance(settings.background);
+  const inverted =
+    luminance(settings.foreground) > luminance(settings.background);
 
   return (
     <section className="qr-card" aria-labelledby="bc-customise-heading">
@@ -76,7 +81,9 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
               max={8}
               step={0.05}
               value={settings.moduleWidth}
-              onChange={(event) => update("moduleWidth", Number(event.target.value))}
+              onChange={(event) =>
+                update("moduleWidth", Number(event.target.value))
+              }
             />
             <p className="help" id="bc-module-help">
               One narrow bar. 2 px is a screen size; 3–6 px is comfortable for
@@ -84,7 +91,9 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
             </p>
           </div>
           <div className="qr-field">
-            <label htmlFor="bc-height">Symbol height — {settings.barHeight} px</label>
+            <label htmlFor="bc-height">
+              Symbol height — {settings.barHeight} px
+            </label>
             <input
               id="bc-height"
               aria-describedby="bc-height-help"
@@ -93,7 +102,9 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
               max={320}
               step={2}
               value={settings.barHeight}
-              onChange={(event) => update("barHeight", Number(event.target.value))}
+              onChange={(event) =>
+                update("barHeight", Number(event.target.value))
+              }
             />
             <p className="help" id="bc-height-help">
               Height never affects decoding, but a taller symbol is easier to
@@ -177,7 +188,11 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
             </small>
           </span>
         </label>
-        <p className={ratio >= 4.5 && !inverted ? "bc-contrast good" : "bc-contrast bad"}>
+        <p
+          className={
+            ratio >= 4.5 && !inverted ? "bc-contrast good" : "bc-contrast bad"
+          }
+        >
           Contrast {ratio.toFixed(1)}:1 —{" "}
           {inverted
             ? "light bars on a dark background: many scanners reject an inverted symbol."
@@ -222,7 +237,9 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
             </select>
           </div>
           <div className="qr-field">
-            <label htmlFor="bc-fontsize">Font size — {settings.fontSize} px</label>
+            <label htmlFor="bc-fontsize">
+              Font size — {settings.fontSize} px
+            </label>
             <input
               id="bc-fontsize"
               type="range"
@@ -230,7 +247,9 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
               max={28}
               step={1}
               value={settings.fontSize}
-              onChange={(event) => update("fontSize", Number(event.target.value))}
+              onChange={(event) =>
+                update("fontSize", Number(event.target.value))
+              }
             />
           </div>
         </div>
@@ -304,15 +323,19 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
               max={30}
               step={1}
               value={settings.quietZone}
-              onChange={(event) => update("quietZone", Number(event.target.value))}
+              onChange={(event) =>
+                update("quietZone", Number(event.target.value))
+              }
             />
             <p className="help" id="bc-quiet-help">
-              {meta.name} needs at least {minimumQuiet} modules of clear space on
-              each side, so a smaller value is raised to {minimumQuiet}.
+              {meta.name} needs at least {minimumQuiet} modules of clear space
+              on each side, so a smaller value is raised to {minimumQuiet}.
             </p>
           </div>
           <div className="qr-field">
-            <label htmlFor="bc-margin">Outer margin — {settings.margin} px</label>
+            <label htmlFor="bc-margin">
+              Outer margin — {settings.margin} px
+            </label>
             <input
               id="bc-margin"
               aria-describedby="bc-margin-help"
@@ -333,9 +356,9 @@ export default function CustomizePanel({ studio }: { studio: Studio }) {
       <details>
         <summary>Format defaults</summary>
         <p className="help">
-          {meta.name} starts at {FORMAT_PRESETS[settings.format].moduleWidth} px per
-          module and a {FORMAT_PRESETS[settings.format].barHeight} px symbol.
-          Switching format applies its preset again.
+          {meta.name} starts at {FORMAT_PRESETS[settings.format].moduleWidth} px
+          per module and a {FORMAT_PRESETS[settings.format].barHeight} px
+          symbol. Switching format applies its preset again.
         </p>
         <p className="help">
           {meta.scannable

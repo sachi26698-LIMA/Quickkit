@@ -17,7 +17,10 @@ export type PaintContext2D = {
 };
 
 /** Draw a finished layout. Assumes the context is already scaled to `scale`. */
-export function paintBarcodeLayout(context: PaintContext2D, layout: BarcodeLayout) {
+export function paintBarcodeLayout(
+  context: PaintContext2D,
+  layout: BarcodeLayout,
+) {
   if (layout.background) {
     context.fillStyle = layout.background;
     context.fillRect(0, 0, layout.width, layout.height);
@@ -31,7 +34,11 @@ export function paintBarcodeLayout(context: PaintContext2D, layout: BarcodeLayou
     context.fillStyle = block.color;
     context.font = `${block.weight} ${block.size}px ${layout.fontFamily}`;
     context.textAlign =
-      block.anchor === "middle" ? "center" : block.anchor === "end" ? "right" : "left";
+      block.anchor === "middle"
+        ? "center"
+        : block.anchor === "end"
+          ? "right"
+          : "left";
     context.fillText(block.text, block.x, block.y);
   }
   // Restore a predictable state for any caller that keeps drawing.

@@ -84,7 +84,13 @@ export function matchDigit(counters: number[]): DigitMatch | null {
 const guardPattern = [1, 1, 1];
 const endPattern = [1, 1, 1, 1, 1, 1];
 
-function runsAt(row: BitRow, y: number, start: number, count: number, firstDark: boolean) {
+function runsAt(
+  row: BitRow,
+  y: number,
+  start: number,
+  count: number,
+  firstDark: boolean,
+) {
   const width = row.getWidth();
   const runs: number[] = [];
   let x = start;
@@ -111,7 +117,8 @@ export function decodeUpceRow(row: BitRow, y: number): string | null {
 
   const guard = runsAt(row, y, start, 3, true);
   if (!guard) return null;
-  if (patternError(guard.runs, guardPattern) > AVERAGE_TOLERANCE * 3) return null;
+  if (patternError(guard.runs, guardPattern) > AVERAGE_TOLERANCE * 3)
+    return null;
   let unit = guard.runs.reduce((sum, value) => sum + value, 0) / 3;
   if (unit < 1) return null;
   // UPC-E needs a 9-module left quiet zone; photographs lose a little of it,

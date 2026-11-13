@@ -9,7 +9,11 @@
 import { csvDocument } from "@/lib/tools/csv";
 import { safeFilenamePart } from "@/lib/tools/filename";
 import type { BarcodeFormatId } from "./types";
-import { buildLayout, type BarcodeLayout, type BarcodeRenderOptions } from "./layout";
+import {
+  buildLayout,
+  type BarcodeLayout,
+  type BarcodeRenderOptions,
+} from "./layout";
 import { layoutToSvg } from "./svg";
 import type { BarcodeSpec } from "./types";
 
@@ -80,7 +84,10 @@ export type BulkReportRow = {
 /** The CSV a user gets back: what succeeded, what did not, and why. */
 export function bulkReportCsv(rows: BulkReportRow[]) {
   const header = ["row", "status", "value", "message"];
-  return csvDocument([header, ...rows.map((row) => [row.line, row.status, row.value, row.message])]);
+  return csvDocument([
+    header,
+    ...rows.map((row) => [row.line, row.status, row.value, row.message]),
+  ]);
 }
 
 /** Summary line used in the UI and in the report file name. */
@@ -90,7 +97,14 @@ export function bulkSummary(rows: BulkReportRow[]) {
   const duplicate = rows.filter((row) => row.status === "duplicate").length;
   const invalid = rows.filter((row) => row.status === "invalid").length;
   const skipped = rows.filter((row) => row.status === "skipped").length;
-  return { total, ok, duplicate, invalid, skipped, failed: duplicate + invalid + skipped };
+  return {
+    total,
+    ok,
+    duplicate,
+    invalid,
+    skipped,
+    failed: duplicate + invalid + skipped,
+  };
 }
 
 /** A layout at export density, used by the PNG path in the browser. */

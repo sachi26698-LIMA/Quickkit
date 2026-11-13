@@ -33,29 +33,34 @@ export type BarcodeScanWorkerFailure = {
 };
 
 export type BarcodeScanWorkerResponse =
-  | BarcodeScanWorkerSuccess
-  | BarcodeScanWorkerFailure;
+  BarcodeScanWorkerSuccess | BarcodeScanWorkerFailure;
 
-self.addEventListener("message", (event: MessageEvent<BarcodeScanWorkerRequest>) => {
-  const { id, width, height, buffer, profile } = event.data;
-  try {
-    const result = decodeBarcodes(
-      { width, height, rgba: new Uint8ClampedArray(buffer) },
-      { profile },
-    );
-    const response: BarcodeScanWorkerSuccess = {
-      id,
-      ok: true,
-      barcodes: result.barcodes,
-      attempts: result.attempts,
-    };
-    (self as unknown as Worker).postMessage(response);
-  } catch (error) {
-    const response: BarcodeScanWorkerFailure = {
-      id,
-      ok: false,
-      error: error instanceof Error ? error.message : "The barcode decoder failed.",
-    };
-    (self as unknown as Worker).postMessage(response);
-  }
-});
+self.addEventListener(
+  "message",
+  (event: MessageEvent<BarcodeScanWorkerRequest>) => {
+    const { id, width, height, buffer, profile } = event.data;
+    try {
+      const result = decodeBarcodes(
+        { width, height, rgba: new Uint8ClampedArray(buffer) },
+        { profile },
+      );
+      const response: BarcodeScanWorkerSuccess = {
+        id,
+        ok: true,
+        barcodes: result.barcodes,
+        attempts: result.attempts,
+      };
+      (self as unknown as Worker).postMessage(response);
+    } catch (error) {
+      const response: BarcodeScanWorkerFailure = {
+        id,
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "The barcode decoder failed.",
+      };
+      (self as unknown as Worker).postMessage(response);
+    }
+  },
+);

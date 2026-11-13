@@ -1,5 +1,56 @@
 # QUICKKIT Master Project Progress
 
+## Phase 15 — Advanced Barcode Studio (13 November 2026 UTC)
+
+**Branch:** `arena/6102e674-quickkit` (base `2ea1825`).
+**New route:** `/tools/barcode-generator` — the third tool in **QR & Barcode**, and
+the first barcode tool in the product. Committed locally; **not pushed, not
+merged, not deployed, not indexed.**
+
+- **Engine:** eleven symbologies — Code 128, GS1-128, Code 39, EAN-13, EAN-8,
+  UPC-A, UPC-E, ITF-14, Codabar, MSI, Pharmacode — encoded from published module
+  tables with character-set, length, range and check-digit validation. A wrong
+  check digit is refused and named, a missing one is calculated. GS1-128 parses
+  application identifiers and refuses a broken GTIN/SSCC check.
+- **Studio:** live SVG preview, bar width/height/scale, colours, transparency,
+  contrast + inversion warnings, font family/size, human-readable text,
+  alignment, title/description, quiet zone (with the symbology minimum enforced),
+  margin, reset, and per-format options (Code 39 mod-43, MSI mod-10/11, UPC-E
+  number system, EAN/UPC guard-bar extension).
+- **Scanner:** camera (permission only on click, rear preferred, switching, torch,
+  start/stop, teardown on hide) and image upload (drag-drop, 25 MB / 40 MP,
+  rotations + tile sweep for multiple symbols), decoded in a worker with an inline
+  fallback; duplicate reads suppressed; CSV export. MSI and Pharmacode are
+  generation-only because no bundled reader exists for them.
+- **Bulk:** CSV up to 1,000 rows / 5 MB / 30 columns, column + format selection,
+  millimetre label sizes, batched thumbnails, duplicate detection, an explicit
+  status for every row (ready / duplicate / skipped / invalid with the reason),
+  SVG/PNG ZIP, vector PDF label sheets and a report CSV. Invalid rows are never
+  discarded.
+- **Exports:** PNG, SVG, PDF, ZIP, print (hidden same-origin iframe, vector output)
+  and clipboard SVG, all generated from the same layout the preview draws, so an
+  export cannot differ from the preview.
+- **Privacy:** no network calls, no storage of barcode data, settings only
+  (sanitised on read), SVG escaping + a closed-vocabulary safety check, CSV
+  formula-injection neutralisation, no database/Supabase/account/secret.
+- **Integration:** catalogue (43 tools), theme, 3D glyph, hero-search icon, QR &
+  Barcode category copy (rewritten for three tools), `/tools` index, related tools
+  in both directions, sitemap route + route-source mapping, SEO content entry and
+  reference section.
+- **Verification:** `tsc` exit 0; `eslint .` clean; Prettier clean; **Vitest 109
+  files / 1,861 tests passed** (122 new barcode tests across four files);
+  production build clean with **77 static pages** and `/tools/barcode-generator`
+  prerendered static; `npm audit` and `--omit=dev` 0 vulnerabilities; SSR smoke
+  over `next start` returned 200 with one `<h1>`, FAQ JSON-LD and the studio shell;
+  scanner and bulk panels verified as separate build chunks (124 KB / 24 KB), not
+  in the initial route payload.
+- **Not verified (environment):** Playwright E2E, axe accessibility scans, 320–430
+  px overflow sweeps, Core Web Vitals and physical camera behaviour — the browser
+  binary download is blocked in this sandbox. `tests/e2e/barcode-studio.spec.ts`
+  is committed for CI. No indexing claim is made (Search Console not consulted).
+- **Verdict:** PASS for code/tests/build/privacy; **NEEDS ATTENTION** overall for
+  the browser-level gaps above. Full evidence: `BARCODE_STUDIO_FINAL_REPORT.md`.
+
 **Updated:** 10 November 2026 UTC
 **Branch:** `arena/ce249373-quickkit` (active)
 **Current phase:** Final verification complete; awaiting owner approval. Overall verdict remains NEEDS ATTENTION.

@@ -59,11 +59,19 @@ function resultKey(text: string, format: string) {
 
 export default function ScannerPanel() {
   const [mode, setMode] = useState<"camera" | "image">("camera");
-  const [status, setStatus] = useState<"idle" | "starting" | "live" | "decoding">("idle");
-  const [error, setError] = useState<CameraError | { title: string; message: string } | null>(null);
-  const [devices, setDevices] = useState<{ deviceId: string; label: string }[]>([]);
+  const [status, setStatus] = useState<
+    "idle" | "starting" | "live" | "decoding"
+  >("idle");
+  const [error, setError] = useState<
+    CameraError | { title: string; message: string } | null
+  >(null);
+  const [devices, setDevices] = useState<{ deviceId: string; label: string }[]>(
+    [],
+  );
   const [deviceId, setDeviceId] = useState<string>("");
-  const [capabilities, setCapabilities] = useState<CameraCapabilities | null>(null);
+  const [capabilities, setCapabilities] = useState<CameraCapabilities | null>(
+    null,
+  );
   const [torch, setTorch] = useState(false);
   const [items, setItems] = useState<ScanItem[]>([]);
   const [attempts, setAttempts] = useState<string[]>([]);
@@ -79,31 +87,37 @@ export default function ScannerPanel() {
   const seen = useRef(new Set<string>());
   const mounted = useRef(true);
 
-  const record = useCallback((found: { text: string; format: string; label: string }[], source: "camera" | "image") => {
-    if (!found.length) return;
-    setItems((current) => {
-      const next = [...current];
-      let duplicates = 0;
-      for (const entry of found) {
-        const key = resultKey(entry.text, entry.format);
-        if (seen.current.has(key)) {
-          duplicates += 1;
-          continue;
+  const record = useCallback(
+    (
+      found: { text: string; format: string; label: string }[],
+      source: "camera" | "image",
+    ) => {
+      if (!found.length) return;
+      setItems((current) => {
+        const next = [...current];
+        let duplicates = 0;
+        for (const entry of found) {
+          const key = resultKey(entry.text, entry.format);
+          if (seen.current.has(key)) {
+            duplicates += 1;
+            continue;
+          }
+          seen.current.add(key);
+          next.unshift({
+            id: `${key}-${next.length}-${Date.now()}`,
+            text: entry.text,
+            format: entry.format,
+            label: entry.label,
+            source,
+            at: new Date().toLocaleTimeString(),
+          });
         }
-        seen.current.add(key);
-        next.unshift({
-          id: `${key}-${next.length}-${Date.now()}`,
-          text: entry.text,
-          format: entry.format,
-          label: entry.label,
-          source,
-          at: new Date().toLocaleTimeString(),
-        });
-      }
-      if (duplicates) setSuppressed((value) => value + duplicates);
-      return next;
-    });
-  }, []);
+        if (duplicates) setSuppressed((value) => value + duplicates);
+        return next;
+      });
+    },
+    [],
+  );
 
   const stopCamera = useCallback(() => {
     running.current = false;
@@ -344,7 +358,9 @@ export default function ScannerPanel() {
         })}
       </div>
 
-      <div className={mode === "camera" ? "bc-scan-grid" : "bc-scan-grid single"}>
+      <div
+        className={mode === "camera" ? "bc-scan-grid" : "bc-scan-grid single"}
+      >
         <section className="qr-card" aria-labelledby="bc-camera-heading">
           <div className="qr-card-head">
             <div>
@@ -357,7 +373,9 @@ export default function ScannerPanel() {
                   : "Drop a photo or screenshot. Every symbol in the picture is detected, locally."}
               </p>
             </div>
-            <span className="qr-badge">{mode === "camera" ? "Rear camera" : "Local decode"}</span>
+            <span className="qr-badge">
+              {mode === "camera" ? "Rear camera" : "Local decode"}
+            </span>
           </div>
 
           {mode === "camera" ? (
@@ -374,7 +392,11 @@ export default function ScannerPanel() {
                 {status !== "live" ? (
                   <div className="bc-video-placeholder">
                     {status === "starting" ? (
-                      <Loader2 size={24} className="qr-spin" aria-hidden="true" />
+                      <Loader2
+                        size={24}
+                        className="qr-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <Camera size={24} aria-hidden="true" />
                     )}
@@ -385,12 +407,20 @@ export default function ScannerPanel() {
                     </p>
                   </div>
                 ) : null}
-                <canvas ref={canvasRef} className="bc-capture" aria-hidden="true" />
+                <canvas
+                  ref={canvasRef}
+                  className="bc-capture"
+                  aria-hidden="true"
+                />
               </div>
 
               <div className="bc-actions">
                 {status === "live" ? (
-                  <button type="button" className="secondary" onClick={stopCamera}>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={stopCamera}
+                  >
                     <CameraOff size={15} aria-hidden="true" /> Stop
                   </button>
                 ) : (
@@ -401,7 +431,11 @@ export default function ScannerPanel() {
                     disabled={status === "starting"}
                   >
                     {status === "starting" ? (
-                      <Loader2 size={15} className="qr-spin" aria-hidden="true" />
+                      <Loader2
+                        size={15}
+                        className="qr-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <Camera size={15} aria-hidden="true" />
                     )}
@@ -420,7 +454,10 @@ export default function ScannerPanel() {
                     }}
                   >
                     {devices.map((device, index) => (
-                      <option key={device.deviceId || index} value={device.deviceId}>
+                      <option
+                        key={device.deviceId || index}
+                        value={device.deviceId}
+                      >
                         {device.label || `Camera ${index + 1}`}
                       </option>
                     ))}
@@ -456,7 +493,9 @@ export default function ScannerPanel() {
                 )}
                 <span>
                   {fileName || "Choose a photo or drop it here"}
-                  <small>JPEG, PNG, WebP, GIF, BMP or AVIF up to 25 MB / 40 MP.</small>
+                  <small>
+                    JPEG, PNG, WebP, GIF, BMP or AVIF up to 25 MB / 40 MP.
+                  </small>
                 </span>
                 <input
                   type="file"
@@ -496,9 +535,9 @@ export default function ScannerPanel() {
           </p>
 
           <p className="qr-privacy-foot">
-            <ShieldCheck size={15} aria-hidden="true" /> Camera frames and images
-            are read into a canvas, decoded in a worker and discarded. Nothing is
-            recorded, stored or sent anywhere.
+            <ShieldCheck size={15} aria-hidden="true" /> Camera frames and
+            images are read into a canvas, decoded in a worker and discarded.
+            Nothing is recorded, stored or sent anywhere.
           </p>
         </section>
 
@@ -533,13 +572,18 @@ export default function ScannerPanel() {
           </div>
 
           {items.length ? (
-            <ul className="bc-results" aria-live="polite" aria-relevant="additions text">
+            <ul
+              className="bc-results"
+              aria-live="polite"
+              aria-relevant="additions text"
+            >
               {items.map((item) => (
                 <li key={item.id}>
                   <div className="bc-result-head">
                     <span className="qr-badge">{item.label}</span>
                     <span className="bc-dim">
-                      {item.source === "camera" ? "Camera" : "Image"} · {item.at}
+                      {item.source === "camera" ? "Camera" : "Image"} ·{" "}
+                      {item.at}
                     </span>
                     <button
                       type="button"
@@ -547,11 +591,17 @@ export default function ScannerPanel() {
                       onClick={() => void copy(item.text)}
                       aria-label={`Copy ${item.label} result`}
                     >
-                      {copied === item.text ? <X size={13} /> : <Copy size={13} />}
+                      {copied === item.text ? (
+                        <X size={13} />
+                      ) : (
+                        <Copy size={13} />
+                      )}
                     </button>
                   </div>
                   <p className="bc-result-text">{item.text}</p>
-                  {copied === item.text ? <p className="bc-dim">Copied.</p> : null}
+                  {copied === item.text ? (
+                    <p className="bc-dim">Copied.</p>
+                  ) : null}
                 </li>
               ))}
             </ul>

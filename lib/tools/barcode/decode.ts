@@ -61,7 +61,10 @@ function rawFormatName(format: BarcodeFormat) {
   return String(format);
 }
 
-function mapFormat(format: BarcodeFormat, text: string): BarcodeFormatId | "unknown" {
+function mapFormat(
+  format: BarcodeFormat,
+  text: string,
+): BarcodeFormatId | "unknown" {
   const match = READABLE.find((entry) => entry.format === format);
   if (!match) return "unknown";
   // A GS1-128 is a Code 128 that carries an FNC1, which decoders surface as a
@@ -96,8 +99,13 @@ function hints(tryHarder: boolean) {
 export function luminanceOf(raster: Raster) {
   const { rgba } = raster;
   const luminance = new Uint8ClampedArray(raster.width * raster.height);
-  for (let index = 0, pixel = 0; index < luminance.length; index += 1, pixel += 4)
-    luminance[index] = (rgba[pixel] + rgba[pixel + 1] * 2 + rgba[pixel + 2]) >> 2;
+  for (
+    let index = 0, pixel = 0;
+    index < luminance.length;
+    index += 1, pixel += 4
+  )
+    luminance[index] =
+      (rgba[pixel] + rgba[pixel + 1] * 2 + rgba[pixel + 2]) >> 2;
   return luminance;
 }
 
@@ -161,7 +169,10 @@ function readOnce(raster: Raster, tryHarder: boolean): DecodedBarcode[] {
 }
 
 /** Rotate RGBA by 90° steps (multiples of 90 only). */
-export function rotateRaster(raster: Raster, degrees: 0 | 90 | 180 | 270): Raster {
+export function rotateRaster(
+  raster: Raster,
+  degrees: 0 | 90 | 180 | 270,
+): Raster {
   if (degrees === 0) return raster;
   const { width, height, rgba } = raster;
   const swap = degrees === 90 || degrees === 270;
@@ -199,8 +210,14 @@ function cropRaster(
 ): Raster {
   const x0 = Math.max(0, Math.min(raster.width - 1, Math.round(box.x)));
   const y0 = Math.max(0, Math.min(raster.height - 1, Math.round(box.y)));
-  const x1 = Math.max(x0 + 1, Math.min(raster.width, Math.round(box.x + box.width)));
-  const y1 = Math.max(y0 + 1, Math.min(raster.height, Math.round(box.y + box.height)));
+  const x1 = Math.max(
+    x0 + 1,
+    Math.min(raster.width, Math.round(box.x + box.width)),
+  );
+  const y1 = Math.max(
+    y0 + 1,
+    Math.min(raster.height, Math.round(box.y + box.height)),
+  );
   const width = x1 - x0;
   const height = y1 - y0;
   const rgba = new Uint8ClampedArray(width * height * 4);
@@ -266,7 +283,11 @@ export function decodeBarcodes(
     const stepX = tileWidth * (1 - overlap);
     const stepY = tileHeight * (1 - overlap);
     for (let row = 0; row < 2 && found.length < maxResults; row += 1)
-      for (let column = 0; column < 2 && found.length < maxResults; column += 1) {
+      for (
+        let column = 0;
+        column < 2 && found.length < maxResults;
+        column += 1
+      ) {
         const box = {
           x: column * stepX,
           y: row * stepY,
@@ -275,7 +296,11 @@ export function decodeBarcodes(
         };
         const tile = cropRaster(raster, box);
         pass(`tile ${row + 1}.${column + 1}`, tile);
-        if (!found.length) pass(`tile ${row + 1}.${column + 1} rotated 90°`, rotateRaster(tile, 90));
+        if (!found.length)
+          pass(
+            `tile ${row + 1}.${column + 1} rotated 90°`,
+            rotateRaster(tile, 90),
+          );
       }
   }
 

@@ -7,13 +7,25 @@
  * actually needs when a barcode will not build.
  */
 import { AlertCircle, Check, Info, Sparkles } from "lucide-react";
-import { BARCODE_FORMATS, FORMAT_GROUPS, formatMeta } from "@/lib/tools/barcode/formats";
+import {
+  BARCODE_FORMATS,
+  FORMAT_GROUPS,
+  formatMeta,
+} from "@/lib/tools/barcode/formats";
 import type { BarcodeFormatId } from "@/lib/tools/barcode/types";
 import type { useBarcodeStudio } from "./use-barcode-studio";
 
 type Studio = ReturnType<typeof useBarcodeStudio>;
 
-const NUMERIC: BarcodeFormatId[] = ["ean13", "ean8", "upca", "upce", "itf14", "msi", "pharmacode"];
+const NUMERIC: BarcodeFormatId[] = [
+  "ean13",
+  "ean8",
+  "upca",
+  "upce",
+  "itf14",
+  "msi",
+  "pharmacode",
+];
 const CHECKSUM_FORMATS: BarcodeFormatId[] = ["code39", "msi"];
 const NUMBER_SYSTEM_FORMATS: BarcodeFormatId[] = ["upce"];
 const GUARD_FORMATS: BarcodeFormatId[] = ["ean13", "ean8", "upca", "upce"];
@@ -73,7 +85,9 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
 
       <div className="qr-field">
         <label htmlFor={inputId}>
-          {settings.format === "gs1-128" ? "GS1 element string" : "Barcode data"}
+          {settings.format === "gs1-128"
+            ? "GS1 element string"
+            : "Barcode data"}
         </label>
         <textarea
           id={inputId}
@@ -123,7 +137,9 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
         </ul>
       ) : null}
 
-      {CHECKSUM_FORMATS.includes(settings.format) || NUMBER_SYSTEM_FORMATS.includes(settings.format) || GUARD_FORMATS.includes(settings.format) ? (
+      {CHECKSUM_FORMATS.includes(settings.format) ||
+      NUMBER_SYSTEM_FORMATS.includes(settings.format) ||
+      GUARD_FORMATS.includes(settings.format) ? (
         <div className="bc-options">
           {CHECKSUM_FORMATS.includes(settings.format) ? (
             <div className="qr-field">
@@ -133,7 +149,10 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
                 className="qr-input"
                 value={settings.checksum}
                 onChange={(event) =>
-                  update("checksum", event.target.value as typeof settings.checksum)
+                  update(
+                    "checksum",
+                    event.target.value as typeof settings.checksum,
+                  )
                 }
               >
                 <option value="none">None (plain data)</option>
@@ -169,7 +188,8 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
                 <option value="1">1 — reserved</option>
               </select>
               <p className="help">
-                Only used when you enter 6 digits; 7 or 8 digits carry their own.
+                Only used when you enter 6 digits; 7 or 8 digits carry their
+                own.
               </p>
             </div>
           ) : null}
@@ -209,7 +229,15 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
       </details>
 
       <span className="sr-only">
-        Formats available: {FORMAT_GROUPS.map((group) => `${group}: ${BARCODE_FORMATS.filter((entry) => entry.group === group).map((entry) => entry.name).join(", ")}`).join(". ")}
+        Formats available:{" "}
+        {FORMAT_GROUPS.map(
+          (group) =>
+            `${group}: ${BARCODE_FORMATS.filter(
+              (entry) => entry.group === group,
+            )
+              .map((entry) => entry.name)
+              .join(", ")}`,
+        ).join(". ")}
       </span>
     </section>
   );

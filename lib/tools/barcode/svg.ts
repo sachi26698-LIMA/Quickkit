@@ -11,15 +11,17 @@ import type { BarcodeLayout, TextBlock } from "./layout";
 
 /** Escape character data and attribute values. Also strips control characters. */
 export function escapeXml(value: string) {
-  return value
-    // C0 controls (except tab/newline, which are collapsed anyway) cannot
-    // appear in XML 1.0 at all — dropping them keeps the file well-formed.
-    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+  return (
+    value
+      // C0 controls (except tab/newline, which are collapsed anyway) cannot
+      // appear in XML 1.0 at all — dropping them keeps the file well-formed.
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;")
+  );
 }
 
 /** Quote a font stack for an attribute value. */
@@ -55,20 +57,24 @@ export function layoutToSvg(layout: BarcodeLayout, meta: SvgMeta): string {
     `<svg xmlns="http://www.w3.org/2000/svg" width="${layout.width}" height="${layout.height}" viewBox="0 0 ${layout.width} ${layout.height}" role="img" aria-labelledby="bc-title">`,
   );
   lines.push(`  <title id="bc-title">${escapeXml(meta.title)}</title>`);
-  if (meta.description) lines.push(`  <desc>${escapeXml(meta.description)}</desc>`);
+  if (meta.description)
+    lines.push(`  <desc>${escapeXml(meta.description)}</desc>`);
   if (layout.background) {
     lines.push(
       `  <rect x="0" y="0" width="${layout.width}" height="${layout.height}" fill="${escapeXml(layout.background)}"/>`,
     );
   }
-  lines.push(`  <g fill="${escapeXml(layout.foreground)}" shape-rendering="crispEdges">`);
+  lines.push(
+    `  <g fill="${escapeXml(layout.foreground)}" shape-rendering="crispEdges">`,
+  );
   for (const bar of layout.bars) {
     lines.push(
       `    <rect x="${bar.x}" y="${bar.y}" width="${bar.width}" height="${bar.height}"/>`,
     );
   }
   lines.push("  </g>");
-  for (const block of layout.texts) lines.push(textElement(block, layout.fontFamily));
+  for (const block of layout.texts)
+    lines.push(textElement(block, layout.fontFamily));
   lines.push("</svg>");
   return `${lines.join("\n")}\n`;
 }
@@ -83,7 +89,11 @@ export function svgDataUri(svg: string) {
  * contains anything outside the closed vocabulary above.
  */
 export function isSvgSafe(svg: string) {
-  if (/<script|foreignObject|on[a-z]+\s*=|javascript:|xlink:href|<!ENTITY/i.test(svg))
+  if (
+    /<script|foreignObject|on[a-z]+\s*=|javascript:|xlink:href|<!ENTITY/i.test(
+      svg,
+    )
+  )
     return false;
   return /^<svg[\s>]/.test(svg.trim());
 }

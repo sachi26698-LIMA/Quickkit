@@ -16,10 +16,22 @@ import { toolTheme } from "@/lib/tool-theme";
 import { toolArt, toolTone } from "@/components/icon-3d";
 
 const ROOT = process.cwd();
-const STUDIO = ["use-barcode-studio.ts", "index.tsx", "format-panel.tsx", "customize-panel.tsx", "preview-panel.tsx", "bulk-panel.tsx", "scanner-panel.tsx", "reference.tsx"] as const;
+const STUDIO = [
+  "use-barcode-studio.ts",
+  "index.tsx",
+  "format-panel.tsx",
+  "customize-panel.tsx",
+  "preview-panel.tsx",
+  "bulk-panel.tsx",
+  "scanner-panel.tsx",
+  "reference.tsx",
+] as const;
 
 function studioSource(file: string) {
-  return readFileSync(join(ROOT, "components/tools/barcode-studio", file), "utf8");
+  return readFileSync(
+    join(ROOT, "components/tools/barcode-studio", file),
+    "utf8",
+  );
 }
 
 describe("barcode generator route metadata", () => {
@@ -33,11 +45,16 @@ describe("barcode generator route metadata", () => {
     expect(description).toContain("Code 128");
     expect(description).toContain("validation");
     const titles = tools.map((tool) => tool.name);
-    expect(titles.filter((name) => name === "Barcode Generator")).toHaveLength(1);
+    expect(titles.filter((name) => name === "Barcode Generator")).toHaveLength(
+      1,
+    );
   });
 
   it("declares the canonical path and social cards through the shared helper", () => {
-    const source = readFileSync(join(ROOT, "app/tools/barcode-generator/page.tsx"), "utf8");
+    const source = readFileSync(
+      join(ROOT, "app/tools/barcode-generator/page.tsx"),
+      "utf8",
+    );
     expect(source).toContain('"/tools/barcode-generator"');
     expect(source).toContain("pageMetadata(");
     expect(metadata.openGraph?.title).toContain("QUICKKIT");
@@ -49,12 +66,15 @@ describe("barcode generator route metadata", () => {
   });
 
   it("mounts the studio through the shared tool shell", () => {
-    const source = readFileSync(join(ROOT, "app/tools/barcode-generator/page.tsx"), "utf8");
+    const source = readFileSync(
+      join(ROOT, "app/tools/barcode-generator/page.tsx"),
+      "utf8",
+    );
     expect(source).toContain("<ToolShell");
     expect(source).toContain("<BarcodeStudio />");
     expect(source).toContain("<BarcodeReference />");
     expect(source).toContain("referenceSection=");
-    expect(source).toContain("slug=\"barcode-generator\"");
+    expect(source).toContain('slug="barcode-generator"');
   });
 });
 
@@ -82,21 +102,25 @@ describe("catalog integration", () => {
   });
 
   it("is findable by what people actually type", () => {
-    expect(filterTools("barcode", "All tools").map((entry) => entry.slug)).toContain(
+    expect(
+      filterTools("barcode", "All tools").map((entry) => entry.slug),
+    ).toContain("barcode-generator");
+    expect(filterTools("ean", "QR & Barcode")[0].slug).toBe(
       "barcode-generator",
     );
-    expect(filterTools("ean", "QR & Barcode")[0].slug).toBe("barcode-generator");
     expect(filterTools("gs1", "All tools")[0].slug).toBe("barcode-generator");
   });
 
   it("links to and from the QR tools", () => {
-    const own = relatedTools(toolBySlug("barcode-generator")!).map((entry) => entry.slug);
+    const own = relatedTools(toolBySlug("barcode-generator")!).map(
+      (entry) => entry.slug,
+    );
     expect(own).toContain("qr-generator");
     expect(own).toContain("qr-code-scanner");
     expect(own.length).toBeGreaterThanOrEqual(4);
-    expect(relatedTools(toolBySlug("qr-generator")!).map((entry) => entry.slug)).toContain(
-      "barcode-generator",
-    );
+    expect(
+      relatedTools(toolBySlug("qr-generator")!).map((entry) => entry.slug),
+    ).toContain("barcode-generator");
     expect(
       relatedTools(toolBySlug("qr-code-scanner")!).map((entry) => entry.slug),
     ).toContain("barcode-generator");
@@ -115,7 +139,9 @@ describe("catalog integration", () => {
 describe("visual identity", () => {
   it("gives the tool a glyph and a tone of its own", () => {
     expect(toolArt["barcode-generator"]).toBe("barcode");
-    expect(toolTone({ slug: "barcode-generator", category: "QR & Barcode" })).toBe("crimson");
+    expect(
+      toolTone({ slug: "barcode-generator", category: "QR & Barcode" }),
+    ).toBe("crimson");
   });
 
   it("stays inside the QR family's red theme with a warm shift", () => {
@@ -133,7 +159,9 @@ describe("SEO reference copy", () => {
   it("documents the formats, limits and privacy precisely", () => {
     expect(entry).toBeDefined();
     expect(entry.specs.length).toBeGreaterThanOrEqual(6);
-    const text = entry.specs.map((spec) => `${spec.label} ${spec.detail}`).join(" ");
+    const text = entry.specs
+      .map((spec) => `${spec.label} ${spec.detail}`)
+      .join(" ");
     expect(text).toContain("Code 128");
     expect(text).toContain("GS1-128");
     expect(text).toContain("1,000 rows");
@@ -162,12 +190,18 @@ describe("studio structure", () => {
     const css =
       readFileSync(join(ROOT, "app/tool-pages.css"), "utf8") +
       readFileSync(join(ROOT, "app/globals.css"), "utf8");
-    const defined = new Set(css.match(/\.(bc-[a-z0-9-]+)/g)?.map((token) => token.slice(1)));
+    const defined = new Set(
+      css.match(/\.(bc-[a-z0-9-]+)/g)?.map((token) => token.slice(1)),
+    );
     const used = new Set<string>();
     for (const file of STUDIO) {
       const source = studioSource(file);
-      for (const match of source.matchAll(/className=\{([^}]*)\}|className="([^"]*)"/g)) {
-        for (const token of (match[1] ?? match[2] ?? "").match(/bc-[a-z0-9-]+/g) ?? [])
+      for (const match of source.matchAll(
+        /className=\{([^}]*)\}|className="([^"]*)"/g,
+      )) {
+        for (const token of (match[1] ?? match[2] ?? "").match(
+          /bc-[a-z0-9-]+/g,
+        ) ?? [])
           used.add(token);
       }
     }
@@ -225,7 +259,7 @@ describe("studio structure", () => {
 
   it("prints through a same-origin iframe instead of a popup", () => {
     const source = studioSource("use-barcode-studio.ts");
-    expect(source).toContain("document.createElement(\"iframe\")");
+    expect(source).toContain('document.createElement("iframe")');
     expect(source).toContain("contentWindow");
     expect(source).not.toContain("window.open(");
     expect(source).toContain("remove()");

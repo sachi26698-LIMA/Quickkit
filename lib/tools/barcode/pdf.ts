@@ -6,8 +6,18 @@
  * blurred bar edge is exactly how printed barcodes fail verification. Text uses
  * the PDF standard fonts so the file has no dependencies and opens everywhere.
  */
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "@cantoo/pdf-lib";
-import { buildLayout, type BarcodeLayout, type BarcodeRenderOptions } from "./layout";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFFont,
+  type PDFPage,
+} from "@cantoo/pdf-lib";
+import {
+  buildLayout,
+  type BarcodeLayout,
+  type BarcodeRenderOptions,
+} from "./layout";
 import type { BarcodeSpec } from "./types";
 
 const MM_TO_PT = 72 / 25.4;
@@ -19,7 +29,11 @@ export const BARCODE_PAPERS: Record<
   { label: string; widthMm: number; heightMm: number }
 > = {
   a4: { label: "A4 · 210 × 297 mm", widthMm: 210, heightMm: 297 },
-  letter: { label: "US Letter · 216 × 279 mm", widthMm: 215.9, heightMm: 279.4 },
+  letter: {
+    label: "US Letter · 216 × 279 mm",
+    widthMm: 215.9,
+    heightMm: 279.4,
+  },
   fit: { label: "Fit the page to the label", widthMm: 0, heightMm: 0 },
 };
 
@@ -28,7 +42,10 @@ export type BarcodeLabelSize = {
   heightMm: number;
 };
 
-export const DEFAULT_LABEL_SIZE: BarcodeLabelSize = { widthMm: 64, heightMm: 34 };
+export const DEFAULT_LABEL_SIZE: BarcodeLabelSize = {
+  widthMm: 64,
+  heightMm: 34,
+};
 
 export type BarcodePdfOptions = {
   paper: BarcodePaper;
@@ -184,7 +201,12 @@ export function planSheet(
     Math.floor((paper.heightMm - margin * 2 + gap) / (labelH + gap)),
   );
   const perPage = columns * rows;
-  return { columns, rows, perPage, pages: Math.max(1, Math.ceil(count / perPage)) };
+  return {
+    columns,
+    rows,
+    perPage,
+    pages: Math.max(1, Math.ceil(count / perPage)),
+  };
 }
 
 /** Build the PDF. One page per sheet for `a4`/`letter`, one page per label for `fit`. */
@@ -242,7 +264,13 @@ export async function createBarcodePdf(
         height: labelHPt,
       };
       if (box.y < 0) return;
-      drawLayout(page, labelLayout(item, options), box, fonts, options.whiteBackground);
+      drawLayout(
+        page,
+        labelLayout(item, options),
+        box,
+        fonts,
+        options.whiteBackground,
+      );
     });
   }
   return doc.save();

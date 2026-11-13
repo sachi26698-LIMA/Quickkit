@@ -30,7 +30,8 @@ import type { useBarcodeStudio } from "./use-barcode-studio";
 type Studio = ReturnType<typeof useBarcodeStudio>;
 
 export default function PreviewPanel({ studio }: { studio: Studio }) {
-  const { settings, result, layout, svg, verification, checking, busy } = studio;
+  const { settings, result, layout, svg, verification, checking, busy } =
+    studio;
   const meta = formatMeta(settings.format);
   const [paper, setPaper] = useState<BarcodePaper>("a4");
   const [labelWidth, setLabelWidth] = useState(DEFAULT_LABEL_SIZE.widthMm);
@@ -58,7 +59,13 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
         import("@/lib/tools/download"),
       ]);
       const bytes = await createBarcodePdf(
-        [{ spec: result.spec, title: settings.title, description: settings.description }],
+        [
+          {
+            spec: result.spec,
+            title: settings.title,
+            description: settings.description,
+          },
+        ],
         {
           paper,
           label: { widthMm: labelWidth, heightMm: labelHeight },
@@ -98,7 +105,10 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
     } catch (error) {
       studio.setFlash({
         kind: "error",
-        text: error instanceof Error ? error.message : "The PDF could not be created.",
+        text:
+          error instanceof Error
+            ? error.message
+            : "The PDF could not be created.",
       });
     } finally {
       setPdfBusy(false);
@@ -109,7 +119,10 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
     if (!svg) return;
     try {
       await navigator.clipboard.writeText(svg);
-      studio.setFlash({ kind: "success", text: "SVG markup copied to the clipboard." });
+      studio.setFlash({
+        kind: "success",
+        text: "SVG markup copied to the clipboard.",
+      });
     } catch {
       studio.setFlash({
         kind: "error",
@@ -119,7 +132,10 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
   };
 
   return (
-    <section className="qr-card bc-preview-card" aria-labelledby="bc-preview-heading">
+    <section
+      className="qr-card bc-preview-card"
+      aria-labelledby="bc-preview-heading"
+    >
       <div className="qr-card-head">
         <div>
           <h3 id="bc-preview-heading">Live preview</h3>
@@ -138,7 +154,11 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
       </div>
 
       <div
-        className={settings.transparent ? "bc-preview-stage transparent" : "bc-preview-stage"}
+        className={
+          settings.transparent
+            ? "bc-preview-stage transparent"
+            : "bc-preview-stage"
+        }
       >
         {svg && layout ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -266,7 +286,12 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
           )}
           Check it scans
         </button>
-        <button type="button" className="qr-mini-button" onClick={copySvg} disabled={!svg}>
+        <button
+          type="button"
+          className="qr-mini-button"
+          onClick={copySvg}
+          disabled={!svg}
+        >
           <Copy size={13} aria-hidden="true" /> Copy SVG
         </button>
       </div>
@@ -323,8 +348,8 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
           <span>
             Print an opaque white background
             <small>
-              Keep this on for coloured or kraft stock: bars printed on the label
-              colour lose contrast.
+              Keep this on for coloured or kraft stock: bars printed on the
+              label colour lose contrast.
             </small>
           </span>
         </label>
@@ -338,8 +363,9 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
       </details>
 
       <p className="qr-privacy-foot">
-        The preview is an SVG built in this tab. Downloads are generated from the
-        same geometry, so the file you save carries the symbol you just checked.
+        The preview is an SVG built in this tab. Downloads are generated from
+        the same geometry, so the file you save carries the symbol you just
+        checked.
       </p>
     </section>
   );

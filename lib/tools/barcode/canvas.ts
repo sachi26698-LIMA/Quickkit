@@ -16,8 +16,7 @@ export const MAX_PNG_PIXELS = 24_000_000;
 
 export function canUseCanvas() {
   return (
-    typeof document !== "undefined" ||
-    typeof OffscreenCanvas !== "undefined"
+    typeof document !== "undefined" || typeof OffscreenCanvas !== "undefined"
   );
 }
 
@@ -46,7 +45,8 @@ async function toPngBytes(canvas: AnyCanvas): Promise<Uint8Array> {
   const blob = await new Promise<Blob | null>((resolve) =>
     element.toBlob((result) => resolve(result), "image/png"),
   );
-  if (!blob) throw new Error("The browser could not encode a PNG for this label.");
+  if (!blob)
+    throw new Error("The browser could not encode a PNG for this label.");
   return new Uint8Array(await blob.arrayBuffer());
 }
 
@@ -68,10 +68,21 @@ export async function layoutToPng(
     );
   const canvas = makeCanvas(width, height);
   const context = canvas.getContext("2d") as
-    | (CanvasRenderingContext2D & { setTransform: (a: number, b: number, c: number, d: number, e: number, f: number) => void })
+    | (CanvasRenderingContext2D & {
+        setTransform: (
+          a: number,
+          b: number,
+          c: number,
+          d: number,
+          e: number,
+          f: number,
+        ) => void;
+      })
     | null;
   if (!context)
-    throw new Error("Canvas is unavailable in this browser, so PNG export is not possible.");
+    throw new Error(
+      "Canvas is unavailable in this browser, so PNG export is not possible.",
+    );
 
   // A transparent label still needs a light field behind the bars when the
   // viewer composites onto black — but the user asked for transparency, so the

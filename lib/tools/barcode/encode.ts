@@ -64,7 +64,9 @@ function binaryWidth(binary: string) {
  */
 export function binaryFromWidths(widths: number[]) {
   return widths
-    .map((width, index) => (index % 2 === 0 ? "1" : "0").repeat(Math.max(1, Math.round(width))))
+    .map((width, index) =>
+      (index % 2 === 0 ? "1" : "0").repeat(Math.max(1, Math.round(width))),
+    )
     .join("");
 }
 
@@ -97,28 +99,113 @@ function assemble(options: {
 
 /** Values 0–106: 11 modules each, and the 13-module stop pattern at 106. */
 const CODE128_PATTERNS = [
-  "11011001100", "11001101100", "11001100110", "10010011000", "10010001100",
-  "10001001100", "10011001000", "10011000100", "10001100100", "11001001000",
-  "11001000100", "11000100100", "10110011100", "10011011100", "10011001110",
-  "10111001100", "10011101100", "10011100110", "11001110010", "11001011100",
-  "11001001110", "11011100100", "11001110100", "11101101110", "11101001100",
-  "11100101100", "11100100110", "11101100100", "11100110100", "11100110010",
-  "11011011000", "11011000110", "11000110110", "10100011000", "10001011000",
-  "10001000110", "10110001000", "10001101000", "10001100010", "11010001000",
-  "11000101000", "11000100010", "10110111000", "10110001110", "10001101110",
-  "10111011000", "10111000110", "10001110110", "11101110110", "11010001110",
-  "11000101110", "11011101000", "11011100010", "11011101110", "11101011000",
-  "11101000110", "11100010110", "11101101000", "11101100010", "11100011010",
-  "11101111010", "11001000010", "11110001010", "10100110000", "10100001100",
-  "10010110000", "10010000110", "10000101100", "10000100110", "10110010000",
-  "10110000100", "10011010000", "10011000010", "10000110100", "10000110010",
-  "11000010010", "11001010000", "11110111010", "11000010100", "10001111010",
-  "10100111100", "10010111100", "10010011110", "10111100100", "10011110100",
-  "10011110010", "11110100100", "11110010100", "11110010010", "11011011110",
-  "11011110110", "11110110110", "10101111000", "10100011110", "10001011110",
-  "10111101000", "10111100010", "11110101000", "11110100010", "10111011110",
-  "10111101110", "11101011110", "11110101110", "11010000100", "11010010000",
-  "11010011100", "1100011101011",
+  "11011001100",
+  "11001101100",
+  "11001100110",
+  "10010011000",
+  "10010001100",
+  "10001001100",
+  "10011001000",
+  "10011000100",
+  "10001100100",
+  "11001001000",
+  "11001000100",
+  "11000100100",
+  "10110011100",
+  "10011011100",
+  "10011001110",
+  "10111001100",
+  "10011101100",
+  "10011100110",
+  "11001110010",
+  "11001011100",
+  "11001001110",
+  "11011100100",
+  "11001110100",
+  "11101101110",
+  "11101001100",
+  "11100101100",
+  "11100100110",
+  "11101100100",
+  "11100110100",
+  "11100110010",
+  "11011011000",
+  "11011000110",
+  "11000110110",
+  "10100011000",
+  "10001011000",
+  "10001000110",
+  "10110001000",
+  "10001101000",
+  "10001100010",
+  "11010001000",
+  "11000101000",
+  "11000100010",
+  "10110111000",
+  "10110001110",
+  "10001101110",
+  "10111011000",
+  "10111000110",
+  "10001110110",
+  "11101110110",
+  "11010001110",
+  "11000101110",
+  "11011101000",
+  "11011100010",
+  "11011101110",
+  "11101011000",
+  "11101000110",
+  "11100010110",
+  "11101101000",
+  "11101100010",
+  "11100011010",
+  "11101111010",
+  "11001000010",
+  "11110001010",
+  "10100110000",
+  "10100001100",
+  "10010110000",
+  "10010000110",
+  "10000101100",
+  "10000100110",
+  "10110010000",
+  "10110000100",
+  "10011010000",
+  "10011000010",
+  "10000110100",
+  "10000110010",
+  "11000010010",
+  "11001010000",
+  "11110111010",
+  "11000010100",
+  "10001111010",
+  "10100111100",
+  "10010111100",
+  "10010011110",
+  "10111100100",
+  "10011110100",
+  "10011110010",
+  "11110100100",
+  "11110010100",
+  "11110010010",
+  "11011011110",
+  "11011110110",
+  "11110110110",
+  "10101111000",
+  "10100011110",
+  "10001011110",
+  "10111101000",
+  "10111100010",
+  "11110101000",
+  "11110100010",
+  "10111011110",
+  "10111101110",
+  "11101011110",
+  "11110101110",
+  "11010000100",
+  "11010010000",
+  "11010011100",
+  "1100011101011",
 ];
 
 export const CODE128_START_B = 104;
@@ -157,8 +244,7 @@ export function code128Values(data: string, gs1 = false): number[] {
     values.push(CODE128_START_B, CODE128_FNC1);
   } else {
     const allDigits = items.length > 0 && items.every(isDigit);
-    const startInC =
-      allDigits && items.length >= 4 && items.length % 2 === 0;
+    const startInC = allDigits && items.length >= 4 && items.length % 2 === 0;
     values.push(startInC ? CODE128_START_C : CODE128_START_B);
     if (startInC) set = "C";
   }
@@ -167,7 +253,9 @@ export function code128Values(data: string, gs1 = false): number[] {
   while (index < items.length) {
     guard += 1;
     if (guard > items.length * 4 + 16)
-      throw new Error("Code 128 encoder did not converge — please report this payload.");
+      throw new Error(
+        "Code 128 encoder did not converge — please report this payload.",
+      );
     if (set === "C") {
       const token = items[index];
       if (token.kind === "fnc1") {
@@ -176,7 +264,9 @@ export function code128Values(data: string, gs1 = false): number[] {
         continue;
       }
       if (isDigit(token) && isDigit(items[index + 1])) {
-        values.push(Number(token.char + (items[index + 1] as { char: string }).char));
+        values.push(
+          Number(token.char + (items[index + 1] as { char: string }).char),
+        );
         index += 2;
         continue;
       }
@@ -208,8 +298,10 @@ export function code128Values(data: string, gs1 = false): number[] {
   }
 
   const checksum =
-    values.reduce((sum, value, position) => sum + value * Math.max(1, position), 0) %
-    103;
+    values.reduce(
+      (sum, value, position) => sum + value * Math.max(1, position),
+      0,
+    ) % 103;
   values.push(checksum, CODE128_STOP);
   return values;
 }
@@ -222,7 +314,10 @@ export function code128Binary(data: string, gs1 = false) {
 
 function encodeCode128(normalized: NormalizedBarcode): BarcodeSpec {
   const gs1 = Boolean(normalized.gs1);
-  const binary = code128Binary(gs1 ? normalized.gs1!.encoded : normalized.value, gs1);
+  const binary = code128Binary(
+    gs1 ? normalized.gs1!.encoded : normalized.value,
+    gs1,
+  );
   const modules = binary.length;
   const segments: BarcodeTextSegment[] = [
     { text: normalized.display, center: modules / 2 },
@@ -346,16 +441,23 @@ const CENTRE_GUARD = EAN_CENTRE_GUARD;
  * Only the black modules inside a guard are extended — a solid block across
  * "01010" would draw bars where the symbology has spaces.
  */
-export function guardRuns(binary: string, ranges: [start: number, length: number][]) {
+export function guardRuns(
+  binary: string,
+  ranges: [start: number, length: number][],
+) {
   const runs: BarcodeBar[] = [];
   for (const [start, length] of ranges) {
     const slice = binary.slice(start, start + length);
-    for (const run of barsFromBinary(slice)) runs.push({ x: start + run.x, width: run.width });
+    for (const run of barsFromBinary(slice))
+      runs.push({ x: start + run.x, width: run.width });
   }
   return runs;
 }
 
-function encodeEan13(normalized: NormalizedBarcode, guardBars: boolean): BarcodeSpec {
+function encodeEan13(
+  normalized: NormalizedBarcode,
+  guardBars: boolean,
+): BarcodeSpec {
   const digits = normalized.value;
   const parity = EAN13_PARITY[Number(digits[0])];
   let binary = SIDE_GUARD;
@@ -380,16 +482,27 @@ function encodeEan13(normalized: NormalizedBarcode, guardBars: boolean): Barcode
     ],
     quiet: { left: 11, right: 7 },
     notes: normalized.notes,
-    guards: guardBars ? guardRuns(binary, [[0, 3], [45, 5], [92, 3]]) : [],
+    guards: guardBars
+      ? guardRuns(binary, [
+          [0, 3],
+          [45, 5],
+          [92, 3],
+        ])
+      : [],
   });
 }
 
-function encodeEan8(normalized: NormalizedBarcode, guardBars: boolean): BarcodeSpec {
+function encodeEan8(
+  normalized: NormalizedBarcode,
+  guardBars: boolean,
+): BarcodeSpec {
   const digits = normalized.value;
   let binary = SIDE_GUARD;
-  for (let index = 0; index < 4; index += 1) binary += EAN_L[Number(digits[index])];
+  for (let index = 0; index < 4; index += 1)
+    binary += EAN_L[Number(digits[index])];
   binary += CENTRE_GUARD;
-  for (let index = 4; index < 8; index += 1) binary += EAN_R[Number(digits[index])];
+  for (let index = 4; index < 8; index += 1)
+    binary += EAN_R[Number(digits[index])];
   binary += SIDE_GUARD;
   return assemble({
     format: "ean8",
@@ -402,16 +515,27 @@ function encodeEan8(normalized: NormalizedBarcode, guardBars: boolean): BarcodeS
     ],
     quiet: { left: 9, right: 7 },
     notes: normalized.notes,
-    guards: guardBars ? guardRuns(binary, [[0, 3], [31, 5], [64, 3]]) : [],
+    guards: guardBars
+      ? guardRuns(binary, [
+          [0, 3],
+          [31, 5],
+          [64, 3],
+        ])
+      : [],
   });
 }
 
-function encodeUpca(normalized: NormalizedBarcode, guardBars: boolean): BarcodeSpec {
+function encodeUpca(
+  normalized: NormalizedBarcode,
+  guardBars: boolean,
+): BarcodeSpec {
   const digits = normalized.value;
   let binary = SIDE_GUARD;
-  for (let index = 0; index < 6; index += 1) binary += EAN_L[Number(digits[index])];
+  for (let index = 0; index < 6; index += 1)
+    binary += EAN_L[Number(digits[index])];
   binary += CENTRE_GUARD;
-  for (let index = 6; index < 12; index += 1) binary += EAN_R[Number(digits[index])];
+  for (let index = 6; index < 12; index += 1)
+    binary += EAN_R[Number(digits[index])];
   binary += SIDE_GUARD;
   return assemble({
     format: "upca",
@@ -426,11 +550,20 @@ function encodeUpca(normalized: NormalizedBarcode, guardBars: boolean): BarcodeS
     ],
     quiet: { left: 9, right: 9 },
     notes: normalized.notes,
-    guards: guardBars ? guardRuns(binary, [[0, 3], [45, 5], [92, 3]]) : [],
+    guards: guardBars
+      ? guardRuns(binary, [
+          [0, 3],
+          [45, 5],
+          [92, 3],
+        ])
+      : [],
   });
 }
 
-function encodeUpce(normalized: NormalizedBarcode, guardBars: boolean): BarcodeSpec {
+function encodeUpce(
+  normalized: NormalizedBarcode,
+  guardBars: boolean,
+): BarcodeSpec {
   // value = number system + six digits + check digit
   const numberSystem = normalized.value[0];
   const middle = normalized.value.slice(1, 7);
@@ -441,7 +574,9 @@ function encodeUpce(normalized: NormalizedBarcode, guardBars: boolean): BarcodeS
   for (let index = 0; index < 6; index += 1) {
     const even = pattern[index] === "E";
     const useEven = inverted ? !even : even;
-    binary += useEven ? EAN_G[Number(middle[index])] : EAN_L[Number(middle[index])];
+    binary += useEven
+      ? EAN_G[Number(middle[index])]
+      : EAN_L[Number(middle[index])];
   }
   binary += "010101";
   return assemble({
@@ -457,7 +592,12 @@ function encodeUpce(normalized: NormalizedBarcode, guardBars: boolean): BarcodeS
     ],
     quiet: { left: 9, right: 7 },
     notes: normalized.notes,
-    guards: guardBars ? guardRuns(binary, [[0, 3], [45, 6]]) : [],
+    guards: guardBars
+      ? guardRuns(binary, [
+          [0, 3],
+          [45, 6],
+        ])
+      : [],
   });
 }
 
@@ -466,8 +606,16 @@ function encodeUpce(normalized: NormalizedBarcode, guardBars: boolean): BarcodeS
 /* -------------------------------------------------------------------------- */
 
 const ITF_DIGITS = [
-  "00110", "10001", "01001", "11000", "00101",
-  "10100", "01100", "00011", "10010", "01010",
+  "00110",
+  "10001",
+  "01001",
+  "11000",
+  "00101",
+  "10100",
+  "01100",
+  "00011",
+  "10010",
+  "01010",
 ];
 
 export function itfBinary(digits: string) {

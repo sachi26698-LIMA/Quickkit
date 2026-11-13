@@ -9,7 +9,11 @@
  */
 import { parseCsv, parseCsvFile, type CsvTable } from "@/lib/tools/qr/bulk";
 import { buildBarcode } from "./encode";
-import type { BarcodeEncodeOptions, BarcodeFormatId, BarcodeSpec } from "./types";
+import type {
+  BarcodeEncodeOptions,
+  BarcodeFormatId,
+  BarcodeSpec,
+} from "./types";
 
 export const BARCODE_BULK_LIMITS = {
   /** Hard ceiling enforced by the parser and the UI. */
@@ -69,7 +73,18 @@ export function parseBulkText(text: string): CsvTable {
 
 /** Best guess for the data column: the header that mentions data/value/code. */
 export function guessDataColumn(headers: string[]): number {
-  const wanted = ["data", "value", "barcode", "code", "content", "text", "number", "ean", "upc", "sku"];
+  const wanted = [
+    "data",
+    "value",
+    "barcode",
+    "code",
+    "content",
+    "text",
+    "number",
+    "ean",
+    "upc",
+    "sku",
+  ];
   const lower = headers.map((header) => header.trim().toLowerCase());
   for (const name of wanted) {
     const index = lower.findIndex((header) => header === name);
@@ -82,11 +97,16 @@ export function guessDataColumn(headers: string[]): number {
   return headers.length > 1 ? 0 : 0;
 }
 
-export function guessTitleColumn(headers: string[], dataColumn: number): number {
+export function guessTitleColumn(
+  headers: string[],
+  dataColumn: number,
+): number {
   const wanted = ["label", "title", "name", "description", "caption"];
   const lower = headers.map((header) => header.trim().toLowerCase());
   for (const name of wanted) {
-    const index = lower.findIndex((header, position) => header === name && position !== dataColumn);
+    const index = lower.findIndex(
+      (header, position) => header === name && position !== dataColumn,
+    );
     if (index >= 0) return index;
   }
   return -1;
@@ -104,7 +124,10 @@ export type BuildBulkOptions = {
  * Validate and encode every row. Pure: no DOM, no timers — the UI batches the
  * returned work on its own schedule (see `renderBulkRows`).
  */
-export function buildBulkRows(table: CsvTable, options: BuildBulkOptions): BulkRow[] {
+export function buildBulkRows(
+  table: CsvTable,
+  options: BuildBulkOptions,
+): BulkRow[] {
   const firstSeen = new Map<string, number>();
   const rows: BulkRow[] = [];
   const maxRows = Math.min(table.rows.length, BARCODE_BULK_LIMITS.maxRows);
@@ -114,14 +137,17 @@ export function buildBulkRows(table: CsvTable, options: BuildBulkOptions): BulkR
     const line = index + 2; // header is line 1
     const rawData = (row[options.columns.data] ?? "").trim();
     const title =
-      options.columns.title >= 0 ? (row[options.columns.title] ?? "").trim().slice(0, 80) : "";
+      options.columns.title >= 0
+        ? (row[options.columns.title] ?? "").trim().slice(0, 80)
+        : "";
 
     if (!rawData) {
       rows.push({
         line,
         data: "",
         status: "invalid",
-        message: "This row has no barcode data — fill the selected column or delete the row.",
+        message:
+          "This row has no barcode data — fill the selected column or delete the row.",
         title,
         canonical: "",
       });
@@ -134,7 +160,8 @@ export function buildBulkRows(table: CsvTable, options: BuildBulkOptions): BulkR
         line,
         data: rawData,
         status: "invalid",
-        message: result.problems[0]?.message ?? "This row could not be encoded.",
+        message:
+          result.problems[0]?.message ?? "This row could not be encoded.",
         title,
         canonical: `${options.format}:${rawData}`,
       });
@@ -174,7 +201,9 @@ export function buildBulkRows(table: CsvTable, options: BuildBulkOptions): BulkR
 
 /** Rows that will be rendered and exported, in file order. */
 export function exportableRows(rows: BulkRow[]) {
-  return rows.filter((row) => row.status === "ok" || row.status === "duplicate");
+  return rows.filter(
+    (row) => row.status === "ok" || row.status === "duplicate",
+  );
 }
 
 export function bulkCounts(rows: BulkRow[]) {
@@ -200,13 +229,23 @@ export async function processInBatches<T, R>(
     signal?: { aborted: boolean };
   } = {},
 ): Promise<{ results: R[]; aborted: boolean }> {
-  const batchSize = Math.max(1, options.batchSize ?? BARCODE_BULK_LIMITS.batchSize);
+  const batchSize = Math.max(
+    1,
+    options.batchSize ?? BARCODE_BULK_LIMITS.batchSize,
+  );
   const results: R[] = [];
   for (let index = 0; index < items.length; index += batchSize) {
     if (options.signal?.aborted) return { results, aborted: true };
-    for (let offset = index; offset < Math.min(items.length, index + batchSize); offset += 1)
+    for (
+      let offset = index;
+      offset < Math.min(items.length, index + batchSize);
+      offset += 1
+    )
       results.push(work(items[offset], offset));
-    options.onProgress?.(Math.min(items.length, index + batchSize), items.length);
+    options.onProgress?.(
+      Math.min(items.length, index + batchSize),
+      items.length,
+    );
     // Yield: a macrotask, so layout and paint can happen between batches.
     await new Promise((resolve) => setTimeout(resolve, 0));
   }

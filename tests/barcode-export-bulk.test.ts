@@ -47,17 +47,23 @@ const csv = (...rows: string[]) => rows.join("\n");
 
 describe("export file names", () => {
   it("names a single download after the format, value and extension", () => {
-    expect(barcodeFilename({ format: "ean13", value: "5901234123457", ext: "svg" })).toBe(
-      "quickkit-barcode-ean13-5901234123457.svg",
-    );
-    expect(barcodeFilename({ format: "code128", value: "A/B C", ext: "png" })).toBe(
-      "quickkit-barcode-code128-a-b-c.png",
-    );
+    expect(
+      barcodeFilename({ format: "ean13", value: "5901234123457", ext: "svg" }),
+    ).toBe("quickkit-barcode-ean13-5901234123457.svg");
+    expect(
+      barcodeFilename({ format: "code128", value: "A/B C", ext: "png" }),
+    ).toBe("quickkit-barcode-code128-a-b-c.png");
   });
 
   it("adds an index and a suffix without ever repeating a name", () => {
     const names = [1, 2, 3].map((index) =>
-      barcodeFilename({ format: "code39", value: "ABC", ext: "svg", index, suffix: "labels" }),
+      barcodeFilename({
+        format: "code39",
+        value: "ABC",
+        ext: "svg",
+        index,
+        suffix: "labels",
+      }),
     );
     expect(names).toEqual([
       "quickkit-barcode-code39-abc-001-labels.svg",
@@ -68,7 +74,11 @@ describe("export file names", () => {
   });
 
   it("falls back to a placeholder when the value is only punctuation", () => {
-    const name = barcodeFilename({ format: "code128", value: "///", ext: "svg" });
+    const name = barcodeFilename({
+      format: "code128",
+      value: "///",
+      ext: "svg",
+    });
     expect(name.startsWith("quickkit-barcode-code128-")).toBe(true);
     expect(name).not.toContain("///");
   });
@@ -97,7 +107,7 @@ describe("single-file exports", () => {
   it("builds a safe SVG with the value in its accessible title", () => {
     const svg = svgFor(spec, { moduleWidth: 2.4 }, "Order card");
     expect(isSvgSafe(svg)).toBe(true);
-    expect(svg).toContain("<title id=\"bc-title\">Order card</title>");
+    expect(svg).toContain('<title id="bc-title">Order card</title>');
     expect(svg).toContain("<rect");
   });
 
@@ -113,15 +123,27 @@ describe("single-file exports", () => {
     const triple = exportLayout(spec, { moduleWidth: 2.4 }, 3);
     expect(triple.bars).toEqual(preview.bars);
     expect(triple.scaled.scale).toBe(3);
-    expect(Math.abs(triple.scaled.width - preview.width * 3)).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(triple.scaled.width - preview.width * 3),
+    ).toBeLessThanOrEqual(1);
   });
 });
 
 describe("bulk CSV report", () => {
   const rows: BulkReportRow[] = [
     { line: 2, status: "ok", value: "5901234123457", message: "Ready" },
-    { line: 3, status: "duplicate", value: "5901234123457", message: "Same as row 2" },
-    { line: 4, status: "invalid", value: "=HYPERLINK(\"http://x\")", message: "EAN-13 needs 12 digits" },
+    {
+      line: 3,
+      status: "duplicate",
+      value: "5901234123457",
+      message: "Same as row 2",
+    },
+    {
+      line: 4,
+      status: "invalid",
+      value: '=HYPERLINK("http://x")',
+      message: "EAN-13 needs 12 digits",
+    },
   ];
 
   it("writes a header and one line per row", () => {
@@ -237,7 +259,10 @@ describe("bulk row building", () => {
 
   it("applies the format's own rules per row", () => {
     const ean = parseBulkText(csv("value", "590123412345", "5901234123458"));
-    const rows = buildBulkRows(ean, { format: "ean13", columns: { data: 0, title: -1 } });
+    const rows = buildBulkRows(ean, {
+      format: "ean13",
+      columns: { data: 0, title: -1 },
+    });
     expect(rows[0].status).toBe("ok");
     expect(rows[1].status).toBe("invalid");
     expect(rows[1].message).toContain("should be 7");
@@ -251,15 +276,21 @@ describe("bulk row building", () => {
 
   it("trims titles and caps them so a spreadsheet cannot break the layout", () => {
     const long = "x".repeat(200);
-    const rows = buildBulkRows(parseBulkText(csv("data,label", `590123412345,${long}`)), {
-      format: "ean13",
-      columns: { data: 0, title: 1 },
-    });
+    const rows = buildBulkRows(
+      parseBulkText(csv("data,label", `590123412345,${long}`)),
+      {
+        format: "ean13",
+        columns: { data: 0, title: 1 },
+      },
+    );
     expect(rows[0].title).toHaveLength(80);
   });
 
   it("caps the work at the documented row limit", () => {
-    const body = Array.from({ length: 40 }, (_, index) => `5901234${String(index).padStart(5, "0")}`);
+    const body = Array.from(
+      { length: 40 },
+      (_, index) => `5901234${String(index).padStart(5, "0")}`,
+    );
     const rows = buildBulkRows(parseBulkText(csv("data", ...body)), {
       format: "ean13",
       columns: { data: 0, title: -1 },
@@ -388,9 +419,16 @@ describe("PDF sheets", () => {
   });
 
   it("measures the physical symbol inside the label box", () => {
-    const metrics = labelMetrics({ spec: specFor("ean13", "5901234123457") }, options);
-    expect(metrics.widthMm).toBeLessThanOrEqual(DEFAULT_LABEL_SIZE.widthMm + 0.001);
-    expect(metrics.heightMm).toBeLessThanOrEqual(DEFAULT_LABEL_SIZE.heightMm + 0.001);
+    const metrics = labelMetrics(
+      { spec: specFor("ean13", "5901234123457") },
+      options,
+    );
+    expect(metrics.widthMm).toBeLessThanOrEqual(
+      DEFAULT_LABEL_SIZE.widthMm + 0.001,
+    );
+    expect(metrics.heightMm).toBeLessThanOrEqual(
+      DEFAULT_LABEL_SIZE.heightMm + 0.001,
+    );
     expect(metrics.moduleMm).toBeGreaterThan(0.1);
     expect(metrics.scale).toBeGreaterThan(0);
   });
@@ -403,13 +441,24 @@ describe("PDF sheets", () => {
     const bytes = await createBarcodePdf(items, options);
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBe(planSheet(items.length, options).pages);
-    expect(doc.getPage(0).getWidth()).toBeCloseTo((BARCODE_PAPERS.a4.widthMm / 25.4) * 72, 1);
-    expect(doc.getPage(0).getHeight()).toBeCloseTo((BARCODE_PAPERS.a4.heightMm / 25.4) * 72, 1);
+    expect(doc.getPage(0).getWidth()).toBeCloseTo(
+      (BARCODE_PAPERS.a4.widthMm / 25.4) * 72,
+      1,
+    );
+    expect(doc.getPage(0).getHeight()).toBeCloseTo(
+      (BARCODE_PAPERS.a4.heightMm / 25.4) * 72,
+      1,
+    );
   });
 
   it("uses US Letter points and one page per label for a fitted page", async () => {
-    const items = [0, 1, 2].map((index) => ({ spec: specFor("code128", `ITEM-${index}`) }));
-    const letter = await createBarcodePdf(items, { ...options, paper: "letter" });
+    const items = [0, 1, 2].map((index) => ({
+      spec: specFor("code128", `ITEM-${index}`),
+    }));
+    const letter = await createBarcodePdf(items, {
+      ...options,
+      paper: "letter",
+    });
     const letterDoc = await PDFDocument.load(letter);
     expect(letterDoc.getPageCount()).toBe(1);
     expect(letterDoc.getPage(0).getWidth()).toBeCloseTo(612, 1);
@@ -431,7 +480,10 @@ describe("PDF sheets", () => {
   });
 
   it("keeps the vector bars, not a flattened image", async () => {
-    const bytes = await createBarcodePdf([{ spec: specFor("code128", "VECTOR") }], options);
+    const bytes = await createBarcodePdf(
+      [{ spec: specFor("code128", "VECTOR") }],
+      options,
+    );
     const raw = new TextDecoder("latin1").decode(bytes);
     expect(raw).not.toContain("/Subtype /Image");
     expect(raw).toContain("/Type /Page");

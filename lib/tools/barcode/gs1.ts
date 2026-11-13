@@ -76,15 +76,27 @@ const AI_TABLE: Record<string, AiDefinition> = {
   "8003": { max: 30, title: "Global returnable asset identifier" },
   "8004": { max: 30, title: "Global individual asset identifier" },
   "8005": { fixed: 6, numeric: true, title: "Price per unit of measure" },
-  "8006": { fixed: 18, numeric: true, title: "Identification of an individual trade item piece" },
+  "8006": {
+    fixed: 18,
+    numeric: true,
+    title: "Identification of an individual trade item piece",
+  },
   "8007": { max: 34, title: "International Bank Account Number" },
   "8008": { max: 12, title: "Date and time of production" },
   "8010": { max: 30, title: "Component / part identifier" },
   "8011": { max: 12, title: "Component / part identifier serial" },
   "8012": { max: 20, title: "Software version" },
   "8013": { max: 30, title: "Global model number" },
-  "8017": { fixed: 18, numeric: true, title: "Global service relation number (provider)" },
-  "8018": { fixed: 18, numeric: true, title: "Global service relation number (recipient)" },
+  "8017": {
+    fixed: 18,
+    numeric: true,
+    title: "Global service relation number (provider)",
+  },
+  "8018": {
+    fixed: 18,
+    numeric: true,
+    title: "Global service relation number (recipient)",
+  },
   "8019": { max: 10, title: "Service relation instance number" },
   "8020": { max: 25, title: "Payment slip reference" },
   "90": { max: 30, title: "Information mutually agreed" },
@@ -245,7 +257,11 @@ const RANGES: { prefix: string; digits: string[]; def: AiDefinition }[] = [
   {
     prefix: "395",
     digits: "0123456789".split(""),
-    def: { fixed: 6, numeric: true, title: "Amount payable per unit (local currency)" },
+    def: {
+      fixed: 6,
+      numeric: true,
+      title: "Amount payable per unit (local currency)",
+    },
   },
   {
     prefix: "703",
@@ -310,7 +326,11 @@ export type Gs1Result =
       /** Element string: AIs + data, GS (0x1D) between variable fields. */
       encoded: string;
     }
-  | { ok: false; message: string; code: "gs1-ai" | "gs1-data" | "gs1-check" | "gs1-syntax" };
+  | {
+      ok: false;
+      message: string;
+      code: "gs1-ai" | "gs1-data" | "gs1-check" | "gs1-syntax";
+    };
 
 /** Look up an AI, longest match first (4 → 3 → 2 digits). */
 export function findAi(prefix: string) {
@@ -337,7 +357,11 @@ function dateOk(value: string) {
   return month >= 1 && month <= 12 && day >= 0 && day <= 31;
 }
 
-function validateField(ai: string, value: string, def: AiDefinition): string | null {
+function validateField(
+  ai: string,
+  value: string,
+  def: AiDefinition,
+): string | null {
   const label = `AI (${ai}) ${def.title}`;
   if (!value) return `${label} needs data.`;
   if (value.includes("(") || value.includes(")"))
@@ -363,7 +387,8 @@ function validateField(ai: string, value: string, def: AiDefinition): string | n
  */
 export function parseGs1(input: string): Gs1Result {
   const source = input.trim();
-  if (!source) return { ok: false, code: "gs1-syntax", message: "Enter GS1 data first." };
+  if (!source)
+    return { ok: false, code: "gs1-syntax", message: "Enter GS1 data first." };
 
   const fields: Gs1Field[] = [];
   const push = (ai: string, def: AiDefinition, value: string) => {
@@ -377,7 +402,8 @@ export function parseGs1(input: string): Gs1Result {
       return {
         ok: false,
         code: "gs1-syntax",
-        message: "No application identifier found. Write each AI in brackets, e.g. (01)09501101530003.",
+        message:
+          "No application identifier found. Write each AI in brackets, e.g. (01)09501101530003.",
       };
     for (let index = 0; index < matches.length; index += 1) {
       const match = matches[index];
@@ -390,10 +416,18 @@ export function parseGs1(input: string): Gs1Result {
           message: `(${ai}) is not an application identifier this studio recognises. Check the GS1 General Specifications for the right AI.`,
         };
       const start = (match.index ?? 0) + match[0].length;
-      const end = index + 1 < matches.length ? matches[index + 1].index ?? source.length : source.length;
+      const end =
+        index + 1 < matches.length
+          ? (matches[index + 1].index ?? source.length)
+          : source.length;
       const value = source.slice(start, end).trim();
       const problem = validateField(ai, value, def);
-      if (problem) return { ok: false, code: def.check ? "gs1-check" : "gs1-data", message: problem };
+      if (problem)
+        return {
+          ok: false,
+          code: def.check ? "gs1-check" : "gs1-data",
+          message: problem,
+        };
       push(ai, def, value);
     }
   } else {
@@ -402,7 +436,8 @@ export function parseGs1(input: string): Gs1Result {
       return {
         ok: false,
         code: "gs1-syntax",
-        message: "Raw GS1 data must be digits (with GS separators between variable-length fields) — or use the bracketed (01)… form.",
+        message:
+          "Raw GS1 data must be digits (with GS separators between variable-length fields) — or use the bracketed (01)… form.",
       };
     let rest = clean;
     while (rest) {
@@ -434,11 +469,20 @@ export function parseGs1(input: string): Gs1Result {
         }
       }
       const problem = validateField(found.ai, value, def);
-      if (problem) return { ok: false, code: def.check ? "gs1-check" : "gs1-data", message: problem };
+      if (problem)
+        return {
+          ok: false,
+          code: def.check ? "gs1-check" : "gs1-data",
+          message: problem,
+        };
       push(found.ai, def, value);
     }
     if (!fields.length)
-      return { ok: false, code: "gs1-syntax", message: "No application identifier found in that data." };
+      return {
+        ok: false,
+        code: "gs1-syntax",
+        message: "No application identifier found in that data.",
+      };
   }
 
   const encoded = fields

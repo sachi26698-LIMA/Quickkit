@@ -1009,7 +1009,8 @@ export const TOOL_SEO_CONTENT: Record<string, ToolSeoEntry> = {
     stepsHeading: "How to create a barcode that scans the first time",
     faqsHeading: "Barcode questions, answered",
     relatedHeading: "More ways to create and read codes",
-    referenceHeading: "Barcode Studio: symbologies, check digits, and print limits",
+    referenceHeading:
+      "Barcode Studio: symbologies, check digits, and print limits",
     referenceIntro:
       "Every symbol is built from the published module tables of its symbology, then validated against that symbology's own rules. Nothing is drawn until the data passes, and a check digit that is missing is calculated while one that is wrong is refused — the difference matters when a label has already been printed a thousand times.",
     specsTitle: "Barcode Studio specifications",

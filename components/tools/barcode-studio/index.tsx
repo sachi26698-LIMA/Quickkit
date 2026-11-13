@@ -129,7 +129,8 @@ function StudioWorkspace() {
               className={active ? "qr-tab active" : "qr-tab"}
               onClick={() => setTab(entry.id)}
               onKeyDown={(event) => {
-                if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+                if (event.key !== "ArrowRight" && event.key !== "ArrowLeft")
+                  return;
                 event.preventDefault();
                 const delta = event.key === "ArrowRight" ? 1 : -1;
                 const next = (index + delta + TABS.length) % TABS.length;
@@ -140,7 +141,11 @@ function StudioWorkspace() {
               <Icon size={15} aria-hidden="true" />
               <span>{entry.label}</span>
               {entry.id === "generate" && studio.verification?.ok ? (
-                <span className="qr-tab-dot" title="Verified by decode" aria-hidden="true" />
+                <span
+                  className="qr-tab-dot"
+                  title="Verified by decode"
+                  aria-hidden="true"
+                />
               ) : null}
             </button>
           );
@@ -206,10 +211,10 @@ function StudioWorkspace() {
       </div>
 
       <p className="qr-privacy-foot">
-        <ShieldCheck size={15} aria-hidden="true" /> Encoding, layout, rasterising,
-        PDF building, ZIP packing and decoding all happen in this tab. No barcode,
-        CSV row or camera frame is uploaded, and nothing is written to storage
-        except your own settings.
+        <ShieldCheck size={15} aria-hidden="true" /> Encoding, layout,
+        rasterising, PDF building, ZIP packing and decoding all happen in this
+        tab. No barcode, CSV row or camera frame is uploaded, and nothing is
+        written to storage except your own settings.
       </p>
     </fieldset>
   );

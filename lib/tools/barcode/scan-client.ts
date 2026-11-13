@@ -33,18 +33,27 @@ function getWorker(): Worker | null {
   if (workerBroken || typeof Worker === "undefined") return null;
   if (worker) return worker;
   try {
-    worker = new Worker(new URL("../../workers/barcode-scan.worker.ts", import.meta.url), {
-      type: "module",
-    });
-    worker.addEventListener("message", (event: MessageEvent<BarcodeScanWorkerResponse>) => {
-      const response = event.data;
-      const entry = pending.get(response.id);
-      if (!entry) return;
-      pending.delete(response.id);
-      if (response.ok)
-        entry.resolve({ barcodes: response.barcodes, attempts: response.attempts });
-      else entry.reject(new Error(response.error));
-    });
+    worker = new Worker(
+      new URL("../../workers/barcode-scan.worker.ts", import.meta.url),
+      {
+        type: "module",
+      },
+    );
+    worker.addEventListener(
+      "message",
+      (event: MessageEvent<BarcodeScanWorkerResponse>) => {
+        const response = event.data;
+        const entry = pending.get(response.id);
+        if (!entry) return;
+        pending.delete(response.id);
+        if (response.ok)
+          entry.resolve({
+            barcodes: response.barcodes,
+            attempts: response.attempts,
+          });
+        else entry.reject(new Error(response.error));
+      },
+    );
     worker.addEventListener("error", () => {
       // A worker that fails to start must not take the tool down: mark it
       // broken, fall back for everything in flight, and decode inline from now
@@ -55,7 +64,9 @@ function getWorker(): Worker | null {
         try {
           entry.resolve(entry.fallback());
         } catch (error) {
-          entry.reject(error instanceof Error ? error : new Error("Decoding failed."));
+          entry.reject(
+            error instanceof Error ? error : new Error("Decoding failed."),
+          );
         }
       }
       worker?.terminate();

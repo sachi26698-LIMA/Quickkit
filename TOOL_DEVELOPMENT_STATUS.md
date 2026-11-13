@@ -10,6 +10,30 @@
 
 **Previous active-tool record (historical):** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
 
+## Barcode Studio (phase 15) — implemented, awaiting owner approval
+
+**Status:** implemented in the repository on `arena/6102e674-quickkit`;
+**not merged, not deployed, not indexed and not owner-approved.**
+
+A new, separate tool at **`/tools/barcode-generator`** in the **QR & Barcode**
+category. The QR generator and QR scanner are unchanged and still listed
+separately; the category now describes three tools instead of two.
+
+| Area          | Delivered                                                                                                                                                                                                                                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formats       | 11: Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, UPC-E (NS0/NS1), ITF-14, Codabar, MSI (mod-10/11), Pharmacode. Encoded from published module tables; character-set, length, range and check-digit rules enforced before anything is drawn.                                                                                                                     |
+| Check digits  | EAN-13/EAN-8/UPC-A/UPC-E/ITF-14 calculate a missing digit and verify a supplied one; a wrong digit is refused with the right one named. GS1-128 validates every AI plus the GTIN/SSCC check. Code 39 mod-43 and MSI mod-10/11 optional. Nothing silently corrects user data.                                                                                         |
+| Editor        | Live SVG preview, bar width 0.75–8 px/module, height, export scale 1–6×, colours + hex, transparency, contrast and inversion warnings, font family/size, HRI on/off, alignment, title/description, quiet zone (symbology minimum enforced), margin, reset, per-format options, guard-bar extension.                                                                  |
+| Scanner       | Camera (permission only after a click, rear preferred, camera switching, torch where reported, start/stop, teardown on hide) and image upload (drag-drop, 25 MB / 40 MP, four rotations + overlapping tiles for multiple symbols). Decoded in a worker with an inline fallback; duplicates suppressed; copy/clear/CSV. No upload, no storage.                        |
+| Bulk          | CSV ≤ 1,000 rows / 5 MB / 30 columns; column + format selection; millimetre label sizes; batched thumbnails; duplicate detection; an explicit status for **every** row (ready / duplicate / skipped / invalid with the reason); SVG/PNG ZIP, print-ready vector PDF sheets, report CSV; per-row downloads. Never freezes the tab, never discards a bad row silently. |
+| Exports       | PNG (1–6× with DPI), SVG (vector), PDF (A4/Letter/`fit`, vector bars, real mm dimensions), ZIP, report CSV, clipboard SVG, and print through a hidden same-origin iframe. All built from the same layout the preview draws.                                                                                                                                          |
+| Privacy       | No network request from any studio file, no barcode data stored (settings only, sanitised), SVG escaping + closed-vocabulary safety check, CSV formula-injection neutralisation, no database/Supabase/account/secret.                                                                                                                                                |
+| Accessibility | Accessible tab set with arrow keys, labelled radios/ranges/selects, `aria-invalid` + help wiring, `role="alert"` errors, `role="status"` flash/states, `aria-live` results, `sr-only` dismiss, alt text naming symbology + payload, reduced-motion and full-width mobile controls.                                                                                   |
+| Evidence      | `tsc` 0, ESLint clean, Prettier clean, **Vitest 109 files / 1,861 tests passed** (122 new barcode tests), production build clean (77 static pages, route static; scanner and bulk code-split into separate chunks), `npm audit` 0 vulnerabilities, SSR smoke HTTP 200. Browser E2E blocked by the missing Playwright browser download; spec committed.               |
+| Limitations   | MSI and Pharmacode are generation-only (no bundled reader). UPC-E uses a hand-written reader because ZXing 0.23.0's UPC-E path is broken and its readers are unexported. Code 128 is ASCII-only. Print goes through the browser print dialog. Real-browser/axe/CWV checks remain unexecuted here.                                                                    |
+
+Full evidence and the 14-section review: `BARCODE_STUDIO_FINAL_REPORT.md`.
+
 ## QR Code Scanner (phase 14) — implemented, awaiting owner approval
 
 **Status:** `in-development` → implemented in the repository on the
@@ -277,7 +301,7 @@ Firefox/WebKit execution is not claimed for that sandbox run; the Playwright con
 |   7 | Event QR Generator    | `event-qr-generator`    | `event-qr-generator`    | `planned`                                                                                                       |
 |   8 | Batch QR Generator    | `batch-qr-generator`    | `batch-qr-generator`    | `planned`                                                                                                       |
 |   9 | QR Code Scanner       | `qr-code-scanner`       | `qr-code-scanner`       | `in-development` — implemented in phase 14, awaiting owner approval (see the section near the top of this file) |
-|  10 | Barcode Generator     | `barcode-generator`     | `barcode-generator`     | `planned`                                                                                                       |
+|  10 | Barcode Generator     | `barcode-generator`     | `barcode-generator`     | `in-development` — implemented in phase 15, awaiting owner approval (see the section near the top of this file) |
 
 ## 11. Proposed Phase 11 — Security & Privacy Tools
 

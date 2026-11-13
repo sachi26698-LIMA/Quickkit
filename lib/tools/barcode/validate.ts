@@ -49,7 +49,11 @@ function fail(
   return { ok: false, problems: [{ code, message, example }] };
 }
 
-function digitsOnly(value: string, label: string, example: string): NormalizeResult | null {
+function digitsOnly(
+  value: string,
+  label: string,
+  example: string,
+): NormalizeResult | null {
   if (!/^\d+$/.test(value))
     return fail(
       "charset",
@@ -71,12 +75,18 @@ function fixedNumeric(options: {
 }): NormalizeResult {
   const { raw, label, dataLength, example } = options;
   const value = raw.replace(/\s+/g, "");
-  if (!value) return fail("empty", `Enter ${dataLength} digits for ${label}.`, example);
+  if (!value)
+    return fail("empty", `Enter ${dataLength} digits for ${label}.`, example);
   const invalid = digitsOnly(value, label, example);
   if (invalid) return invalid;
   if (value.length === dataLength) {
     const check = gtinCheckDigit(value);
-    if (check === null) return fail("checksum", `${label} check digit could not be computed.`, example);
+    if (check === null)
+      return fail(
+        "checksum",
+        `${label} check digit could not be computed.`,
+        example,
+      );
     return {
       ok: true,
       normalized: {
@@ -96,7 +106,12 @@ function fixedNumeric(options: {
       );
     return {
       ok: true,
-      normalized: { value, display: value, notes: ["Check digit verified."], warnings: [] },
+      normalized: {
+        value,
+        display: value,
+        notes: ["Check digit verified."],
+        warnings: [],
+      },
     };
   }
   return fail(
@@ -111,25 +126,49 @@ function numberSystemOf(options: BarcodeEncodeOptions): BarcodeNumberSystem {
 }
 
 function normalizeEan13(raw: string): NormalizeResult {
-  return fixedNumeric({ raw, label: "EAN-13", dataLength: 12, example: "590123412345" });
+  return fixedNumeric({
+    raw,
+    label: "EAN-13",
+    dataLength: 12,
+    example: "590123412345",
+  });
 }
 
 function normalizeEan8(raw: string): NormalizeResult {
-  return fixedNumeric({ raw, label: "EAN-8", dataLength: 7, example: "9638507" });
+  return fixedNumeric({
+    raw,
+    label: "EAN-8",
+    dataLength: 7,
+    example: "9638507",
+  });
 }
 
 function normalizeUpca(raw: string): NormalizeResult {
-  return fixedNumeric({ raw, label: "UPC-A", dataLength: 11, example: "03600029145" });
+  return fixedNumeric({
+    raw,
+    label: "UPC-A",
+    dataLength: 11,
+    example: "03600029145",
+  });
 }
 
 function normalizeItf14(raw: string): NormalizeResult {
-  return fixedNumeric({ raw, label: "ITF-14", dataLength: 13, example: "1234567890123" });
+  return fixedNumeric({
+    raw,
+    label: "ITF-14",
+    dataLength: 13,
+    example: "1234567890123",
+  });
 }
 
-function normalizeUpce(raw: string, options: BarcodeEncodeOptions): NormalizeResult {
+function normalizeUpce(
+  raw: string,
+  options: BarcodeEncodeOptions,
+): NormalizeResult {
   const value = raw.replace(/\s+/g, "");
   const example = "01234565";
-  if (!value) return fail("empty", "Enter the 6 digits of a UPC-E code.", example);
+  if (!value)
+    return fail("empty", "Enter the 6 digits of a UPC-E code.", example);
   const invalid = digitsOnly(value, "UPC-E", example);
   if (invalid) return invalid;
 
@@ -150,7 +189,11 @@ function normalizeUpce(raw: string, options: BarcodeEncodeOptions): NormalizeRes
     middle = value.slice(1);
   } else if (value.length === 8) {
     if (value[0] !== "0" && value[0] !== "1")
-      return fail("charset", "The first of the 8 digits must be the number system (0 or 1).", example);
+      return fail(
+        "charset",
+        "The first of the 8 digits must be the number system (0 or 1).",
+        example,
+      );
     numberSystem = value[0] === "1" ? 1 : 0;
     middle = value.slice(1, 7);
     check = value[7];
@@ -163,7 +206,12 @@ function normalizeUpce(raw: string, options: BarcodeEncodeOptions): NormalizeRes
   }
 
   const upca = upceToUpca(middle, numberSystem);
-  if (!upca) return fail("checksum", "UPC-E data could not be expanded to UPC-A.", example);
+  if (!upca)
+    return fail(
+      "checksum",
+      "UPC-E data could not be expanded to UPC-A.",
+      example,
+    );
   const computed = upca.slice(-1);
   if (check !== null && check !== computed)
     return fail(
@@ -179,7 +227,9 @@ function normalizeUpce(raw: string, options: BarcodeEncodeOptions): NormalizeRes
       display: full,
       notes: [
         `Expands to UPC-A ${upca}.`,
-        check === null ? `Check digit ${computed} was calculated for you.` : "Check digit verified.",
+        check === null
+          ? `Check digit ${computed} was calculated for you.`
+          : "Check digit verified.",
       ],
       warnings: [],
     },
@@ -188,7 +238,8 @@ function normalizeUpce(raw: string, options: BarcodeEncodeOptions): NormalizeRes
 
 function normalizeCode128(raw: string): NormalizeResult {
   const value = raw;
-  if (!value.trim()) return fail("empty", "Enter the data to encode.", "QUICKKIT-2026");
+  if (!value.trim())
+    return fail("empty", "Enter the data to encode.", "QUICKKIT-2026");
   // Code 128 set B spans printable ASCII; set A adds control characters that no
   // keyboard can type and no label should carry. Anything outside is rejected.
   const bad = [...value].find((char) => {
@@ -202,16 +253,24 @@ function normalizeCode128(raw: string): NormalizeResult {
       "QUICKKIT-2026",
     );
   if (value.length > 80)
-    return fail("length", `Code 128 data is capped at 80 characters in this studio (${value.length} entered).`, "QUICKKIT-2026");
+    return fail(
+      "length",
+      `Code 128 data is capped at 80 characters in this studio (${value.length} entered).`,
+      "QUICKKIT-2026",
+    );
   return {
     ok: true,
     normalized: { value, display: value, notes: [], warnings: [] },
   };
 }
 
-function normalizeCode39(raw: string, options: BarcodeEncodeOptions): NormalizeResult {
+function normalizeCode39(
+  raw: string,
+  options: BarcodeEncodeOptions,
+): NormalizeResult {
   const trimmed = raw;
-  if (!trimmed.trim()) return fail("empty", "Enter the data to encode.", CODE39_HINT);
+  if (!trimmed.trim())
+    return fail("empty", "Enter the data to encode.", CODE39_HINT);
   const upper = trimmed.toUpperCase();
   const lower = trimmed !== upper;
   if (!CODE39_CHARSET.test(upper))
@@ -221,13 +280,25 @@ function normalizeCode39(raw: string, options: BarcodeEncodeOptions): NormalizeR
       CODE39_HINT,
     );
   if (upper.length > 48)
-    return fail("length", `Code 39 is capped at 48 characters here (${upper.length} entered).`, CODE39_HINT);
+    return fail(
+      "length",
+      `Code 39 is capped at 48 characters here (${upper.length} entered).`,
+      CODE39_HINT,
+    );
   let value = upper;
   const notes: string[] = [];
-  if (lower) notes.push("Lowercase letters were converted to uppercase — Code 39 has no lowercase set.");
+  if (lower)
+    notes.push(
+      "Lowercase letters were converted to uppercase — Code 39 has no lowercase set.",
+    );
   if (options.checksum === "mod43") {
     const check = code39CheckChar(value);
-    if (!check) return fail("checksum", "The mod-43 check character could not be computed for that data.", CODE39_HINT);
+    if (!check)
+      return fail(
+        "checksum",
+        "The mod-43 check character could not be computed for that data.",
+        CODE39_HINT,
+      );
     value += check;
     notes.push(`Mod-43 check character "${check}" was appended.`);
   }
@@ -237,12 +308,25 @@ function normalizeCode39(raw: string, options: BarcodeEncodeOptions): NormalizeR
   };
 }
 
-function normalizeCodabar(raw: string, options: BarcodeEncodeOptions): NormalizeResult {
+function normalizeCodabar(
+  raw: string,
+  options: BarcodeEncodeOptions,
+): NormalizeResult {
   const start = options.codabarStart ?? "A";
   const upper = raw.toUpperCase().trim();
-  if (!upper) return fail("empty", "Enter digits (and optionally - $ : / . +) for Codabar.", "1234567890");
+  if (!upper)
+    return fail(
+      "empty",
+      "Enter digits (and optionally - $ : / . +) for Codabar.",
+      "1234567890",
+    );
   const stripped = upper.replace(/^[A-D]/, "").replace(/[A-D]$/, "");
-  if (!stripped) return fail("empty", "Codabar needs at least one data character between the start and stop symbols.", "1234567890");
+  if (!stripped)
+    return fail(
+      "empty",
+      "Codabar needs at least one data character between the start and stop symbols.",
+      "1234567890",
+    );
   if (!/^[0-9\-$:/.+]+$/.test(stripped))
     return fail(
       "charset",
@@ -250,7 +334,11 @@ function normalizeCodabar(raw: string, options: BarcodeEncodeOptions): Normalize
       "1234567890",
     );
   if (stripped.length > 40)
-    return fail("length", `Codabar is capped at 40 data characters here (${stripped.length} entered).`, "1234567890");
+    return fail(
+      "length",
+      `Codabar is capped at 40 data characters here (${stripped.length} entered).`,
+      "1234567890",
+    );
   return {
     ok: true,
     normalized: {
@@ -262,13 +350,20 @@ function normalizeCodabar(raw: string, options: BarcodeEncodeOptions): Normalize
   };
 }
 
-function normalizeMsi(raw: string, options: BarcodeEncodeOptions): NormalizeResult {
+function normalizeMsi(
+  raw: string,
+  options: BarcodeEncodeOptions,
+): NormalizeResult {
   const value = raw.replace(/\s+/g, "");
   if (!value) return fail("empty", "Enter digits for MSI.", "1234567890");
   const invalid = digitsOnly(value, "MSI", "1234567890");
   if (invalid) return invalid;
   if (value.length > 24)
-    return fail("length", `MSI is capped at 24 digits here (${value.length} entered).`, "1234567890");
+    return fail(
+      "length",
+      `MSI is capped at 24 digits here (${value.length} entered).`,
+      "1234567890",
+    );
   const checksum = options.checksum ?? "none";
   if (checksum === "mod10" || checksum === "mod11") {
     const check = checksum === "mod10" ? msiMod10(value) : msiMod11(value);
@@ -285,21 +380,32 @@ function normalizeMsi(raw: string, options: BarcodeEncodeOptions): NormalizeResu
       normalized: {
         value: `${value}${check}`,
         display: `${value}${check}`,
-        notes: [`MSI ${checksum === "mod10" ? "mod-10" : "mod-11"} check digit ${check} was appended.`],
+        notes: [
+          `MSI ${checksum === "mod10" ? "mod-10" : "mod-11"} check digit ${check} was appended.`,
+        ],
         warnings: [],
       },
     };
   }
-  return { ok: true, normalized: { value, display: value, notes: [], warnings: [] } };
+  return {
+    ok: true,
+    normalized: { value, display: value, notes: [], warnings: [] },
+  };
 }
 
 function normalizePharmacode(raw: string): NormalizeResult {
   const value = raw.trim();
-  if (!value) return fail("empty", "Enter a number between 3 and 131070.", "1234");
-  if (!/^\d+$/.test(value)) return fail("charset", "Pharmacode is numeric only.", "1234");
+  if (!value)
+    return fail("empty", "Enter a number between 3 and 131070.", "1234");
+  if (!/^\d+$/.test(value))
+    return fail("charset", "Pharmacode is numeric only.", "1234");
   const number = Number(value);
   if (!Number.isFinite(number) || number < 3 || number > 131070)
-    return fail("range", "Pharmacode covers 3 to 131070. Below 3 there is nothing to encode; above it, a scanner cannot resolve the bars.", "1234");
+    return fail(
+      "range",
+      "Pharmacode covers 3 to 131070. Below 3 there is nothing to encode; above it, a scanner cannot resolve the bars.",
+      "1234",
+    );
   return {
     ok: true,
     normalized: {
@@ -314,7 +420,11 @@ function normalizePharmacode(raw: string): NormalizeResult {
 function normalizeGs1(raw: string): NormalizeResult {
   // An empty field should ask for data, not explain the GS1 syntax.
   if (!raw.trim())
-    return fail("empty", "Enter the GS1 element string to encode.", "(01)09501101530003(17)251231(10)LOT-42");
+    return fail(
+      "empty",
+      "Enter the GS1 element string to encode.",
+      "(01)09501101530003(17)251231(10)LOT-42",
+    );
   const parsed = parseGs1(raw);
   if (!parsed.ok)
     return fail(

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildBarcode } from "@/lib/tools/barcode/encode";
-import { code128Values, code39CharModules, CODE128_START_C, CODE128_STOP } from "@/lib/tools/barcode/encode";
+import {
+  code128Values,
+  code39CharModules,
+  CODE128_START_C,
+  CODE128_STOP,
+} from "@/lib/tools/barcode/encode";
 import { normalizeBarcode } from "@/lib/tools/barcode/validate";
 import {
   code39CheckChar,
@@ -19,8 +24,17 @@ import {
   EAN_SIDE_GUARD,
   UPCE_PARITY,
 } from "@/lib/tools/barcode/ean-tables";
-import { DEFAULT_RENDER_OPTIONS, buildLayout, layoutMillimetres } from "@/lib/tools/barcode/layout";
-import { escapeXml, isSvgSafe, layoutToSvg, svgDataUri } from "@/lib/tools/barcode/svg";
+import {
+  DEFAULT_RENDER_OPTIONS,
+  buildLayout,
+  layoutMillimetres,
+} from "@/lib/tools/barcode/layout";
+import {
+  escapeXml,
+  isSvgSafe,
+  layoutToSvg,
+  svgDataUri,
+} from "@/lib/tools/barcode/svg";
 import { verifyBarcode } from "@/lib/tools/barcode/verify";
 import { READABLE_FORMATS } from "@/lib/tools/barcode/decode";
 import {
@@ -42,13 +56,21 @@ import type { BarcodeFormatId, BarcodeSpec } from "@/lib/tools/barcode/types";
 function binaryOf(spec: BarcodeSpec) {
   const bits = new Array<string>(spec.modules).fill("0");
   for (const bar of spec.bars)
-    for (let offset = 0; offset < bar.width; offset += 1) bits[bar.x + offset] = "1";
+    for (let offset = 0; offset < bar.width; offset += 1)
+      bits[bar.x + offset] = "1";
   return bits.join("");
 }
 
-function specFor(format: BarcodeFormatId, data: string, options = {} as never): BarcodeSpec {
+function specFor(
+  format: BarcodeFormatId,
+  data: string,
+  options = {} as never,
+): BarcodeSpec {
   const result = buildBarcode(format, data, options);
-  if (!result.ok) throw new Error(`${format} rejected ${data}: ${JSON.stringify(result.problems)}`);
+  if (!result.ok)
+    throw new Error(
+      `${format} rejected ${data}: ${JSON.stringify(result.problems)}`,
+    );
   return result.spec;
 }
 
@@ -60,7 +82,9 @@ function code39BinaryOf(char: string) {
 
 function problemCodes(format: BarcodeFormatId, data: string) {
   const result = normalizeBarcode(format, data);
-  return result.ok ? "accepted" : result.problems.map((problem) => problem.code);
+  return result.ok
+    ? "accepted"
+    : result.problems.map((problem) => problem.code);
 }
 
 describe("EAN/UPC module tables", () => {
@@ -76,7 +100,9 @@ describe("EAN/UPC module tables", () => {
       expect(EAN_L[digit].startsWith("0")).toBe(true);
       expect(EAN_G[digit].startsWith("0")).toBe(true);
       expect(EAN_R[digit].startsWith("1")).toBe(true);
-      const complement = EAN_L[digit].replace(/[01]/g, (bit) => (bit === "1" ? "0" : "1"));
+      const complement = EAN_L[digit].replace(/[01]/g, (bit) =>
+        bit === "1" ? "0" : "1",
+      );
       expect(complement).toBe(EAN_R[digit]);
       expect(EAN_R[digit].split("").reverse().join("")).toBe(EAN_G[digit]);
     }
@@ -86,7 +112,9 @@ describe("EAN/UPC module tables", () => {
     expect(EAN13_PARITY).toHaveLength(10);
     for (const [index, row] of EAN13_PARITY.entries()) {
       expect(row).toMatch(/^[LG]{6}$/);
-      expect(row.split("").filter((digit) => digit === "G")).toHaveLength(index === 0 ? 0 : 3);
+      expect(row.split("").filter((digit) => digit === "G")).toHaveLength(
+        index === 0 ? 0 : 3,
+      );
     }
     expect(EAN13_PARITY[0]).toBe("LLLLLL");
     expect(EAN13_PARITY[5]).toBe("LGGLLG");
@@ -153,9 +181,14 @@ describe("EAN-13 encoding", () => {
     const parity = EAN13_PARITY[digits[0]];
     const left = digits
       .slice(1, 7)
-      .map((digit, index) => (parity[index] === "L" ? EAN_L[digit] : EAN_G[digit]))
+      .map((digit, index) =>
+        parity[index] === "L" ? EAN_L[digit] : EAN_G[digit],
+      )
       .join("");
-    const right = digits.slice(7).map((digit) => EAN_R[digit]).join("");
+    const right = digits
+      .slice(7)
+      .map((digit) => EAN_R[digit])
+      .join("");
     expect(spec.modules).toBe(95);
     expect(binaryOf(spec)).toBe(
       `${EAN_SIDE_GUARD}${left}${EAN_CENTRE_GUARD}${right}${EAN_SIDE_GUARD}`,
@@ -166,15 +199,16 @@ describe("EAN-13 encoding", () => {
     const spec = specFor("ean13", "590123412345");
     expect(spec.value).toBe("5901234123457");
     expect(spec.notes.join(" ")).toContain("7");
-    expect(specFor("ean13", "5901234123457").notes.join(" ")).not.toContain("calculated");
+    expect(specFor("ean13", "5901234123457").notes.join(" ")).not.toContain(
+      "calculated",
+    );
   });
 
   it("refuses a wrong check digit instead of overwriting it", () => {
     expect(problemCodes("ean13", "5901234123458")).toEqual(["checksum"]);
     const result = normalizeBarcode("ean13", "5901234123458");
     expect(result.ok).toBe(false);
-    if (!result.ok)
-      expect(result.problems[0].message).toContain("should be 7");
+    if (!result.ok) expect(result.problems[0].message).toContain("should be 7");
   });
 
   it("extends the guard bars into the text line", () => {
@@ -210,14 +244,27 @@ describe("UPC-E encoding", () => {
     const parity = UPCE_PARITY[5];
     const body = spec.value.slice(1, 7).split("").map(Number);
     const bits = body
-      .map((digit, index) => (parity[index] === "O" ? EAN_L[digit] : EAN_G[digit]))
+      .map((digit, index) =>
+        parity[index] === "O" ? EAN_L[digit] : EAN_G[digit],
+      )
       .join("");
     expect(binaryOf(spec)).toBe(`${EAN_SIDE_GUARD}${bits}010101`);
     expect(spec.modules).toBe(3 + 42 + 6);
   });
 
   it("derives the right check digit and parity for all ten check digits", () => {
-    const bodies = ["123456", "000123", "111111", "987650", "424242", "050505", "777777", "314159", "271828", "649201"];
+    const bodies = [
+      "123456",
+      "000123",
+      "111111",
+      "987650",
+      "424242",
+      "050505",
+      "777777",
+      "314159",
+      "271828",
+      "649201",
+    ];
     for (const [index, body] of bodies.entries()) {
       const spec = specFor("upce", body);
       const expanded = upceToUpca(body, 0);
@@ -253,7 +300,9 @@ describe("UPC-E encoding", () => {
       body
         .split("")
         .map(Number)
-        .map((digit, position) => (inverted[position] === "O" ? EAN_L[digit] : EAN_G[digit]))
+        .map((digit, position) =>
+          inverted[position] === "O" ? EAN_L[digit] : EAN_G[digit],
+        )
         .join(""),
     );
     expect(binaryOf(zero)).not.toBe(binaryOf(one));
@@ -281,7 +330,9 @@ describe("Code 39 encoding", () => {
     const spec = specFor("code39", "ABC-1234");
     expect(spec.value).toBe("ABC-1234");
     expect(spec.display).toBe("ABC-1234");
-    const withCheck = specFor("code39", "ABC-1234", { checksum: "mod43" } as never);
+    const withCheck = specFor("code39", "ABC-1234", {
+      checksum: "mod43",
+    } as never);
     expect(withCheck.value).toHaveLength("ABC-1234".length + 1);
     expect(withCheck.value.startsWith("ABC-1234")).toBe(true);
     expect(normalizeBarcode("code39", "abc")).toMatchObject({ ok: true });
@@ -338,7 +389,9 @@ describe("ITF-14, Codabar and MSI encoding", () => {
     expect(spec.value).toBe("A40156-2201A");
     expect(spec.display).toBe("40156-2201");
     expect(spec.modules).toBeGreaterThan(100);
-    const withB = specFor("codabar", "40156-2201", { codabarStart: "B" } as never);
+    const withB = specFor("codabar", "40156-2201", {
+      codabarStart: "B",
+    } as never);
     expect(withB.value.startsWith("B")).toBe(true);
     expect(withB.value.endsWith("B")).toBe(true);
   });
@@ -361,7 +414,9 @@ describe("Pharmacode encoding", () => {
     expect(problemCodes("pharmacode", "")).toEqual(["empty"]);
     expect(problemCodes("pharmacode", "abc")).toEqual(["charset"]);
     expect(normalizeBarcode("pharmacode", "3")).toMatchObject({ ok: true });
-    expect(normalizeBarcode("pharmacode", "131070")).toMatchObject({ ok: true });
+    expect(normalizeBarcode("pharmacode", "131070")).toMatchObject({
+      ok: true,
+    });
   });
 
   it("round-trips every value in 3…400 and both range ends", () => {
@@ -398,7 +453,9 @@ describe("GS1-128", () => {
 
   it("refuses an unknown AI, a broken GTIN check digit and raw non-GS1 text", () => {
     expect(problemCodes("gs1-128", "(88)12345")).toEqual(["gs1-ai"]);
-    expect(problemCodes("gs1-128", "(01)09501101530004")).toEqual(["gs1-check"]);
+    expect(problemCodes("gs1-128", "(01)09501101530004")).toEqual([
+      "gs1-check",
+    ]);
     expect(problemCodes("gs1-128", "no ai here")).toEqual(["gs1-syntax"]);
     expect(problemCodes("gs1-128", "(17)25123")).toEqual(["gs1-data"]);
     expect(problemCodes("gs1-128", "(10)")).toEqual(["gs1-data"]);
@@ -406,11 +463,15 @@ describe("GS1-128", () => {
 
   it("accepts the internal-use AI 99 and the unbracketed digit form", () => {
     expect(normalizeBarcode("gs1-128", "(99)123")).toMatchObject({ ok: true });
-    expect(normalizeBarcode("gs1-128", "(90)12345")).toMatchObject({ ok: true });
-    expect(normalizeBarcode("gs1-128", "010950110153000317251231")).toMatchObject({
+    expect(normalizeBarcode("gs1-128", "(90)12345")).toMatchObject({
       ok: true,
     });
-    expect(problemCodes("gs1-128",")")).toEqual(["gs1-syntax"]);
+    expect(
+      normalizeBarcode("gs1-128", "010950110153000317251231"),
+    ).toMatchObject({
+      ok: true,
+    });
+    expect(problemCodes("gs1-128", ")")).toEqual(["gs1-syntax"]);
     expect(problemCodes("gs1-128", "")).toEqual(["empty"]);
   });
 });
@@ -430,7 +491,10 @@ describe("decoder round-trip", () => {
   for (const [format, data, label] of cases) {
     it(`reads back its own ${format} symbol`, () => {
       const spec = specFor(format, data);
-      const verdict = verifyBarcode(spec, renderOptionsFrom({ ...defaultSettings, format }));
+      const verdict = verifyBarcode(
+        spec,
+        renderOptionsFrom({ ...defaultSettings, format }),
+      );
       expect(verdict.message).toContain(label);
       expect(verdict.ok).toBe(true);
       expect(verdict.found).toBeTruthy();
@@ -439,7 +503,10 @@ describe("decoder round-trip", () => {
 
   it("reports GS1-128 as Code 128 with the raw element string", () => {
     const spec = specFor("gs1-128", "(01)09501101530003(17)251231(10)LOT-42");
-    const verdict = verifyBarcode(spec, renderOptionsFrom({ ...defaultSettings, format: "gs1-128" }));
+    const verdict = verifyBarcode(
+      spec,
+      renderOptionsFrom({ ...defaultSettings, format: "gs1-128" }),
+    );
     expect(verdict.ok).toBe(true);
     expect(verdict.format).toBe("Code 128");
     expect(verdict.found).toBe("01095011015300031725123110LOT-42");
@@ -487,24 +554,38 @@ describe("layout", () => {
   });
 
   it("reports export density without moving the preview geometry", () => {
-    const single = buildLayout({ spec, options: { moduleWidth: 2, barHeight: 80 } });
-    const triple = buildLayout({ spec, options: { moduleWidth: 2, barHeight: 80 }, scale: 3 });
+    const single = buildLayout({
+      spec,
+      options: { moduleWidth: 2, barHeight: 80 },
+    });
+    const triple = buildLayout({
+      spec,
+      options: { moduleWidth: 2, barHeight: 80 },
+      scale: 3,
+    });
     expect(triple.width).toBe(single.width);
     expect(triple.bars).toEqual(single.bars);
     expect(triple.scaled.scale).toBe(3);
-    expect(Math.abs(triple.scaled.width - single.width * 3)).toBeLessThanOrEqual(1);
-    expect(Math.abs(triple.scaled.height - single.height * 3)).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(triple.scaled.width - single.width * 3),
+    ).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(triple.scaled.height - single.height * 3),
+    ).toBeLessThanOrEqual(1);
   });
 
   it("scales every bar by the same factor when the bar width changes", () => {
     const thin = buildLayout({ spec, options: { moduleWidth: 1.5 } });
     const thick = buildLayout({ spec, options: { moduleWidth: 3 } });
-    const ratios = thin.bars.map((bar, index) => thick.bars[index].width / bar.width);
+    const ratios = thin.bars.map(
+      (bar, index) => thick.bars[index].width / bar.width,
+    );
     // Snapping to whole pixels means a one-module bar lands on 2 px or 3 px, so
     // the per-bar ratio brackets the exact doubling rather than matching it.
     for (const ratio of ratios) expect(ratio).toBeGreaterThanOrEqual(1.5);
     for (const ratio of ratios) expect(ratio).toBeLessThanOrEqual(3);
-    const sum = (bars: { width: number }[]) => bars.reduce((total, bar) => total + bar.width, 0);
+    const sum = (bars: { width: number }[]) =>
+      bars.reduce((total, bar) => total + bar.width, 0);
     expect(sum(thick.bars) / sum(thin.bars)).toBeGreaterThan(1.85);
     expect(sum(thick.bars) / sum(thin.bars)).toBeLessThan(2.15);
     // Proportional, not stretched: the symbol grows in both axes of the bar
@@ -525,16 +606,24 @@ describe("layout", () => {
     );
     const left = buildLayout({ spec, options: { textAlign: "left" } });
     const right = buildLayout({ spec, options: { textAlign: "right" } });
-    const dataLeft = left.texts.find((block) => block.text === "QUICKKIT-2026")!;
-    const dataRight = right.texts.find((block) => block.text === "QUICKKIT-2026")!;
+    const dataLeft = left.texts.find(
+      (block) => block.text === "QUICKKIT-2026",
+    )!;
+    const dataRight = right.texts.find(
+      (block) => block.text === "QUICKKIT-2026",
+    )!;
     expect(dataLeft.anchor).toBe("start");
     expect(dataRight.anchor).toBe("end");
     expect(dataLeft.x).toBeLessThan(dataRight.x);
   });
 
   it("drops the background when transparency is on", () => {
-    expect(buildLayout({ spec, options: { transparent: true } }).background).toBeNull();
-    expect(buildLayout({ spec, options: { transparent: false } }).background).toBe("#ffffff");
+    expect(
+      buildLayout({ spec, options: { transparent: true } }).background,
+    ).toBeNull();
+    expect(
+      buildLayout({ spec, options: { transparent: false } }).background,
+    ).toBe("#ffffff");
     expect(
       buildLayout({ spec, options: { background: "#fef3c7" } }).background,
     ).toBe("#fef3c7");
@@ -553,16 +642,23 @@ describe("SVG output", () => {
   const spec = specFor("code128", "QUICKKIT-2026");
 
   it("escapes user text instead of embedding markup", () => {
-    const svg = layoutToSvg(buildLayout({ spec, options: { title: '<script>alert("x")</script>' } }), {
-      title: '<img src=x onerror="alert(1)">',
-      description: "a & b < c",
-    });
+    const svg = layoutToSvg(
+      buildLayout({ spec, options: { title: '<script>alert("x")</script>' } }),
+      {
+        title: '<img src=x onerror="alert(1)">',
+        description: "a & b < c",
+      },
+    );
     expect(svg).not.toContain("<script>");
     expect(svg).not.toContain("<img");
     expect(svg).toContain("&lt;script&gt;");
     expect(svg).toContain("a &amp; b &lt; c");
     expect(svg.trim().startsWith("<svg")).toBe(true);
-    expect(isSvgSafe(layoutToSvg(buildLayout({ spec, options: {} }), { title: "Shelf 4" }))).toBe(true);
+    expect(
+      isSvgSafe(
+        layoutToSvg(buildLayout({ spec, options: {} }), { title: "Shelf 4" }),
+      ),
+    ).toBe(true);
   });
 
   it("escapes the XML special characters", () => {
@@ -574,12 +670,14 @@ describe("SVG output", () => {
 
   it("reports attributes that would make it unsafe", () => {
     expect(isSvgSafe('<svg onload="x"></svg>')).toBe(false);
-    expect(isSvgSafe('<svg><script>1</script></svg>')).toBe(false);
+    expect(isSvgSafe("<svg><script>1</script></svg>")).toBe(false);
     expect(isSvgSafe("<div></div>")).toBe(false);
   });
 
   it("round-trips through the data URI used by the preview", () => {
-    const svg = layoutToSvg(buildLayout({ spec, options: {} }), { title: "Shelf 4" });
+    const svg = layoutToSvg(buildLayout({ spec, options: {} }), {
+      title: "Shelf 4",
+    });
     const uri = svgDataUri(svg);
     expect(uri.startsWith("data:image/svg+xml;charset=utf-8,")).toBe(true);
     expect(decodeURIComponent(uri.split(",")[1])).toBe(svg);
@@ -589,7 +687,9 @@ describe("SVG output", () => {
     const layout = buildLayout({ spec, options: {} });
     const svg = layoutToSvg(layout, { title: "Code 128 QUICKKIT-2026" });
     expect(svg.match(/<rect /g)!.length).toBe(layout.bars.length + 1);
-    expect(svg).toContain("<title id=\"bc-title\">Code 128 QUICKKIT-2026</title>");
+    expect(svg).toContain(
+      '<title id="bc-title">Code 128 QUICKKIT-2026</title>',
+    );
     expect(svg).toContain('shape-rendering="crispEdges"');
   });
 });
@@ -613,7 +713,9 @@ describe("format metadata", () => {
     // GS1-128 has no separate reader: it decodes as Code 128, so the metadata
     // marks it scannable while the decoder lists the eight raw symbologies.
     expect(READABLE_FORMATS).toHaveLength(8);
-    expect(scannable.filter((id) => !READABLE_FORMATS.includes(id))).toEqual(["gs1-128"]);
+    expect(scannable.filter((id) => !READABLE_FORMATS.includes(id))).toEqual([
+      "gs1-128",
+    ]);
     expect(formatMeta("msi").scannable).toBe(false);
     expect(formatMeta("pharmacode").scannable).toBe(false);
     expect(formatMeta("ean13").name).toBe("EAN-13");
@@ -652,16 +754,26 @@ describe("saved settings", () => {
       removeItem: (key: string) => void store.delete(key),
     };
     const original = globalThis.localStorage;
-    Object.defineProperty(globalThis, "localStorage", { value: fake, configurable: true });
+    Object.defineProperty(globalThis, "localStorage", {
+      value: fake,
+      configurable: true,
+    });
     try {
-      saveSettings({ ...defaultSettings, moduleWidth: 3.2, foreground: "#123456" });
+      saveSettings({
+        ...defaultSettings,
+        moduleWidth: 3.2,
+        foreground: "#123456",
+      });
       const loaded = loadSettings();
       expect(loaded.moduleWidth).toBe(3.2);
       expect(loaded.foreground).toBe("#123456");
       store.set("qk:barcode-studio-settings:v1", "{not json");
       expect(loadSettings()).toMatchObject({ format: defaultSettings.format });
     } finally {
-      Object.defineProperty(globalThis, "localStorage", { value: original, configurable: true });
+      Object.defineProperty(globalThis, "localStorage", {
+        value: original,
+        configurable: true,
+      });
     }
   });
 
@@ -682,6 +794,8 @@ describe("saved settings", () => {
       showText: false,
       background: "#ffffff",
     });
-    expect(renderOptionsFrom({ ...defaultSettings, transparent: true }).transparent).toBe(true);
+    expect(
+      renderOptionsFrom({ ...defaultSettings, transparent: true }).transparent,
+    ).toBe(true);
   });
 });

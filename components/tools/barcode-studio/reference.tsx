@@ -91,9 +91,9 @@ export default function BarcodeReference() {
         </table>
       </div>
       <p className="bc-dim">
-        Groups: {FORMAT_GROUPS.join(" · ")}. EAN-13 with a leading zero and UPC-A
-        are the same bars — which is why a UPC-A label can be read by an EAN-13
-        reader.
+        Groups: {FORMAT_GROUPS.join(" · ")}. EAN-13 with a leading zero and
+        UPC-A are the same bars — which is why a UPC-A label can be read by an
+        EAN-13 reader.
       </p>
 
       <h2 id="bc-troubleshooting-heading">

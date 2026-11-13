@@ -67,7 +67,9 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
   const [rows, setRows] = useState<BulkRow[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [thumbs, setThumbs] = useState<{ name: string; src: string }[]>([]);
-  const [busy, setBusy] = useState<null | "reading" | "generating" | "zip" | "pdf">(null);
+  const [busy, setBusy] = useState<
+    null | "reading" | "generating" | "zip" | "pdf"
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [paper, setPaper] = useState<BarcodePaper>("a4");
@@ -97,14 +99,18 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
       const parsed = await readBulkFile(file);
       const headers = parsed.headers.length ? parsed.headers : ["data"];
       setTable(parsed);
-      setFileLabel(`${file.name} · ${formatBytes(file.size)} · ${parsed.rows.length} row${parsed.rows.length === 1 ? "" : "s"}`);
+      setFileLabel(
+        `${file.name} · ${formatBytes(file.size)} · ${parsed.rows.length} row${parsed.rows.length === 1 ? "" : "s"}`,
+      );
       setDataColumn(guessDataColumn(headers));
       setTitleColumn(guessTitleColumn(headers, guessDataColumn(headers)));
       if (parsed.notes.length) setError(parsed.notes[0]);
     } catch (loadError) {
       setTable(null);
       setError(
-        loadError instanceof Error ? loadError.message : "That CSV could not be read.",
+        loadError instanceof Error
+          ? loadError.message
+          : "That CSV could not be read.",
       );
     } finally {
       setBusy(null);
@@ -158,7 +164,15 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
     } finally {
       setBusy(null);
     }
-  }, [table, format, dataColumn, titleColumn, settings, skipDuplicates, renderOptions]);
+  }, [
+    table,
+    format,
+    dataColumn,
+    titleColumn,
+    settings,
+    skipDuplicates,
+    renderOptions,
+  ]);
 
   const downloadReport = useCallback(() => {
     const csv = bulkReportCsv(
@@ -169,7 +183,11 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
         message: row.message,
       })),
     );
-    downloadText(csv, `quickkit-barcode-bulk-report-${format}.csv`, "text/csv;charset=utf-8");
+    downloadText(
+      csv,
+      `quickkit-barcode-bulk-report-${format}.csv`,
+      "text/csv;charset=utf-8",
+    );
     studio.setFlash({
       kind: "success",
       text: "Report CSV saved — every row, including the ones that failed.",
@@ -190,7 +208,11 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
             (row) => ({
               name: row.data,
               data: new TextEncoder().encode(
-                svgFor(row.spec!, renderOptions, `${format} ${row.spec!.display}`),
+                svgFor(
+                  row.spec!,
+                  renderOptions,
+                  `${format} ${row.spec!.display}`,
+                ),
               ),
             }),
             {
@@ -199,26 +221,49 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
               signal: abort.current,
             },
           );
-          const names = bulkEntryNames(printable.map((row) => ({ format, value: row.data })), "svg");
-          results.forEach((entry, index) => entries.push({ name: names[index], data: entry.data }));
+          const names = bulkEntryNames(
+            printable.map((row) => ({ format, value: row.data })),
+            "svg",
+          );
+          results.forEach((entry, index) =>
+            entries.push({ name: names[index], data: entry.data }),
+          );
         } else {
           const { layoutToPng } = await import("@/lib/tools/barcode/canvas");
           const { buildLayout } = await import("@/lib/tools/barcode/layout");
-          const names = bulkEntryNames(printable.map((row) => ({ format, value: row.data })), "png");
+          const names = bulkEntryNames(
+            printable.map((row) => ({ format, value: row.data })),
+            "png",
+          );
           for (let index = 0; index < printable.length; index += 1) {
             if (abort.current.aborted) break;
-            const layout = buildLayout({ spec: printable[index].spec!, options: renderOptions });
-            const { bytes } = await layoutToPng(layout, Math.min(3, settings.scale));
+            const layout = buildLayout({
+              spec: printable[index].spec!,
+              options: renderOptions,
+            });
+            const { bytes } = await layoutToPng(
+              layout,
+              Math.min(3, settings.scale),
+            );
             entries.push({ name: names[index], data: bytes });
             setProgress({ done: index + 1, total: printable.length });
-            if (index % 5 === 4) await new Promise((resolve) => setTimeout(resolve, 0));
+            if (index % 5 === 4)
+              await new Promise((resolve) => setTimeout(resolve, 0));
           }
         }
-        if (!entries.length) throw new Error("Nothing was generated, so there is no ZIP to build.");
+        if (!entries.length)
+          throw new Error(
+            "Nothing was generated, so there is no ZIP to build.",
+          );
         const bytes = zip(entries);
         downloadBlob(
           new Blob([bytes as unknown as BlobPart], { type: "application/zip" }),
-          barcodeFilename({ format, value: "bulk", ext: "zip", suffix: `${entries.length}-${kind}` }),
+          barcodeFilename({
+            format,
+            value: "bulk",
+            ext: "zip",
+            suffix: `${entries.length}-${kind}`,
+          }),
         );
         studio.setFlash({
           kind: "success",
@@ -227,7 +272,10 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
       } catch (zipError) {
         studio.setFlash({
           kind: "error",
-          text: zipError instanceof Error ? zipError.message : "The ZIP could not be built.",
+          text:
+            zipError instanceof Error
+              ? zipError.message
+              : "The ZIP could not be built.",
         });
       } finally {
         setBusy(null);
@@ -245,7 +293,11 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
       const items = [];
       for (const row of printable) {
         if (abort.current.aborted) break;
-        items.push({ spec: row.spec!, title: row.title || settings.title, description: settings.description });
+        items.push({
+          spec: row.spec!,
+          title: row.title || settings.title,
+          description: settings.description,
+        });
       }
       const bytes = await createBarcodePdf(items, {
         paper,
@@ -271,22 +323,44 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
     } catch (pdfError) {
       studio.setFlash({
         kind: "error",
-        text: pdfError instanceof Error ? pdfError.message : "The PDF could not be built.",
+        text:
+          pdfError instanceof Error
+            ? pdfError.message
+            : "The PDF could not be built.",
       });
     } finally {
       setBusy(null);
     }
-  }, [printable, paper, labelWidth, labelHeight, renderOptions, format, settings.title, settings.description, sheet.pages, studio]);
+  }, [
+    printable,
+    paper,
+    labelWidth,
+    labelHeight,
+    renderOptions,
+    format,
+    settings.title,
+    settings.description,
+    sheet.pages,
+    studio,
+  ]);
 
   const downloadRow = useCallback(
     async (row: BulkRow, kind: "svg" | "png") => {
       if (!row.spec) return;
-      const name = barcodeFilename({ format, value: row.spec.value, ext: kind, index: row.line });
+      const name = barcodeFilename({
+        format,
+        value: row.spec.value,
+        ext: kind,
+        index: row.line,
+      });
       if (kind === "svg") {
         downloadBlob(
-          new Blob([svgFor(row.spec, renderOptions, `${format} ${row.spec.display}`)], {
-            type: "image/svg+xml;charset=utf-8",
-          }),
+          new Blob(
+            [svgFor(row.spec, renderOptions, `${format} ${row.spec.display}`)],
+            {
+              type: "image/svg+xml;charset=utf-8",
+            },
+          ),
           name,
         );
         return;
@@ -297,12 +371,21 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
           import("@/lib/tools/barcode/layout"),
         ]);
         const layout = buildLayout({ spec: row.spec, options: renderOptions });
-        const { bytes } = await layoutToPng(layout, Math.min(4, settings.scale));
-        downloadBlob(new Blob([bytes as unknown as BlobPart], { type: "image/png" }), name);
+        const { bytes } = await layoutToPng(
+          layout,
+          Math.min(4, settings.scale),
+        );
+        downloadBlob(
+          new Blob([bytes as unknown as BlobPart], { type: "image/png" }),
+          name,
+        );
       } catch (rowError) {
         studio.setFlash({
           kind: "error",
-          text: rowError instanceof Error ? rowError.message : "That PNG could not be created.",
+          text:
+            rowError instanceof Error
+              ? rowError.message
+              : "That PNG could not be created.",
         });
       }
     },
@@ -333,7 +416,11 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
             type="button"
             className="qr-mini-button"
             onClick={() =>
-              downloadText(BULK_TEMPLATE, "quickkit-barcode-template.csv", "text/csv;charset=utf-8")
+              downloadText(
+                BULK_TEMPLATE,
+                "quickkit-barcode-template.csv",
+                "text/csv;charset=utf-8",
+              )
             }
           >
             <Download size={13} aria-hidden="true" /> CSV template
@@ -361,7 +448,9 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
           )}
           <span>
             {fileLabel || "Choose a CSV or drop it here"}
-            <small>Any column can hold the barcode data — you pick it next.</small>
+            <small>
+              Any column can hold the barcode data — you pick it next.
+            </small>
           </span>
           <input
             ref={inputRef}
@@ -420,7 +509,9 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
                 id="bc-bulk-format"
                 className="qr-input"
                 value={format}
-                onChange={(event) => setFormat(event.target.value as BarcodeFormatId)}
+                onChange={(event) =>
+                  setFormat(event.target.value as BarcodeFormatId)
+                }
               >
                 {BARCODE_FORMATS.map((entry) => (
                   <option key={entry.id} value={entry.id}>
@@ -436,17 +527,17 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
         {table ? (
           <div className="bc-bulk-controls">
             <label className="checkbox qr-toggle">
-            <input
-              type="checkbox"
-              checked={skipDuplicates}
-              onChange={(event) => setSkipDuplicates(event.target.checked)}
-            />
-            <span>
-              Skip rows that repeat an earlier value
-              <small>
-                Off by default: printing the same label twice is normal. Both
-                ways, duplicates are reported.
-              </small>
+              <input
+                type="checkbox"
+                checked={skipDuplicates}
+                onChange={(event) => setSkipDuplicates(event.target.checked)}
+              />
+              <span>
+                Skip rows that repeat an earlier value
+                <small>
+                  Off by default: printing the same label twice is normal. Both
+                  ways, duplicates are reported.
+                </small>
               </span>
             </label>
             <div className="bc-actions">
@@ -464,8 +555,10 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
                 Generate {table.rows.length.toLocaleString()} labels
               </button>
               <span className="bc-dim">
-                {table.delimiter === "\t" ? "tab-separated" : `“${table.delimiter}” separated`} ·{" "}
-                {headers.length} column{headers.length === 1 ? "" : "s"}
+                {table.delimiter === "\t"
+                  ? "tab-separated"
+                  : `“${table.delimiter}” separated`}{" "}
+                · {headers.length} column{headers.length === 1 ? "" : "s"}
                 {table.truncated ? " · truncated at the row limit" : ""}
               </span>
             </div>
@@ -479,13 +572,16 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
             <div>
               <h3>2. Review and export</h3>
               <p>
-                {counts.ok.toLocaleString()} ready · {counts.duplicate.toLocaleString()}{" "}
-                duplicate · {counts.invalid.toLocaleString()} invalid
+                {counts.ok.toLocaleString()} ready ·{" "}
+                {counts.duplicate.toLocaleString()} duplicate ·{" "}
+                {counts.invalid.toLocaleString()} invalid
                 {counts.skipped ? ` · ${counts.skipped} skipped` : ""}
               </p>
             </div>
             <span className={counts.invalid ? "qr-badge bad" : "qr-badge good"}>
-              {counts.invalid ? `${counts.invalid} need attention` : "Every row valid"}
+              {counts.invalid
+                ? `${counts.invalid} need attention`
+                : "Every row valid"}
             </span>
           </div>
 
@@ -515,7 +611,9 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
                 id="bc-bulk-paper"
                 className="qr-input"
                 value={paper}
-                onChange={(event) => setPaper(event.target.value as BarcodePaper)}
+                onChange={(event) =>
+                  setPaper(event.target.value as BarcodePaper)
+                }
               >
                 {Object.entries(BARCODE_PAPERS).map(([id, entry]) => (
                   <option key={id} value={id}>
@@ -588,7 +686,12 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
             >
               <FileText size={15} aria-hidden="true" /> PDF sheet
             </button>
-            <button type="button" className="secondary" onClick={downloadReport} disabled={!rows.length}>
+            <button
+              type="button"
+              className="secondary"
+              onClick={downloadReport}
+              disabled={!rows.length}
+            >
               <FileSpreadsheet size={15} aria-hidden="true" /> Report CSV
             </button>
           </div>
@@ -609,22 +712,45 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
               </thead>
               <tbody>
                 {rows.slice(0, TABLE_LIMIT).map((row) => (
-                  <tr key={`${row.line}-${row.canonical}`} className={`bc-row ${row.status}`}>
+                  <tr
+                    key={`${row.line}-${row.canonical}`}
+                    className={`bc-row ${row.status}`}
+                  >
                     <td>{row.line}</td>
                     <td>
-                      <span className={row.status === "ok" ? "qr-badge good" : row.status === "invalid" ? "qr-badge bad" : "qr-badge"}>
+                      <span
+                        className={
+                          row.status === "ok"
+                            ? "qr-badge good"
+                            : row.status === "invalid"
+                              ? "qr-badge bad"
+                              : "qr-badge"
+                        }
+                      >
                         {row.status}
                       </span>
                     </td>
                     <td className="bc-cell-data">{row.data || "—"}</td>
-                    <td>{row.title ? `${row.title} — ${row.message}` : row.message}</td>
+                    <td>
+                      {row.title
+                        ? `${row.title} — ${row.message}`
+                        : row.message}
+                    </td>
                     <td>
                       {row.spec ? (
                         <span className="bc-row-actions">
-                          <button type="button" className="qr-link-button" onClick={() => downloadRow(row, "svg")}>
+                          <button
+                            type="button"
+                            className="qr-link-button"
+                            onClick={() => downloadRow(row, "svg")}
+                          >
                             SVG
                           </button>
-                          <button type="button" className="qr-link-button" onClick={() => downloadRow(row, "png")}>
+                          <button
+                            type="button"
+                            className="qr-link-button"
+                            onClick={() => downloadRow(row, "png")}
+                          >
                             PNG
                           </button>
                         </span>
@@ -638,8 +764,9 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
             </table>
             {rows.length > TABLE_LIMIT ? (
               <p className="help">
-                Showing the first {TABLE_LIMIT} of {rows.length.toLocaleString()} rows.
-                Exports always include every row.
+                Showing the first {TABLE_LIMIT} of{" "}
+                {rows.length.toLocaleString()} rows. Exports always include
+                every row.
               </p>
             ) : null}
           </div>

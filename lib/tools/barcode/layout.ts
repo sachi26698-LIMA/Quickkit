@@ -91,13 +91,19 @@ const clamp = (value: number, min: number, max: number) =>
 export const MODULE_WIDTH_RANGE = { min: 0.75, max: 16 } as const;
 
 /** Rough advance width — used for bounds only; the browser measures the rest. */
-export function estimateTextWidth(text: string, size: number, monospace = false) {
+export function estimateTextWidth(
+  text: string,
+  size: number,
+  monospace = false,
+) {
   return text.length * size * (monospace ? 0.62 : 0.56);
 }
 
 function withAlpha(hex: string, alpha: number) {
   const clean = normalizeHex(hex, "#000000").slice(1);
-  const [r, g, b] = [0, 2, 4].map((offset) => parseInt(clean.slice(offset, offset + 2), 16));
+  const [r, g, b] = [0, 2, 4].map((offset) =>
+    parseInt(clean.slice(offset, offset + 2), 16),
+  );
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
@@ -108,17 +114,30 @@ export type LayoutInput = {
   scale?: number;
 };
 
-export function buildLayout({ spec, options, scale = 1 }: LayoutInput): BarcodeLayout {
-  const merged: BarcodeRenderOptions = { ...DEFAULT_RENDER_OPTIONS, ...options };
+export function buildLayout({
+  spec,
+  options,
+  scale = 1,
+}: LayoutInput): BarcodeLayout {
+  const merged: BarcodeRenderOptions = {
+    ...DEFAULT_RENDER_OPTIONS,
+    ...options,
+  };
   const density = clamp(scale, 0.25, 8);
-  const moduleWidth = clamp(merged.moduleWidth, MODULE_WIDTH_RANGE.min, MODULE_WIDTH_RANGE.max);
+  const moduleWidth = clamp(
+    merged.moduleWidth,
+    MODULE_WIDTH_RANGE.min,
+    MODULE_WIDTH_RANGE.max,
+  );
   const barHeight = clamp(merged.barHeight, 16, 1200);
   const margin = clamp(merged.margin, 0, 160);
   const fontSize = clamp(merged.fontSize, 6, 96);
   const requestedQuiet = clamp(merged.quietZone, 0, 80);
   const quietLeft = Math.max(spec.quiet.left, requestedQuiet);
   const quietRight = Math.max(spec.quiet.right, requestedQuiet);
-  const guardExtension = merged.showText ? clamp(merged.guardExtension, 0, barHeight) : 0;
+  const guardExtension = merged.showText
+    ? clamp(merged.guardExtension, 0, barHeight)
+    : 0;
 
   const foreground = normalizeHex(merged.foreground, "#111827");
   const background = normalizeHex(merged.background, "#ffffff");
@@ -162,7 +181,14 @@ export function buildLayout({ spec, options, scale = 1 }: LayoutInput): BarcodeL
   const symbolTop = margin + titleHeight + titleGap;
   const barsBottom = symbolTop + barHeight;
   const textTop = barsBottom + guardExtension + hriGap;
-  const height = barsBottom + guardExtension + hriGap + hriHeight + descGap + descHeight + margin;
+  const height =
+    barsBottom +
+    guardExtension +
+    hriGap +
+    hriHeight +
+    descGap +
+    descHeight +
+    margin;
 
   const anchorFor = (align: BarcodeTextAlign): TextBlock["anchor"] =>
     align === "left" ? "start" : align === "right" ? "end" : "middle";
@@ -229,7 +255,14 @@ export function buildLayout({ spec, options, scale = 1 }: LayoutInput): BarcodeL
 
   const bars: Rect[] = spec.bars.map((bar) => snap(bar, symbolTop, barsBottom));
   if (guardExtension > 0)
-    for (const guard of spec.guards) bars.push(snap(guard, barsBottom - Math.max(1, moduleWidth), barsBottom + guardExtension));
+    for (const guard of spec.guards)
+      bars.push(
+        snap(
+          guard,
+          barsBottom - Math.max(1, moduleWidth),
+          barsBottom + guardExtension,
+        ),
+      );
 
   return {
     width: Math.max(1, Math.round(width)),
