@@ -7,6 +7,9 @@ import {
   isIsoDate,
   isLeapYear,
   monthsBetween,
+  ordinalToIso,
+  readDigitalLinkFacts,
+  readGs1Date,
   readGs1Facts,
   relativeDays,
   scanExplicitDate,
@@ -47,6 +50,12 @@ const baseInput = (overrides: Partial<CheckInput> = {}): CheckInput => ({
   today: "2026-06-15",
   ...overrides,
 });
+
+const checkOrThrow = (input: CheckInput) => {
+  const outcome = checkBatchCode(input);
+  if (!outcome.ok) throw new Error(outcome.problems.join("; "));
+  return outcome.result;
+};
 
 const dates = (overrides: Partial<CheckInput["dates"]> = {}) => ({
   printedManufacture: "",
@@ -433,5 +442,238 @@ describe("checkBatchCode", () => {
     const second = checkBatchCode(baseInput());
     expect(first).toEqual(second);
     if (first.ok) expect(first.result.checkedOn).toBe("15 Jun 2026");
+  });
+});
+
+describe("GS1 date application identifiers", () => {
+  it("reads packaging, best-before and sell-by dates", () => {
+    const facts = readGs1Facts(
+      "(01)09501101530003(13)260601(15)260630(16)260715",
+    );
+    expect(facts?.packagingDate).toBe("2026-06-01");
+    expect(facts?.bestBeforeDate).toBe("2026-06-30");
+    expect(facts?.dates.map((entry) => entry.ai)).toEqual(["13", "15", "16"]);
+    expect(facts?.dates[1]).toEqual({
+      ai: "15",
+      label: "Best-before date",
+      date: "2026-06-30",
+      time: null,
+    });
+  });
+
+  it("reads AI 7003 as a date and a time", () => {
+    const facts = readGs1Facts("(01)09501101530003(7003)2606302359");
+    expect(facts?.expiryDate).toBe("2026-06-30");
+    expect(facts?.dates[0]).toEqual({
+      ai: "7003",
+      label: "Expiration date and time",
+      date: "2026-06-30",
+      time: "23:59",
+    });
+  });
+
+  it("reads AI 8008 as a four-digit-year production timestamp", () => {
+    const facts = readGs1Facts("(8008)202606301200");
+    expect(facts?.productionDate).toBe("2026-06-30");
+    expect(facts?.dates[0].time).toBe("12:00");
+  });
+
+  it("rejects an impossible calendar date instead of adjusting it", () => {
+    expect(readGs1Date("17", "260231")).toBeNull();
+    expect(readGs1Date("17", "260230")).toBeNull();
+    expect(readGs1Date("7003", "2606302460")).toBeNull();
+    expect(readGs1Facts("(17)260231")).toBeNull();
+  });
+
+  it("honours the GS1 day-00 rule (last day of the month)", () => {
+    expect(readGs1Facts("(17)260200")?.expiryDate).toBe("2026-02-28");
+    expect(readGs1Facts("(17)240200")?.expiryDate).toBe("2024-02-29");
+  });
+
+  it("validates a GTIN check digit before reporting facts", () => {
+    expect(readGs1Facts("(01)09501101530004(17)251231")).toBeNull();
+  });
+});
+
+describe("GS1 Digital Link", () => {
+  const gtin = "09501101530003";
+
+  it("reads the path form", () => {
+    const facts = readDigitalLinkFacts(
+      `https://id.gs1.org/01/${gtin}/17/251231/10/AB-12`,
+    );
+    expect(facts?.carrier).toBe("digital-link");
+    expect(facts?.gtin).toBe(gtin);
+    expect(facts?.expiryDate).toBe("2025-12-31");
+    expect(facts?.batch).toBe("AB-12");
+  });
+
+  it("reads the query form and a mixed form", () => {
+    expect(
+      readDigitalLinkFacts(`https://example.com/01/${gtin}?17=251231&10=LOT9`)
+        ?.expiryDate,
+    ).toBe("2025-12-31");
+    const mixed = readDigitalLinkFacts(
+      `https://example.com/01/${gtin}/10/LOT9?17=251231`,
+    );
+    expect(mixed?.expiryDate).toBe("2025-12-31");
+    expect(mixed?.batch).toBe("LOT9");
+  });
+
+  it("rejects a URI that is not a GS1 Digital Link", () => {
+    expect(readDigitalLinkFacts("https://example.com/sale/17/2026")).toBeNull();
+    expect(
+      readDigitalLinkFacts(`https://example.com/02/${gtin}/17/251231`),
+    ).toBeNull();
+    expect(
+      readDigitalLinkFacts("https://example.com/01/09501101530004"),
+    ).toBeNull();
+    expect(
+      readDigitalLinkFacts(`https://example.com/01/${gtin}/999/x`),
+    ).toBeNull();
+    expect(readDigitalLinkFacts("not a url")).toBeNull();
+  });
+
+  it("decodes a Digital Link as verified, naming the carrier", () => {
+    const outcome = decodeCode(
+      brandBySlug("nivea")!,
+      `https://id.gs1.org/01/${gtin}/17/251231/10/AB-12`,
+    );
+    expect(outcome.verdict.status).toBe("verified");
+    expect(outcome.verdict.id).toBe("gs1-digital-link");
+    expect(outcome.verdict.version).toBe("1.0.0");
+    expect(outcome.expiry).toBe("2025-12-31");
+    expect(outcome.gs1?.carrier).toBe("digital-link");
+    expect(outcome.verdict.detail).toContain("expiration date (AI 17)");
+  });
+});
+
+describe("ISO 8601 ordinal dates", () => {
+  it("converts a valid day of the year", () => {
+    expect(ordinalToIso(2026, 317)).toBe("2026-11-13");
+    expect(ordinalToIso(2024, 60)).toBe("2024-02-29");
+    expect(ordinalToIso(2026, 366)).toBeNull();
+    expect(ordinalToIso(2024, 366)).toBe("2024-12-31");
+  });
+
+  it("scans YYYY-DDD out of a code", () => {
+    const scan = scanExplicitDate("2026-317-A");
+    expect(scan.candidates).toHaveLength(1);
+    expect(scan.candidates[0].date).toBe("2026-11-13");
+    expect(scan.candidates[0].interpretation).toContain("ordinal");
+    expect(scanExplicitDate("2026-367").candidates).toHaveLength(0);
+  });
+
+  it("does not confuse a calendar date with an ordinal date", () => {
+    const scan = scanExplicitDate("2026-11-13");
+    expect(scan.candidates.map((entry) => entry.date)).toEqual(["2026-11-13"]);
+    expect(scan.candidates[0].interpretation).toBe("YYYY-MM-DD");
+  });
+});
+
+describe("GS1 dates inside a full check", () => {
+  const gs1Code = "(01)09501101530003(11)260101(17)270101(10)LOT-7";
+
+  it("exposes decoded dates and a verified GS1 expiry", () => {
+    const result = checkOrThrow(
+      baseInput({ brandSlug: "cerave", code: gs1Code, dates: dates() }),
+    );
+    expect(result.decodedDates.map((entry) => entry.ai)).toEqual(["11", "17"]);
+    expect(result.decodedExpiry).toMatchObject({
+      date: "2027-01-01",
+      source: "gs1",
+      confidence: "verified",
+    });
+    expect(result.effectiveExpiry?.source).toBe("gs1");
+    expect(result.verdict.status).toBe("verified");
+  });
+
+  it("keeps the printed date authoritative and warns about a mismatch", () => {
+    const result = checkOrThrow(
+      baseInput({
+        brandSlug: "cerave",
+        code: gs1Code,
+        dates: dates({ printedExpiry: "2026-12-01" }),
+      }),
+    );
+    expect(result.effectiveExpiry?.source).toBe("printed");
+    expect(result.warnings.join(" ")).toContain("differs from the GS1 date");
+    expect(result.warnings.join(" ")).toContain("printed date governs");
+  });
+
+  it("warns when the carrier has no forward-looking date", () => {
+    const result = checkOrThrow(
+      baseInput({
+        brandSlug: "cerave",
+        code: "(01)09501101530003(11)260101(10)LOT-7",
+        dates: dates(),
+      }),
+    );
+    expect(result.decodedExpiry).toBeNull();
+    expect(result.warnings.join(" ")).toContain("no expiration or best-before");
+  });
+
+  it("keeps a batch-and-GTIN-only carrier undecodable", () => {
+    const outcome = decodeCode(
+      brandBySlug("nivea")!,
+      "(01)09501101530003(10)LOT-7",
+    );
+    expect(outcome.verdict.status).toBe("undecodable");
+    expect(outcome.gs1?.batch).toBe("LOT-7");
+    expect(outcome.gs1?.dates).toEqual([]);
+  });
+});
+
+describe("brand dataset hygiene", () => {
+  const key = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+  it("normalises every alias and never repeats one", () => {
+    for (const brand of BRANDS) {
+      const keys = [key(brand.name), ...brand.aliases.map(key)];
+      expect(new Set(keys).size).toBe(keys.length);
+      for (const alias of brand.aliases) {
+        expect(alias).toBe(alias.replace(/\s+/g, " ").trim());
+        expect(alias.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("keeps every official link on https and every record complete", () => {
+    for (const brand of BRANDS) {
+      expect(brand.slug).toMatch(/^[a-z0-9-]+$/);
+      expect(brand.categories.length).toBeGreaterThan(0);
+      expect(new Set(brand.categories).size).toBe(brand.categories.length);
+      expect(brand.limitation.length).toBeGreaterThan(20);
+      expect(brand.decoderStatus).toBe("none");
+      expect(brand.lastVerified).toBeNull();
+      if (brand.officialGuidance) {
+        expect(brand.officialGuidance.url).toMatch(/^https:\/\//);
+        expect(brand.officialGuidance.kind).toBe("brand-site");
+      }
+    }
+  });
+
+  it("keeps slug and name unique across the dataset", () => {
+    expect(new Set(BRANDS.map((brand) => brand.slug)).size).toBe(BRANDS.length);
+    const names = BRANDS.map((brand) => key(brand.name));
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("keeps an unsupported brand searchable, with no decoder implied", () => {
+    const results = searchBrands("lancome");
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].decoderStatus).toBe("none");
+    expect(searchBrands("zzzz-no-such-brand")).toEqual([]);
+  });
+
+  it("ranks an exact alias above a partial name match", () => {
+    const results = searchBrands("loreal");
+    expect(results[0].slug).toBe("loreal-paris");
   });
 });

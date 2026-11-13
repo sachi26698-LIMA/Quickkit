@@ -39,8 +39,10 @@ export const VERDICT_TONE = {
   undecodable: "undecodable",
 } as const;
 
-const CODE_PATTERN = /^[A-Za-z0-9 ()./+&#*_-]+$/;
-const MAX_CODE = 64;
+// Lot codes, GS1 element strings and GS1 Digital Link URIs are all accepted in
+// this one field. Angle brackets and control characters are still rejected.
+const CODE_PATTERN = /^[A-Za-z0-9 ()./+&#*_:=?%@-]+$/;
+const MAX_CODE = 200;
 const MAX_NAME = 80;
 const PAO_VALUES = PAO_GUIDANCE.map((entry) => entry.months);
 
@@ -199,6 +201,26 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
     };
   }
 
+  /* ------------------------- standards date facts -------------------------- */
+  const decodedDates = decoded.gs1?.dates ?? [];
+  const gs1Expiry = decodedDates.find(
+    (entry) => entry.ai === "17" || entry.ai === "7003",
+  );
+  const gs1BestBefore = decodedDates.find(
+    (entry) => entry.ai === "15" || entry.ai === "16",
+  );
+  const governingGs1Date = gs1Expiry ?? gs1BestBefore;
+  let decodedExpiry: DateFact | null = null;
+  if (governingGs1Date) {
+    decodedExpiry = {
+      date: governingGs1Date.date,
+      source: "gs1",
+      method: `AI ${governingGs1Date.ai} — ${governingGs1Date.label}${governingGs1Date.time ? ` at ${governingGs1Date.time}` : ""}`,
+      confidence: "verified",
+      evidence: "GS1 General Specifications date application identifier",
+    };
+  }
+
   /* --------------------------- estimate + PAO ----------------------------- */
   const shelfMonths = brand.shelfLife.months;
   let estimatedExpiry: DateFact | null = null;
@@ -229,12 +251,27 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
   }
 
   /* ------------------------- governing expiry ----------------------------- */
-  const effectiveExpiry = printedExpiryFact ?? estimatedExpiry ?? paoExpiry;
+  const effectiveExpiry =
+    printedExpiryFact ?? decodedExpiry ?? estimatedExpiry ?? paoExpiry;
 
   /* ------------------------------- warnings ------------------------------- */
   if (decoded.verdict.status === "undecodable")
     warnings.push(
       `The code "${code}" cannot be decoded for ${brand.name}. It is treated as a lot number only, and no date is claimed from it.`,
+    );
+
+  if (
+    printedExpiryFact &&
+    decodedExpiry &&
+    printedExpiryFact.date !== decodedExpiry.date
+  )
+    warnings.push(
+      `The printed expiry date (${formatDate(printedExpiryFact.date)}) differs from the GS1 date in the code (${formatDate(decodedExpiry.date)}, AI ${governingGs1Date!.ai}). Both are shown; the printed date governs.`,
+    );
+
+  if (decodedDates.length && !governingGs1Date)
+    warnings.push(
+      "The GS1 carrier holds a production or packaging date but no expiration or best-before date, so the estimate below is the only forward-looking figure.",
     );
 
   if (decoded.candidates.length > 1)
@@ -286,6 +323,16 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
       "This code looks like a GTIN (the product barcode). A GTIN identifies a product, not a batch or a date — the checker did not treat it as one.",
     );
 
+  if (decoded.gs1?.carrier === "digital-link")
+    notes.push(
+      "The code was read as a GS1 Digital Link URI. The link itself was not opened or fetched: only the identifiers in the URI were decoded.",
+    );
+
+  if (decoded.gs1?.packagingDate && decoded.gs1?.productionDate)
+    notes.push(
+      `The carrier distinguishes a packaging date (${formatDate(decoded.gs1.packagingDate)}) from a production date (${formatDate(decoded.gs1.productionDate)}).`,
+    );
+
   if (brand.officialGuidance?.url)
     notes.push(
       `For a definitive answer, ${brand.name} customer care can read the lot number: ${brand.officialGuidance.url}`,
@@ -314,6 +361,8 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
       ageMonths,
       remainingDays,
       candidates: decoded.candidates,
+      decodedDates,
+      decodedExpiry,
       warnings,
       notes,
       checkedOn: todayLabel,

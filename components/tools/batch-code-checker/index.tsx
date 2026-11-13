@@ -134,17 +134,19 @@ export default function BatchChecker() {
               type="text"
               value={form.code}
               onChange={(event) => update("code", event.target.value)}
-              placeholder="e.g. 28H300"
+              placeholder="e.g. 28H300 or a GS1 link"
               autoComplete="off"
               spellCheck={false}
+              maxLength={200}
               aria-invalid={invalid("code") || undefined}
               aria-describedby={
                 problemFor("code") ? "problem-code" : "hint-code"
               }
             />
             <small id="hint-code">
-              Exactly as printed, including any spaces or slashes. Never guessed
-              at or auto-corrected.
+              Exactly as printed, including any spaces or slashes. A GS1 element
+              string or GS1 Digital Link URI can be pasted here too. Never
+              guessed at or auto-corrected.
             </small>
           </label>
 
@@ -368,6 +370,10 @@ function ResultPanel({
     result.paoExpiry
       ? `After opening: ${result.paoExpiry.date}`
       : "After opening: not calculated",
+    ...result.decodedDates.map(
+      (entry) =>
+        `GS1 AI ${entry.ai} (${entry.label}): ${entry.date}${entry.time ? ` ${entry.time}` : ""}`,
+    ),
     result.effectiveExpiry
       ? `Governing date: ${result.effectiveExpiry.date}`
       : "Governing date: none",
@@ -459,6 +465,26 @@ function ResultPanel({
           empty="Not calculated. Enter the opened date and the number inside the open-jar symbol; the two together define this window."
         />
       </div>
+
+      {result.decodedDates.length ? (
+        <div className={styles.column}>
+          <h3>Date fields carried by the code</h3>
+          <ul className={styles.list}>
+            {result.decodedDates.map((entry) => (
+              <li key={`${entry.ai}-${entry.date}-${entry.time ?? ""}`}>
+                <span className={styles.codeChip}>AI {entry.ai}</span>{" "}
+                <strong>{entry.label}</strong> — {formatDate(entry.date)}
+                {entry.time ? ` at ${entry.time}` : ""}
+              </li>
+            ))}
+          </ul>
+          <p className={styles.formHint}>
+            Each field is read with the rule the GS1 General Specifications
+            assign to that Application Identifier. A field that is not a real
+            calendar date is rejected rather than adjusted.
+          </p>
+        </div>
+      ) : null}
 
       <div className={styles.column}>
         <h3>What governs</h3>

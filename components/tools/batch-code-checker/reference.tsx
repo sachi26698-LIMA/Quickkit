@@ -6,7 +6,8 @@ import { brandCoverage } from "@/lib/tools/batch-code/brands";
  *
  * Every claim here is derived from the engine: the coverage numbers are computed
  * from the brand records at build time, and the three verdict states are the
- * only states the checker can return.
+ * only states the checker can return (the decoder registry itself has four
+ * entries: two GS1 carriers, the explicit-date pattern, and `none`).
  */
 export default function BatchCodeReference() {
   const coverage = brandCoverage();
@@ -23,7 +24,7 @@ export default function BatchCodeReference() {
           {
             label: "VERIFIED",
             detail:
-              "A documented, standards-defined field produced the date: a GS1 element string carrying AI 11 (production date) or AI 17 (expiration date), including the rule that a day of 00 means the last day of the month. A date you read off the pack and type in is also verified — it is a fact, not an inference.",
+              "A documented, standards-defined field produced the date: a GS1 element string or GS1 Digital Link URI carrying a date Application Identifier — production (11), packaging (13), best before (15), sell by (16), expiration (17), expiration date and time (7003) or production timestamp (8008) — including the rule that a day of 00 means the last day of the month. A date you read off the pack and type in is also verified — it is a fact, not an inference.",
           },
           {
             label: "ESTIMATED",

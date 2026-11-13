@@ -1,5 +1,58 @@
 # QUICKKIT Master Project Progress
 
+## Phase 17 — Barcode Studio final master completion & production readiness (13 November 2026 UTC)
+
+**Branch:** `arena/6102e674-quickkit`, continuing from local checkpoint `7b47bc3`.
+Audited and extended the three existing tools; nothing was rebuilt, pushed,
+merged, deployed or indexed, and no production setting or migration was touched.
+Full report: **`QUICKKIT_BARCODE_FINAL_PRODUCTION_READINESS.md`**. Research log:
+**`docs/BARCODE_DECODER_RESEARCH.md`**.
+
+- **Research outcome (decisive):** no manufacturer, standards or regulator
+  document describes a proprietary lot-number date algorithm for any of the 59
+  brands. Aggregator sites (cosr.ai, checkcosmetic.online, cosmeticcalculator.com,
+  batchcodechecker.org, freshness.app, a Fragrantica thread) were rejected: they
+  contradict each other, cite no manufacturer, and one admits reseller-supplied
+  private algorithms. **Verified brand decoders remain 0 of 59**; the finding is
+  now a citable research document with the sources and the four-part evidence rule.
+- **Decoder engine v2:** `gs1-element-string` 2.0.0 now reads packaging (13),
+  best-before (15), sell-by (16), expiration date+time (7003) and production
+  timestamp (8008) in addition to 11/17/10; new `gs1-digital-link` 1.0.0 parses
+  GS1 Digital Link URIs (path, query or mixed, primary-key-gated); `explicit-date`
+  1.1.0 adds ISO 8601 ordinal dates. Every date field is validated against real
+  calendar/time rules; impossible dates and bad GTIN check digits are rejected.
+- **Checker:** decoded-date list with AI labels and times; precedence is printed →
+  GS1 expiry → GS1 best-before → shelf-life estimate → PAO, with a warning when a
+  printed date and a GS1 date disagree; the code field now accepts GS1 element
+  strings and Digital Link URIs (200 chars) as well as lot numbers.
+- **GTIN lookup:** moved from deprecated OFF v2 to `GET /api/v3.6/product/{code}`
+  with `product_type=all`, a compliant `AppName/Version (contact)` User-Agent, an
+  8 s timeout, 404/429/5xx/timeout/network separation, response validation,
+  source-server detection (Food/Beauty/Products/Pet Food), ODbL + CC-BY-SA
+  attribution, a 10/min token bucket and a TTL cache (found 24 h, not-found 6 h,
+  errors never), and a same-origin image proxy capped at 2 MB with type
+  allow-listing and `nosniff`. **Live connectivity is unverified** — the sandbox
+  cannot complete a TLS handshake to OFF, so only mocked transports were tested.
+- **Brand data hygiene:** aliases normalised and deduplicated (accent/case/
+  punctuation), guidance URLs restricted to HTTPS, categories deduplicated and
+  typed; unsupported brands stay searchable; coverage remains computed (0/59).
+- **SEO:** brand descriptions rewritten to 120–160 characters (they were
+  159–167); new `tests/barcode-tools-seo.test.ts` proves unique titles,
+  canonicals, the 127-URL sitemap with all 59 brand pages, and robots rules.
+- **Verification:** `tsc` 0, ESLint 0, Prettier clean, **115 files / 1,985 tests**,
+  build **138 static pages** (2 known Turbopack worker-resolution warnings), `npm
+  audit` **0 vulnerabilities**, runtime smoke on `:3010` (three tools 200, invalid
+  GTIN 400, live lookup 502 with an honest message, camera Permissions-Policy
+  scoped). **Playwright E2E not executed:** `playwright install chromium` fails
+  with `Download failure, code=1` (Chrome for Testing 156.0.8078.4, chromium
+  v1248) and no system browser exists.
+- **Supabase / Master Admin:** still absent from the repository (no client, no
+  env keys, no migrations, no `/admin`, no auth). Prerequisites are documented in
+  §10 of the readiness report; nothing was fabricated and no insecure admin
+  surface was built.
+
+# QUICKKIT Master Project Progress
+
 ## Phase 16 — Batch Code Checker + stand-alone Barcode Scanner (13 November 2026 UTC)
 
 **Branch:** `arena/6102e674-quickkit` (base `2ea1825`). **New routes:**
@@ -11,9 +64,10 @@ indexed.**
 - **Batch code engine (`lib/tools/batch-code`):** 59 brand records with parent
   group, categories, aliases, decoder id + version, status, code pattern, date
   logic, source reference, limitation, shelf-life guidance + source, optional
-  official site and `lastVerified`. Exactly three decoders ship: GS1 element
-  strings (AI 11 / 17 / 10, including the day-00 rule), an explicit-date pattern
-  (with every ambiguous reading listed), and `none`. **Zero brand-specific
+  official site and `lastVerified`. Four decoders ship (phase 17
+  added one and extended another): GS1 element strings (AI 11/13/15/16/17/7003/8008
+  plus AI 10, including the day-00 rule), GS1 Digital Link URIs, an explicit-date
+  pattern (calendar and ordinal, with every ambiguous reading listed), and `none`. **Zero brand-specific
   decoders are claimed** because no manufacturer document describing a lot
   format was reachable, so every proprietary format says so.
 - **Checker states:** VERIFIED (standards field or a date printed on the pack),

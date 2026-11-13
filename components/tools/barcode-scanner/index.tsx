@@ -13,6 +13,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Camera,
   CameraOff,
@@ -393,6 +394,7 @@ export default function BarcodeScanner() {
           status: "done",
           result: {
             status: "error",
+            reason: "network",
             message:
               "The lookup request did not complete. The barcode you scanned is unaffected — only the optional product lookup failed.",
           },
@@ -766,7 +768,19 @@ function LookupPanel({ result }: { result: LookupResult }) {
     const { product } = result;
     return (
       <div className={styles.lookup}>
-        <h4>{product.name}</h4>
+        <div className={styles.lookupHead}>
+          {product.imagePath ? (
+            <Image
+              className={styles.lookupImage}
+              src={product.imagePath}
+              alt={`Product image from ${product.sourceName}`}
+              width={72}
+              height={72}
+              unoptimized
+            />
+          ) : null}
+          <h4>{product.name}</h4>
+        </div>
         <dl>
           {product.brands.length ? (
             <>
@@ -786,6 +800,10 @@ function LookupPanel({ result }: { result: LookupResult }) {
               <dd>{product.categories.join(", ")}</dd>
             </>
           ) : null}
+          <dt>Database</dt>
+          <dd>
+            {product.sourceName} ({product.sourceHost})
+          </dd>
           <dt>Record</dt>
           <dd>
             <a
@@ -799,7 +817,7 @@ function LookupPanel({ result }: { result: LookupResult }) {
             {product.lastModified
               ? `, last edited ${product.lastModified}`
               : ""}
-            )
+            {product.imagePath ? `; image ${product.imageLicence}` : ""})
           </dd>
           <dt>Verified by</dt>
           <dd>Volunteers — not the manufacturer</dd>
@@ -808,14 +826,28 @@ function LookupPanel({ result }: { result: LookupResult }) {
       </div>
     );
   }
+  const heading =
+    result.status === "not-found"
+      ? "No record"
+      : result.status === "rate-limited"
+        ? "Lookup paused"
+        : result.status === "invalid"
+          ? "Not a valid GTIN"
+          : "Lookup unavailable";
   return (
     <div className={styles.lookup}>
       <h4>
-        {result.status === "error" ? (
+        {result.status === "error" || result.status === "rate-limited" ? (
           <TriangleAlert size={15} aria-hidden />
         ) : null}{" "}
-        {result.status === "not-found" ? "No record" : "Lookup unavailable"}
+        {heading}
       </h4>
+      {result.status === "rate-limited" ? (
+        <p className={styles.meta}>
+          Retry in about {result.retryAfterSeconds}s. Nothing was sent to the
+          database.
+        </p>
+      ) : null}
       <p className={styles.meta}>{result.message}</p>
       <p className={styles.meta}>
         Source: {PRODUCT_DATABASE.name} — a {PRODUCT_DATABASE.kind} database.{" "}

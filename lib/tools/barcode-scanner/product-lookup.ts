@@ -1,28 +1,67 @@
 /**
- * GTIN → product lookup against Open Food Facts.
+ * GTIN → product lookup against the Open Food Facts ecosystem.
  *
- * Three things this module refuses to do:
+ * Four things this module refuses to do:
  *   - call the third party without the visitor asking (the UI gates it behind a
  *     button, because the GTIN leaves the device when it runs);
  *   - present a community database record as manufacturer-verified data;
- *   - show a name, brand or category that is not in the response.
+ *   - show a name, brand, category or image that is not in the response;
+ *   - keep guessing after a 404, a 429 or a timeout.
  *
  * The request is made server-side by `/api/product-lookup`, so the browser
  * never talks to a third-party host and the site's Content-Security-Policy does
  * not need widening.
+ *
+ * API notes (checked 2026-11-13 against openfoodfacts.github.io):
+ *   - v3.6 is current, v2 is deprecated;
+ *   - `GET /api/v3.6/product/{code}?product_type=all` answers 200, 302 (to the
+ *     right server: food / beauty / petfood / products) or 404;
+ *   - a custom `AppName/Version (contact)` User-Agent is required;
+ *   - product reads are limited to 15 requests per minute per IP;
+ *   - data is ODbL 1.0, images are CC-BY-SA, and records are volunteer-entered.
  */
 import { gtinCheckOk } from "@/lib/tools/barcode/checksums";
+import { contactEmail } from "@/lib/site";
 
 export const PRODUCT_DATABASE = {
   name: "Open Food Facts",
   url: "https://world.openfoodfacts.org",
+  apiBase: "https://world.openfoodfacts.org/api/v3.6",
+  docs: "https://openfoodfacts.github.io/openfoodfacts-server/api/",
   licence: "ODbL 1.0",
+  imageLicence: "CC-BY-SA",
   kind: "community" as const,
   note: "A collaborative public database. Records are contributed by volunteers, not verified by the manufacturer.",
 };
 
 export const LOOKUP_DISCLOSURE =
   "A product-database match confirms only that someone recorded this GTIN. It is not manufacturer-verified, and it says nothing about the batch, date, expiry or authenticity of the pack in your hand.";
+
+/** The five OFF servers a GTIN can resolve to, and how each is named. */
+export const OFF_SERVERS = {
+  "world.openfoodfacts.org": {
+    name: "Open Food Facts",
+    url: "https://world.openfoodfacts.org",
+    scope: "food",
+  },
+  "world.openbeautyfacts.org": {
+    name: "Open Beauty Facts",
+    url: "https://world.openbeautyfacts.org",
+    scope: "cosmetics",
+  },
+  "world.openproductsfacts.org": {
+    name: "Open Products Facts",
+    url: "https://world.openproductsfacts.org",
+    scope: "general products",
+  },
+  "world.openpetfoodfacts.org": {
+    name: "Open Pet Food Facts",
+    url: "https://world.openpetfoodfacts.org",
+    scope: "pet food",
+  },
+} as const;
+
+export type OffHost = keyof typeof OFF_SERVERS;
 
 export type ProductRecord = {
   gtin: string;
@@ -31,19 +70,29 @@ export type ProductRecord = {
   quantity: string | null;
   categories: string[];
   lastModified: string | null;
+  /** Third-party image URL, only when it is on a known OFF host. */
+  imageUrl: string | null;
+  /** Same-origin proxy path for that image (never a hotlink in the browser). */
+  imagePath: string | null;
   sourceName: string;
+  sourceHost: OffHost;
   sourceUrl: string;
+  databaseUrl: string;
   licence: string;
+  imageLicence: string;
   /** Always false: this data never comes from the manufacturer. */
   manufacturerVerified: false;
   disclosure: string;
 };
 
+export type LookupErrorReason = "timeout" | "network" | "upstream" | "response";
+
 export type LookupResult =
   | { status: "found"; product: ProductRecord }
   | { status: "not-found"; message: string }
   | { status: "invalid"; message: string }
-  | { status: "error"; message: string };
+  | { status: "rate-limited"; message: string; retryAfterSeconds: number }
+  | { status: "error"; message: string; reason: LookupErrorReason };
 
 /** 8/12/13/14 digits with a correct GTIN check digit. */
 export function normalizeGtin(raw: string): string | null {
@@ -68,27 +117,86 @@ function list(value: unknown): string[] {
     .map((entry) => entry.slice(0, 80));
 }
 
-/** Turn an Open Food Facts v2 payload into a `LookupResult`, defensively. */
+export function offHost(hostname: string): OffHost | null {
+  const host = hostname.toLowerCase();
+  return (Object.keys(OFF_SERVERS) as OffHost[]).find((entry) => entry === host)
+    ? (host as OffHost)
+    : null;
+}
+
+/**
+ * Image and static assets are served from `images.<database>` and
+ * `static.<database>` subdomains, not from the API host. Only those four
+ * database domains (and their images/static subdomains) are accepted — never a
+ * generic CDN, never an arbitrary host.
+ */
+export function offAssetHost(hostname: string): OffHost | null {
+  const host = hostname.toLowerCase();
+  const direct = offHost(host);
+  if (direct) return direct;
+  const match = /^(?:images|static)\.([a-z0-9.-]+)$/.exec(host);
+  if (!match) return null;
+  return offHost(match[1]) ?? offHost(`world.${match[1]}`);
+}
+
+/**
+ * Accept an image URL only when it is HTTPS on a known OFF host. Anything else
+ * (a third-party CDN, a tracker, plain HTTP) is dropped rather than proxied.
+ */
+export function normalizeImageUrl(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  let url: URL;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  if (!offAssetHost(url.hostname)) return null;
+  return url.toString().slice(0, 500);
+}
+
+type ProductPayload = {
+  status?: unknown;
+  product?: unknown;
+  errors?: unknown;
+};
+
+/**
+ * Turn an Open Food Facts v3 payload into a `LookupResult`, defensively.
+ *
+ * `sourceHost` is the host that actually answered, so a beauty product resolved
+ * to Open Beauty Facts is attributed to Open Beauty Facts rather than to the
+ * food database that was asked first.
+ */
 export function parseProductPayload(
   gtin: string,
   payload: unknown,
+  sourceHost: OffHost = "world.openfoodfacts.org",
 ): LookupResult {
   if (!payload || typeof payload !== "object")
     return {
       status: "error",
+      reason: "response",
       message: "The product database returned an unreadable response.",
     };
 
-  const body = payload as { status?: unknown; product?: unknown };
+  const body = payload as ProductPayload;
   const product =
     body.product && typeof body.product === "object"
       ? (body.product as Record<string, unknown>)
       : null;
 
-  if (body.status === 0 || !product)
+  const failure =
+    body.status === "failure" ||
+    body.status === 0 ||
+    body.status === "0" ||
+    !product;
+
+  if (failure)
     return {
       status: "not-found",
-      message: `No record for GTIN ${gtin} in ${PRODUCT_DATABASE.name}. That is the common result — plenty of cosmetics are not in a food-oriented database.`,
+      message: `No record for GTIN ${gtin} in ${OFF_SERVERS[sourceHost].name}. That is a common result — plenty of cosmetics are not in a community database.`,
     };
 
   const name = text(product.product_name) ?? text(product.generic_name);
@@ -99,6 +207,13 @@ export function parseProductPayload(
       message: `A record exists for GTIN ${gtin}, but it carries no product name or brand, so nothing is shown.`,
     };
 
+  const server = OFF_SERVERS[sourceHost];
+  const imageUrl = normalizeImageUrl(
+    product.image_front_small_url ??
+      product.image_front_thumb_url ??
+      product.image_front_url,
+  );
+
   return {
     status: "found",
     product: {
@@ -108,25 +223,63 @@ export function parseProductPayload(
       quantity: text(product.quantity),
       categories: list(product.categories),
       lastModified:
-        typeof product.last_modified_t === "number"
+        typeof product.last_modified_t === "number" &&
+        Number.isFinite(product.last_modified_t)
           ? new Date(product.last_modified_t * 1000).toISOString().slice(0, 10)
           : null,
-      sourceName: PRODUCT_DATABASE.name,
-      sourceUrl: `${PRODUCT_DATABASE.url}/product/${gtin}`,
+      imageUrl,
+      imagePath: imageUrl ? `/api/product-lookup?gtin=${gtin}&image=1` : null,
+      sourceName: server.name,
+      sourceHost,
+      sourceUrl: `${server.url}/product/${gtin}`,
+      databaseUrl: server.url,
       licence: PRODUCT_DATABASE.licence,
+      imageLicence: PRODUCT_DATABASE.imageLicence,
       manufacturerVerified: false,
       disclosure: LOOKUP_DISCLOSURE,
     },
   };
 }
 
-const FIELDS =
-  "product_name,generic_name,brands,quantity,categories,last_modified_t,code";
+const FIELDS = [
+  "product_name",
+  "generic_name",
+  "brands",
+  "quantity",
+  "categories",
+  "last_modified_t",
+  "code",
+  "image_front_small_url",
+  "image_front_thumb_url",
+  "image_front_url",
+].join(",");
+
+/** `AppName/Version (contact)` — the shape Open Food Facts asks for. */
+export function userAgent(): string {
+  const contact = contactEmail ? `; ${contactEmail}` : "";
+  return `QUICKKIT-BarcodeScanner/1.1 (https://quickkit.online${contact})`;
+}
+
+export function productUrl(gtin: string): string {
+  return `${PRODUCT_DATABASE.apiBase}/product/${gtin}?product_type=all&fields=${FIELDS}`;
+}
+
+function retryAfter(response: Response): number {
+  const raw = response.headers?.get("retry-after") ?? null;
+  const seconds = raw ? Number(raw) : NaN;
+  return Number.isFinite(seconds) && seconds > 0 && seconds <= 3600
+    ? Math.ceil(seconds)
+    : 60;
+}
 
 /** Server-side lookup. Never throws: every failure is a described result. */
 export async function lookupProduct(
   rawGtin: string,
-  options: { fetchImpl?: typeof fetch; timeoutMs?: number } = {},
+  options: {
+    fetchImpl?: typeof fetch;
+    timeoutMs?: number;
+    now?: number;
+  } = {},
 ): Promise<LookupResult> {
   const gtin = normalizeGtin(rawGtin);
   if (!gtin)
@@ -137,35 +290,81 @@ export async function lookupProduct(
     };
 
   const doFetch = options.fetchImpl ?? fetch;
-  const timeoutMs = options.timeoutMs ?? 6000;
+  const timeoutMs = options.timeoutMs ?? 8000;
   try {
-    const response = await doFetch(
-      `${PRODUCT_DATABASE.url}/api/v2/product/${gtin}.json?fields=${FIELDS}`,
-      {
-        headers: {
-          "User-Agent": "QUICKKIT-BarcodeScanner/1.0 (https://quickkit.online)",
-          Accept: "application/json",
-        },
-        signal: AbortSignal.timeout(timeoutMs),
-        cache: "no-store",
+    const response = await doFetch(productUrl(gtin), {
+      headers: {
+        "User-Agent": userAgent(),
+        Accept: "application/json",
       },
-    );
+      redirect: "follow",
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: "no-store",
+    });
+
     if (response.status === 404)
       return {
         status: "not-found",
         message: `No record for GTIN ${gtin} in ${PRODUCT_DATABASE.name}.`,
       };
+    if (response.status === 429)
+      return {
+        status: "rate-limited",
+        retryAfterSeconds: retryAfter(response),
+        message: `${PRODUCT_DATABASE.name} is rate-limiting requests right now. Nothing is shown; try again later.`,
+      };
+    if (response.status >= 500)
+      return {
+        status: "error",
+        reason: "upstream",
+        message: `${PRODUCT_DATABASE.name} answered HTTP ${response.status}. That is the database being unavailable, not a verdict on your product, so nothing is shown rather than a partial guess.`,
+      };
     if (!response.ok)
       return {
         status: "error",
+        reason: "upstream",
         message: `${PRODUCT_DATABASE.name} answered HTTP ${response.status}. Nothing is shown rather than a partial guess.`,
       };
-    return parseProductPayload(gtin, await response.json());
+
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      return {
+        status: "error",
+        reason: "response",
+        message:
+          "The product database answered with something that was not JSON, so nothing is shown.",
+      };
+    }
+
+    const host = (() => {
+      try {
+        return offHost(new URL(response.url).hostname);
+      } catch {
+        return null;
+      }
+    })();
+    return parseProductPayload(
+      gtin,
+      payload,
+      host ?? "world.openfoodfacts.org",
+    );
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "unknown error";
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === "TimeoutError" || error.name === "AbortError");
+    const reason: LookupErrorReason = isTimeout ? "timeout" : "network";
+    const detail =
+      error instanceof Error && error.message.length <= 120
+        ? ` (${error.message.replace(/\s+/g, " ")})`
+        : "";
     return {
       status: "error",
-      message: `The lookup could not reach ${PRODUCT_DATABASE.name} (${reason}). The scanned barcode itself is unaffected.`,
+      reason,
+      message: isTimeout
+        ? `The lookup timed out after ${Math.round(timeoutMs / 1000)}s. The scanned barcode itself is unaffected.`
+        : `The lookup could not reach ${PRODUCT_DATABASE.name}${detail}. The scanned barcode itself is unaffected.`,
     };
   }
 }

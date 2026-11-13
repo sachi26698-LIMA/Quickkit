@@ -1,6 +1,6 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 4 November 2026
+**Last updated:** 13 November 2026
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
@@ -9,6 +9,27 @@
 **Previous V4 checkpoint (historical):** Word to PDF Converter V4 — native-engine / production-readiness continuation of the completed V3 editor at `/tools/word-to-pdf` (4 November 2026). **Private-worker infrastructure implemented for review; native execution/fidelity/production acceptance BLOCKED, NOT production-ready.** Same V3 editor and 100-page cap preserved. Added fail-closed private transport, container-per-job broker/recipe, bounded resource/cancellation/cleanup policy, real engine version probes, synthetic source fixtures and operator benchmark/setup tooling. LibreOffice and Docker are absent; approved native repository/artifact access is unavailable under this session's outbound policy (namespace isolation itself works). No genuine native demo or native 100/500/1000 metrics exists; no 1000-page editing claim. Final checks: 1057 unit tests, type/lint/build PASS; Word Chromium 17 PASS; selected wider Chromium 39 PASS. See `docs/WORD_TO_PDF_V4_QA.md`, setup, fidelity and benchmark reports. No merge/deployment or approval-state change for other tools.
 
 **Previous active-tool record (historical):** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
+
+## Barcode Studio final completion (phase 17) — implemented, external verification pending
+
+On `arena/6102e674-quickkit` (from checkpoint `7b47bc3`), the three tools were
+audited and extended rather than rebuilt. See
+`QUICKKIT_BARCODE_FINAL_PRODUCTION_READINESS.md` for the 19-section report and
+`docs/BARCODE_DECODER_RESEARCH.md` for the decoder research log.
+
+- **Coverage stays honest:** 0 of 59 brands have a verified decoder. No
+  manufacturer document describes a lot-code date format; aggregator formats were
+  rejected as unsourced and mutually contradictory. Two GS1 standards decoders and
+  one disclosed pattern decoder ship instead.
+- **GTIN lookup** is now on Open Food Facts v3.6 with a compliant User-Agent,
+  honest 404/429/5xx/timeout taxonomy, TTL cache, per-process rate limit and a
+  same-origin, type- and size-checked image proxy. Live connectivity is
+  **unverified** here (no runtime egress); mocked-transport tests only.
+- **Gates:** tsc 0, ESLint 0, Prettier clean, 115 files / 1,985 tests, 138 static
+  pages, `npm audit` 0. **E2E blocked:** Playwright's browser download fails in
+  this environment; no browser QA is claimed.
+- **Supabase / admin:** absent — no client, schema, auth or `/admin` route. Nothing
+  fabricated; prerequisites documented and awaiting owner approval.
 
 ## Batch Code Checker + Barcode Scanner (phase 16) — implemented, awaiting owner approval
 
@@ -24,10 +45,10 @@ with the Studio:
 | `/tools/batch-code-checker` | Brand autocomplete (59 records, aliases, category filters, A–Z directory, one statically generated record page per brand), lot-code input, optional product name, printed manufacture/expiry, purchase/opened dates and PAO 3–36M. Three results only: **VERIFIED**, **ESTIMATED**, **NOT DECODABLE**. Printed, decoded, estimated and after-opening dates are separate labelled cards; the printed date always governs. |
 | `/tools/barcode-scanner`    | Camera (rear preferred, switching, described permission/device/secure-context errors) and image upload, multiple symbols per photo, EAN-13/EAN-8/UPC-A/UPC-E/Code 128/GS1-128/Code 39/ITF-14/Codabar, copy, browser-local history, and an optional GTIN lookup through a same-origin proxy for Open Food Facts — labelled as a community database, never manufacturer-verified.                                          |
 
-**Engine honesty:** three decoders ship — a GS1 element string parser (AI 11
-production date, AI 17 expiration date, AI 10 batch, with GS1's day-00 rule), an
-explicit-date pattern that lists every ambiguous reading instead of choosing one,
-and `none`. **No brand-specific decoder is claimed for any of the 59 brands**,
+**Engine honesty (phase 17):** four decoders ship — two GS1 carriers (element
+string: AI 11/13/15/16/17/7003/8008 plus AI 10, with the day-00 rule; and GS1
+Digital Link URIs, path/query/mixed), an explicit-date pattern (calendar and
+ordinal, listing every ambiguous reading instead of choosing one), and `none`. **No brand-specific decoder is claimed for any of the 59 brands**,
 because no manufacturer document describing a proprietary lot format could be
 verified; each record states that, its limitation and its shelf-life source, and
 `lastVerified` is `null` until a real review happens.

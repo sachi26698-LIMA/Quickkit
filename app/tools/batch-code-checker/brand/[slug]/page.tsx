@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     );
   return pageMetadata(
     `${brand.name} batch code: decoder and coverage`,
-    `Does ${brand.name} print a decodable batch code? The record states its decoder status, code pattern, shelf-life guidance and limitation — with no invented date logic.`,
+    `${brand.name} batch code: decoder status, code pattern, shelf-life guidance and the limitation, with no invented date logic or guessed shelf life.`,
     `/tools/batch-code-checker/brand/${brand.slug}`,
   );
 }

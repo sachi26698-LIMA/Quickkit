@@ -58,13 +58,57 @@ function shelfLifeFor(seed: Seed): ShelfLife {
   };
 }
 
+/** Diacritic- and case-insensitive key used only to spot duplicate aliases. */
+function key(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Aliases are display strings, but they are also search keys. Trim them,
+ * collapse whitespace, drop blanks, drop a duplicate of the brand's own name,
+ * and drop case/accent/punctuation variants of an alias already present. A
+ * record can never ship two aliases that normalise to the same key.
+ */
+function cleanAliases(name: string, aliases: string[] = []): string[] {
+  const seen = new Set<string>([key(name)]);
+  const out: string[] = [];
+  for (const alias of aliases) {
+    const trimmed = alias.replace(/\s+/g, " ").trim();
+    const aliasKey = key(trimmed);
+    if (!aliasKey || seen.has(aliasKey)) continue;
+    seen.add(aliasKey);
+    out.push(trimmed);
+  }
+  return out;
+}
+
+function cleanCategories(categories: ProductCategory[]): ProductCategory[] {
+  return [...new Set(categories)];
+}
+
+/** Only an https URL is kept as public brand guidance; anything else is null. */
+function cleanGuidance(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function record(seed: Seed): BrandRecord {
   return {
     slug: seed.slug,
-    name: seed.name,
-    aliases: seed.aliases ?? [],
+    name: seed.name.replace(/\s+/g, " ").trim(),
+    aliases: cleanAliases(seed.name, seed.aliases),
     parentGroup: seed.group,
-    categories: seed.categories,
+    categories: cleanCategories(seed.categories),
     decoderId: "none",
     decoderVersion: "0",
     decoderStatus: "none",
@@ -74,10 +118,10 @@ function record(seed: Seed): BrandRecord {
     source: NO_SOURCE,
     limitation: seed.limitation ?? GUIDANCE_FALLBACK,
     shelfLife: shelfLifeFor(seed),
-    officialGuidance: seed.guidance
+    officialGuidance: cleanGuidance(seed.guidance)
       ? {
           label: `${seed.name} official site`,
-          url: seed.guidance,
+          url: cleanGuidance(seed.guidance)!,
           kind: "brand-site",
         }
       : null,

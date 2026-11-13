@@ -1,21 +1,23 @@
 /**
  * Decoders and date arithmetic for the batch-code checker.
  *
- * There are exactly three decoders, and each states what it is:
+ * There are exactly four decoders, and each states what it is:
  *
- *  - `gs1-element-string` reads Application Identifiers 11 (production date),
- *    17 (expiration date) and 10 (batch) from a GS1 element string, as defined
- *    by the GS1 General Specifications. This is the only path that can produce
- *    a *verified* decoded date.
+ *  - `gs1-element-string` reads the GS1 date Application Identifiers (11, 13,
+ *    15, 16, 17, 7003, 8008) and AI 10 (batch) from a GS1 element string, as
+ *    defined by the GS1 General Specifications. This is one of the two paths
+ *    that can produce a *verified* decoded date.
+ *  - `gs1-digital-link` reads the same identifiers out of a GS1 Digital Link
+ *    URI (path form, query form, or both), with the same validation.
  *  - `explicit-date` finds a date-shaped token inside a lot code (e.g. `06/2027`,
- *    `20270612`, `251231`). It is a pattern match, disclosed as one, and never
- *    described as a brand algorithm.
+ *    `20270612`, `251231`, `2026-317`). It is a pattern match, disclosed as
+ *    one, and never described as a brand algorithm.
  *  - `none` means exactly that: no documented decoder exists for the brand, so
  *    the tool will not invent one.
  *
  * Nothing here guesses a manufacture date from an opaque code such as `28H300`.
  */
-import { parseGs1 } from "@/lib/tools/barcode/gs1";
+import { isKnownAi, parseGs1 } from "@/lib/tools/barcode/gs1";
 import type {
   BrandRecord,
   DecoderVerdict,
@@ -83,6 +85,15 @@ export function makeDate(year: number, month: number, day: number) {
   const resolvedDay = day === 0 ? max : day;
   if (resolvedDay < 1 || resolvedDay > max) return null;
   return `${year}-${pad(month)}-${pad(resolvedDay)}`;
+}
+
+/** ISO 8601 ordinal date (year + day of the year) → ISO calendar date. */
+export function ordinalToIso(year: number, dayOfYear: number) {
+  if (year < 1900 || year > 2200) return null;
+  const limit = isLeapYear(year) ? 366 : 365;
+  if (dayOfYear < 1 || dayOfYear > limit) return null;
+  const date = new Date(Date.UTC(year, 0, dayOfYear));
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
 /** Two-digit year: 00–69 → 2000s, 70–99 → 1900s. Disclosed in the UI. */
@@ -182,6 +193,17 @@ export function scanExplicitDate(rawCode: string): ScanOutcome {
     candidates.push({ date, match, interpretation });
   };
 
+  // 0. ISO 8601 ordinal dates: YYYY-DDD (year + day of the year).
+  for (const match of code.matchAll(/(?<!\d)(\d{4})-(\d{3})(?!\d)/g)) {
+    const [whole, year, dayOfYear] = match;
+    const day = Number(dayOfYear);
+    const limit = isLeapYear(Number(year)) ? 366 : 365;
+    if (day >= 1 && day <= limit) {
+      const resolved = ordinalToIso(Number(year), day);
+      if (resolved) push(resolved, whole, "ISO 8601 ordinal date (YYYY-DDD)");
+    }
+  }
+
   // 1. Separated forms: YYYY-MM-DD, DD/MM/YYYY, MM/YYYY, MM/YY.
   for (const match of code.matchAll(
     /(?<![\d./-])(\d{1,4})[/.-](\d{1,4})(?:[/.-](\d{1,4}))?(?![\d/.-])/g,
@@ -278,12 +300,47 @@ export function scanExplicitDate(rawCode: string): ScanOutcome {
 /* GS1 element string                                                          */
 /* -------------------------------------------------------------------------- */
 
+export type Gs1DateField = {
+  /** Application Identifier that carried the date. */
+  ai: string;
+  label: string;
+  /** ISO calendar date, already validated (a day of 00 becomes month end). */
+  date: string;
+  /** `HH:mm` for AI 7003 / 8008, otherwise null. */
+  time: string | null;
+};
+
 export type Gs1Facts = {
   productionDate: string | null;
   expiryDate: string | null;
+  bestBeforeDate: string | null;
+  packagingDate: string | null;
   batch: string | null;
   gtin: string | null;
   fields: { ai: string; value: string }[];
+  /** Every date the element string carried, in the order it appeared. */
+  dates: Gs1DateField[];
+  carrier: "element-string" | "digital-link";
+};
+
+/**
+ * GS1 date application identifiers.
+ *
+ * Source: GS1 General Specifications, AI table (AI 11–17, 7003, 7006, 7007,
+ * 8008). A date AI is only ever read as its defined format — a six-digit field
+ * that is not a real calendar date is rejected, never "adjusted".
+ */
+export const GS1_DATE_AIS: Record<string, string> = {
+  "11": "Production date",
+  "12": "Due date",
+  "13": "Packaging date",
+  "15": "Best-before date",
+  "16": "Sell-by date",
+  "17": "Expiration date",
+  "7003": "Expiration date and time",
+  "7006": "First freeze date",
+  "7007": "Harvest date",
+  "8008": "Date and time of production",
 };
 
 function gs1Date(value: string) {
@@ -294,27 +351,140 @@ function gs1Date(value: string) {
   return makeDate(year, month, day);
 }
 
-/** Read AI 01/10/11/17 out of a GS1 element string. */
+const padTime = (hour: number, minute: number) =>
+  hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59
+    ? `${pad(hour)}:${pad(minute)}`
+    : null;
+
+/** Decode one date AI. Returns null when the value is not that AI's format. */
+export function readGs1Date(
+  ai: string,
+  value: string,
+): { date: string; time: string | null } | null {
+  if (!/^\d+$/.test(value)) return null;
+  if (ai === "7003" && value.length === 10) {
+    const date = gs1Date(value.slice(0, 6));
+    const time = padTime(Number(value.slice(6, 8)), Number(value.slice(8, 10)));
+    return date && time ? { date, time } : null;
+  }
+  if (ai === "8008" && value.length === 12) {
+    const date = makeDate(
+      Number(value.slice(0, 4)),
+      Number(value.slice(4, 6)),
+      Number(value.slice(6, 8)),
+    );
+    const time = padTime(
+      Number(value.slice(8, 10)),
+      Number(value.slice(10, 12)),
+    );
+    return date && time ? { date, time } : null;
+  }
+  if (ai === "8008") return null;
+  if (value.length !== 6) return null;
+  const date = gs1Date(value);
+  return date ? { date, time: null } : null;
+}
+
+function factsFromFields(
+  fields: { ai: string; value: string }[],
+  carrier: Gs1Facts["carrier"],
+): Gs1Facts | null {
+  const dates: Gs1DateField[] = [];
+  for (const field of fields) {
+    const label = GS1_DATE_AIS[field.ai];
+    if (!label) continue;
+    const parsed = readGs1Date(field.ai, field.value);
+    if (!parsed) continue;
+    dates.push({ ai: field.ai, label, date: parsed.date, time: parsed.time });
+  }
+  const dateFor = (...ais: string[]) =>
+    dates.find((entry) => ais.includes(entry.ai))?.date ?? null;
+  const field = (ai: string) =>
+    fields.find((entry) => entry.ai === ai)?.value ?? null;
+  const facts: Gs1Facts = {
+    productionDate: dateFor("11", "8008"),
+    expiryDate: dateFor("17", "7003"),
+    bestBeforeDate: dateFor("15", "16"),
+    packagingDate: dateFor("13"),
+    batch: field("10"),
+    gtin: field("01"),
+    fields,
+    dates,
+    carrier,
+  };
+  // A string that carries none of the identifiers this tool understands tells
+  // us nothing about a date, so it is not reported as a GS1 match.
+  if (!dates.length && !facts.batch && !facts.gtin) return null;
+  return facts;
+}
+
+/** Read every supported AI out of a GS1 element string (bracketed or raw). */
 export function readGs1Facts(raw: string): Gs1Facts | null {
   const parsed = parseGs1(raw.trim());
   if (!parsed.ok) return null;
-  const field = (ai: string) =>
-    parsed.fields.find((entry) => entry.ai === ai)?.value ?? null;
-  const facts: Gs1Facts = {
-    productionDate: field("11") ? gs1Date(field("11")!) : null,
-    expiryDate: field("17") ? gs1Date(field("17")!) : null,
-    batch: field("10"),
-    gtin: field("01"),
-    fields: parsed.fields.map((entry) => ({
-      ai: entry.ai,
-      value: entry.value,
-    })),
-  };
-  // A string that carries none of the four AIs this tool understands tells us
-  // nothing about a date, so it is not reported as a GS1 match.
-  if (!facts.productionDate && !facts.expiryDate && !facts.batch && !facts.gtin)
+  return factsFromFields(
+    parsed.fields.map((entry) => ({ ai: entry.ai, value: entry.value })),
+    "element-string",
+  );
+}
+
+const PRIMARY_KEY_AIS = ["01", "8006", "00"];
+
+/**
+ * Parse a GS1 Digital Link URI into the same facts.
+ *
+ * Source: GS1 Digital Link Standard, URI syntax 1.7.0 (ref.gs1.org). Accepted
+ * shapes are the path form (`/01/<gtin>/17/251231`), the query form
+ * (`/01/<gtin>?17=251231`) and a mix of the two. Values are validated with the
+ * same AI table as a GS1 element string, so a bad length, a broken GTIN check
+ * digit or an unknown AI is rejected rather than half-read.
+ */
+export function readDigitalLinkFacts(input: string): Gs1Facts | null {
+  const raw = input.trim();
+  if (!/^https?:\/\//i.test(raw)) return null;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
     return null;
-  return facts;
+  }
+
+  const segments = url.pathname
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment);
+      } catch {
+        return segment;
+      }
+    });
+  if (!segments.length || !PRIMARY_KEY_AIS.includes(segments[0])) return null;
+
+  const fields: { ai: string; value: string }[] = [];
+  for (let index = 0; index + 1 < segments.length; index += 2) {
+    const ai = segments[index];
+    if (!isKnownAi(ai)) return null;
+    fields.push({ ai, value: segments[index + 1] });
+  }
+  if (segments.length % 2 !== 0) return null;
+
+  for (const [key, value] of url.searchParams) {
+    // Digital Link reserves a few non-AI query keys; everything numeric is an AI.
+    if (!/^\d{2,4}$/.test(key)) continue;
+    if (!isKnownAi(key)) return null;
+    fields.push({ ai: key, value });
+  }
+
+  const elementString = fields
+    .map((entry) => `(${entry.ai})${entry.value}`)
+    .join("");
+  const parsed = parseGs1(elementString);
+  if (!parsed.ok) return null;
+  return factsFromFields(
+    parsed.fields.map((entry) => ({ ai: entry.ai, value: entry.value })),
+    "digital-link",
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -325,31 +495,51 @@ export type DecoderDoc = {
   id: string;
   version: string;
   name: string;
-  status: DecoderVerdict["status"] extends never
-    ? never
-    : "standards" | "pattern" | "none";
+  status: "standards" | "pattern" | "none";
   what: string;
   limitation: string;
   evidence: EvidenceRef;
+  /** ISO date this decoder's sources were last checked by hand. */
+  verifiedOn: string;
+};
+
+const CHECKED_ON = "2026-11-13";
+
+export const DIGITAL_LINK_EVIDENCE: EvidenceRef = {
+  label: "GS1 Digital Link Standard — URI syntax 1.7.0 (Aug 2026)",
+  url: "https://ref.gs1.org/standards/digital-link/uri-syntax/",
+  kind: "standard",
 };
 
 export const DECODERS: DecoderDoc[] = [
   {
     id: "gs1-element-string",
-    version: "1.0.0",
-    name: "GS1 element string (AI 11 / 17 / 10)",
+    version: "2.0.0",
+    name: "GS1 element string (AI 11/13/15/16/17/7003/8008)",
     status: "standards",
-    what: "Reads the production date (AI 11), expiration date (AI 17) and batch (AI 10) from a GS1 element string, including the AI 17 rule that a day of 00 means the last day of the month.",
+    what: "Reads every date application identifier the GS1 General Specifications define for a product: production (11), packaging (13), best before (15), sell by (16), expiration (17), expiration date and time (7003) and date and time of production (8008). A day of 00 means the last day of the month; a field that is not a real date is rejected.",
     limitation:
       "Only works when the code really is a GS1 element string, which a printed lot number usually is not. A GTIN on its own carries no date.",
     evidence: STANDARD_EVIDENCE,
+    verifiedOn: CHECKED_ON,
+  },
+  {
+    id: "gs1-digital-link",
+    version: "1.0.0",
+    name: "GS1 Digital Link URI",
+    status: "standards",
+    what: "Parses a GS1 Digital Link URI — the /01/<gtin>/17/<date> path form, the ?17=<date> query form, or both — into the same application identifiers, so a QR code on a pack yields its batch and dates without a guess.",
+    limitation:
+      "The URI must be a real GS1 Digital Link (a primary key such as AI 01 first) and pass the same AI validation as an element string. A marketing URL that merely contains numbers is not accepted.",
+    evidence: DIGITAL_LINK_EVIDENCE,
+    verifiedOn: CHECKED_ON,
   },
   {
     id: "explicit-date",
-    version: "1.0.0",
+    version: "1.1.0",
     name: "Explicit date inside the lot code",
     status: "pattern",
-    what: "Recognises a date the manufacturer typed into the code itself — 06/2027, 2027-06-12, 20270612, 260612 — and rejects impossible dates such as 2026-02-30.",
+    what: "Recognises a date the manufacturer typed into the code itself — 06/2027, 2027-06-12, 20270612, 260612, 2026-317 (ISO ordinal) — and rejects impossible dates such as 2026-02-30.",
     limitation:
       "A pattern, not a brand algorithm. Two readings of the same digits are both shown when the code is ambiguous, and the packaging remains the authority.",
     evidence: {
@@ -357,13 +547,14 @@ export const DECODERS: DecoderDoc[] = [
       url: "https://www.iso.org/iso-8601-date-and-time-format.html",
       kind: "standard",
     },
+    verifiedOn: CHECKED_ON,
   },
   {
     id: "none",
     version: "0",
     name: "No documented decoder",
     status: "none",
-    what: "Nothing is claimed. The tool explains why, shows the brand's own guidance where a public address exists, and asks for the printed expiry date instead.",
+    what: "Nothing is claimed. The tool explains why, shows the brand's own guidance where a public address exists, and asks for the printed date instead.",
     limitation:
       "Most cosmetics brands use internal lot numbers with no published date logic. Guessing one would produce a confident-looking wrong answer.",
     evidence: {
@@ -371,11 +562,14 @@ export const DECODERS: DecoderDoc[] = [
       url: null,
       kind: "none",
     },
+    verifiedOn: CHECKED_ON,
   },
 ];
 
 export function decoderDoc(id: string) {
-  return DECODERS.find((entry) => entry.id === id) ?? DECODERS[2];
+  return (
+    DECODERS.find((entry) => entry.id === id) ?? DECODERS[DECODERS.length - 1]
+  );
 }
 
 export type DecodeOutcome = {
@@ -391,26 +585,31 @@ export type DecodeOutcome = {
 export function decodeCode(brand: BrandRecord, rawCode: string): DecodeOutcome {
   const code = rawCode.trim();
 
-  // 1. Standards carrier.
-  const gs1 = readGs1Facts(code);
-  if (gs1 && (gs1.productionDate || gs1.expiryDate)) {
-    const parts: string[] = [];
-    if (gs1.productionDate) parts.push("production date (AI 11)");
-    if (gs1.expiryDate) parts.push("expiration date (AI 17)");
+  // 1. Standards carriers: a Digital Link URI, then an element string.
+  const gs1 = readDigitalLinkFacts(code) ?? readGs1Facts(code);
+  if (gs1 && gs1.dates.length) {
+    const parts = gs1.dates.map(
+      (entry) => `${entry.label.toLowerCase()} (AI ${entry.ai})`,
+    );
     if (gs1.batch) parts.push("batch (AI 10)");
+    const fromLink = gs1.carrier === "digital-link";
     return {
       manufacture: gs1.productionDate,
       expiry: gs1.expiryDate,
       candidates: [],
       gs1,
       verdict: {
-        id: "gs1-element-string",
-        version: "1.0.0",
+        id: fromLink ? "gs1-digital-link" : "gs1-element-string",
+        version: fromLink ? "1.0.0" : "2.0.0",
         status: "verified",
-        headline: "Decoded from a GS1 element string",
-        detail: `This is a GS1 element string, and it carries ${parts.join(", ")}. The dates come from the standard-defined fields, not from a guess.`,
+        headline: fromLink
+          ? "Decoded from a GS1 Digital Link URI"
+          : "Decoded from a GS1 element string",
+        detail: `${fromLink ? "This is a GS1 Digital Link URI" : "This is a GS1 element string"}, and it carries ${parts.join(", ")}. The dates come from the standard-defined fields, not from a guess.`,
         match: gs1.fields.map((field) => `(${field.ai})`).join(""),
-        evidence: STANDARD_EVIDENCE.label,
+        evidence: fromLink
+          ? DIGITAL_LINK_EVIDENCE.label
+          : STANDARD_EVIDENCE.label,
       },
     };
   }
@@ -426,7 +625,7 @@ export function decodeCode(brand: BrandRecord, rawCode: string): DecodeOutcome {
       gs1,
       verdict: {
         id: "explicit-date",
-        version: "1.0.0",
+        version: "1.1.0",
         status: "estimated",
         headline: scan.ambiguous
           ? "A date is visible in the code, but it is ambiguous"

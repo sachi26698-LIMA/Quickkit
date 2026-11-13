@@ -23,7 +23,8 @@ export type ProductCategory =
   | "sun-care"
   | "other";
 
-export type DecoderId = "none" | "gs1-element-string" | "explicit-date";
+export type DecoderId =
+  "none" | "gs1-element-string" | "gs1-digital-link" | "explicit-date";
 
 /**
  * `standards` — defined by a published standard (GS1 General Specifications).
@@ -133,6 +134,15 @@ export type CheckResult = {
   remainingDays: number | null;
   /** Every date-shaped reading found in the code, when the pattern matched one. */
   candidates: { date: string; match: string; interpretation: string }[];
+  /** Dates carried by a GS1 carrier, each with the AI that defined it. */
+  decodedDates: {
+    ai: string;
+    label: string;
+    date: string;
+    time: string | null;
+  }[];
+  /** A GS1 expiration / best-before date: standards-defined, not a pattern. */
+  decodedExpiry: DateFact | null;
   warnings: string[];
   notes: string[];
   checkedOn: string;

@@ -35,7 +35,7 @@ export default function Page() {
         faqs: [
           {
             q: "Can this tool decode any cosmetics batch code?",
-            a: "No, and it says so. Most brands keep their lot-number format internal, so there is no public algorithm to apply. The checker ships three decoders: GS1 element strings (a published standard), an explicit date typed into the code, and nothing else. Every brand record with no published format is marked as undecodable, and the tool will not produce a date for it.",
+            a: "No, and it says so. Most brands keep their lot-number format internal, so there is no public algorithm to apply. The checker ships four decoders: GS1 element strings and GS1 Digital Link URIs (both published standards), an explicit date typed into the code, and nothing else. Every brand record with no published format is marked as undecodable, and the tool will not produce a date for it.",
           },
           {
             q: "What is the difference between VERIFIED and ESTIMATED?",

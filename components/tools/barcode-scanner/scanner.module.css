@@ -379,6 +379,22 @@
   font-size: 15px;
 }
 
+.lookupHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lookupImage {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid var(--qq-border);
+  object-fit: cover;
+  background: #fff;
+}
+
 .lookup dl {
   display: grid;
   grid-template-columns: minmax(84px, auto) 1fr;

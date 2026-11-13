@@ -306,3 +306,37 @@ describe("brand records", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("GS1 carriers in the checker form", () => {
+  it("shows every date field a GS1 element string carries", () => {
+    render(<BatchChecker />);
+    chooseBrand("Nivea");
+    fillCode("(01)09501101530003(11)260101(15)260630(17)270101(10)LOT-7");
+    submit();
+    expect(
+      within(screen.getByRole("status")).getByText("VERIFIED"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Date fields carried by the code/i),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Production date/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Best-before date/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Expiration date/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/AI 17/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1 Jan 2027/).length).toBeGreaterThan(0);
+  });
+
+  it("accepts a pasted GS1 Digital Link URI", () => {
+    render(<BatchChecker />);
+    chooseBrand("Nivea");
+    fillCode("https://id.gs1.org/01/09501101530003/17/251231/10/AB-12");
+    submit();
+    expect(
+      within(screen.getByRole("status")).getByText("VERIFIED"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/GS1 Digital Link/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/the link itself was not opened/i),
+    ).toBeInTheDocument();
+  });
+});
