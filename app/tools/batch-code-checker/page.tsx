@@ -50,6 +50,10 @@ export default function Page() {
             a: "Because the printed date is real evidence and a guessed decode is not. When a brand's lot format has no public documentation, the honest output is the explanation plus the official route to ask the manufacturer, not a confident-looking date. If the pack prints EXP or a best-before date, entering it gives you a verified answer immediately.",
           },
           {
+            q: "Where is the batch number on an Indian cosmetic pack?",
+            a: "India's Cosmetics Rules, 2020 (Rule 34) require a batch or lot number on the inner or outer label, and it must be preceded by B, Batch No., B. No., Batch, Lot No. or Lot. The same rule requires the date of manufacture and the expiry or use-before date on the label, and it prescribes no alphanumeric format for the code itself — which is why the printed dates, not the letters and digits, are what this tool can verify. If you see a code with one of those prefixes and a printed date on the same panel, enter both.",
+          },
+          {
             q: "Are the brand records and shelf lives made up?",
             a: "No. Each record lists the parent group, categories, decoder id and version, verification status, limitation and shelf-life source. No brand-specific decoder is claimed for any brand because no manufacturer document describing one was verifiable, so the verified count is zero and every record says so. Shelf lives are general category guidance with the source named, and the printed date always wins.",
           },
