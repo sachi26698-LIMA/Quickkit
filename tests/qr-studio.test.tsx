@@ -42,6 +42,10 @@ function useSmallSize() {
 async function settle() {
   await waitFor(() => expect(screen.getByText(VERIFIED)).toBeInTheDocument(), {
     timeout: VERIFY_TIMEOUT,
+    onTimeout: (error) =>
+      new Error(
+        `${error.message}\nQR verdict: ${document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ?? "missing"}`,
+      ),
   });
 }
 
@@ -54,7 +58,13 @@ async function settleOrWarn() {
           /Verified by an independent decoder|Decoded — with notes below/,
         ),
       ).toBeInTheDocument(),
-    { timeout: VERIFY_TIMEOUT },
+    {
+      timeout: VERIFY_TIMEOUT,
+      onTimeout: (error) =>
+        new Error(
+          `${error.message}\nQR verdict: ${document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ?? "missing"}`,
+        ),
+    },
   );
 }
 
