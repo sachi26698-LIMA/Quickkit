@@ -16,6 +16,8 @@ import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
 import { pageMetadata } from "@/lib/seo";
 import { toolBySlug, tools } from "@/lib/catalog";
+import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
+import styles from "./home-premium.module.css";
 
 export const metadata = pageMetadata(
   "Free Online PDF, Image, QR, Code & Math Tools",
@@ -56,14 +58,21 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
 
 export default function Home() {
   return (
-    <div className="home">
+    <div className={`home ${styles.premiumHome}`}>
       <section className="hero" aria-label="QUICKKIT tools">
         {/* The page's real headline: what the site is and what it covers. It
             names the four tool families the site actually ships, so the most
             linked-to URL on the domain says something concrete. */}
         <div className="hero-intro">
+          <span className={styles.heroBadge}>
+            <Sparkles size={14} aria-hidden="true" />
+            YOUR EVERYDAY DIGITAL TOOLKIT
+          </span>
           <h1 className="hero-headline">
-            Free online tools for PDFs, images, text and code
+            Free online tools for{" "}
+            <span className={styles.headlineAccent}>
+              PDFs, images, text and code
+            </span>
           </h1>
           <p className="hero-lede">
             {tools.length} browser tools for the jobs that interrupt a working
@@ -84,6 +93,7 @@ export default function Home() {
                 <Link
                   key={slug}
                   className="popular-chip"
+                  style={toolSurfaceStyle(toolTheme(tool.slug, tool.category))}
                   href={`/tools/${tool.slug}`}
                   prefetch={false}
                 >

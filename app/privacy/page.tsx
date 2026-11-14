@@ -33,9 +33,10 @@ export default function PrivacyPage() {
       <ul>
         <li>No account, no login, no profile, no email sign-up.</li>
         <li>
-          No analytics or session-recording service. When advertising is
-          enabled, a Google AdSense verification script loads on eligible pages;
-          its third-party processing is described in sections 7 and 8.
+          Optional first-party visitor statistics, with no session recording.
+          When advertising is enabled, a Google AdSense verification script
+          loads on eligible pages; its third-party processing is described in
+          sections 7 and 8.
         </li>
         <li>
           Most tools process files and text in your browser. Word to PDF is an
@@ -168,6 +169,20 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li>
+          <code>quickkit-tool-feedback-v1</code> — optional tool ratings,
+          selected feedback options, comments (up to 600 characters) and
+          timestamps. Saved only when you choose “Save my feedback”; not sent to
+          the operator or published. Please do not include personal information
+          or file contents. Your saved tool reviews also appear on the homepage
+          laptop screen in this browser, not on other visitors’ screens.
+          Feedback invitations can appear after each new completed download;
+          dismissing one does not block future invitations. You can read past
+          reviews through “Share feedback” on the homepage. Reviews have no
+          edit/delete controls in QUICKKIT and new reviews do not replace old
+          ones. Browser site-data controls can still erase local feedback;
+          clearing site data or using another browser will not preserve it.
+        </li>
+        <li>
           <code>quickkit:saved-tools</code> — the slugs of tools you hearted, so
           the Saved page can list them.
         </li>
@@ -244,12 +259,12 @@ export default function PrivacyPage() {
         provider.
       </p>
       <p>
-        The QUICKKIT application itself does not implement application-level
-        request logging, visitor counters or error tracking. Provider-side
-        logging, retention periods, subprocessors and hosting region depend on
-        the deployment configuration and are set by the operator&rsquo;s hosting
-        account, so we are not going to state a retention period we cannot
-        verify.
+        The QUICKKIT application offers an opt-in first-party visitor counter,
+        described below. It does not implement application-level request logging
+        or session recording. Provider-side logging, retention periods,
+        subprocessors and hosting region depend on the deployment configuration
+        and are set by the operator&rsquo;s hosting account, so we are not going
+        to state a retention period we cannot verify.
       </p>
       <p className="legal-owner-line">
         Hosting provider: <strong>Vercel Inc.</strong> (vercel.com), which
@@ -266,6 +281,37 @@ export default function PrivacyPage() {
         <code>#</code>, which browsers do not send to a server). Anything before
         the <code>#</code> is a normal request and may be logged by the hosting
         provider.
+      </p>
+
+      <h3>Optional live visitor statistics</h3>
+      <p>
+        Only after you select “Allow anonymous visitor statistics”, the browser
+        sends random visitor and visit identifiers and cumulative visible-tab
+        time to our same-origin counter every 20 seconds while visible. No tool
+        input, file, page URL, IP address or user agent is stored by this
+        counter. Hosting providers still receive ordinary request metadata as
+        described above. Do Not Track disables participation. You can turn this
+        off in the footer.
+      </p>
+      <p>
+        The public laptop graph shows participating browsers seen in the last 45
+        seconds, distinct participating browser identifiers since tracking
+        began, and average visible time across participating visits (including
+        ongoing visits). These are estimates, not verified people: other
+        devices, cleared storage and automated requests can affect counts. No
+        historical traffic before installation can be recovered. The three bars
+        use a logarithmic scale; duration is in seconds, the other bars are
+        counts.
+      </p>
+      <p>
+        Server-side visit records are pruned after 24 hours without a heartbeat
+        when new heartbeats arrive. Hashed random browser identifiers are
+        retained for cumulative deduplication, together with aggregate totals.
+        They are not linked to names or accounts. Turning participation off
+        stops future reporting and removes the local identifiers, but does not
+        subtract past contributions. The operator can reset the database and
+        must verify hosting location, retention and any required consent before
+        enabling production.
       </p>
 
       <h2 id="retention">10. Data retention and deletion</h2>

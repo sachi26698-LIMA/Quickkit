@@ -1,5 +1,6 @@
 import { useId, type CSSProperties, type ReactNode } from "react";
 import type { CategoryMeta, Tool, ToolCategory } from "@/lib/catalog";
+import { toolIconStyle, toolTheme } from "@/lib/tool-theme";
 
 /**
  * Shared 3D icon system.
@@ -22,9 +23,8 @@ import type { CategoryMeta, Tool, ToolCategory } from "@/lib/catalog";
  */
 
 /**
- * One colour identity per category. Tools inherit the tone of their primary
- * category, so a category reads as one family while every tool keeps its own
- * glyph.
+ * Category tones supply the default palette. ToolIcon3D applies the tool
+ * identity on top, keeping each tool distinct wherever its icon appears.
  */
 export type Tone =
   | "violet"
@@ -1547,6 +1547,8 @@ export type Icon3DProps = {
   className?: string;
   /** Seed for the float timing; defaults to `name`. */
   motionKey?: string;
+  /** Explicit tool palette; category icons keep their tone defaults. */
+  style?: CSSProperties;
 };
 
 export default function Icon3D({
@@ -1555,6 +1557,7 @@ export default function Icon3D({
   size = 56,
   className,
   motionKey,
+  style: paletteStyle,
 }: Icon3DProps) {
   const raw = useId();
   const uid = `i3-${raw.replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -1565,6 +1568,7 @@ export default function Icon3D({
     clip: `${uid}c`,
   };
   const style = {
+    ...paletteStyle,
     "--s": `var(--icon-size, ${size}px)`,
     "--i-dur": `${(3.8 + seed(key, 1) * 2.4).toFixed(2)}s`,
     "--i-delay": `${(-seed(key, 2) * 7).toFixed(2)}s`,
@@ -1753,7 +1757,7 @@ const fallbackArt: Record<string, GlyphName> = {
 
 export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
 
-/** Tool cards share the 3D system while each Developer Tool has its own accent. */
+/** Base tone classes; explicit tool tokens take precedence over these defaults. */
 const toolAccentTones: Record<string, Tone> = {
   "json-formatter": "indigo",
   "json-validator": "cyan",
@@ -1792,6 +1796,7 @@ export function ToolIcon3D({
       size={size}
       className={className}
       motionKey={tool.slug}
+      style={toolIconStyle(toolTheme(tool.slug, tool.category))}
     />
   );
 }

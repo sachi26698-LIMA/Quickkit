@@ -1,0 +1,106 @@
+.bar {
+  position: absolute;
+  z-index: 4;
+  left: 2.8cqw;
+  right: 2.8cqw;
+  bottom: 0.9cqw;
+  min-height: 3.3cqw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1cqw;
+  padding: 0.6cqw 1.1cqw;
+  border: 0.1cqw solid #ffffffbf;
+  border-radius: 1cqw;
+  background: linear-gradient(115deg, #dfc7f2c9, #cce9f0b3 47%, #e8c6e5c9);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  box-shadow:
+    inset 0 0.15cqw 0.2cqw #ffffffc9,
+    0 0.2cqw 0.4cqw #76548c1f;
+  color: #51316b;
+  font-family: var(--font-geist), Arial, sans-serif;
+  font-size: 1.1cqw;
+  line-height: 1.25;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.dateGroup,
+.readings,
+.time,
+.battery {
+  display: flex;
+  align-items: center;
+  gap: 0.55cqw;
+  min-width: 0;
+}
+.dateGroup {
+  gap: 0.75cqw;
+}
+.calendar {
+  display: grid;
+  place-items: center;
+  width: 2cqw;
+  height: 2cqw;
+  border-radius: 0.55cqw;
+  background: #ffffff70;
+  color: #8450ad;
+  box-shadow:
+    inset 0 0.1cqw 0.15cqw #fff,
+    0 0.1cqw 0.2cqw #62417a14;
+}
+.bar svg {
+  flex: none;
+  width: 1.4cqw;
+  height: 1.4cqw;
+  stroke-width: 1.8;
+}
+.weekday {
+  font-weight: 800;
+}
+.divider {
+  height: 1.25cqw;
+  width: 0.1cqw;
+  background: #9473ad59;
+}
+.readings {
+  gap: 1.2cqw;
+}
+.time {
+  color: #573477;
+}
+.time time {
+  min-width: 5.7cqw;
+  text-align: center;
+}
+.battery {
+  padding: 0.22cqw 0.5cqw;
+  border: 0.08cqw solid #ffffff99;
+  border-radius: 0.5cqw;
+  background: #ffffff59;
+  color: #35665f;
+}
+.battery svg {
+  width: 1.9cqw;
+  height: 1.5cqw;
+}
+.battery[data-low="true"] {
+  color: #91465e;
+}
+.battery[data-device-battery="unavailable"] {
+  color: #7a658b;
+}
+@media (forced-colors: active) {
+  .bar {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+  .calendar,
+  .time,
+  .battery {
+    color: CanvasText;
+  }
+}

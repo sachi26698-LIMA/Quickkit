@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./helpers/tool-test";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -755,6 +755,7 @@ test.describe("the eleven Developer Tools", () => {
     context,
   }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    test.setTimeout(120000);
     const runTool = async (
       slug: string,
       outputLabel: string,

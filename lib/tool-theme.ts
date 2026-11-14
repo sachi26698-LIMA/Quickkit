@@ -4,10 +4,9 @@ import type { ToolCategory } from "@/lib/catalog";
 /**
  * Colour identity for each tool page.
  *
- * Every category owns a family (PDF → violet, Image → coral/pink, QR → red,
- * Calculators → blue, Developer → indigo/cyan, Security → teal, Text → plum),
- * and each tool inside a family gets a small, deliberate shift of its primary
- * and secondary accent so pages feel individual without leaving the family.
+ * Each tool owns an explicit accent, shared by listing cards, related links,
+ * 3D icons and its workspace. Category colours remain the fallback for new
+ * tools, not a restriction on the palette of existing tools.
  *
  *  rgb   primary accent as "r g b" (used with alpha in CSS)
  *  rgb2  secondary accent (gradient partner / highlights)
@@ -22,57 +21,65 @@ const t = (rgb: string, rgb2: string, deep: string): ToolTheme => ({
 });
 
 export const toolThemes: Record<string, ToolTheme> = {
-  // PDF Tools — violet family
+  // PDF Tools — distinct accents for each document task
   "merge-pdf": t("109 40 217", "168 85 255", "#5b21b6"),
-  "split-pdf": t("147 51 234", "232 121 249", "#6b21a8"),
-  "compress-pdf": t("91 33 182", "99 102 241", "#4c1d95"),
-  "pdf-to-image": t("124 58 237", "244 114 182", "#5b21b6"),
-  "images-to-pdf": t("126 34 206", "236 72 153", "#6b21a8"),
-  "pdf-studio": t("79 70 229", "168 85 247", "#4338ca"),
-  "word-to-pdf": t("99 52 224", "59 130 246", "#4c1d95"),
-  "pdf-to-word": t("109 40 217", "14 165 233", "#5b21b6"),
-  "pdf-lock-unlock": t("88 28 135", "192 38 211", "#581c87"),
-  // Image Tools — coral / pink family
-  "image-compressor": t("255 62 130", "255 112 74", "#be123c"),
-  "image-resizer": t("244 63 94", "251 146 60", "#be123c"),
-  "image-cropper": t("236 72 153", "255 112 74", "#be185d"),
-  "image-to-image": t("240 84 60", "236 72 153", "#ad3508"),
-  // QR & Barcode — red
-  "qr-code-scanner": t("185 28 28", "251 113 133", "#991b1b"),
-  "qr-generator": t("200 16 46", "255 59 48", "#b91c1c"),
+  "split-pdf": t("234 88 12", "251 146 60", "#9a3412"),
+  "compress-pdf": t("5 150 105", "52 211 153", "#065f46"),
+  "pdf-to-image": t("219 39 119", "244 114 182", "#9d174d"),
+  "images-to-pdf": t("2 132 199", "56 189 248", "#075985"),
+  "pdf-studio": t("79 70 229", "129 140 248", "#3730a3"),
+  "word-to-pdf": t("37 99 235", "96 165 250", "#1e40af"),
+  "pdf-to-word": t("13 148 136", "45 212 191", "#115e59"),
+  "pdf-lock-unlock": t("180 83 9", "251 191 36", "#78350f"),
+  // Image Tools — rose, cyan, violet and amber
+  "image-compressor": t("244 63 94", "251 113 133", "#9f1239"),
+  "image-resizer": t("0 153 173", "34 211 238", "#155e75"),
+  "image-cropper": t("139 92 246", "196 181 253", "#5b21b6"),
+  "image-to-image": t("217 119 6", "251 191 36", "#92400e"),
+  // QR & Barcode
+  "qr-code-scanner": t("15 118 110", "45 212 191", "#134e4a"),
+  "qr-generator": t("200 16 46", "255 59 48", "#991b1b"),
   "barcode-generator": t("194 40 22", "245 158 11", "#9a3412"),
-  // Text & Writing — plum / lavender
+  // The barcode family reads as one red group, but each tool keeps its own
+  // accent so the studio, the reader and the reference pages stay distinct.
+  "barcode-scanner": t("190 18 60", "251 113 133", "#881337"),
+  "barcode-developer": t("157 23 77", "244 114 182", "#831843"),
+  "batch-studio": t("146 64 14", "245 158 11", "#7c2d12"),
+  "batch-code-checker": t("154 52 18", "251 146 60", "#7c2d12"),
+  "gs1-intelligence": t("162 28 175", "232 121 249", "#86198f"),
+  "product-lookup": t("133 77 14", "250 204 21", "#713f12"),
+  // Text & Writing
   "word-counter": t("107 33 168", "183 148 246", "#6b21a8"),
-  "image-to-text": t("134 25 143", "236 72 153", "#86198f"),
-  "case-converter": t("126 34 206", "192 132 252", "#7e22ce"),
-  // Developer Tools — each utility has its own indigo-family accent.
+  "image-to-text": t("3 105 161", "56 189 248", "#075985"),
+  "case-converter": t("192 38 211", "232 121 249", "#86198f"),
+  // Developer Tools
   "json-formatter": t("67 56 202", "6 182 212", "#3730a3"),
-  "json-validator": t("8 145 178", "34 211 238", "#0e7490"),
-  "html-formatter": t("234 88 12", "251 146 60", "#c2410c"),
-  "css-minifier": t("13 148 136", "45 212 191", "#0f766e"),
-  "javascript-minifier": t("180 83 9", "245 158 11", "#a16207"),
-  "base64-encoder-decoder": t("107 33 168", "183 148 246", "#581c87"),
-  "url-encoder-decoder": t("14 116 144", "34 211 238", "#0e7490"),
+  "json-validator": t("8 145 178", "34 211 238", "#155e75"),
+  "html-formatter": t("249 115 22", "253 186 116", "#9a3412"),
+  "css-minifier": t("16 185 129", "110 231 183", "#065f46"),
+  "javascript-minifier": t("202 138 4", "250 204 21", "#854d0e"),
+  "base64-encoder-decoder": t("126 34 206", "192 132 252", "#581c87"),
+  "url-encoder-decoder": t("6 182 212", "103 232 249", "#155e75"),
   "uuid-generator": t("190 24 93", "244 63 94", "#9d174d"),
-  "regex-tester": t("124 58 237", "192 38 211", "#6d28d9"),
-  "hash-generator": t("5 150 105", "20 184 166", "#047857"),
-  "xml-formatter": t("2 132 199", "6 182 212", "#0369a1"),
+  "regex-tester": t("147 51 234", "216 180 254", "#6b21a8"),
+  "hash-generator": t("22 163 74", "74 222 128", "#166534"),
+  "xml-formatter": t("14 165 233", "125 211 252", "#075985"),
 
   // Security & Privacy — teal
-  "password-generator": t("13 148 136", "20 184 166", "#0f766e"),
-  // Calculators — blue family
-  "percentage-calculator": t("29 78 216", "14 165 233", "#1d4ed8"),
-  "bmi-calculator": t("2 132 199", "20 184 166", "#0369a1"),
-  "discount-calculator": t("37 99 235", "139 92 246", "#1d4ed8"),
-  "gst-calculator": t("3 105 161", "16 185 129", "#075985"),
-  "age-calculator": t("59 130 246", "34 211 238", "#1d4ed8"),
-  "date-difference-calculator": t("30 64 175", "99 102 241", "#1e40af"),
-  "emi-calculator": t("30 58 138", "56 189 248", "#1e3a8a"),
-  "loan-calculator": t("29 78 216", "45 212 191", "#1e40af"),
-  "scientific-calculator": t("55 48 163", "59 130 246", "#312e81"),
-  "unit-converter": t("8 145 178", "59 130 246", "#0e7490"),
-  "temperature-converter": t("2 132 199", "251 146 60", "#0369a1"),
-  "time-converter": t("79 70 229", "14 165 233", "#3730a3"),
+  "password-generator": t("17 139 119", "20 184 166", "#115e59"),
+  // Calculators — distinct accents across finance, health and converters
+  "percentage-calculator": t("29 78 216", "96 165 250", "#1e3a8a"),
+  "bmi-calculator": t("101 163 13", "163 230 53", "#3f6212"),
+  "discount-calculator": t("225 29 72", "251 113 133", "#9f1239"),
+  "gst-calculator": t("21 128 61", "74 222 128", "#14532d"),
+  "age-calculator": t("217 70 239", "240 171 252", "#86198f"),
+  "date-difference-calculator": t("124 58 237", "167 139 250", "#5b21b6"),
+  "emi-calculator": t("30 58 138", "59 130 246", "#1e3a8a"),
+  "loan-calculator": t("4 120 87", "52 211 153", "#064e3b"),
+  "scientific-calculator": t("55 48 163", "129 140 248", "#312e81"),
+  "unit-converter": t("14 116 144", "103 232 249", "#164e63"),
+  "temperature-converter": t("220 38 38", "251 146 60", "#991b1b"),
+  "time-converter": t("71 85 105", "148 163 184", "#334155"),
 };
 
 /** Category family used for any tool that has no explicit entry yet. */
@@ -97,5 +104,27 @@ export function toolThemeStyle(theme: ToolTheme): CSSProperties {
     "--t-rgb": theme.rgb,
     "--t2-rgb": theme.rgb2,
     "--t-deep": theme.deep,
+  } as CSSProperties;
+}
+
+/** Glass-card tokens shared by discovery cards and related-tool links. */
+export function toolSurfaceStyle(theme: ToolTheme): CSSProperties {
+  return {
+    "--c-rgb": theme.rgb,
+    "--c2-rgb": theme.rgb2,
+    "--c-deep": theme.deep,
+  } as CSSProperties;
+}
+
+/** Apply on the icon itself so category tone classes cannot override it. */
+export function toolIconStyle(theme: ToolTheme): CSSProperties {
+  return {
+    ...toolSurfaceStyle(theme),
+    "--i-hi": `color-mix(in srgb, rgb(${theme.rgb}) 40%, white)`,
+    "--i-mid": `rgb(${theme.rgb})`,
+    "--i-deep": theme.deep,
+    "--i-dark": `color-mix(in srgb, ${theme.deep} 72%, black)`,
+    "--i-light": `color-mix(in srgb, rgb(${theme.rgb}) 12%, white)`,
+    "--i-glow": theme.rgb,
   } as CSSProperties;
 }

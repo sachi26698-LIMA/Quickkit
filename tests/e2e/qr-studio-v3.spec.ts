@@ -6,7 +6,7 @@
  * and compared to the exact payload the app should have produced. Nothing here
  * trusts the app's own "verified" badge for the final assertion.
  */
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

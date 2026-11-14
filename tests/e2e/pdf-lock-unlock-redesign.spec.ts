@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./helpers/tool-test";
 import { PDFDocument, StandardFonts } from "@cantoo/pdf-lib";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import createModule from "@neslinesli93/qpdf-wasm";

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 
 test("scientific functions, keyboard answer and restore", async ({ page }) => {
@@ -138,7 +138,7 @@ for (const slug of [
       ).toBe(true);
       if (width === 375 || width === 1440)
         await page.screenshot({
-          path: `docs/phase-9-v2-screenshots/${slug}-${width}.png`,
+          path: `test-results/evidence/phase-9-v2-screenshots/${slug}-${width}.png`,
           fullPage: true,
         });
     }

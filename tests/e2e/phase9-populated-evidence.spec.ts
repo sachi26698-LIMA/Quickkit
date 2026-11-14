@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 const inputs: Record<string, (p: Page) => Promise<void>> = {
@@ -158,7 +158,7 @@ for (const [slug, fill] of Object.entries(inputs))
       ).toBe(true);
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({
-        path: `docs/phase-9-v2-final-evidence/${slug}-${width}.png`,
+        path: `test-results/evidence/phase-9-v2-final-evidence/${slug}-${width}.png`,
         fullPage: true,
       });
     }

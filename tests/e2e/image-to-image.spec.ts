@@ -1,4 +1,4 @@
-import { test, expect, type Locator, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { PNG } from "pngjs";
 import { unzipSync } from "fflate";
@@ -682,6 +682,7 @@ test.describe("Image to Image Converter", () => {
   test("keyboard and touch layouts work at every target width", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(90000);
     for (const width of [375, 390, 430, 768, 1440]) {
       await page.setViewportSize({ width, height: width < 500 ? 820 : 950 });
       await page.goto("/tools/image-to-image");

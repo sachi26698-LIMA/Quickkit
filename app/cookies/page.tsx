@@ -34,13 +34,14 @@ export default function CookiesPage() {
         <li>
           <strong>Local storage and IndexedDB:</strong> used only for
           preferences you create by using a feature — saved tools, QR presets,
-          optional conversion history.
+          optional conversion history, and opt-in visitor statistics.
         </li>
         <li>
-          <strong>Analytics:</strong> none. When advertising is enabled, the
-          AdSense verification script is an advertising-platform script; review
-          sections 6 and 8 for its potential cookie use and consent
-          considerations.
+          <strong>Analytics:</strong> optional first-party visitor counts, only
+          after you allow participation in the footer. When advertising is
+          enabled, the AdSense verification script is an advertising-platform
+          script; review sections 6 and 8 for its potential cookie use and
+          consent considerations.
         </li>
       </ul>
 
@@ -73,9 +74,9 @@ export default function CookiesPage() {
 
       <h2 id="functional">4. Functional storage</h2>
       <p>
-        All site storage is functional: it exists to remember a choice you made,
-        and the tool keeps working without it. Every entry is first-party and
-        device-local.
+        Most site storage is functional: it exists to remember a choice you
+        made, and the tool keeps working without it. Every entry is first-party
+        and device-local.
       </p>
       <div className="legal-table-wrap">
         <table className="legal-table">
@@ -92,6 +93,54 @@ export default function CookiesPage() {
             </tr>
           </thead>
           <tbody>
+            <tr>
+              <td>
+                <code>quickkit-analytics-consent</code>,{" "}
+                <code>quickkit-visitor-id</code>
+              </td>
+              <td>localStorage</td>
+              <td>
+                Consent choice and a random browser identifier. Opt-in only; no
+                files or URLs. Used for aggregate visitor counts, not
+                advertising.
+              </td>
+              <td>You allow anonymous visitor statistics in the footer</td>
+              <td>
+                Turning statistics off removes the ID; consent choice remains
+                until site data is cleared.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>quickkit-visit-id</code>, <code>quickkit-visit-ms</code>,{" "}
+                <code>quickkit-visit-start</code>
+              </td>
+              <td>sessionStorage</td>
+              <td>
+                Random visit ID, start time and visible-tab duration for the
+                same-origin counter. Visits rotate after 24 hours on the next
+                page load.
+              </td>
+              <td>Only with analytics consent; Do Not Track is respected</td>
+              <td>Tab close, turning statistics off, or clearing site data.</td>
+            </tr>
+            <tr>
+              <td>
+                <code>quickkit-tool-feedback-v1</code>
+              </td>
+              <td>localStorage</td>
+              <td>
+                Optional ratings, tool slugs, feedback options, comments (600
+                characters maximum) and timestamps. Shown in this browser’s
+                homepage laptop; not transmitted or published to other visitors.
+              </td>
+              <td>You choose “Save my feedback” after a tool download</td>
+              <td>
+                Until browser site data is cleared. No in-app deletion or
+                automatic replacement of older reviews. Storage limits may
+                prevent saving further reviews.
+              </td>
+            </tr>
             <tr>
               <td>
                 <code>quickkit:saved-tools</code>
@@ -187,11 +236,13 @@ export default function CookiesPage() {
 
       <h2 id="analytics">5. Analytics cookies</h2>
       <p>
-        QUICKKIT does not implement a separate analytics product, first-party
-        analytics script or server-side visitor counter. When advertising is
-        enabled, Google may receive requests and advertising-related data
-        through the AdSense script; any publisher reporting depends on its
-        account settings. See section 6.
+        QUICKKIT offers an optional first-party visitor counter using the random
+        browser identifiers documented above, not cookies. Participation is off
+        until you allow it in the footer. The public graph shows aggregate
+        counts and average visible visit time. When advertising is enabled,
+        Google may receive requests and advertising-related data through the
+        AdSense script; any publisher reporting depends on its account settings.
+        See section 6.
       </p>
 
       <h2 id="advertising">6. Advertising cookies</h2>
