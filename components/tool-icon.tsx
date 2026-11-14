@@ -21,6 +21,7 @@ import {
   ScanText,
   LockKeyhole,
 } from "lucide-react";
+export type ToolIconName = keyof typeof icons;
 const icons = {
   text: Type,
   case: CaseSensitive,
@@ -48,7 +49,7 @@ export default function ToolIcon({
   icon,
   color,
 }: {
-  icon: keyof typeof icons;
+  icon: ToolIconName;
   color: string;
 }) {
   const Icon = icons[icon];

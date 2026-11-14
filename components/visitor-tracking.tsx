@@ -3,33 +3,56 @@
 import { useEffect, useState } from "react";
 
 const preference = "quickkit-analytics-consent";
-export function allowVisitorAnalytics() {
+const consentEvent = "quickkit-analytics-consent";
+
+/** Read the stored choice. Do Not Track always wins. */
+export function visitorAnalyticsAllowed(): boolean {
   try {
-    localStorage.setItem(preference, "yes");
-    window.dispatchEvent(new Event("quickkit-analytics-consent"));
+    return (
+      localStorage.getItem(preference) === "yes" && navigator.doNotTrack !== "1"
+    );
   } catch {
-    /* Storage blocked: do not track. */
+    return false;
   }
 }
+
+/** Record a choice and let every mounted listener react. */
+export function setVisitorAnalyticsConsent(allowed: boolean) {
+  try {
+    localStorage.setItem(preference, allowed ? "yes" : "no");
+    if (!allowed) {
+      localStorage.removeItem("quickkit-visitor-id");
+      sessionStorage.removeItem("quickkit-visit-id");
+      sessionStorage.removeItem("quickkit-visit-ms");
+    }
+  } catch {
+    /* Storage blocked: nothing is recorded and nothing is sent. */
+  }
+  window.dispatchEvent(new Event(consentEvent));
+}
+
+/** Backwards-compatible helper: opt in. */
+export function allowVisitorAnalytics() {
+  setVisitorAnalyticsConsent(true);
+}
+
+/**
+ * Headless counter. It renders nothing and only ever sends a request when the
+ * visitor has switched anonymous statistics on — the switch lives on
+ * /cookies (`<AnalyticsConsent />`), not in the footer.
+ */
 export default function VisitorTracking() {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
     const sync = () => {
-      try {
-        setEnabled(
-          localStorage.getItem(preference) === "yes" &&
-            navigator.doNotTrack !== "1",
-        );
-      } catch {
-        setEnabled(false);
-      }
+      setEnabled(visitorAnalyticsAllowed());
     };
     sync();
     window.addEventListener("storage", sync);
-    window.addEventListener("quickkit-analytics-consent", sync);
+    window.addEventListener(consentEvent, sync);
     return () => {
       window.removeEventListener("storage", sync);
-      window.removeEventListener("quickkit-analytics-consent", sync);
+      window.removeEventListener(consentEvent, sync);
     };
   }, []);
   useEffect(() => {
@@ -98,41 +121,5 @@ export default function VisitorTracking() {
       window.removeEventListener("pagehide", send);
     };
   }, [enabled]);
-  return (
-    <div
-      className="container"
-      style={{
-        paddingBlock: "0.75rem",
-        fontSize: "0.8rem",
-        textAlign: "center",
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => {
-          if (!enabled) {
-            allowVisitorAnalytics();
-            return;
-          }
-          try {
-            localStorage.setItem(preference, "no");
-            localStorage.removeItem("quickkit-visitor-id");
-            sessionStorage.removeItem("quickkit-visit-id");
-            sessionStorage.removeItem("quickkit-visit-ms");
-          } catch {
-            /* Storage blocked. */
-          }
-          window.dispatchEvent(new Event("quickkit-analytics-consent"));
-        }}
-      >
-        {enabled
-          ? "Turn off anonymous visitor statistics"
-          : "Allow anonymous visitor statistics"}
-      </button>
-      <span>
-        {" "}
-        · Optional, no files or URLs collected. Do Not Track is respected.
-      </span>
-    </div>
-  );
+  return null;
 }

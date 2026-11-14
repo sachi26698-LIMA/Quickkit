@@ -58,7 +58,7 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
 
 export default function Home() {
   return (
-    <div className={`home ${styles.premiumHome}`}>
+    <div className={`home home-landing ${styles.premiumHome}`}>
       <section className="hero" aria-label="QUICKKIT tools">
         {/* The page's real headline: what the site is and what it covers. It
             names the four tool families the site actually ships, so the most

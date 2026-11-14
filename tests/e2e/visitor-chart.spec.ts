@@ -148,8 +148,8 @@ test("tracking is opt-in, sends no page/file data, and stops on opt-out", async 
         },
       });
   });
-  await page.goto("/");
-  await expect(page.locator("#tool-search")).toBeEnabled();
+  // The consent switch lives on the Cookie Policy page, not in the footer.
+  await page.goto("/cookies");
   await page.clock.install({ time: new Date() });
   await page.clock.pauseAt(new Date(Date.now() + 1000));
   await page.clock.fastForward(40000);

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Heart, Menu, Search, X } from "lucide-react";
 import Brand from "@/components/brand";
 import CategoryIcon from "@/components/category-icon";
-import { categoryMeta, toolsByCategory } from "@/lib/catalog";
+import { navCategories } from "@/lib/nav-categories";
 import { useFavorites } from "@/lib/use-favorites";
 
 export default function Header() {
@@ -118,8 +118,8 @@ export default function Header() {
               hidden={!catOpen}
             >
               <ul>
-                {categoryMeta.map((meta) => {
-                  const empty = toolsByCategory(meta.name).length === 0;
+                {navCategories.map((meta) => {
+                  const empty = meta.empty;
                   return (
                     <li key={meta.slug}>
                       <Link

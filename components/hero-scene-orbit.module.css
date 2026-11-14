@@ -714,6 +714,31 @@
   }
 }
 
+/* Phones: same composition, none of the per-frame cost.
+   The scene is composed of thirteen glass tiles with backdrop blur orbiting a
+   laptop whose metal finish is an SVG filter. Keeping all of that animating on
+   a phone repaints a filter-blurred image every frame and is what made the page
+   feel heavy while scrolling. The static artwork stays identical. */
+@media (max-width: 860px) {
+  .tile,
+  .visible .tile,
+  .laptop,
+  .visible .laptop,
+  .groundShadow,
+  .visible .groundShadow,
+  .contactShadow,
+  .visible .contactShadow,
+  .miniMain,
+  .visible .miniMain {
+    animation: none;
+  }
+  .glassFace {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(145deg, #ffffffc0, #ffffff5c);
+  }
+}
+
 /* Device-local tool reviews: miniature, theme-matched raised glass cards. */
 .reviewCard {
   position: relative;

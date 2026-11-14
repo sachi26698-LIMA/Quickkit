@@ -285,13 +285,14 @@ export default function PrivacyPage() {
 
       <h3>Optional live visitor statistics</h3>
       <p>
-        Only after you select “Allow anonymous visitor statistics”, the browser
-        sends random visitor and visit identifiers and cumulative visible-tab
-        time to our same-origin counter every 20 seconds while visible. No tool
-        input, file, page URL, IP address or user agent is stored by this
-        counter. Hosting providers still receive ordinary request metadata as
-        described above. Do Not Track disables participation. You can turn this
-        off in the footer.
+        Only after you select “Allow anonymous visitor statistics” on the Cookie
+        Policy page, the browser sends random visitor and visit identifiers and
+        cumulative visible-tab time to our same-origin counter every 20 seconds
+        while visible. No tool input, file, page URL, IP address or user agent
+        is stored by this counter. Hosting providers still receive ordinary
+        request metadata as described above. Do Not Track disables
+        participation. The same switch on the Cookie Policy page turns it off
+        again.
       </p>
       <p>
         The public laptop graph shows participating browsers seen in the last 45
