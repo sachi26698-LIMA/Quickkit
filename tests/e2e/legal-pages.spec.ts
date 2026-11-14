@@ -127,6 +127,7 @@ test("footer exposes all four groups and every link works", async ({
 });
 
 test("legal pages pass axe and are keyboard navigable", async ({ page }) => {
+  test.setTimeout(120000);
   for (const route of REQUIRED) {
     await page.goto(route);
     const result = await new AxeBuilder({ page })

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { mkdir } from "node:fs/promises";

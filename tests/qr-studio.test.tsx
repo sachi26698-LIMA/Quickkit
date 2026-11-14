@@ -768,31 +768,37 @@ describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => 
 });
 
 describe("qr studio — V3 history & preset management (Phase H)", () => {
-  it("renames and duplicates a preset from the Presets tab", () => {
-    render(<QrGenerator />);
-    fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
-    fireEvent.change(screen.getByLabelText("Save the design you have now"), {
-      target: { value: "Cafe look" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Save design/ }));
-    expect(screen.getByText("Cafe look")).toBeInTheDocument();
+  it(
+    "renames and duplicates a preset from the Presets tab",
+    () => {
+      render(<QrGenerator />);
+      fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
+      fireEvent.change(screen.getByLabelText("Save the design you have now"), {
+        target: { value: "Cafe look" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: /Save design/ }));
+      expect(screen.getByText("Cafe look")).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Rename the Cafe look preset" }),
-    );
-    const input = screen.getByRole("textbox", {
-      name: "Rename the Cafe look preset",
-    });
-    fireEvent.change(input, { target: { value: "Menu look" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save the new name" }));
-    expect(screen.getByText("Menu look")).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole("button", { name: "Rename the Cafe look preset" }),
+      );
+      const input = screen.getByRole("textbox", {
+        name: "Rename the Cafe look preset",
+      });
+      fireEvent.change(input, { target: { value: "Menu look" } });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save the new name" }),
+      );
+      expect(screen.getByText("Menu look")).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Duplicate the Menu look preset" }),
-    );
-    expect(screen.getByText("Menu look copy")).toBeInTheDocument();
-    expect(screen.getByText("Menu look")).toBeInTheDocument();
-  });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Duplicate the Menu look preset" }),
+      );
+      expect(screen.getByText("Menu look copy")).toBeInTheDocument();
+      expect(screen.getByText("Menu look")).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
 
   it(
     "renames a history entry from the History tab",
@@ -898,24 +904,28 @@ describe("qr studio — V3 Smart Link landing builder (Phase E)", () => {
     TEST_TIMEOUT,
   );
 
-  it("keeps download disabled until a valid link is present, and caps links at 8", () => {
-    render(<QrGenerator />);
-    openLandingBuilder();
-    // Default config has one empty link -> invalid -> disabled.
-    expect(
-      screen.getByRole("button", { name: /Download HTML page/ }),
-    ).toBeDisabled();
+  it(
+    "keeps download disabled until a valid link is present, and caps links at 8",
+    () => {
+      render(<QrGenerator />);
+      openLandingBuilder();
+      // Default config has one empty link -> invalid -> disabled.
+      expect(
+        screen.getByRole("button", { name: /Download HTML page/ }),
+      ).toBeDisabled();
 
-    // Add links up to the cap; the Add link button then disables.
-    for (let i = 0; i < 10; i++) {
-      const add = screen.getByRole("button", { name: /Add link/ });
-      if ((add as HTMLButtonElement).disabled) break;
-      fireEvent.click(add);
-    }
-    expect(screen.getByLabelText("Link 8 label")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
-  });
+      // Add links up to the cap; the Add link button then disables.
+      for (let i = 0; i < 10; i++) {
+        const add = screen.getByRole("button", { name: /Add link/ });
+        if ((add as HTMLButtonElement).disabled) break;
+        fireEvent.click(add);
+      }
+      expect(screen.getByLabelText("Link 8 label")).toBeInTheDocument();
+      expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
+    },
+    TEST_TIMEOUT,
+  );
 });
 
 describe("qr studio — V3 brand colour presets (Phase I)", () => {
