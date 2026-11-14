@@ -230,18 +230,19 @@ carries the new fields.
 18 visits — nine barcode pages × 1280 px and 390 px — **all HTTP 200, zero
 horizontal overflow, zero page errors**, plus these interactions:
 
-| Interaction                                    | Result                                                              |
-| ---------------------------------------------- | ------------------------------------------------------------------- |
-| Scanner, typed GTIN (live)                     | GTIN-13, check digit valid, 1 lookup, honest failure                |
-| Scanner, typed GTIN (intercepted v3.6 payload) | every field rendered, JSON + CSV downloads verified                 |
-| Scanner, typed spaced GTIN `0731 9466 97725`   | recognised as the same GTIN-13, 1 lookup                            |
-| Scanner, `INV-2026-0042`                       | decoded text, **0 requests**, explanation shown                     |
-| Scanner, bad check digit                       | rejected locally, 0 requests                                        |
-| Product lookup, `?gtin=` deep link             | lookup now runs automatically; all fields + CSV (24 rows)           |
-| Generator, SVG                                 | 3,021 B valid `<svg>`                                               |
-| Batch studio, mixed sample                     | ZIP 89,351 B, 5 format folders + `README.txt`                       |
-| GS1 intelligence                               | GTIN, 2027-09-30, LOT-9                                             |
-| Camera (synthetic device)                      | stream plays 640×480, Stop ends every track, torch correctly absent |
+| Interaction                                    | Result                                                                                                                                           |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Scanner, typed GTIN (live)                     | GTIN-13, check digit valid, 1 lookup, honest failure                                                                                             |
+| Scanner, typed GTIN (intercepted v3.6 payload) | every field rendered, JSON + CSV downloads verified                                                                                              |
+| Scanner, typed spaced GTIN `0731 9466 97725`   | recognised as the same GTIN-13, 1 lookup                                                                                                         |
+| Scanner, `INV-2026-0042`                       | decoded text, **0 requests**, explanation shown                                                                                                  |
+| Scanner, bad check digit                       | rejected locally, 0 requests                                                                                                                     |
+| Product lookup, `?gtin=` deep link             | lookup now runs automatically; all fields + CSV (24 rows)                                                                                        |
+| Generator, SVG                                 | 3,021 B valid `<svg>`                                                                                                                            |
+| Batch studio, mixed sample                     | ZIP 89,351 B, 5 format folders + `README.txt`                                                                                                    |
+| GS1 intelligence                               | GTIN, 2027-09-30, LOT-9                                                                                                                          |
+| Camera (synthetic device)                      | stream plays 640×480, Stop ends every track, torch correctly absent                                                                              |
+| Round trip: generator PNG → scanner upload     | 21,308 B PNG made in the app, uploaded, decoded as 5901234123457 — Code 128 carrier, classified GTIN-13, check digit 7 valid, one lookup attempt |
 
 Mobile Core Web Vitals (390 px, 4× CPU, ~9 Mbps): scanner **LCP 828 ms, CLS
 0.000**; product lookup **LCP 480 ms, CLS 0.000**.
@@ -262,6 +263,10 @@ canonicals, `index, follow`, one H1 and JSON-LD, and the sitemap still lists
 - **Fixed:** a searched value is looked up once per value per visit. Before, the
   scanner required a manual button press per result; the automatic path could
   otherwise have burned the token bucket on repeat frames.
+- **Fixed:** an unreadable upload used to be reported as "1 rejected (type or
+  size)" whatever the cause. The scanner now shows the decoder's own message
+  (e.g. "…png: unsupported file type…"), so a HEIC photo, a corrupt file and a
+  30 MB scan are no longer the same sentence.
 - **Confirmed:** GTIN validation happens before any request, in the browser and
   in the route; a 15-digit or bad-check-digit value never leaves the page.
 - **Confirmed:** redirects are followed by hand and hop-validated (Phase 20),

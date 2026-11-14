@@ -37,7 +37,6 @@ import {
 import {
   ACCEPT_ATTRIBUTE,
   fileToRaster,
-  validateScanFile,
 } from "@/lib/tools/qr-scanner/image-source";
 import { scanRaster } from "@/lib/tools/barcode/scan-client";
 import { FORMAT_LABELS, READABLE_FORMATS } from "@/lib/tools/barcode/decode";
@@ -434,17 +433,22 @@ export default function BarcodeScanner() {
       setFileNote("");
       let scanned = 0;
       let empty = 0;
-      let rejected = 0;
+      const rejections: string[] = [];
       for (const file of list) {
         try {
-          validateScanFile(file);
+          // `fileToRaster` validates type and size first, then decodes; its
+          // error message names which of those failed, and for which file.
           const raster = await fileToRaster(file, { maxSide: 2400 });
           const outcome = await scanRaster(raster, "image");
           scanned += 1;
           if (outcome.barcodes.length) record(outcome.barcodes, "image");
           else empty += 1;
-        } catch {
-          rejected += 1;
+        } catch (cause) {
+          rejections.push(
+            cause instanceof Error && cause.message
+              ? cause.message
+              : `${file.name}: the image could not be read.`,
+          );
         }
         if (!mounted.current) return;
       }
@@ -452,7 +456,7 @@ export default function BarcodeScanner() {
         [
           `${scanned} image${scanned === 1 ? "" : "s"} read`,
           empty ? `${empty} with no readable barcode` : null,
-          rejected ? `${rejected} rejected (type or size)` : null,
+          rejections.length ? rejections[0] : null,
         ]
           .filter(Boolean)
           .join(" · "),

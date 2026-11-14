@@ -31,6 +31,16 @@ new pages, no catalog change; nothing pushed, merged, deployed or indexed.
   handshake, so the route returns 502 `reason:"network"` and the UI says so
   plainly. The full success path was verified in Chromium against an intercepted
   v3.6-shaped payload — labelled as intercepted, never presented as live.
+- **Round trip verified in the browser:** a PNG produced by the generator was
+  uploaded to the scanner and decoded back to `5901234123457` — Code 128 carrying
+  a GTIN-13 value, check digit valid — with the lookup attempted once. An
+  unreadable upload now reports the decoder's real reason instead of a generic
+  "rejected (type or size)".
+- **Round trip verified in the browser:** a PNG produced by the generator was
+  uploaded to the scanner and decoded back to `5901234123457` — Code 128 carrying
+  a GTIN-13 value, check digit valid — with the lookup attempted once. An
+  unreadable upload now reports the decoder's real reason instead of a generic
+  "rejected (type or size)".
 - **Camera:** synthetic-device lifecycle re-verified after the rewrite (640×480
   playing, Stop ends every track, torch correctly absent). Physical hardware and
   permission prompts remain **BLOCKED**.
