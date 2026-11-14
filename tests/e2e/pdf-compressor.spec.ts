@@ -407,14 +407,14 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
         : { width: 1280, height: 900 },
     );
     await page.goto("/tools/compress-pdf");
-    const copies = [1, 2, 3].map((index) => ({
+    const copies = Array.from({ length: 12 }, (_, i) => i + 1).map((index) => ({
       ...largeImagePdf,
       name: `Large scan ${index}.pdf`,
     }));
     await page.getByLabel("Choose PDFs", { exact: true }).setInputFiles(copies);
-    await expect(page.locator(".pdf-entry")).toHaveCount(3);
+    await expect(page.locator(".pdf-entry")).toHaveCount(12);
     await expect(
-      page.getByRole("button", { name: "Compress 3 PDFs" }),
+      page.getByRole("button", { name: "Compress 12 PDFs" }),
     ).toBeEnabled({ timeout: 60_000 });
 
     const targetToggle = page.getByLabel(/Target size per PDF/);
@@ -432,7 +432,7 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
         .getByRole("button", { name: "Cancel", exact: true })
         .click();
     } else {
-      await page.getByRole("button", { name: "Compress 3 PDFs" }).click();
+      await page.getByRole("button", { name: "Compress 12 PDFs" }).click();
       await expect(page.getByRole("progressbar")).toBeVisible();
       // Keyboard activation tests the real desktop control without a forced
       // pointer click that could land on an overlapping element after scrolling.
@@ -464,9 +464,9 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
         { cause: error },
       );
     }
-    await expect(page.locator(".pdf-entry")).toHaveCount(3);
+    await expect(page.locator(".pdf-entry")).toHaveCount(12);
     await expect(
-      page.getByRole("button", { name: /Compress [1-3] PDFs?/ }),
+      page.getByRole("button", { name: /Compress (?:[1-9]|1[0-2]) PDFs?/ }),
     ).toBeEnabled();
   });
 }
