@@ -229,13 +229,15 @@ test("pending invitation is cancelled on navigation; modal traps and restores fo
   await expect(button).toBeFocused();
 });
 
-test("all 42 tools use their own palette on the glass emotion, stars and feedback controls", async ({
+test("every tool uses its own palette on the glass emotion, stars and feedback controls", async ({
   page,
 }) => {
-  test.setTimeout(360_000);
+  // Long walk: one download + feedback round trip per tool.
+  test.setTimeout(420_000);
   const { tools } = await import("../../lib/catalog");
   const { toolTheme } = await import("../../lib/tool-theme");
-  expect(tools).toHaveLength(42);
+  // Guard against a truncated catalog; the loop below covers each tool.
+  expect(tools.length).toBeGreaterThanOrEqual(49);
   const surfaces = new Set<string>();
   for (const tool of tools) {
     const theme = toolTheme(tool.slug, tool.category);
@@ -293,7 +295,8 @@ test("all 42 tools use their own palette on the glass emotion, stars and feedbac
     }
     await modal.getByRole("button", { name: "Close feedback" }).click();
   }
-  expect(surfaces.size).toBe(42);
+  // Every tool's glass surface must be its own, not a shared fallback.
+  expect(surfaces.size).toBe(tools.length);
 });
 
 test("layered aurora glass reacts differently to every star and celebrates after saving", async ({

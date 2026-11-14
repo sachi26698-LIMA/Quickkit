@@ -1,6 +1,6 @@
 # QUICKKIT Tool Development Status
 
-**Last updated:** 4 November 2026
+**Last updated:** 13 November 2026
 **Purpose:** Single status tracker for implemented tools, approved expansion candidates and deferred ideas.  
 **Public launch state:** Not deployed or indexed by this roadmap work. “Live” below means implemented and verified in the repository; it does **not** mean publicly launched on a production domain.  
 **Development policy:** Strictly one tool at a time. A tool must be researched, designed, implemented, tested, delivered with screenshots/demo and explicitly approved by the owner before the next tool begins.  
@@ -9,6 +9,86 @@
 **Previous V4 checkpoint (historical):** Word to PDF Converter V4 — native-engine / production-readiness continuation of the completed V3 editor at `/tools/word-to-pdf` (4 November 2026). **Private-worker infrastructure implemented for review; native execution/fidelity/production acceptance BLOCKED, NOT production-ready.** Same V3 editor and 100-page cap preserved. Added fail-closed private transport, container-per-job broker/recipe, bounded resource/cancellation/cleanup policy, real engine version probes, synthetic source fixtures and operator benchmark/setup tooling. LibreOffice and Docker are absent; approved native repository/artifact access is unavailable under this session's outbound policy (namespace isolation itself works). No genuine native demo or native 100/500/1000 metrics exists; no 1000-page editing claim. Final checks: 1057 unit tests, type/lint/build PASS; Word Chromium 17 PASS; selected wider Chromium 39 PASS. See `docs/WORD_TO_PDF_V4_QA.md`, setup, fidelity and benchmark reports. No merge/deployment or approval-state change for other tools.
 
 **Previous active-tool record (historical):** PDF to Word Converter — **V2 implemented — awaiting owner approval** (V1 delivered first, then upgraded in place on the same PR #6 branch at the owner's direction: live PDF/DOCX previews with side-by-side compare, page-range conversion, working preserve settings, batch dashboard, quality reports, opt-in local history). PDF Merger was merged into `main` by the owner (PR #4/#5 chain) and is now counted as implemented. PDF to Word was then built at the owner's direction with the same rules: 100% on-device processing, honest per-file errors, no silent skipping, genuine DOCX output. **Do not mark it live/complete and do not start another tool until the owner personally approves it.** It has not been deployed or indexed. Separately, PDF Merger and PDF Splitter were owner-approved on 1 November 2026; PDF Compressor is implemented and integrated on PR #11 but remains **awaiting owner approval**. The PR #11 integration note at the end of this file supersedes older PDF-specific rows that still list Split PDF as planned or omit PDF Compressor.
+
+## Barcode Studio final completion (phase 17) — implemented, external verification pending
+
+On `arena/6102e674-quickkit` (from checkpoint `7b47bc3`), the three tools were
+audited and extended rather than rebuilt. See
+`QUICKKIT_BARCODE_FINAL_PRODUCTION_READINESS.md` for the 19-section report and
+`docs/BARCODE_DECODER_RESEARCH.md` for the decoder research log.
+
+- **Coverage stays honest:** 0 of 59 brands have a verified decoder. No
+  manufacturer document describes a lot-code date format; aggregator formats were
+  rejected as unsourced and mutually contradictory. Two GS1 standards decoders and
+  one disclosed pattern decoder ship instead.
+- **GTIN lookup** is now on Open Food Facts v3.6 with a compliant User-Agent,
+  honest 404/429/5xx/timeout taxonomy, TTL cache, per-process rate limit and a
+  same-origin, type- and size-checked image proxy. Live connectivity is
+  **unverified** here (no runtime egress); mocked-transport tests only.
+- **Gates:** tsc 0, ESLint 0, Prettier clean, 115 files / 1,985 tests, 138 static
+  pages, `npm audit` 0. **E2E blocked:** Playwright's browser download fails in
+  this environment; no browser QA is claimed.
+- **Supabase / admin:** absent — no client, schema, auth or `/admin` route. Nothing
+  fabricated; prerequisites documented and awaiting owner approval.
+
+## Batch Code Checker + Barcode Scanner (phase 16) — implemented, awaiting owner approval
+
+**Status:** implemented in the repository on `arena/6102e674-quickkit`;
+**not merged, not deployed, not indexed and not owner-approved.**
+
+Two separate tools, each with its own route, engine, validation, results UI,
+SEO copy, FAQ and tests. They are deliberately **not** merged with each other or
+with the Studio:
+
+| Route                       | What it does                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/tools/batch-code-checker` | Brand autocomplete (59 records, aliases, category filters, A–Z directory, one statically generated record page per brand), lot-code input, optional product name, printed manufacture/expiry, purchase/opened dates and PAO 3–36M. Three results only: **VERIFIED**, **ESTIMATED**, **NOT DECODABLE**. Printed, decoded, estimated and after-opening dates are separate labelled cards; the printed date always governs. |
+| `/tools/barcode-scanner`    | Camera (rear preferred, switching, described permission/device/secure-context errors) and image upload, multiple symbols per photo, EAN-13/EAN-8/UPC-A/UPC-E/Code 128/GS1-128/Code 39/ITF-14/Codabar, copy, browser-local history, and an optional GTIN lookup through a same-origin proxy for Open Food Facts — labelled as a community database, never manufacturer-verified.                                          |
+
+**Engine honesty (phase 17):** four decoders ship — two GS1 carriers (element
+string: AI 11/13/15/16/17/7003/8008 plus AI 10, with the day-00 rule; and GS1
+Digital Link URIs, path/query/mixed), an explicit-date pattern (calendar and
+ordinal, listing every ambiguous reading instead of choosing one), and `none`. **No brand-specific decoder is claimed for any of the 59 brands**,
+because no manufacturer document describing a proprietary lot format could be
+verified; each record states that, its limitation and its shelf-life source, and
+`lastVerified` is `null` until a real review happens.
+
+**Not built (documented blocker):** Supabase tables/RLS and a Master Admin
+decoder-review surface. The repository has no Supabase client, no migrations, no
+database dependency and no `/admin` route, so there is no schema to review and
+nothing to extend. Nothing was invented, no service-role key exists and no
+migration was applied.
+
+**Evidence:** `tsc` 0, ESLint clean, `npm run format:check` clean, Vitest
+**113 files / 1,937 tests passed** (75 new), production build clean with **138
+static pages**, SSR smoke HTTP 200 for the new routes and brand pages. Browser
+E2E (Playwright download blocked) and a live GTIN lookup (no outbound route to
+Open Food Facts) were not executed. Full report:
+`QUICKKIT_BARCODE_AND_BATCH_CHECKER_FINAL_REPORT.md`.
+
+## Barcode Studio (phase 15) — implemented, awaiting owner approval
+
+**Status:** implemented in the repository on `arena/6102e674-quickkit`;
+**not merged, not deployed, not indexed and not owner-approved.**
+
+A new, separate tool at **`/tools/barcode-generator`** in the **QR & Barcode**
+category. The QR generator and QR scanner are unchanged and still listed
+separately; the category now describes three tools instead of two.
+
+| Area          | Delivered                                                                                                                                                                                                                                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formats       | 11: Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, UPC-E (NS0/NS1), ITF-14, Codabar, MSI (mod-10/11), Pharmacode. Encoded from published module tables; character-set, length, range and check-digit rules enforced before anything is drawn.                                                                                                                     |
+| Check digits  | EAN-13/EAN-8/UPC-A/UPC-E/ITF-14 calculate a missing digit and verify a supplied one; a wrong digit is refused with the right one named. GS1-128 validates every AI plus the GTIN/SSCC check. Code 39 mod-43 and MSI mod-10/11 optional. Nothing silently corrects user data.                                                                                         |
+| Editor        | Live SVG preview, bar width 0.75–8 px/module, height, export scale 1–6×, colours + hex, transparency, contrast and inversion warnings, font family/size, HRI on/off, alignment, title/description, quiet zone (symbology minimum enforced), margin, reset, per-format options, guard-bar extension.                                                                  |
+| Scanner       | Camera (permission only after a click, rear preferred, camera switching, torch where reported, start/stop, teardown on hide) and image upload (drag-drop, 25 MB / 40 MP, four rotations + overlapping tiles for multiple symbols). Decoded in a worker with an inline fallback; duplicates suppressed; copy/clear/CSV. No upload, no storage.                        |
+| Bulk          | CSV ≤ 1,000 rows / 5 MB / 30 columns; column + format selection; millimetre label sizes; batched thumbnails; duplicate detection; an explicit status for **every** row (ready / duplicate / skipped / invalid with the reason); SVG/PNG ZIP, print-ready vector PDF sheets, report CSV; per-row downloads. Never freezes the tab, never discards a bad row silently. |
+| Exports       | PNG (1–6× with DPI), SVG (vector), PDF (A4/Letter/`fit`, vector bars, real mm dimensions), ZIP, report CSV, clipboard SVG, and print through a hidden same-origin iframe. All built from the same layout the preview draws.                                                                                                                                          |
+| Privacy       | No network request from any studio file, no barcode data stored (settings only, sanitised), SVG escaping + closed-vocabulary safety check, CSV formula-injection neutralisation, no database/Supabase/account/secret.                                                                                                                                                |
+| Accessibility | Accessible tab set with arrow keys, labelled radios/ranges/selects, `aria-invalid` + help wiring, `role="alert"` errors, `role="status"` flash/states, `aria-live` results, `sr-only` dismiss, alt text naming symbology + payload, reduced-motion and full-width mobile controls.                                                                                   |
+| Evidence      | `tsc` 0, ESLint clean, Prettier clean, **Vitest 109 files / 1,862 tests passed** (122 new barcode tests), production build clean (77 static pages, route static; scanner and bulk code-split into separate chunks), `npm audit` 0 vulnerabilities, SSR smoke HTTP 200. Browser E2E blocked by the missing Playwright browser download; spec committed.               |
+| Limitations   | MSI and Pharmacode are generation-only (no bundled reader). UPC-E uses a hand-written reader because ZXing 0.23.0's UPC-E path is broken and its readers are unexported. Code 128 is ASCII-only. Print goes through the browser print dialog. Real-browser/axe/CWV checks remain unexecuted here.                                                                    |
+
+Full evidence and the 14-section review: `BARCODE_STUDIO_FINAL_REPORT.md`.
 
 ## QR Code Scanner (phase 14) — implemented, awaiting owner approval
 
@@ -277,7 +357,7 @@ Firefox/WebKit execution is not claimed for that sandbox run; the Playwright con
 |   7 | Event QR Generator    | `event-qr-generator`    | `event-qr-generator`    | `planned`                                                                                                       |
 |   8 | Batch QR Generator    | `batch-qr-generator`    | `batch-qr-generator`    | `planned`                                                                                                       |
 |   9 | QR Code Scanner       | `qr-code-scanner`       | `qr-code-scanner`       | `in-development` — implemented in phase 14, awaiting owner approval (see the section near the top of this file) |
-|  10 | Barcode Generator     | `barcode-generator`     | `barcode-generator`     | `planned`                                                                                                       |
+|  10 | Barcode Generator     | `barcode-generator`     | `barcode-generator`     | `in-development` — implemented in phase 15, awaiting owner approval (see the section near the top of this file) |
 
 ## 11. Proposed Phase 11 — Security & Privacy Tools
 

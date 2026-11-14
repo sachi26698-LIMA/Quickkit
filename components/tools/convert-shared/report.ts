@@ -29,7 +29,8 @@ export function reportTotals(report: BatchReport) {
 let sequence = 0;
 
 /** Unique id for queue items and results within this tab session. */
-export const nextId = (prefix: string) => `${prefix}-${Date.now()}-${sequence++}`;
+export const nextId = (prefix: string) =>
+  `${prefix}-${Date.now()}-${sequence++}`;
 
 export const statusLabel: Record<QueueStatus, string> = {
   inspecting: "Reading…",

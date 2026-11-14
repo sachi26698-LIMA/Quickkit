@@ -39,6 +39,15 @@ export const toolThemes: Record<string, ToolTheme> = {
   // QR & Barcode
   "qr-code-scanner": t("15 118 110", "45 212 191", "#134e4a"),
   "qr-generator": t("200 16 46", "255 59 48", "#991b1b"),
+  "barcode-generator": t("194 40 22", "245 158 11", "#9a3412"),
+  // The barcode family reads as one red group, but each tool keeps its own
+  // accent so the studio, the reader and the reference pages stay distinct.
+  "barcode-scanner": t("190 18 60", "251 113 133", "#881337"),
+  "barcode-developer": t("157 23 77", "244 114 182", "#831843"),
+  "batch-studio": t("146 64 14", "245 158 11", "#7c2d12"),
+  "batch-code-checker": t("154 52 18", "251 146 60", "#7c2d12"),
+  "gs1-intelligence": t("162 28 175", "232 121 249", "#86198f"),
+  "product-lookup": t("133 77 14", "250 204 21", "#713f12"),
   // Text & Writing
   "word-counter": t("107 33 168", "183 148 246", "#6b21a8"),
   "image-to-text": t("3 105 161", "56 189 248", "#075985"),

@@ -4,7 +4,7 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   await page.goto("/tools");
   await expect(page.locator(".tool-card")).toHaveCount(tools.length);
   await page.getByRole("searchbox").fill("json");
-  await expect(page.locator(".tool-card")).toHaveCount(3);
+  await expect(page.locator(".tool-card")).toHaveCount(4);
   await expect(page.locator(".tool-card").first()).toContainText(
     "JSON Formatter",
   );
@@ -13,6 +13,10 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   );
   await expect(page.locator(".tool-card").nth(2)).toContainText(
     "QR Code Scanner",
+  );
+  // Product Lookup matches "json" through its JSON export, so it ranks last.
+  await expect(page.locator(".tool-card").nth(3)).toContainText(
+    "Product Lookup",
   );
   await page
     .getByRole("button", { name: "Text & Writing", exact: true })
@@ -59,7 +63,7 @@ test("hero search suggests tools and opens results in All Tools", async ({
   ).toBeVisible();
   await search.press("Enter");
   await expect(page).toHaveURL(/\/tools\?q=json$/);
-  await expect(page.locator(".tool-card")).toHaveCount(3);
+  await expect(page.locator(".tool-card")).toHaveCount(4);
   await expect(page.locator(".tool-card").first()).toContainText(
     "JSON Formatter",
   );
@@ -68,6 +72,9 @@ test("hero search suggests tools and opens results in All Tools", async ({
   );
   await expect(page.locator(".tool-card").nth(2)).toContainText(
     "QR Code Scanner",
+  );
+  await expect(page.locator(".tool-card").nth(3)).toContainText(
+    "Product Lookup",
   );
 });
 test("saving a tool adds it to the Saved page", async ({ page }) => {

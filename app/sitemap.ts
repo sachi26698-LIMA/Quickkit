@@ -11,6 +11,31 @@ import {
   toolsByCategory,
 } from "@/lib/catalog";
 import { legalPages } from "@/lib/legal";
+import { BRANDS } from "@/lib/tools/batch-code/brands";
+
+/**
+ * Tools whose engine lives outside `lib/tools/<slug>`.
+ *
+ * The default mapping assumes one folder per route; a multi-mode tool keeps its
+ * engine in a shared directory instead, and the sitemap's lastmod should still
+ * follow that code.
+ */
+const EXTRA_ROUTE_SOURCES: Readonly<Record<string, readonly string[]>> = {
+  "/tools/barcode-generator": [
+    "lib/tools/barcode",
+    "components/tools/barcode-studio",
+  ],
+  "/tools/gs1-intelligence": [
+    "lib/tools/gs1",
+    "components/tools/gs1-intelligence",
+  ],
+  "/tools/product-lookup": [
+    "lib/tools/barcode-scanner/product-lookup.ts",
+    "components/tools/product-lookup",
+  ],
+  "/tools/batch-studio": ["components/tools/batch-studio"],
+  "/tools/barcode-developer": ["components/tools/barcode-developer"],
+};
 
 const CALCULATOR_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
   "age-calculator": ["components/tools/phase9-dates.tsx"],
@@ -164,6 +189,15 @@ export function routeSourceFiles(
   if (path === "/help") return ["app/help/page.tsx"];
   if (path === "/sitemap") return ["app/sitemap/page.tsx"];
 
+  // Brand detail pages live one level below a tool route but are generated
+  // statically from the batch-code records, so they are mapped explicitly.
+  if (path.startsWith("/tools/batch-code-checker/brand/")) {
+    return [
+      "app/tools/batch-code-checker/brand/[slug]/page.tsx",
+      "lib/tools/batch-code",
+    ];
+  }
+
   if (path.startsWith("/tools/")) {
     const slug = path.slice("/tools/".length);
     const staticPage = `app/tools/${slug}/page.tsx`;
@@ -178,6 +212,8 @@ export function routeSourceFiles(
       }
       const libDir = `lib/tools/${slug}`;
       if (repoFileExists(repoPath(repoRoot, libDir))) found.push(libDir);
+      for (const extra of EXTRA_ROUTE_SOURCES[path] ?? [])
+        if (repoFileExists(repoPath(repoRoot, extra))) found.push(extra);
       return [...new Set(found)];
     }
 
@@ -220,7 +256,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // `/saved` and `/qr` are deliberately absent: they carry `noindex` directives
   // and render per-browser or user-encoded state rather than indexable content.
-  const staticRoutes = ["/", "/tools", "/help", "/sitemap"];
+  const staticRoutes = ["/", "/tools", "/help", "/sitemap", "/guides/barcode"];
   const legalRouteSet = new Set(
     legalPages.filter((page) => page.indexable).map((page) => page.href),
   );
@@ -243,6 +279,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         )
         .map((category) => `/category/${category.slug}`),
       ...tools.map((tool) => `/tools/${tool.slug}`),
+      // One page per brand record: each states that brand's decoder status,
+      // limitation and shelf-life source, so it is not a duplicate of another.
+      ...BRANDS.map((brand) => `/tools/batch-code-checker/brand/${brand.slug}`),
     ]),
   ];
 

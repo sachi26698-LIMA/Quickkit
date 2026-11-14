@@ -311,6 +311,42 @@ export const tools = [
     phase: 14,
   },
   {
+    slug: "barcode-generator",
+    name: "Barcode Generator",
+    category: "QR & Barcode",
+    description:
+      "Create Code 128, EAN, UPC, ITF-14 and GS1-128 barcodes with real check-digit validation, then style, print or bulk-export them — and scan barcodes back from a camera or an image.",
+    keywords:
+      "barcode generator maker create code 128 code128 code 39 code39 ean 13 ean13 ean 8 ean8 upc-a upca upc-e upce itf-14 itf14 gtin sscc gs1-128 application identifier codabar msi pharmacode label printing printer pdf svg png bulk csv zip reader scanner camera image quiet zone check digit offline free",
+    icon: "barcode",
+    color: "red",
+    phase: 15,
+  },
+  {
+    slug: "batch-code-checker",
+    name: "Batch Code Checker",
+    category: "QR & Barcode",
+    description:
+      "Check a cosmetics batch or lot code against documented decoders: a GS1 element string or a date inside the code, with printed dates and PAO kept separate and no invented expiry dates.",
+    keywords:
+      "batch code checker lot number check cosmetics skincare expiry manufacture date decoder gs1 application identifier production date expiration date pao period after opening open jar symbol shelf life brand directory verified estimated not decodable offline free",
+    icon: "calc",
+    color: "amber",
+    phase: 16,
+  },
+  {
+    slug: "barcode-scanner",
+    name: "Barcode Scanner",
+    category: "QR & Barcode",
+    description:
+      "Scan EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF-14 and Codabar from a camera or an image on your device, copy values, keep local history and optionally look up a GTIN.",
+    keywords:
+      "barcode scanner scan reader decode camera webcam upload image ean 13 ean13 ean 8 upc-a upca upc-e upce code 128 code128 code 39 code39 itf-14 codabar gtin product lookup history copy offline free",
+    icon: "barcode",
+    color: "cyan",
+    phase: 16,
+  },
+  {
     slug: "image-compressor",
     name: "Image Compressor",
     category: "Image Tools",
@@ -589,6 +625,54 @@ export const tools = [
     color: "purple",
     phase: 9,
   },
+  {
+    slug: "gs1-intelligence",
+    name: "GS1 Intelligence",
+    category: "QR & Barcode",
+    description:
+      "Parse a GS1 element string, HRI string or Digital Link: every application identifier explained, GS1 dates interpreted, GTIN check digit verified and a Digital Link built with its QR preview.",
+    keywords:
+      "gs1 intelligence parser application identifier ai element string fnc1 gs hri human readable interpretation gtin sscc itip production date expiry best before digital link uri builder qr preview check digit verify batch serial lot offline free",
+    icon: "barcode",
+    color: "violet",
+    phase: 19,
+  },
+  {
+    slug: "product-lookup",
+    name: "Product Lookup",
+    category: "QR & Barcode",
+    description:
+      "Look up a GTIN in Open Food Facts: ingredients, allergens and nutrition exactly as recorded, missing fields listed as missing, ODbL attribution and not-found, rate-limit and outage reported separately.",
+    keywords:
+      "gtin product lookup barcode number open food facts ingredients allergens nutrition calories database odbl community record not found rate limit attribution export csv json offline free",
+    icon: "scan",
+    color: "sky",
+    phase: 19,
+  },
+  {
+    slug: "batch-studio",
+    name: "Batch Barcode Studio",
+    category: "QR & Barcode",
+    description:
+      "Turn a CSV into a ZIP of barcode symbols with every row reported as ready, duplicate, skipped or invalid, plus a report CSV and an on-screen table that never drops a row.",
+    keywords:
+      "batch barcode studio csv bulk labels zip svg png export report row status duplicate invalid print sheet product numbers offline free",
+    icon: "qr",
+    color: "peach",
+    phase: 19,
+  },
+  {
+    slug: "barcode-developer",
+    name: "Barcode Developer Tools",
+    category: "QR & Barcode",
+    description:
+      "Compare two barcode values character by character, screen a photographed symbol for resolution, contrast, quiet-zone and cropping faults, and read the product lookup endpoint contract.",
+    keywords:
+      "barcode developer tools compare values diff gtin check digit image analyser module width contrast quiet zone cropping debug api endpoint status codes iso 15416 disclaimer offline free",
+    icon: "code",
+    color: "blue",
+    phase: 19,
+  },
 ] as const;
 
 export type Tool = (typeof tools)[number];
@@ -743,18 +827,63 @@ const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
 
   // QR & Barcode (2): QR encoding, scanning, security and print-asset workflows
   "qr-generator": [
+    "barcode-generator",
     "qr-code-scanner",
     "url-encoder-decoder",
-    "password-generator",
-    "image-resizer",
     "images-to-pdf",
+    "image-resizer",
   ],
   "qr-code-scanner": [
+    "barcode-generator",
     "qr-generator",
     "url-encoder-decoder",
-    "base64-encoder-decoder",
-    "hash-generator",
     "image-cropper",
+    "hash-generator",
+  ],
+  "barcode-generator": [
+    "batch-studio",
+    "gs1-intelligence",
+    "barcode-developer",
+    "qr-generator",
+    "qr-code-scanner",
+    "images-to-pdf",
+  ],
+  "batch-code-checker": [
+    "barcode-scanner",
+    "barcode-generator",
+    "qr-code-scanner",
+    "qr-generator",
+  ],
+  "barcode-scanner": [
+    "barcode-generator",
+    "batch-code-checker",
+    "product-lookup",
+    "qr-code-scanner",
+    "qr-generator",
+  ],
+  "gs1-intelligence": [
+    "barcode-generator",
+    "barcode-scanner",
+    "product-lookup",
+    "batch-code-checker",
+  ],
+  "product-lookup": [
+    "barcode-scanner",
+    "gs1-intelligence",
+    "batch-code-checker",
+    "barcode-generator",
+  ],
+  "batch-studio": [
+    "barcode-generator",
+    "barcode-scanner",
+    "qr-generator",
+    "gs1-intelligence",
+  ],
+  "barcode-developer": [
+    "barcode-generator",
+    "barcode-scanner",
+    "gs1-intelligence",
+    "product-lookup",
   ],
 
   // Security & Privacy (1): local cryptography, passwords and document/QR protection
