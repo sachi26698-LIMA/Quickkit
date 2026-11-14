@@ -53,7 +53,7 @@ test.beforeAll(async () => {
   largeImagePdf = fixture(
     await createImageHeavyPdf({
       height: 900,
-      pages: 1,
+      pages: 3,
       seed: 424242,
       width: 1200,
     }),
@@ -394,36 +394,54 @@ test("complete mobile workflow uses the sticky action without horizontal overflo
   ).toBe(true);
 });
 
-test("cancels a large batch and leaves unfinished PDFs ready to retry", async ({
-  page,
-}) => {
-  test.setTimeout(120_000);
-  await page.goto("/tools/compress-pdf");
-  const copies = [1, 2, 3].map((index) => ({
-    ...largeImagePdf,
-    name: `Large scan ${index}.pdf`,
-  }));
-  await page.getByLabel("Choose PDFs", { exact: true }).setInputFiles(copies);
-  await expect(page.locator(".pdf-entry")).toHaveCount(3);
-  await expect(
-    page.getByRole("button", { name: "Compress 3 PDFs" }),
-  ).toBeEnabled({ timeout: 60_000 });
+for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
+  test(`cancels a large batch and leaves unfinished PDFs ready to retry (${mode})`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize(
+      mode === "mobile pointer"
+        ? { width: 390, height: 844 }
+        : { width: 1280, height: 900 },
+    );
+    await page.goto("/tools/compress-pdf");
+    const copies = [1, 2, 3].map((index) => ({
+      ...largeImagePdf,
+      name: `Large scan ${index}.pdf`,
+    }));
+    await page.getByLabel("Choose PDFs", { exact: true }).setInputFiles(copies);
+    await expect(page.locator(".pdf-entry")).toHaveCount(3);
+    await expect(
+      page.getByRole("button", { name: "Compress 3 PDFs" }),
+    ).toBeEnabled({ timeout: 60_000 });
 
-  const targetToggle = page.getByLabel(/Target size per PDF/);
-  await targetToggle.focus();
-  await page.keyboard.press("Space");
-  await expect(targetToggle).toBeChecked();
-  await page.getByLabel("Target", { exact: true }).fill("1");
-  await page.getByLabel("Target unit").selectOption("KiB");
-  await page.getByRole("button", { name: "Compress 3 PDFs" }).click();
-  await expect(page.getByRole("progressbar")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Cancel compression" })
-    .click({ force: true });
+    const targetToggle = page.getByLabel(/Target size per PDF/);
+    await targetToggle.focus();
+    await page.keyboard.press("Space");
+    await expect(targetToggle).toBeChecked();
+    await page.getByLabel("Target", { exact: true }).fill("1");
+    await page.getByLabel("Target unit").selectOption("KiB");
+    if (mode === "mobile pointer") {
+      // The sticky mobile control stays in place while work is running.
+      await page.locator(".pdf-mobile-action .primary").click();
+      await expect(page.getByRole("progressbar")).toBeVisible();
+      await page
+        .locator(".pdf-mobile-action")
+        .getByRole("button", { name: "Cancel", exact: true })
+        .click();
+    } else {
+      await page.getByRole("button", { name: "Compress 3 PDFs" }).click();
+      await expect(page.getByRole("progressbar")).toBeVisible();
+      // Keyboard activation tests the real desktop control without a forced
+      // pointer click that could land on an overlapping element after scrolling.
+      await page.getByRole("button", { name: "Cancel compression" }).focus();
+      await page.keyboard.press("Enter");
+    }
 
-  await expect(page.getByText(/Compression cancelled/)).toBeVisible();
-  await expect(page.locator(".pdf-entry")).toHaveCount(3);
-  await expect(
-    page.getByRole("button", { name: /Compress \d+ PDFs/ }),
-  ).toBeEnabled();
-});
+    await expect(page.getByText(/Compression cancelled/)).toBeVisible();
+    await expect(page.locator(".pdf-entry")).toHaveCount(3);
+    await expect(
+      page.getByRole("button", { name: /Compress [1-3] PDFs?/ }),
+    ).toBeEnabled();
+  });
+}
