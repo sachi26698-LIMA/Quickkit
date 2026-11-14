@@ -11,7 +11,13 @@
  * The data is community-entered Open Food Facts content under ODbL. Nothing on
  * this page presents it as a manufacturer statement.
  */
-import { useCallback, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   AlertTriangle,
   BadgeQuestionMark,
@@ -60,6 +66,13 @@ function download(name: string, mime: string, body: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Hydration-safe read of the query string (see the batch code checker). */
+const subscribeToLocation = () => () => {};
+
+function readPresetGtin(): string {
+  return new URLSearchParams(window.location.search).get("gtin") ?? "";
+}
+
 export default function ProductLookup({
   initialGtin = "",
 }: {
@@ -68,6 +81,18 @@ export default function ProductLookup({
   const [gtin, setGtin] = useState(initialGtin);
   const [view, setView] = useState<View>({ state: "idle" });
   const [copied, setCopied] = useState("");
+
+  /**
+   * `?gtin=` arrives after hydration, without forcing this pre-rendered page to
+   * become dynamic. A deep link from a label, a ticket or another page then
+   * performs the lookup instead of merely filling the box.
+   */
+  const presetGtin = useSyncExternalStore(
+    subscribeToLocation,
+    readPresetGtin,
+    () => "",
+  );
+  const presetApplied = useRef(false);
 
   const copy = async (label: string, text: string) => {
     try {
@@ -79,12 +104,12 @@ export default function ProductLookup({
     }
   };
 
-  const run = useCallback(async () => {
-    const normalized = normalizeGtin(gtin);
+  const runFor = useCallback(async (value: string) => {
+    const normalized = normalizeGtin(value);
     if (!normalized) {
       setView({
         state: "local",
-        gtin: gtin.trim(),
+        gtin: value.trim(),
         message:
           "That is not a valid GTIN. It must be 8, 12, 13 or 14 digits, and the final digit must be the GS1 check digit for the rest. Nothing was sent to the database.",
       });
@@ -123,7 +148,19 @@ export default function ProductLookup({
           : "The request to this site's own lookup proxy failed before any response arrived — usually an offline connection, a proxy or a content blocker. Nothing was learned about the product.",
       });
     }
-  }, [gtin]);
+  }, []);
+
+  const run = useCallback(() => runFor(gtin), [gtin, runFor]);
+
+  useEffect(() => {
+    if (presetApplied.current || !presetGtin) return;
+    presetApplied.current = true;
+    const id = window.setTimeout(() => {
+      setGtin(presetGtin);
+      void runFor(presetGtin);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [presetGtin, runFor]);
 
   const product: ProductRecord | null =
     view.state === "done" && view.result.status === "found"
@@ -332,6 +369,14 @@ export default function ProductLookup({
                     <em>not recorded</em>
                   )}
                 </dd>
+                <dt>Manufacturer</dt>
+                <dd>{product.manufacturer ?? <em>not recorded</em>}</dd>
+                <dt>Packaging</dt>
+                <dd>{product.packaging ?? <em>not recorded</em>}</dd>
+                <dt>Country of origin</dt>
+                <dd>{product.origin ?? <em>not recorded</em>}</dd>
+                <dt>Description (generic name)</dt>
+                <dd>{product.description ?? <em>not recorded</em>}</dd>
                 <dt>Last edited</dt>
                 <dd>{product.lastModified ?? <em>unknown</em>}</dd>
                 <dt>Source</dt>

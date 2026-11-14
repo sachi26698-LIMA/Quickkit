@@ -71,6 +71,18 @@ export type ProductRecord = {
   categories: string[];
   /** Ingredient statement as recorded, when the record has one. */
   ingredients: string | null;
+  /** Manufacturer / brand owner, exactly as the record spells it. */
+  manufacturer: string | null;
+  /** Packaging statement (bottle, box, film…) when the record carries one. */
+  packaging: string | null;
+  /** Country of origin, then manufacturing place, then market — first present. */
+  origin: string | null;
+  /**
+   * The record's own descriptive line. Open Food Facts has no free-text
+   * "description"; `generic_name` is the field it does carry, so it is labelled
+   * as such rather than passed off as a marketing description.
+   */
+  description: string | null;
   allergens: string[];
   /** Nutrition rows for the fields that are actually present. */
   nutrition: { label: string; value: string }[];
@@ -290,6 +302,13 @@ export function parseProductPayload(
     quantity: text(product.quantity),
     categories: list(product.categories),
     ingredients: text(product.ingredients_text),
+    manufacturer: text(product.manufacturers),
+    packaging: text(product.packaging),
+    origin:
+      text(product.origins) ??
+      text(product.countries) ??
+      text(product.manufacturing_places),
+    description: text(product.generic_name),
     allergens: list(product.allergens),
     nutrition: nutritionRows(product.nutriments),
     missing: [] as string[],
@@ -318,7 +337,12 @@ export function parseProductPayload(
       ["image", record.imageUrl],
       ["category", record.categories.length ? "category" : null],
       ["ingredients", record.ingredients],
+      ["allergens", record.allergens.length ? "allergens" : null],
       ["nutrition", record.nutrition.length ? "nutrition" : null],
+      ["manufacturer", record.manufacturer],
+      ["packaging", record.packaging],
+      ["country of origin", record.origin],
+      ["description", record.description],
     ] as [string, unknown][]
   )
     .filter(([, value]) => !value)
@@ -335,7 +359,14 @@ const FIELDS = [
   "categories",
   "ingredients_text",
   "allergens",
+  "traces",
   "nutriments",
+  "manufacturers",
+  "packaging",
+  "countries",
+  "origins",
+  "manufacturing_places",
+  "labels",
   "last_modified_t",
   "code",
   "image_front_small_url",
@@ -346,7 +377,7 @@ const FIELDS = [
 /** `AppName/Version (contact)` — the shape Open Food Facts asks for. */
 export function userAgent(): string {
   const contact = contactEmail ? `; ${contactEmail}` : "";
-  return `QUICKKIT-BarcodeScanner/1.1 (https://quickkit.online${contact})`;
+  return `QUICKKIT-BarcodeScanner/1.2 (https://quickkit.online${contact})`;
 }
 
 export function productUrl(gtin: string): string {

@@ -17,6 +17,10 @@ export function productExportRows(product: ProductRecord) {
     ["brand", product.brands.join(" | ")],
     ["quantity", product.quantity ?? ""],
     ["categories", product.categories.join(" | ")],
+    ["manufacturer", product.manufacturer ?? ""],
+    ["packaging", product.packaging ?? ""],
+    ["country of origin", product.origin ?? ""],
+    ["description (generic_name)", product.description ?? ""],
     ["ingredients", product.ingredients ?? ""],
     ["allergens", product.allergens.join(" | ")],
     ...product.nutrition.map(
@@ -44,7 +48,7 @@ export function productToCsv(product: ProductRecord) {
 export function productToJson(product: ProductRecord) {
   return JSON.stringify(
     {
-      schema: "quickkit.product-lookup/1",
+      schema: "quickkit.product-lookup/2",
       exportedAt: new Date().toISOString(),
       gtin: product.gtin,
       product: {
@@ -53,6 +57,10 @@ export function productToJson(product: ProductRecord) {
         quantity: product.quantity,
         categories: product.categories,
         ingredients: product.ingredients,
+        manufacturer: product.manufacturer,
+        packaging: product.packaging,
+        origin: product.origin,
+        description: product.description,
         allergens: product.allergens,
         nutrition: product.nutrition,
         lastModified: product.lastModified,
@@ -73,4 +81,34 @@ export function productToJson(product: ProductRecord) {
     null,
     2,
   );
+}
+
+/**
+ * Human-readable summary for "copy details" and for the share sheet.
+ *
+ * Unknown fields are written as "not recorded" rather than omitted, so a pasted
+ * summary cannot look more complete than the record it came from.
+ */
+export function productToText(product: ProductRecord) {
+  const line = (label: string, value: string | null) =>
+    `${label}: ${value ?? "not recorded"}`;
+  const lines = [
+    product.name,
+    line("GTIN", product.gtin),
+    line("Brand", product.brands.join(", ") || null),
+    line("Manufacturer", product.manufacturer),
+    line("Quantity", product.quantity),
+    line("Category", product.categories.join(", ") || null),
+    line("Country of origin", product.origin),
+    line("Packaging", product.packaging),
+    line("Description (generic name)", product.description),
+    line("Ingredients", product.ingredients),
+    line("Allergens", product.allergens.join(", ") || null),
+    ...product.nutrition.map((row) => `${row.label}: ${row.value}`),
+    line("Last data update", product.lastModified),
+    `Source: ${product.sourceName} (${product.sourceHost}) — ${product.licence}`,
+    `Record: ${product.sourceUrl}`,
+    `Not manufacturer-verified. ${product.disclosure}`,
+  ];
+  return lines.join("\n");
 }

@@ -38,6 +38,11 @@ const payload = {
       // A nutrient we do not display must be ignored, not guessed at.
       "vitamin-c_100g": 0,
     },
+    manufacturers: "Ferrero Commerciale Italia",
+    packaging: "Glass jar, metal lid",
+    countries: "Italy",
+    origins: "Italy",
+    generic_name: "Hazelnut cocoa spread",
     last_modified_t: 1794471481,
     image_front_url:
       "https://images.openfoodfacts.org/images/products/301/762/042/2003/front.jpg",
@@ -84,6 +89,30 @@ describe("parsed record", () => {
     expect(product.nutrition.length).toBe(8);
   });
 
+  it("carries the manufacturer, packaging, origin and descriptive fields", () => {
+    const product = record();
+    expect(product.manufacturer).toBe("Ferrero Commerciale Italia");
+    expect(product.packaging).toBe("Glass jar, metal lid");
+    expect(product.origin).toBe("Italy");
+    expect(product.description).toBe("Hazelnut cocoa spread");
+  });
+
+  it("falls back through origins, countries and manufacturing places for origin", () => {
+    const fallback = parseProductPayload("3017620422003", {
+      status: "success",
+      product: {
+        product_name: "Mystery bar",
+        countries: "Belgium",
+        manufacturing_places: "Brussels",
+      },
+    });
+    expect(fallback.status).toBe("found");
+    if (fallback.status !== "found") return;
+    expect(fallback.product.origin).toBe("Belgium");
+    expect(fallback.product.manufacturer).toBeNull();
+    expect(fallback.product.missing).toContain("manufacturer");
+  });
+
   it("lists the fields the record does not have", () => {
     const product = record();
     // The fixture has a name, brand, quantity, image, category, ingredients and
@@ -123,7 +152,7 @@ describe("exports", () => {
 
   it("writes JSON with a schema version and source block", () => {
     const parsed = JSON.parse(productToJson(record()));
-    expect(parsed.schema).toBe("quickkit.product-lookup/1");
+    expect(parsed.schema).toBe("quickkit.product-lookup/2");
     expect(parsed.product.name).toBe("Nutella");
     expect(parsed.product.nutrition).toHaveLength(8);
     expect(parsed.source.dataLicence).toBe("ODbL 1.0");

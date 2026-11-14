@@ -1,5 +1,47 @@
 # QUICKKIT Master Project Progress
 
+## Phase 21 — real data engine and existing-tool upgrade (14 November 2026 UTC)
+
+**Branch:** `arena/6102e674-quickkit`, continuing from Phase 20 commit `6a715f0`.
+Report: **`QUICKKIT_PHASE21_REAL_DATA_COMPLETION_REPORT.md`**. No new tools, no
+new pages, no catalog change; nothing pushed, merged, deployed or indexed.
+
+- **Scanner is now a scan-to-information flow.** A decoded string is classified
+  once (`lib/tools/barcode-scanner/identify.ts`) as GTIN-8/12/13/14, a GS1 element
+  string, a GS1 Digital Link, or ordinary decoded text — and only a validated
+  product number is looked up, automatically, once per value per visit. The user's
+  own case, `0731946697725`, is recognised as a GTIN-13 with a valid check digit
+  (spaced forms such as `0731 9466 97725` too); `INV-2026-0042` and a 14-digit
+  value with a wrong check digit produce **zero** requests and an explanation.
+- **Product card shows everything the database has, and names what it does not:**
+  image, name, brand, manufacturer, category, net quantity, packaging, country of
+  origin, description (generic name), ingredients, allergens, nutrition, source,
+  last-edited date and licence, plus a "Not provided by this record" list. Seven
+  actions: copy barcode, copy details, share, JSON, CSV, original record, scan
+  another. Exports are schema `quickkit.product-lookup/2` and carry ODbL/CC-BY-SA
+  attribution and the missing-field list.
+- **Shared engine extended** with manufacturer, packaging, origin (origins →
+  countries → manufacturing places) and description; the `fields` request grew to
+  match, so the scanner and the manual lookup show the same record.
+- **Product Lookup `?gtin=` deep links now perform the lookup** instead of merely
+  filling the input, via a hydration-safe query read (no Suspense, no dynamic
+  rendering).
+- **Live lookup remains BLOCKED in this sandbox:** DNS resolves
+  (151.115.132.10) and TCP connects, but the egress allow-list resets the TLS
+  handshake, so the route returns 502 `reason:"network"` and the UI says so
+  plainly. The full success path was verified in Chromium against an intercepted
+  v3.6-shaped payload — labelled as intercepted, never presented as live.
+- **Camera:** synthetic-device lifecycle re-verified after the rewrite (640×480
+  playing, Stop ends every track, torch correctly absent). Physical hardware and
+  permission prompts remain **BLOCKED**.
+- **Gates:** TypeScript 0, ESLint 0, Prettier clean, **2,160 tests in 128 files**,
+  build **143/143 pages**, `npm audit` 0 (prod and full). 18/18 browser visits
+  (9 pages × 2 viewports) returned 200 with 0 overflow and 0 page errors; mobile
+  LCP 828 ms / CLS 0.000 on the scanner, 480 ms / 0.000 on product lookup.
+  Launch-mode SEO unchanged: 132 sitemap URLs, unique titles/descriptions,
+  canonicals and `index, follow` on all nine barcode pages.
+- **Manufacturer decoders:** still **0 of 59**, all `lastVerified: null`.
+
 ## Phase 20 — final completion and real-world validation (14 November 2026 UTC)
 
 **Branch:** `arena/6102e674-quickkit`, continuing from Phase 19 checkpoint

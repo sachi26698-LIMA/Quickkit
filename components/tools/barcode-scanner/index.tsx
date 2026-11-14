@@ -13,7 +13,6 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   Camera,
   CameraOff,
@@ -24,7 +23,6 @@ import {
   ScanBarcode,
   Share2,
   Trash2,
-  TriangleAlert,
 } from "lucide-react";
 import {
   cameraSupport,
@@ -55,11 +53,14 @@ import {
   type ScanSource,
 } from "@/lib/tools/barcode-scanner/history";
 import {
-  LOOKUP_DISCLOSURE,
   PRODUCT_DATABASE,
-  normalizeGtin,
   type LookupResult,
 } from "@/lib/tools/barcode-scanner/product-lookup";
+import {
+  classifyScan,
+  identityLabel,
+} from "@/lib/tools/barcode-scanner/identify";
+import { IdentityPanel, ProductPanel } from "./product-panel";
 import styles from "./scanner.module.css";
 
 type Mode = "camera" | "image";
@@ -123,6 +124,7 @@ export default function BarcodeScanner() {
   const running = useRef(false);
   const timer = useRef<number | null>(null);
   const seen = useRef(new Set<string>());
+  const lookedUp = useRef(new Set<string>());
   const mounted = useRef(true);
   const tickRef = useRef<() => void>(() => {});
 
@@ -174,6 +176,53 @@ export default function BarcodeScanner() {
   }, []);
 
   /* --------------------------------- results -------------------------------- */
+  /* --------------------------------- lookup --------------------------------- */
+  /**
+   * One lookup per GTIN per page visit. The route has its own token bucket and
+   * cache, but a scanner that re-asks for the same value on every frame would
+   * burn both, so the request is fired automatically exactly once.
+   */
+  const lookup = useCallback(async (gtin: string) => {
+    setLookups((current) => ({ ...current, [gtin]: { status: "loading" } }));
+    try {
+      const response = await fetch(
+        `/api/product-lookup?gtin=${encodeURIComponent(gtin)}`,
+        {
+          headers: { Accept: "application/json" },
+        },
+      );
+      const result = (await response.json()) as LookupResult;
+      setLookups((current) => ({
+        ...current,
+        [gtin]: { status: "done", result },
+      }));
+    } catch {
+      setLookups((current) => ({
+        ...current,
+        [gtin]: {
+          status: "done",
+          result: {
+            status: "error",
+            reason: "network",
+            message:
+              "The lookup request did not complete. The barcode you scanned is unaffected — only the optional product lookup failed.",
+          },
+        },
+      }));
+    }
+  }, []);
+
+  /** Look the value up only when the scanner identified it as a real GTIN. */
+  const lookupIfProduct = useCallback(
+    (value: string) => {
+      const gtin = classifyScan(value).lookupGtin;
+      if (!gtin || lookedUp.current.has(gtin)) return;
+      lookedUp.current.add(gtin);
+      void lookup(gtin);
+    },
+    [lookup],
+  );
+
   const record = useCallback(
     (found: DecodedBarcode[], source: ScanSource) => {
       if (!found.length) return;
@@ -198,10 +247,12 @@ export default function BarcodeScanner() {
       if (duplicates) setSuppressed((current) => current + duplicates);
       if (!fresh.length) return;
       setResults((current) => [...fresh, ...current].slice(0, 50));
-      for (const item of fresh)
+      for (const item of fresh) {
         remember(item.value, item.format, item.label, source);
+        lookupIfProduct(item.value);
+      }
     },
-    [remember],
+    [lookupIfProduct, remember],
   );
 
   /**
@@ -229,8 +280,9 @@ export default function BarcodeScanner() {
       );
     }
     remember(value, "manual", "Typed value", "pasted");
+    lookupIfProduct(value);
     setManual("");
-  }, [manual, remember]);
+  }, [lookupIfProduct, manual, remember]);
 
   const share = useCallback(async (value: string) => {
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -424,35 +476,15 @@ export default function BarcodeScanner() {
     }
   }, []);
 
-  /* --------------------------------- lookup --------------------------------- */
-  const lookup = useCallback(async (gtin: string) => {
-    setLookups((current) => ({ ...current, [gtin]: { status: "loading" } }));
-    try {
-      const response = await fetch(
-        `/api/product-lookup?gtin=${encodeURIComponent(gtin)}`,
-        {
-          headers: { Accept: "application/json" },
-        },
-      );
-      const result = (await response.json()) as LookupResult;
-      setLookups((current) => ({
-        ...current,
-        [gtin]: { status: "done", result },
-      }));
-    } catch {
-      setLookups((current) => ({
-        ...current,
-        [gtin]: {
-          status: "done",
-          result: {
-            status: "error",
-            reason: "network",
-            message:
-              "The lookup request did not complete. The barcode you scanned is unaffected — only the optional product lookup failed.",
-          },
-        },
-      }));
-    }
+  /** Clear the current result set so the next symbol reads as a fresh product. */
+  const scanAnother = useCallback(() => {
+    setResults([]);
+    seen.current.clear();
+    lookedUp.current.clear();
+    setLookups({});
+    setSuppressed(0);
+    setFileNote("");
+    setManual("");
   }, []);
 
   const live = status === "live";
@@ -718,7 +750,8 @@ export default function BarcodeScanner() {
         ) : (
           <ul className={styles.resultList}>
             {results.map((item) => {
-              const gtin = normalizeGtin(item.value);
+              const identity = classifyScan(item.value);
+              const gtin = identity.lookupGtin;
               const lookupState = gtin ? lookups[gtin] : undefined;
               return (
                 <li key={item.id} className={styles.resultCard}>
@@ -727,6 +760,9 @@ export default function BarcodeScanner() {
                     <span className={`${styles.badge} ${styles.badgeQuiet}`}>
                       {sourceLabel(item.source)}
                     </span>
+                    <span className={`${styles.badge} ${styles.badgeQuiet}`}>
+                      {identityLabel(identity)}
+                    </span>
                     {gtin ? (
                       <span className={`${styles.badge} ${styles.badgeQuiet}`}>
                         GTIN {gtin}
@@ -734,6 +770,7 @@ export default function BarcodeScanner() {
                     ) : null}
                   </div>
                   <p className={styles.value}>{item.value}</p>
+                  <IdentityPanel value={item.value} symbol={item.label} />
                   <div className={styles.rowButtons}>
                     <button
                       type="button"
@@ -741,7 +778,7 @@ export default function BarcodeScanner() {
                       onClick={() => void copy(item.value)}
                     >
                       <Copy size={14} aria-hidden />
-                      {copied === item.value ? "Copied" : "Copy value"}
+                      {copied === item.value ? "Copied" : "Copy barcode"}
                     </button>
                     <button
                       type="button"
@@ -755,18 +792,45 @@ export default function BarcodeScanner() {
                       <button
                         type="button"
                         className={styles.smallButton}
-                        onClick={() => void lookup(gtin)}
+                        onClick={() => {
+                          lookedUp.current.delete(gtin);
+                          void lookup(gtin);
+                        }}
                         disabled={lookupState?.status === "loading"}
                       >
                         <PackageSearch size={14} aria-hidden />
                         {lookupState?.status === "loading"
                           ? "Looking up…"
-                          : "Look up product"}
+                          : lookupState
+                            ? "Look up again"
+                            : "Look up product"}
                       </button>
                     ) : null}
                   </div>
+                  {gtin && lookupState?.status === "loading" ? (
+                    <p className={styles.meta}>
+                      <Loader2 size={13} aria-hidden /> Asking{" "}
+                      {PRODUCT_DATABASE.name} about GTIN {gtin}…
+                    </p>
+                  ) : null}
                   {gtin && lookupState?.status === "done" ? (
-                    <LookupPanel result={lookupState.result} />
+                    <ProductPanel
+                      result={lookupState.result}
+                      gtin={gtin}
+                      onScanAnother={scanAnother}
+                      onRetry={() => {
+                        lookedUp.current.delete(gtin);
+                        void lookup(gtin);
+                      }}
+                    />
+                  ) : null}
+                  {!gtin ? (
+                    <p className={styles.meta}>
+                      No product lookup is attempted for this value: it is not a
+                      validated GTIN, a GS1 element string carrying one, or a
+                      GS1 Digital Link. The decoded content is shown above
+                      exactly as it was read.
+                    </p>
                   ) : null}
                 </li>
               );
@@ -877,100 +941,6 @@ export default function BarcodeScanner() {
           </>
         )}
       </section>
-    </div>
-  );
-}
-
-function LookupPanel({ result }: { result: LookupResult }) {
-  if (result.status === "found") {
-    const { product } = result;
-    return (
-      <div className={styles.lookup}>
-        <div className={styles.lookupHead}>
-          {product.imagePath ? (
-            <Image
-              className={styles.lookupImage}
-              src={product.imagePath}
-              alt={`Product image from ${product.sourceName}`}
-              width={72}
-              height={72}
-              unoptimized
-            />
-          ) : null}
-          <h4>{product.name}</h4>
-        </div>
-        <dl>
-          {product.brands.length ? (
-            <>
-              <dt>Brand</dt>
-              <dd>{product.brands.join(", ")}</dd>
-            </>
-          ) : null}
-          {product.quantity ? (
-            <>
-              <dt>Quantity</dt>
-              <dd>{product.quantity}</dd>
-            </>
-          ) : null}
-          {product.categories.length ? (
-            <>
-              <dt>Categories</dt>
-              <dd>{product.categories.join(", ")}</dd>
-            </>
-          ) : null}
-          <dt>Database</dt>
-          <dd>
-            {product.sourceName} ({product.sourceHost})
-          </dd>
-          <dt>Record</dt>
-          <dd>
-            <a
-              href={product.sourceUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {product.sourceName}
-            </a>{" "}
-            ({product.licence}
-            {product.lastModified
-              ? `, last edited ${product.lastModified}`
-              : ""}
-            {product.imagePath ? `; image ${product.imageLicence}` : ""})
-          </dd>
-          <dt>Verified by</dt>
-          <dd>Volunteers — not the manufacturer</dd>
-        </dl>
-        <p className={styles.meta}>{product.disclosure}</p>
-      </div>
-    );
-  }
-  const heading =
-    result.status === "not-found"
-      ? "No record"
-      : result.status === "rate-limited"
-        ? "Lookup paused"
-        : result.status === "invalid"
-          ? "Not a valid GTIN"
-          : "Lookup unavailable";
-  return (
-    <div className={styles.lookup}>
-      <h4>
-        {result.status === "error" || result.status === "rate-limited" ? (
-          <TriangleAlert size={15} aria-hidden />
-        ) : null}{" "}
-        {heading}
-      </h4>
-      {result.status === "rate-limited" ? (
-        <p className={styles.meta}>
-          Retry in about {result.retryAfterSeconds}s. Nothing was sent to the
-          database.
-        </p>
-      ) : null}
-      <p className={styles.meta}>{result.message}</p>
-      <p className={styles.meta}>
-        Source: {PRODUCT_DATABASE.name} — a {PRODUCT_DATABASE.kind} database.{" "}
-        {LOOKUP_DISCLOSURE}
-      </p>
     </div>
   );
 }
