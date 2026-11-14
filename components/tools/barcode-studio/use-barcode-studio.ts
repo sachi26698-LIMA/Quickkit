@@ -200,6 +200,61 @@ export function useBarcodeStudio() {
   }, [result, layout, settings.scale, settings.format]);
 
   /**
+   * JPEG export via the canvas. The layout is still drawn by the same vector
+   * renderer, so the symbol is identical to the PNG; JPEG is offered because
+   * print shops and label portals often refuse a PNG upload.
+   */
+  const downloadJpeg = useCallback(async () => {
+    if (!result.ok || !layout) return;
+    setBusy("jpeg");
+    try {
+      const { layoutToPng } = await import("@/lib/tools/barcode/canvas");
+      const { bytes, width } = await layoutToPng(layout, settings.scale);
+      const bitmap = await createImageBitmap(
+        new Blob([bytes as unknown as BlobPart], { type: "image/png" }),
+      );
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext("2d");
+      if (!context)
+        throw new Error("This browser refused a 2D canvas context.");
+      // JPEG has no alpha: paint the quiet zone colour first.
+      context.fillStyle = layout.background ?? "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0);
+      bitmap.close?.();
+      const jpeg = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.95),
+      );
+      if (!jpeg) throw new Error("The browser could not encode a JPEG.");
+      downloadBlob(
+        jpeg,
+        barcodeFilename({
+          format: settings.format,
+          value: result.spec.value,
+          ext: "jpeg",
+          suffix: `${width}px`,
+        }),
+      );
+      setFlash({
+        kind: "success",
+        text: `JPEG saved at ${width} px wide, on an opaque background.`,
+      });
+    } catch (error) {
+      setFlash({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "The JPEG could not be created.",
+      });
+    } finally {
+      setBusy(null);
+    }
+  }, [result, layout, settings.scale, settings.format]);
+
+  /**
    * Print through a same-origin iframe: no pop-up blocker, and the SVG stays
    * vector so the printer's own resolution decides how crisp the bars are.
    */
@@ -262,6 +317,7 @@ export function useBarcodeStudio() {
     busy,
     downloadSvg,
     downloadPng,
+    downloadJpeg,
     printLabel,
   };
 }

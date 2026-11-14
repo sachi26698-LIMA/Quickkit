@@ -19,6 +19,7 @@ import type {
   BarcodeTextSegment,
 } from "./types";
 import { normalizeBarcode, type NormalizedBarcode } from "./validate";
+import { code93Binary } from "./code93";
 import {
   EAN13_PARITY,
   EAN_CENTRE_GUARD,
@@ -727,6 +728,26 @@ function encodeMsi(normalized: NormalizedBarcode): BarcodeSpec {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Code 93                                                                    */
+/* -------------------------------------------------------------------------- */
+
+function encodeCode93(normalized: NormalizedBarcode): BarcodeSpec {
+  const { binary, checks, modules } = code93Binary(normalized.value);
+  return assemble({
+    format: "code93",
+    value: normalized.value,
+    display: normalized.display,
+    binary,
+    segments: [{ text: normalized.display, center: modules / 2 }],
+    quiet: { left: 10, right: 10 },
+    notes: [
+      `Check characters C and K computed as ${checks.c}${checks.k}.`,
+      ...normalized.notes,
+    ],
+  });
+}
+
+/* -------------------------------------------------------------------------- */
 /* Pharmacode (Laetus)                                                        */
 /* -------------------------------------------------------------------------- */
 
@@ -788,6 +809,8 @@ export function encodeSpec(
       return encodeCode128(normalized);
     case "code39":
       return encodeCode39(normalized);
+    case "code93":
+      return encodeCode93(normalized);
     case "ean13":
       return encodeEan13(normalized, guardBars);
     case "ean8":

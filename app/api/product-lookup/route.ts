@@ -189,7 +189,9 @@ export async function GET(request: Request) {
   const { result, cached } = await resolveProduct(gtin, now);
   const status =
     result.status === "error"
-      ? 502
+      ? result.reason === "timeout"
+        ? 504
+        : 502
       : result.status === "rate-limited"
         ? 429
         : 200;

@@ -242,6 +242,19 @@ export default function PreviewPanel({ studio }: { studio: Studio }) {
         <button
           type="button"
           className="secondary"
+          onClick={studio.downloadJpeg}
+          disabled={!result.ok || busy === "jpeg"}
+        >
+          {busy === "jpeg" ? (
+            <Loader2 size={15} className="qr-spin" aria-hidden="true" />
+          ) : (
+            <Download size={15} aria-hidden="true" />
+          )}
+          JPEG
+        </button>
+        <button
+          type="button"
+          className="secondary"
           onClick={studio.downloadSvg}
           disabled={!result.ok}
         >

@@ -2,10 +2,11 @@
 /**
  * QUICKKIT Advanced Barcode Studio — workspace shell.
  *
- * Three modes over one engine: Generator (live preview + exports), Scanner
- * (camera and image, decoded locally) and Bulk (CSV → labels). The scanner and
- * bulk panels are code-split: a visitor who only wants one barcode never
- * downloads the decoder or the batch exporter.
+ * Four modes over one engine: Generator (live preview + exports), 2D symbols
+ * (QR, GS1 QR, Data Matrix, PDF417), Scanner (camera and image, decoded
+ * locally) and Bulk (CSV → labels). The 2D, scanner and bulk panels are
+ * code-split, so a visitor who only wants one linear barcode never downloads the
+ * 2D encoder, the decoder or the batch exporter.
  */
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -13,6 +14,7 @@ import {
   Barcode,
   Info,
   Camera,
+  QrCode,
   Rows3,
   ShieldCheck,
   TriangleAlert,
@@ -33,6 +35,14 @@ const ScannerPanel = dynamic(() => import("./scanner-panel"), {
   ),
 });
 
+const TwoDPanel = dynamic(() => import("./twod-panel"), {
+  loading: () => (
+    <p className="bc-loading" role="status">
+      Loading the 2D encoder…
+    </p>
+  ),
+});
+
 const BulkPanel = dynamic(() => import("./bulk-panel"), {
   loading: () => (
     <p className="bc-loading" role="status">
@@ -41,16 +51,18 @@ const BulkPanel = dynamic(() => import("./bulk-panel"), {
   ),
 });
 
-type TabId = "generate" | "scan" | "bulk";
+type TabId = "generate" | "twod" | "scan" | "bulk";
 
 const TABS: { id: TabId; label: string; icon: typeof Barcode }[] = [
   { id: "generate", label: "Generator", icon: Barcode },
+  { id: "twod", label: "2D symbols", icon: QrCode },
   { id: "scan", label: "Scanner", icon: Camera },
   { id: "bulk", label: "Bulk (CSV)", icon: Rows3 },
 ];
 
 const HERO_POINTS = [
-  "11 symbologies with real check-digit maths",
+  "12 linear formats with real check-digit maths",
+  "QR · Data Matrix · PDF417 exports",
   "Bulk CSV up to 1,000 labels",
   "PNG · SVG · PDF · ZIP · print",
   "Camera and image scanning, on-device",
@@ -188,6 +200,16 @@ function StudioWorkspace() {
         <div className="qr-col qr-col-side">
           <PreviewPanel studio={studio} />
         </div>
+      </div>
+
+      <div
+        id="bc-panel-twod"
+        role="tabpanel"
+        aria-labelledby="bc-tab-twod"
+        hidden={tab !== "twod"}
+        className="qr-panel-solo"
+      >
+        {tab === "twod" ? <TwoDPanel /> : null}
       </div>
 
       <div

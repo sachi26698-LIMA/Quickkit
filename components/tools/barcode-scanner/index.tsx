@@ -22,6 +22,7 @@ import {
   Loader2,
   PackageSearch,
   ScanBarcode,
+  Share2,
   Trash2,
   TriangleAlert,
 } from "lucide-react";
@@ -51,6 +52,7 @@ import {
   removeScanRecord,
   saveScanHistory,
   type ScanRecord,
+  type ScanSource,
 } from "@/lib/tools/barcode-scanner/history";
 import {
   LOOKUP_DISCLOSURE,
@@ -67,7 +69,7 @@ type ScanItem = {
   value: string;
   format: string;
   label: string;
-  source: "camera" | "image";
+  source: ScanSource;
   at: string;
 };
 
@@ -80,6 +82,14 @@ const FORMAT_LIST = READABLE_FORMATS.map((id) => FORMAT_LABELS[id] ?? id).join(
 
 function keyOf(value: string, format: string) {
   return `${format}::${value}`;
+}
+
+function sourceLabel(source: ScanItem["source"]) {
+  return source === "camera"
+    ? "Camera"
+    : source === "image"
+      ? "Image"
+      : "Typed";
 }
 
 export default function BarcodeScanner() {
@@ -105,6 +115,7 @@ export default function BarcodeScanner() {
   const [copied, setCopied] = useState<string | null>(null);
   const [fileNote, setFileNote] = useState("");
   const [suppressed, setSuppressed] = useState(0);
+  const [manual, setManual] = useState("");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -137,12 +148,7 @@ export default function BarcodeScanner() {
   }, []);
 
   const remember = useCallback(
-    (
-      value: string,
-      format: string,
-      label: string,
-      source: "camera" | "image",
-    ) => {
+    (value: string, format: string, label: string, source: ScanSource) => {
       if (!keepHistory) return;
       setHistory((current) => {
         const next = addScanRecord(current, { value, format, label, source });
@@ -169,7 +175,7 @@ export default function BarcodeScanner() {
 
   /* --------------------------------- results -------------------------------- */
   const record = useCallback(
-    (found: DecodedBarcode[], source: "camera" | "image") => {
+    (found: DecodedBarcode[], source: ScanSource) => {
       if (!found.length) return;
       const fresh: ScanItem[] = [];
       let duplicates = 0;
@@ -197,6 +203,52 @@ export default function BarcodeScanner() {
     },
     [remember],
   );
+
+  /**
+   * A value typed in by hand. It is stored as `pasted`, never as a scan: the
+   * badge says "Typed", so history cannot later be mistaken for camera evidence.
+   */
+  const addManual = useCallback(() => {
+    const value = manual.trim().slice(0, 512);
+    if (!value) return;
+    const key = keyOf(value, "manual");
+    if (!seen.current.has(key)) {
+      seen.current.add(key);
+      setResults((current) =>
+        [
+          {
+            id: `${key}-${Date.now()}`,
+            value,
+            format: "manual",
+            label: "Typed value",
+            source: "pasted" as const,
+            at: new Date().toISOString(),
+          },
+          ...current,
+        ].slice(0, 50),
+      );
+    }
+    remember(value, "manual", "Typed value", "pasted");
+    setManual("");
+  }, [manual, remember]);
+
+  const share = useCallback(async (value: string) => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ text: value });
+        return;
+      } catch {
+        /* the user cancelled, or the platform refused: fall back to copying */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(value);
+      window.setTimeout(() => setCopied(null), 1600);
+    } catch {
+      setCopied(null);
+    }
+  }, []);
 
   /* --------------------------------- camera --------------------------------- */
   const stopCamera = useCallback(() => {
@@ -596,6 +648,56 @@ export default function BarcodeScanner() {
         </section>
       )}
 
+      <section className={styles.panel} aria-labelledby="manual-heading">
+        <div className={styles.resultsHead}>
+          <h2 id="manual-heading">Type a value by hand</h2>
+          <span className={styles.meta}>
+            For a label that will not scan, or a number read off a pack
+          </span>
+        </div>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            addManual();
+          }}
+        >
+          <label className={styles.status} htmlFor="manual-value">
+            Value
+            <input
+              id="manual-value"
+              value={manual}
+              onChange={(event) => setManual(event.target.value)}
+              placeholder="5901234123457"
+              autoComplete="off"
+              maxLength={512}
+              style={{
+                display: "block",
+                width: "100%",
+                marginTop: 6,
+                padding: "9px 11px",
+                font: "inherit",
+                fontSize: 14,
+                border: "1px solid var(--border-strong)",
+                borderRadius: 10,
+              }}
+            />
+          </label>
+          <div className={styles.rowButtons}>
+            <button
+              type="submit"
+              className={styles.smallButton}
+              disabled={!manual.trim()}
+            >
+              Add as typed value
+            </button>
+          </div>
+        </form>
+        <p className={styles.notice}>
+          A typed value is labelled <strong>Typed</strong> everywhere it
+          appears. It is not a decode result and is never counted as one.
+        </p>
+      </section>
+
       <section className={styles.panel} aria-labelledby="scan-results-heading">
         <div className={styles.resultsHead}>
           <h2 id="scan-results-heading">Results</h2>
@@ -623,7 +725,7 @@ export default function BarcodeScanner() {
                   <div className={styles.resultTop}>
                     <span className={styles.badge}>{item.label}</span>
                     <span className={`${styles.badge} ${styles.badgeQuiet}`}>
-                      {item.source === "camera" ? "Camera" : "Image"}
+                      {sourceLabel(item.source)}
                     </span>
                     {gtin ? (
                       <span className={`${styles.badge} ${styles.badgeQuiet}`}>
@@ -640,6 +742,14 @@ export default function BarcodeScanner() {
                     >
                       <Copy size={14} aria-hidden />
                       {copied === item.value ? "Copied" : "Copy value"}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.smallButton}
+                      onClick={() => void share(item.value)}
+                    >
+                      <Share2 size={14} aria-hidden />
+                      Share
                     </button>
                     {gtin ? (
                       <button
@@ -724,6 +834,14 @@ export default function BarcodeScanner() {
                     >
                       <Copy size={14} aria-hidden />
                       {copied === recordItem.value ? "Copied" : "Copy"}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.smallButton}
+                      onClick={() => void share(recordItem.value)}
+                    >
+                      <Share2 size={14} aria-hidden />
+                      Share
                     </button>
                     <button
                       type="button"

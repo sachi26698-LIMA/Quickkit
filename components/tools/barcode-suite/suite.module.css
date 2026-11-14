@@ -1,0 +1,317 @@
+/* Shared layout for the phase-19 barcode workspace pages.
+   Self-contained on purpose: these pages should not depend on the studio's
+   module or on Tailwind class names that the rest of the site may rename. */
+
+.workspace {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 16px;
+}
+
+.heading h2 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+.heading p {
+  flex: 1 1 320px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--secondary);
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgb(76 29 184 / 0.05);
+  min-width: 0;
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.cardHead h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.cardHead p {
+  flex: 1 1 260px;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--secondary);
+}
+
+.grid {
+  display: grid;
+  gap: 10px 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.field small {
+  font-weight: 400;
+  color: var(--secondary);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+}
+
+.textarea {
+  min-height: 96px;
+  resize: vertical;
+  font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: #c0342b;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(
+    --gradient-primary,
+    linear-gradient(135deg, #7a3ff2, #e2508a)
+  );
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.button:hover {
+  filter: brightness(1.05);
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.buttonSecondary {
+  color: var(--ink);
+  background: #fff;
+  border-color: var(--border-strong);
+}
+
+.buttonGhost {
+  padding: 6px 10px;
+  font-size: 11.5px;
+  color: var(--ink);
+  background: #f7f4ff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.buttonGhost:hover {
+  background: #f0eaff;
+}
+
+.hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--secondary);
+}
+
+.error {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #8c1f17;
+  background: #fdf1ef;
+  border: 1px solid #f2c6bf;
+  border-radius: 10px;
+}
+
+.warning {
+  margin: 8px 0 0;
+  padding: 9px 11px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #6b4a00;
+  background: #fff9ea;
+  border: 1px solid #f0dca6;
+  border-radius: 9px;
+}
+
+.ok {
+  color: #0f6b3f;
+}
+
+.bad {
+  color: #a02218;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.table th,
+.table td {
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  background: #fbf9ff;
+}
+
+.table code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.scroll {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--secondary);
+  background: #f5f2ff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.mono {
+  font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.kv {
+  display: grid;
+  gap: 6px 14px;
+  grid-template-columns: minmax(96px, max-content) 1fr;
+  margin: 0;
+  font-size: 12px;
+}
+
+.kv dt {
+  color: var(--secondary);
+}
+
+.kv dd {
+  margin: 0;
+  color: var(--ink);
+  min-width: 0;
+  word-break: break-word;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.previewBox {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: #fff;
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+  min-height: 120px;
+}
+
+.previewBox img,
+.previewBox svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.previewBox svg {
+  display: block;
+}

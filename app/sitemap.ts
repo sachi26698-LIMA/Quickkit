@@ -25,6 +25,16 @@ const EXTRA_ROUTE_SOURCES: Readonly<Record<string, readonly string[]>> = {
     "lib/tools/barcode",
     "components/tools/barcode-studio",
   ],
+  "/tools/gs1-intelligence": [
+    "lib/tools/gs1",
+    "components/tools/gs1-intelligence",
+  ],
+  "/tools/product-lookup": [
+    "lib/tools/barcode-scanner/product-lookup.ts",
+    "components/tools/product-lookup",
+  ],
+  "/tools/batch-studio": ["components/tools/batch-studio"],
+  "/tools/barcode-developer": ["components/tools/barcode-developer"],
 };
 
 const CALCULATOR_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
@@ -246,7 +256,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // `/saved` and `/qr` are deliberately absent: they carry `noindex` directives
   // and render per-browser or user-encoded state rather than indexable content.
-  const staticRoutes = ["/", "/tools", "/help", "/sitemap"];
+  const staticRoutes = ["/", "/tools", "/help", "/sitemap", "/guides/barcode"];
   const legalRouteSet = new Set(
     legalPages.filter((page) => page.indexable).map((page) => page.href),
   );

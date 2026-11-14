@@ -20,7 +20,8 @@ import {
 } from "@zxing/library";
 import { decodeUpceMatrix } from "./upce-reader";
 import type { BitRow } from "./ean-tables";
-import type { BarcodeFormatId, DecodedBarcode } from "./types";
+import type { DecodedBarcode, DecodedTwoDFormat } from "./types";
+import type { BarcodeFormatId } from "./types";
 
 export type Raster = { width: number; height: number; rgba: Uint8ClampedArray };
 
@@ -28,16 +29,27 @@ export type Raster = { width: number; height: number; rgba: Uint8ClampedArray };
  * Formats the studio can read. MSI and Pharmacode are generation-only: ZXing
  * has no reader for either, and claiming otherwise would be a lie a user could
  * only discover by failing to scan their own barcode.
+ *
+ * The three 2D entries read symbols this studio's 2D panel generates, and also
+ * any QR, Data Matrix or PDF417 label a user photographs. They are decoded by
+ * the same ZXing reader and the same retry ladder as the linear formats.
  */
-const READABLE: { format: BarcodeFormat; id: BarcodeFormatId }[] = [
+const READABLE: {
+  format: BarcodeFormat;
+  id: BarcodeFormatId | DecodedTwoDFormat;
+}[] = [
   { format: BarcodeFormat.CODE_128, id: "code128" },
   { format: BarcodeFormat.CODE_39, id: "code39" },
+  { format: BarcodeFormat.CODE_93, id: "code93" },
   { format: BarcodeFormat.EAN_13, id: "ean13" },
   { format: BarcodeFormat.EAN_8, id: "ean8" },
   { format: BarcodeFormat.UPC_A, id: "upca" },
   { format: BarcodeFormat.UPC_E, id: "upce" },
   { format: BarcodeFormat.ITF, id: "itf14" },
   { format: BarcodeFormat.CODABAR, id: "codabar" },
+  { format: BarcodeFormat.QR_CODE, id: "qrcode" },
+  { format: BarcodeFormat.DATA_MATRIX, id: "datamatrix" },
+  { format: BarcodeFormat.PDF_417, id: "pdf417" },
 ];
 
 export const READABLE_FORMATS = READABLE.map((entry) => entry.id);
@@ -46,12 +58,16 @@ export const FORMAT_LABELS: Record<string, string> = {
   code128: "Code 128",
   "gs1-128": "GS1-128",
   code39: "Code 39",
+  code93: "Code 93",
   ean13: "EAN-13",
   ean8: "EAN-8",
   upca: "UPC-A",
   upce: "UPC-E",
   itf14: "ITF-14",
   codabar: "Codabar",
+  qrcode: "QR Code",
+  datamatrix: "Data Matrix",
+  pdf417: "PDF417",
   msi: "MSI",
   pharmacode: "Pharmacode",
   unknown: "Unknown format",
@@ -64,7 +80,7 @@ function rawFormatName(format: BarcodeFormat) {
 function mapFormat(
   format: BarcodeFormat,
   text: string,
-): BarcodeFormatId | "unknown" {
+): BarcodeFormatId | DecodedTwoDFormat | "unknown" {
   const match = READABLE.find((entry) => entry.format === format);
   if (!match) return "unknown";
   // A GS1-128 is a Code 128 that carries an FNC1, which decoders surface as a

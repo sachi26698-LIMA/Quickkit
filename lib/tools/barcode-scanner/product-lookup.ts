@@ -69,6 +69,13 @@ export type ProductRecord = {
   brands: string[];
   quantity: string | null;
   categories: string[];
+  /** Ingredient statement as recorded, when the record has one. */
+  ingredients: string | null;
+  allergens: string[];
+  /** Nutrition rows for the fields that are actually present. */
+  nutrition: { label: string; value: string }[];
+  /** Fields a user might expect that this record does not carry. */
+  missing: string[];
   lastModified: string | null;
   /** Third-party image URL, only when it is on a known OFF host. */
   imageUrl: string | null;
@@ -92,7 +99,13 @@ export type LookupResult =
   | { status: "not-found"; message: string }
   | { status: "invalid"; message: string }
   | { status: "rate-limited"; message: string; retryAfterSeconds: number }
-  | { status: "error"; message: string; reason: LookupErrorReason };
+  | {
+      status: "error";
+      message: string;
+      reason: LookupErrorReason;
+      /** HTTP status from the database, when it answered at all. */
+      upstreamStatus?: number;
+    };
 
 /** 8/12/13/14 digits with a correct GTIN check digit. */
 export function normalizeGtin(raw: string): string | null {
@@ -169,6 +182,39 @@ type ProductPayload = {
  * to Open Beauty Facts is attributed to Open Beauty Facts rather than to the
  * food database that was asked first.
  */
+/** The nutrition rows worth showing, in label order, per 100 g / 100 ml. */
+const NUTRIENT_ROWS: { key: string; label: string; unit: string }[] = [
+  { key: "energy-kcal", label: "Energy", unit: "kcal" },
+  { key: "energy-kj", label: "Energy", unit: "kJ" },
+  { key: "fat", label: "Fat", unit: "g" },
+  { key: "saturated-fat", label: "of which saturates", unit: "g" },
+  { key: "carbohydrates", label: "Carbohydrate", unit: "g" },
+  { key: "sugars", label: "of which sugars", unit: "g" },
+  { key: "fiber", label: "Fibre", unit: "g" },
+  { key: "proteins", label: "Protein", unit: "g" },
+  { key: "salt", label: "Salt", unit: "g" },
+  { key: "sodium", label: "Sodium", unit: "g" },
+];
+
+export function nutritionRows(nutriments: unknown) {
+  if (!nutriments || typeof nutriments !== "object") return [];
+  const source = nutriments as Record<string, unknown>;
+  const rows: { label: string; value: string }[] = [];
+  const seen = new Set<string>();
+  for (const row of NUTRIENT_ROWS) {
+    const raw = source[`${row.key}_100g`];
+    if (typeof raw !== "number" || !Number.isFinite(raw)) continue;
+    // Energy is recorded twice (kcal and kJ); keep both, but never duplicate a
+    // label with the same unit for other fields.
+    const key = `${row.label}:${row.unit}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const value = `${raw.toLocaleString("en-GB", { maximumFractionDigits: 2 })} ${row.unit}`;
+    rows.push({ label: `${row.label} (per 100 g/ml)`, value });
+  }
+  return rows;
+}
+
 export function parseProductPayload(
   gtin: string,
   payload: unknown,
@@ -214,31 +260,48 @@ export function parseProductPayload(
       product.image_front_url,
   );
 
-  return {
-    status: "found",
-    product: {
-      gtin,
-      name: name ?? "Name not recorded",
-      brands,
-      quantity: text(product.quantity),
-      categories: list(product.categories),
-      lastModified:
-        typeof product.last_modified_t === "number" &&
-        Number.isFinite(product.last_modified_t)
-          ? new Date(product.last_modified_t * 1000).toISOString().slice(0, 10)
-          : null,
-      imageUrl,
-      imagePath: imageUrl ? `/api/product-lookup?gtin=${gtin}&image=1` : null,
-      sourceName: server.name,
-      sourceHost,
-      sourceUrl: `${server.url}/product/${gtin}`,
-      databaseUrl: server.url,
-      licence: PRODUCT_DATABASE.licence,
-      imageLicence: PRODUCT_DATABASE.imageLicence,
-      manufacturerVerified: false,
-      disclosure: LOOKUP_DISCLOSURE,
-    },
+  const record: ProductRecord = {
+    gtin,
+    name: name ?? "Name not recorded",
+    brands,
+    quantity: text(product.quantity),
+    categories: list(product.categories),
+    ingredients: text(product.ingredients_text),
+    allergens: list(product.allergens),
+    nutrition: nutritionRows(product.nutriments),
+    missing: [] as string[],
+    lastModified:
+      typeof product.last_modified_t === "number" &&
+      Number.isFinite(product.last_modified_t)
+        ? new Date(product.last_modified_t * 1000).toISOString().slice(0, 10)
+        : null,
+    imageUrl,
+    imagePath: imageUrl ? `/api/product-lookup?gtin=${gtin}&image=1` : null,
+    sourceName: server.name,
+    sourceHost,
+    sourceUrl: `${server.url}/product/${gtin}`,
+    databaseUrl: server.url,
+    licence: PRODUCT_DATABASE.licence,
+    imageLicence: PRODUCT_DATABASE.imageLicence,
+    manufacturerVerified: false,
+    disclosure: LOOKUP_DISCLOSURE,
   };
+
+  record.missing = (
+    [
+      ["product name", name],
+      ["brand", brands.length ? "brand" : null],
+      ["quantity", record.quantity],
+      ["image", record.imageUrl],
+      ["category", record.categories.length ? "category" : null],
+      ["ingredients", record.ingredients],
+      ["nutrition", record.nutrition.length ? "nutrition" : null],
+    ] as [string, unknown][]
+  )
+    .filter(([, value]) => !value)
+    .map(([label]) => label);
+
+  return { status: "found", product: record };
 }
 
 const FIELDS = [
@@ -247,6 +310,9 @@ const FIELDS = [
   "brands",
   "quantity",
   "categories",
+  "ingredients_text",
+  "allergens",
+  "nutriments",
   "last_modified_t",
   "code",
   "image_front_small_url",
@@ -313,12 +379,23 @@ export async function lookupProduct(
         retryAfterSeconds: retryAfter(response),
         message: `${PRODUCT_DATABASE.name} is rate-limiting requests right now. Nothing is shown; try again later.`,
       };
-    if (response.status >= 500)
+    if (response.status >= 500) {
+      // 502/503/504 mean "the database or its edge is down"; 500 means the
+      // database itself errored. Both are the database's problem, not the
+      // product's, and both are reported with the exact status.
+      const detail =
+        response.status === 502 || response.status === 504
+          ? "a gateway or timeout error at the database"
+          : response.status === 503
+            ? "the database is temporarily unavailable"
+            : "an internal error at the database";
       return {
         status: "error",
         reason: "upstream",
-        message: `${PRODUCT_DATABASE.name} answered HTTP ${response.status}. That is the database being unavailable, not a verdict on your product, so nothing is shown rather than a partial guess.`,
+        upstreamStatus: response.status,
+        message: `${PRODUCT_DATABASE.name} answered HTTP ${response.status} (${detail}). Nothing is shown rather than a partial guess.`,
       };
+    }
     if (!response.ok)
       return {
         status: "error",

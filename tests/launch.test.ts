@@ -48,7 +48,7 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   const routes = sitemap();
   const { BRANDS } = await import("../lib/tools/batch-code/brands");
   // Every published tool, plus one page per brand record in the checker.
-  expect(routes).toHaveLength(68 + BRANDS.length);
+  expect(routes).toHaveLength(73 + BRANDS.length);
   expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
     routes.every((route) => {
@@ -102,7 +102,7 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   const { tools } = await import("../lib/catalog");
   const { BRANDS } = await import("../lib/tools/batch-code/brands");
   expect(routes).toHaveLength(
-    4 + legalPages.length + 7 + tools.length + BRANDS.length,
+    5 + legalPages.length + 7 + tools.length + BRANDS.length,
   );
   for (const entry of routes) {
     const path = entry.url.replace("https://test.example", "");

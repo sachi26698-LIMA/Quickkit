@@ -432,12 +432,21 @@ export function parseGs1(input: string): Gs1Result {
     }
   } else {
     const clean = source.replace(/\s+/g, "");
-    if (!/^[\d\u001d]+$/.test(clean))
+    // Element strings are printable ASCII: fixed-length AIs are numeric by
+    // definition, but a batch or serial may legitimately contain letters.
+    if (!/^[\x20-\x7e\u001d]+$/.test(clean))
       return {
         ok: false,
         code: "gs1-syntax",
         message:
-          "Raw GS1 data must be digits (with GS separators between variable-length fields) — or use the bracketed (01)… form.",
+          "Raw GS1 data must be printable ASCII, with a GS separator between variable-length fields — or use the bracketed (01)… form so the AI boundaries are explicit.",
+      };
+    if (!findAi(clean))
+      return {
+        ok: false,
+        code: "gs1-syntax",
+        message:
+          "That data does not start with a GS1 application identifier. Use the bracketed (01)… form if you are not sure which AI applies.",
       };
     let rest = clean;
     while (rest) {

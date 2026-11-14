@@ -12,6 +12,7 @@ import {
   FORMAT_GROUPS,
   formatMeta,
 } from "@/lib/tools/barcode/formats";
+import { detectBarcodeFormat } from "@/lib/tools/barcode/detect";
 import type { BarcodeFormatId } from "@/lib/tools/barcode/types";
 import type { useBarcodeStudio } from "./use-barcode-studio";
 
@@ -36,6 +37,11 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
   const problems = result.ok ? [] : result.problems;
   const notes = result.ok ? result.spec.notes : [];
   const inputId = "bc-data-input";
+  // Detection is a suggestion, never an automatic switch: changing the format
+  // under someone's cursor while they type would rebuild the symbol mid-edit.
+  const detection = settings.data.trim()
+    ? detectBarcodeFormat(settings.data)
+    : null;
   const describedBy = problems.length ? "bc-data-error" : "bc-data-help";
 
   return (
@@ -122,10 +128,27 @@ export default function FormatPanel({ studio }: { studio: Studio }) {
         >
           <Sparkles size={12} aria-hidden="true" /> Try {meta.example}
         </button>
+        {detection?.best && detection.best.format !== settings.format ? (
+          <button
+            type="button"
+            className="qr-chip"
+            onClick={() => update("format", detection.best!.format)}
+            title={detection.best.reason}
+          >
+            Use detected {formatMeta(detection.best.format).name}
+          </button>
+        ) : null}
         <span className="bc-dim">
           {settings.data.length.toLocaleString()} characters
         </span>
       </div>
+      {detection && (
+        <p className="qr-field-hint">
+          {detection.best
+            ? `Looks like ${formatMeta(detection.best.format).name}: ${detection.best.reason}`
+            : detection.note}
+        </p>
+      )}
 
       {notes.length ? (
         <ul className="bc-notes">

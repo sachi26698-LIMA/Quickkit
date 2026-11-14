@@ -17,7 +17,7 @@ import {
 import { layoutToSvg } from "./svg";
 import type { BarcodeSpec } from "./types";
 
-export type BarcodeExtension = "png" | "svg" | "pdf" | "zip" | "csv";
+export type BarcodeExtension = "png" | "jpeg" | "svg" | "pdf" | "zip" | "csv";
 
 export function barcodeFilename(options: {
   format: BarcodeFormatId;

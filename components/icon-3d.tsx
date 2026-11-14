@@ -54,6 +54,10 @@ export type GlyphName =
   | "barcode"
   | "barcodeScan"
   | "batchCheck"
+  | "gs1Layers"
+  | "lookupTag"
+  | "batchStack"
+  | "devCompare"
   | "ocrText"
   | "case"
   | "json"
@@ -705,6 +709,155 @@ const glyphs: Record<GlyphName, (p: Paint) => ReactNode> = {
         fill="none"
         stroke={p.a}
         strokeWidth={5}
+        {...round}
+      />
+    </>
+  ),
+
+  gs1Layers: (p) => (
+    <>
+      <rect
+        x={12}
+        y={16}
+        width={24}
+        height={26}
+        rx={5}
+        fill={p.a}
+        opacity={0.35}
+        transform="rotate(-8 24 29)"
+      />
+      <rect x={17} y={14} width={26} height={28} rx={5.5} fill={p.w} />
+      {[
+        [22, 5],
+        [29, 3],
+        [34, 4.5],
+      ].map(([x, w]) => (
+        <rect
+          key={`g1-${x}`}
+          x={x}
+          y={20}
+          width={w}
+          height={2.6}
+          rx={1.3}
+          fill={p.a}
+        />
+      ))}
+      <rect
+        x={22}
+        y={26}
+        width={17}
+        height={2.6}
+        rx={1.3}
+        fill={p.a}
+        opacity={0.6}
+      />
+      <rect
+        x={22}
+        y={32}
+        width={11}
+        height={2.6}
+        rx={1.3}
+        fill={p.a}
+        opacity={0.4}
+      />
+      <circle cx={40} cy={38} r={7} fill={p.w} />
+      <path
+        d="M36.5 38 L39 40.5 L43.8 35"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={2.6}
+        {...round}
+      />
+    </>
+  ),
+
+  lookupTag: (p) => (
+    <>
+      <path d="M13 22 L22 13 L38 13 L44 19 L44 32 L32 44 L13 25 Z" fill={p.w} />
+      <circle cx={22} cy={21} r={3.4} fill={p.a} opacity={0.55} />
+      <circle
+        cx={30}
+        cy={30}
+        r={8.6}
+        fill="none"
+        stroke={p.a}
+        strokeWidth={4}
+      />
+      <path
+        d="M36.4 36.4 L44 44"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={4.4}
+        {...round}
+      />
+    </>
+  ),
+
+  batchStack: (p) => (
+    <>
+      <rect
+        x={14}
+        y={24}
+        width={30}
+        height={16}
+        rx={4}
+        fill={p.a}
+        opacity={0.35}
+      />
+      <rect x={12} y={18} width={30} height={16} rx={4} fill={p.w} />
+      <rect x={10} y={12} width={30} height={16} rx={4} fill={p.w} />
+      {[
+        [14, 15.5, 4],
+        [20, 15.5, 2.4],
+        [24, 15.5, 3.4],
+        [29, 15.5, 2.4],
+        [33, 15.5, 3],
+      ].map(([x, y, w]) => (
+        <rect
+          key={`bs2-${x}`}
+          x={x}
+          y={y}
+          width={w}
+          height={9}
+          rx={1}
+          fill={p.a}
+        />
+      ))}
+      <rect x={38} y={8} width={6} height={6} rx={2} fill={p.a} />
+    </>
+  ),
+
+  devCompare: (p) => (
+    <>
+      <rect x={10} y={14} width={12} height={20} rx={4} fill={p.w} />
+      <rect x={26} y={14} width={12} height={20} rx={4} fill={p.w} />
+      <path
+        d="M22 19 L26 19"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3}
+        {...round}
+      />
+      <path
+        d="M22 29 L26 29"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3}
+        opacity={0.55}
+        {...round}
+      />
+      <path
+        d="M15 40 L33 40"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3.4}
+        {...round}
+      />
+      <path
+        d="M29 36 L34 40 L29 44"
+        fill="none"
+        stroke={p.a}
+        strokeWidth={3.4}
         {...round}
       />
     </>
@@ -1553,6 +1706,10 @@ export const toolArt: Record<string, GlyphName> = {
   "barcode-generator": "barcode",
   "batch-code-checker": "batchCheck",
   "barcode-scanner": "barcodeScan",
+  "gs1-intelligence": "gs1Layers",
+  "product-lookup": "lookupTag",
+  "batch-studio": "batchStack",
+  "barcode-developer": "devCompare",
   "image-to-text": "ocrText",
   "image-compressor": "imgCompress",
   "image-resizer": "imgResize",

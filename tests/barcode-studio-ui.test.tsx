@@ -138,10 +138,23 @@ describe("barcode studio — tabs", () => {
     const tabs = screen.getAllByRole("tab");
     expect(tabs.map((tab) => tab.textContent?.trim())).toEqual([
       "Generator",
+      "2D symbols",
       "Scanner",
       "Bulk (CSV)",
     ]);
+    // ArrowRight moves from Generator to the 2D panel, so advance twice to
+    // reach the scanner the rest of this test exercises.
     fireEvent.keyDown(tabs[0], { key: "ArrowRight" });
+    await waitFor(() =>
+      expect(screen.getByRole("tab", { name: /2D symbols/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    expect(
+      await screen.findByRole("heading", { name: /2D symbols/i }),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(tabs[1], { key: "ArrowRight" });
     await waitFor(() =>
       expect(screen.getByRole("tab", { name: /Scanner/ })).toHaveAttribute(
         "aria-selected",

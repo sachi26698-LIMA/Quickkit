@@ -108,7 +108,12 @@ describe("catalog integration", () => {
     expect(filterTools("ean", "QR & Barcode")[0].slug).toBe(
       "barcode-generator",
     );
-    expect(filterTools("gs1", "All tools")[0].slug).toBe("barcode-generator");
+    // The dedicated GS1 workspace is now the best hit for "gs1"; the studio is
+    // still expected to be findable for the same query.
+    expect(filterTools("gs1", "All tools")[0].slug).toBe("gs1-intelligence");
+    expect(
+      filterTools("gs1", "All tools").map((entry) => entry.slug),
+    ).toContain("barcode-generator");
   });
 
   it("links to and from the QR tools", () => {

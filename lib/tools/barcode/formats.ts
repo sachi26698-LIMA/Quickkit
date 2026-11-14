@@ -61,6 +61,23 @@ export const BARCODE_FORMATS: BarcodeFormatMeta[] = [
     usedFor: "Inventory, automotive, defence and library labels",
   },
   {
+    id: "code93",
+    name: "Code 93",
+    group: "Industrial",
+    blurb:
+      "Denser than Code 39 and self-checking: two mod-47 check characters are built into every symbol.",
+    example: "CODE93-2026",
+    placeholder: "e.g. SHIP-0042",
+    rules: [
+      "Printable ASCII (32–126); lowercase and punctuation use shift characters",
+      "Check characters C and K are computed — never typed",
+      "Up to 80 characters after extension",
+    ],
+    quietZone: 10,
+    scannable: true,
+    usedFor: "Logistics, libraries, automotive and asset labels",
+  },
+  {
     id: "ean13",
     name: "EAN-13",
     group: "Retail",

@@ -695,9 +695,9 @@ describe("SVG output", () => {
 });
 
 describe("format metadata", () => {
-  it("lists eleven unique formats with valid samples", () => {
-    expect(BARCODE_FORMATS).toHaveLength(11);
-    expect(new Set(BARCODE_FORMATS.map((entry) => entry.id)).size).toBe(11);
+  it("lists twelve unique formats with valid samples", () => {
+    expect(BARCODE_FORMATS).toHaveLength(12);
+    expect(new Set(BARCODE_FORMATS.map((entry) => entry.id)).size).toBe(12);
     for (const entry of BARCODE_FORMATS) {
       expect(entry.rules.length).toBeGreaterThan(0);
       expect(entry.quietZone).toBeGreaterThan(0);
@@ -707,12 +707,16 @@ describe("format metadata", () => {
     }
   });
 
-  it("marks the nine read-back formats as scannable", () => {
+  it("marks the ten read-back formats as scannable", () => {
     const scannable = SCANNABLE_FORMATS.map((entry) => entry.id);
-    expect(scannable).toHaveLength(9);
+    expect(scannable).toHaveLength(10);
     // GS1-128 has no separate reader: it decodes as Code 128, so the metadata
-    // marks it scannable while the decoder lists the eight raw symbologies.
-    expect(READABLE_FORMATS).toHaveLength(8);
+    // marks it scannable while the decoder lists nine linear symbologies plus
+    // the three 2D symbologies it can also read (QR, Data Matrix, PDF417).
+    expect(READABLE_FORMATS).toHaveLength(12);
+    expect(READABLE_FORMATS).toEqual(
+      expect.arrayContaining(["qrcode", "datamatrix", "pdf417"]),
+    );
     expect(scannable.filter((id) => !READABLE_FORMATS.includes(id))).toEqual([
       "gs1-128",
     ]);

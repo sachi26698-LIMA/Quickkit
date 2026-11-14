@@ -85,6 +85,7 @@ export const FORMAT_PRESETS: Record<
   code128: { barHeight: 96, quietZone: 10, moduleWidth: 2.4, fontSize: 13 },
   "gs1-128": { barHeight: 96, quietZone: 10, moduleWidth: 2.4, fontSize: 13 },
   code39: { barHeight: 96, quietZone: 10, moduleWidth: 2.4, fontSize: 13 },
+  code93: { barHeight: 96, quietZone: 10, moduleWidth: 2.2, fontSize: 13 },
   ean13: { barHeight: 104, quietZone: 11, moduleWidth: 2.6, fontSize: 14 },
   ean8: { barHeight: 88, quietZone: 9, moduleWidth: 2.8, fontSize: 14 },
   upca: { barHeight: 104, quietZone: 9, moduleWidth: 2.6, fontSize: 14 },
@@ -120,6 +121,7 @@ export const defaultSettings: BarcodeStudioSettings = {
 const FORMAT_IDS: BarcodeFormatId[] = [
   "code128",
   "code39",
+  "code93",
   "ean13",
   "ean8",
   "upca",

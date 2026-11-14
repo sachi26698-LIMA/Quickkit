@@ -185,7 +185,7 @@ describe("route coverage", () => {
     const { legalPages } = await import("../lib/legal");
     const { BRANDS } = await import("../lib/tools/batch-code/brands");
     expect(paths).toHaveLength(
-      4 + legalPages.length + 7 + tools.length + BRANDS.length,
+      5 + legalPages.length + 7 + tools.length + BRANDS.length,
     );
 
     const excluded = paths.filter((path) => !isAdEligible(path));
@@ -249,9 +249,9 @@ describe("route coverage", () => {
 });
 
 describe("tool route coverage", () => {
-  it("routes every one of the 45 tools through the shared shell", async () => {
+  it("routes every one of the 49 tools through the shared shell", async () => {
     const { tools } = await import("../lib/catalog");
-    expect(tools).toHaveLength(45);
+    expect(tools).toHaveLength(49);
 
     const pageFiles = readdirSync("app/tools").filter(
       (entry) => !entry.includes("."),
@@ -264,7 +264,7 @@ describe("tool route coverage", () => {
       if (!existsSync(page)) continue;
       const source = readFileSync(page, "utf8");
       // Each tool page either mounts ToolShell or delegates to the developer
-      // tool wrapper, which does — so all 45 inherit the same three slots.
+      // tool wrapper, which does — so all 49 inherit the same three slots.
       expect(
         source.includes("ToolShell") ||
           source.includes("@/components/tools/devtools/page"),

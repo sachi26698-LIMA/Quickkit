@@ -16,6 +16,7 @@ import {
   upceToUpca,
 } from "./checksums";
 import { parseGs1, type Gs1Field } from "./gs1";
+import { code93Extend, isCode93Input } from "./code93";
 import type {
   BarcodeEncodeOptions,
   BarcodeFormatId,
@@ -308,6 +309,55 @@ function normalizeCode39(
   };
 }
 
+/**
+ * Code 93: printable ASCII, extended by shift characters where needed. The two
+ * check characters (C and K) are computed by the encoder, never typed.
+ */
+function normalizeCode93(raw: string): NormalizeResult {
+  const value = raw.trim();
+  if (!value)
+    return fail(
+      "empty",
+      "Enter the data for the Code 93 symbol.",
+      "CODE93-2026",
+    );
+  if (!isCode93Input(value))
+    return fail(
+      "charset",
+      "Code 93 accepts printable ASCII only (characters 32–126). Tabs, emoji and accented letters cannot be encoded.",
+      "CODE93-2026",
+    );
+  let extendedLength = 0;
+  try {
+    extendedLength = code93Extend(value).length;
+  } catch (error) {
+    return fail(
+      "charset",
+      error instanceof Error
+        ? error.message
+        : "That data cannot be encoded in Code 93.",
+      "CODE93-2026",
+    );
+  }
+  if (extendedLength > 80)
+    return fail(
+      "length",
+      `Code 93 is capped at 80 characters after extension (this input needs ${extendedLength}). Shorten the data.`,
+      "CODE93-2026",
+    );
+  const notes = [
+    "Check characters C and K are calculated and appended by the encoder.",
+  ];
+  if (extendedLength !== value.length)
+    notes.push(
+      `Lowercase or punctuation needed ${extendedLength - value.length} extra shift character(s); the printed line still shows your original text.`,
+    );
+  return {
+    ok: true,
+    normalized: { value, display: value, notes, warnings: [] },
+  };
+}
+
 function normalizeCodabar(
   raw: string,
   options: BarcodeEncodeOptions,
@@ -460,6 +510,8 @@ export function normalizeBarcode(
       return normalizeCode128(raw);
     case "code39":
       return normalizeCode39(raw, options);
+    case "code93":
+      return normalizeCode93(raw);
     case "ean13":
       return normalizeEan13(raw);
     case "ean8":

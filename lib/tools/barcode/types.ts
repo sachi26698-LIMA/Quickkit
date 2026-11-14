@@ -10,6 +10,7 @@
 export type BarcodeFormatId =
   | "code128"
   | "code39"
+  | "code93"
   | "ean13"
   | "ean8"
   | "upca"
@@ -88,13 +89,20 @@ export type BarcodePrepareResult =
   | { ok: true; spec: BarcodeSpec; warnings: string[] }
   | { ok: false; problems: BarcodeProblem[] };
 
+/**
+ * 2D symbologies the scanner can read. They are not generator formats — the 2D
+ * encoder lives in `twod.ts` and has its own format ids — so the scanner's
+ * decoded format is a wider union than `BarcodeFormatId`.
+ */
+export type DecodedTwoDFormat = "qrcode" | "datamatrix" | "pdf417";
+
 /** One decoded symbol from the scanner. */
 export type DecodedBarcode = {
   text: string;
   /** Symbology as reported by the decoder, e.g. "CODE_128". */
   rawFormat: string;
-  /** Mapped back onto a generator format where possible. */
-  format: BarcodeFormatId | "unknown";
+  /** Mapped back onto a known format where possible. */
+  format: BarcodeFormatId | DecodedTwoDFormat | "unknown";
   label: string;
   /** Normalised bounding points in raster pixels, when the decoder reports them. */
   points?: { x: number; y: number }[];

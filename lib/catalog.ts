@@ -625,6 +625,54 @@ export const tools = [
     color: "purple",
     phase: 9,
   },
+  {
+    slug: "gs1-intelligence",
+    name: "GS1 Intelligence",
+    category: "QR & Barcode",
+    description:
+      "Parse a GS1 element string, HRI string or Digital Link: every application identifier explained, GS1 dates interpreted, GTIN check digit verified and a Digital Link built with its QR preview.",
+    keywords:
+      "gs1 intelligence parser application identifier ai element string fnc1 gs hri human readable interpretation gtin sscc itip production date expiry best before digital link uri builder qr preview check digit verify batch serial lot offline free",
+    icon: "barcode",
+    color: "violet",
+    phase: 19,
+  },
+  {
+    slug: "product-lookup",
+    name: "Product Lookup",
+    category: "QR & Barcode",
+    description:
+      "Look up a GTIN in Open Food Facts: ingredients, allergens and nutrition exactly as recorded, missing fields listed as missing, ODbL attribution and not-found, rate-limit and outage reported separately.",
+    keywords:
+      "gtin product lookup barcode number open food facts ingredients allergens nutrition calories database odbl community record not found rate limit attribution export csv json offline free",
+    icon: "scan",
+    color: "sky",
+    phase: 19,
+  },
+  {
+    slug: "batch-studio",
+    name: "Batch Barcode Studio",
+    category: "QR & Barcode",
+    description:
+      "Turn a CSV into a ZIP of barcode symbols with every row reported as ready, duplicate, skipped or invalid, plus a report CSV and an on-screen table that never drops a row.",
+    keywords:
+      "batch barcode studio csv bulk labels zip svg png export report row status duplicate invalid print sheet product numbers offline free",
+    icon: "qr",
+    color: "peach",
+    phase: 19,
+  },
+  {
+    slug: "barcode-developer",
+    name: "Barcode Developer Tools",
+    category: "QR & Barcode",
+    description:
+      "Compare two barcode values character by character, screen a photographed symbol for resolution, contrast, quiet-zone and cropping faults, and read the product lookup endpoint contract.",
+    keywords:
+      "barcode developer tools compare values diff gtin check digit image analyser module width contrast quiet zone cropping debug api endpoint status codes iso 15416 disclaimer offline free",
+    icon: "code",
+    color: "blue",
+    phase: 19,
+  },
 ] as const;
 
 export type Tool = (typeof tools)[number];
@@ -793,11 +841,12 @@ const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
     "hash-generator",
   ],
   "barcode-generator": [
+    "batch-studio",
+    "gs1-intelligence",
+    "barcode-developer",
     "qr-generator",
     "qr-code-scanner",
     "images-to-pdf",
-    "image-resizer",
-    "url-encoder-decoder",
   ],
   "batch-code-checker": [
     "barcode-scanner",
@@ -808,8 +857,33 @@ const RELATED_TOOL_AFFINITIES: Readonly<Record<string, readonly string[]>> = {
   "barcode-scanner": [
     "barcode-generator",
     "batch-code-checker",
+    "product-lookup",
     "qr-code-scanner",
     "qr-generator",
+  ],
+  "gs1-intelligence": [
+    "barcode-generator",
+    "barcode-scanner",
+    "product-lookup",
+    "batch-code-checker",
+  ],
+  "product-lookup": [
+    "barcode-scanner",
+    "gs1-intelligence",
+    "batch-code-checker",
+    "barcode-generator",
+  ],
+  "batch-studio": [
+    "barcode-generator",
+    "barcode-scanner",
+    "qr-generator",
+    "gs1-intelligence",
+  ],
+  "barcode-developer": [
+    "barcode-generator",
+    "barcode-scanner",
+    "gs1-intelligence",
+    "product-lookup",
   ],
 
   // Security & Privacy (1): local cryptography, passwords and document/QR protection
