@@ -1060,10 +1060,11 @@ body:has(.tool-page[data-tool]) {
 .tool-page.tool-page[data-tool] .tool-title {
   animation: tool-rise 0.45s var(--t-ease) both;
 }
-/* A transform animation (even at its zero endpoint) can contain fixed mobile
-   controls for its entire fill duration. Fade the workspace without moving it. */
+/* Moving or retaining an opacity animation creates a stacking/containing
+   context that can trap fixed controls and dialogs beneath the site header.
+   After the entrance, release the effect so overlays belong to the viewport. */
 .tool-page.tool-page[data-tool] .workspace:first-of-type {
-  animation: workspace-fade 0.45s var(--t-ease) both;
+  animation: workspace-fade 0.45s var(--t-ease) backwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .tool-page.tool-page[data-tool] *,
