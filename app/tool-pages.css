@@ -1046,7 +1046,10 @@ body:has(.tool-page[data-tool]) {
   }
   to {
     opacity: 1;
-    translate: 0 0;
+    /* A retained translate (even 0 0) creates a containing block for fixed
+       controls. Release it after the entrance so mobile action bars stay
+       anchored to the viewport across browsers. */
+    translate: none;
   }
 }
 .tool-page.tool-page[data-tool] .tool-title,
