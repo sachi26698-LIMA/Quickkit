@@ -79,14 +79,29 @@ export type BulkReportRow = {
   status: "ok" | "invalid" | "duplicate" | "skipped";
   value: string;
   message: string;
+  /** Present for mixed-format runs, where the symbology differs per row. */
+  format?: string;
 };
 
-/** The CSV a user gets back: what succeeded, what did not, and why. */
+/**
+ * The CSV a user gets back: what succeeded, what did not, and why.
+ *
+ * A single-format run keeps the four historic columns. A mixed-format run adds
+ * a `format` column, because a report that omits the symbology cannot be used to
+ * reproduce the sheet.
+ */
 export function bulkReportCsv(rows: BulkReportRow[]) {
-  const header = ["row", "status", "value", "message"];
+  const mixed = rows.some((row) => Boolean(row.format));
+  const header = mixed
+    ? ["row", "format", "status", "value", "message"]
+    : ["row", "status", "value", "message"];
   return csvDocument([
     header,
-    ...rows.map((row) => [row.line, row.status, row.value, row.message]),
+    ...rows.map((row) =>
+      mixed
+        ? [row.line, row.format ?? "", row.status, row.value, row.message]
+        : [row.line, row.status, row.value, row.message],
+    ),
   ]);
 }
 

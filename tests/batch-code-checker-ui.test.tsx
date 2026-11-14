@@ -38,6 +38,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  window.history.replaceState(null, "", "/tools/batch-code-checker");
 });
 
 function chooseBrand(name: string) {
@@ -130,6 +131,27 @@ describe("batch code checker form", () => {
     expect(screen.getByText(/open-jar symbol \(PAO\)/i)).toBeInTheDocument();
   });
 
+  it("reads a GS1 element string without claiming the code cannot be decoded", () => {
+    render(<BatchChecker />);
+    chooseBrand("Nivea");
+    fillCode("(01)09506000134352(17)270930(10)LOT-9");
+    submit();
+    const result = screen.getByRole("status");
+    expect(within(result).getByText("VERIFIED")).toBeInTheDocument();
+    expect(result.textContent).toMatch(/GS1 element string/i);
+    expect(
+      screen.getByText(/Date fields carried by the code/i),
+    ).toBeInTheDocument();
+    // The date appears twice on purpose: once in the decoded-field list and
+    // once as the date that governs.
+    expect(screen.getAllByText(/30 Sep 2027/).length).toBeGreaterThan(0);
+    // A brand with no published lot-code rule must not be described as
+    // undecodable when its code was read as a GS1 carrier.
+    expect(
+      screen.queryByText(/Why this code cannot be decoded/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("verifies a printed expiry and lets it govern every estimate", () => {
     render(<BatchChecker />);
     chooseBrand("Nivea");
@@ -198,7 +220,13 @@ describe("batch code checker form", () => {
   });
 
   it("preselects a brand from the brand record link", () => {
-    navState.search = new URLSearchParams("brand=cerave");
+    // The preset is read from `window.location`, not `useSearchParams`, so the
+    // page can render its form statically instead of inside a Suspense boundary.
+    window.history.replaceState(
+      null,
+      "",
+      "/tools/batch-code-checker?brand=cerave",
+    );
     render(<BatchChecker />);
     expect(screen.getByRole("combobox", { name: "Brand" })).toHaveValue(
       "CeraVe",

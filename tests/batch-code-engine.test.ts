@@ -331,6 +331,20 @@ describe("checkBatchCode", () => {
     expect(outcome.result.warnings.join(" ")).toMatch(/cannot be decoded/i);
   });
 
+  it("does not warn that nothing decoded when a GS1 carrier gave an expiry", () => {
+    const outcome = checkBatchCode(
+      baseInput({ code: "(01)09506000134352(17)270930(10)LOT-9" }),
+    );
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const { result } = outcome;
+    expect(result.verdict.status).toBe("verified");
+    expect(result.decodedExpiry?.date).toBe("2027-09-30");
+    expect(result.effectiveExpiry?.date).toBe("2027-09-30");
+    // The old warning contradicted the verdict on exactly this input.
+    expect(result.warnings.join(" ")).not.toMatch(/No usable date came out/i);
+  });
+
   it("computes a disclosed estimate from a printed manufacture date", () => {
     const outcome = checkBatchCode(
       baseInput({

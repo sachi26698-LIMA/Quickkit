@@ -93,6 +93,7 @@ export type DateSource =
   | "printed"
   | "gs1"
   | "pattern"
+  | "brand-decoder"
   | "manufacture-plus-shelf-life"
   | "opened-plus-pao";
 

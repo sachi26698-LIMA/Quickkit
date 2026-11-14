@@ -334,7 +334,8 @@ const SEEDS: Seed[] = [
     group: "Shiseido Group",
     categories: ["skincare"],
     aliases: ["cle de peau"],
-    guidance: null,
+    // Verified reachable on 2026-11-13.
+    guidance: "https://www.cledepeaubeaute.com",
   },
 
   // Unilever / P&G
@@ -516,7 +517,8 @@ const SEEDS: Seed[] = [
     group: "Pierre Fabre",
     categories: ["skincare", "sun-care"],
     aliases: ["avene"],
-    guidance: null,
+    // avene.com redirects here; verified reachable on 2026-11-13.
+    guidance: "https://www.aveneusa.com",
   },
 
   // Fragrance

@@ -6,9 +6,8 @@
  * produced it, with its own label. Printed, decoded, estimated and PAO dates are
  * four separate cards, and the disclaimer says which one governs.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -60,14 +59,51 @@ const emptyForm: FormState = {
   pao: null,
 };
 
+/**
+ * `?brand=` preset, read without forcing the whole workspace into a
+ * client-only Suspense boundary.
+ *
+ * `useSearchParams()` on a statically rendered page makes Next replace the
+ * boundary with its fallback and stream the real form in after hydration. That
+ * cost the page a 0.145 CLS and a 1,669 px jump on a phone. Reading the query
+ * string through `useSyncExternalStore` is hydration-safe instead: the server
+ * and the first client paint both see `""`, then the real value arrives in a
+ * second render that does not change the form's height. The form itself is now
+ * in the static HTML, so it is present before any JavaScript runs.
+ */
+const subscribeToLocation = () => () => {};
+
+function readPresetSlug(): string {
+  return new URLSearchParams(window.location.search).get("brand") ?? "";
+}
+
 export default function BatchChecker() {
-  const params = useSearchParams();
-  const presetSlug = params.get("brand") ?? "";
+  const presetSlug = useSyncExternalStore(
+    subscribeToLocation,
+    readPresetSlug,
+    () => "",
+  );
   const preset = presetSlug ? brandBySlug(presetSlug) : undefined;
 
-  const [brand, setBrand] = useState<{ slug: string; name: string } | null>(
-    preset ? { slug: preset.slug, name: preset.name } : null,
-  );
+  // `undefined` means "the visitor has not chosen yet", which is different from
+  // choosing to clear the brand (`null`). Without that distinction, clearing a
+  // preset would immediately restore it from the query string.
+  const [choice, setChoice] = useState<
+    | {
+        slug: string;
+        name: string;
+      }
+    | null
+    | undefined
+  >(undefined);
+
+  const brand =
+    choice === undefined
+      ? preset
+        ? { slug: preset.slug, name: preset.name }
+        : null
+      : choice;
+  const setBrand = setChoice;
   const [category, setCategory] = useState<ProductCategory | "all">("all");
   const [form, setForm] = useState<FormState>(emptyForm);
   const [outcome, setOutcome] = useState<CheckOutcome | null>(null);
@@ -552,7 +588,11 @@ function ResultPanel({
         </div>
       ) : null}
 
-      {result.brand.source.kind === "none" || result.verdict.id === "none" ? (
+      {/* Only when the code itself produced nothing. A brand with no published
+          lot-code rule can still have its code read as a GS1 element string, and
+          that case explains itself in the notes instead of claiming the code
+          "cannot be decoded". */}
+      {result.verdict.status === "undecodable" ? (
         <div className={styles.column}>
           <h3>Why this code cannot be decoded</h3>
           <ul className={styles.list}>

@@ -1,5 +1,69 @@
 # QUICKKIT Master Project Progress
 
+## Phase 20 — final completion and real-world validation (14 November 2026 UTC)
+
+**Branch:** `arena/6102e674-quickkit`, continuing from Phase 19 checkpoint
+`0d5c51a`. Reports: **`BARCODE_STUDIO_PHASE20_REPORT.md`** (what was built and
+what remains blocked) and **`BARCODE_TEST_EVIDENCE.md`** (every command and
+result). Nothing was pushed, merged, deployed or indexed.
+
+- **Batch Studio (`/tools/batch-studio`)** now encodes a mixed-symbology CSV: the
+  format is read per row (ids, display names, `EAN 13`-style spellings, 2D
+  aliases), every row is validated independently, an unrecognised cell is an
+  error quoting the visitor's own text rather than a silent substitution, and
+  duplicates are flagged but stay exportable. A mixed sheet exports as one
+  folder per symbology plus a `README.txt`, or as a per-format archive; the
+  report CSV gained a `format` column for mixed runs only, so single-format
+  reports keep their old header. Verified in Chromium: five-format sample →
+  89,351-byte ZIP with `ean13/ itf14/ code128/ qrcode/ datamatrix/` and
+  `README.txt`, a 3,047-byte per-format archive, and a five-row report.
+  1,000 mixed rows encode in 107 ms.
+- **Batch Code Intelligence:** research across all 59 records found no
+  manufacturer-published lot-code algorithm — only third-party checkers
+  (skincarisma, lotexp, nanamall, perfumeson), which were rejected again as
+  evidence. **Verified brand decoders remain 0 of 59.** What shipped is the
+  mechanism that makes a future one safe: `brand-decoders.ts` with a validator
+  that rejects a decoder lacking https evidence, a read date or two reproducible
+  vectors, and a hook in `check.ts` that turns a match into a `verified`
+  manufacture date carrying its source URL. All 59 records now have a fetched
+  official URL (avene, cle-de-peau added) and all 59 still show
+  "Last verified: Never reviewed against a manufacturer document".
+- **Two checker contradictions fixed** (found by driving the page, not by reading
+  code): a VERIFIED GS1 result no longer also warns "No usable date came out of
+  this check", and a code that decoded as a GS1 carrier is no longer described as
+  "Why this code cannot be decoded" just because the brand has no published rule.
+- **CLS regression fixed:** `<Suspense fallback={null}>` around a
+  `useSearchParams()` consumer made the whole 1,669 px checker form client-only.
+  The preset is now read with `useSyncExternalStore`, the form ships in the static
+  HTML, and `/tools/batch-code-checker` went from LCP 1,664 ms / CLS 0.145 to
+  **488 ms / 0.000**. Clearing a preset brand no longer snaps back.
+- **Product lookup:** the OFF failure is diagnosed — DNS resolves and TCP
+  connects, but this sandbox's egress allow-list resets the TLS handshake, so no
+  HTTP request ever leaves. The audit also closed a real hole: redirects were
+  followed blindly and are now followed by hand, hop-by-hop validated against the
+  four OFF databases, capped and reported. A second provider was evaluated (USDA
+  FoodData Central, public-domain CC0 data) and deliberately not adopted, because
+  it needs a private API key and cannot be reached from here.
+- **Camera:** the full stream lifecycle (enumerate → Start → play 640×480 → Stop →
+  every track `ended`) passes on Chromium's synthetic device; torch correctly
+  omitted when the track has none. Physical hardware, permission prompts and
+  device switching remain **BLOCKED** — there is no camera in this environment.
+- **Browser E2E:** nine barcode pages × two viewports = **18/18 HTTP 200**, zero
+  horizontal overflow at 390 px, zero page errors, zero console errors; ten real
+  interactions including three ZIP/CSV/SVG downloads verified by content.
+- **SEO:** with the launch gate open, all nine pages carry a unique title
+  (53–60 chars), description (133–158), canonical, `index, follow`, one H1 and
+  tool JSON-LD; the sitemap lists 132 URLs (68 barcode-related, none duplicated)
+  and all 68 return 200. With the gate closed — the shipped default — robots
+  disallows everything and the sitemap is empty, by design. **No Google indexing
+  is claimed:** Search Console is not reachable from here.
+- **Gates:** TypeScript 0, ESLint 0, Prettier clean, **2,135 tests in 125 files
+  pass**, production build **143/143 pages**, `npm audit` and
+  `npm audit --omit=dev` **0 vulnerabilities**, mobile LCP 380–656 ms with CLS
+  0.000.
+- **Blocked:** live OFF success path, any second provider, real-phone camera,
+  manufacturer decoders, Search Console confirmation, Firefox/WebKit.
+
 ## Phase 17 — Barcode Studio final master completion & production readiness (13 November 2026 UTC)
 
 **Branch:** `arena/6102e674-quickkit`, continuing from local checkpoint `7b47bc3`.
@@ -41,7 +105,7 @@ Full report: **`QUICKKIT_BARCODE_FINAL_PRODUCTION_READINESS.md`**. Research log:
   canonicals, the 127-URL sitemap with all 59 brand pages, and robots rules.
 - **Verification:** `tsc` 0, ESLint 0, Prettier clean, **115 files / 1,985 tests**,
   build **138 static pages** (2 known Turbopack worker-resolution warnings), `npm
-  audit` **0 vulnerabilities**, runtime smoke on `:3010` (three tools 200, invalid
+audit` **0 vulnerabilities**, runtime smoke on `:3010` (three tools 200, invalid
   GTIN 400, live lookup 502 with an honest message, camera Permissions-Policy
   scoped). **Playwright E2E not executed:** `playwright install chromium` fails
   with `Download failure, code=1` (Chrome for Testing 156.0.8078.4, chromium

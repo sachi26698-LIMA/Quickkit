@@ -8,6 +8,7 @@
  * thousand-row batch does not build a thousand bitmaps in memory at once.
  */
 import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   Download,
   FileSpreadsheet,
@@ -401,6 +402,13 @@ export default function BulkPanel({ studio }: { studio: Studio }) {
         title="Bulk barcode generator"
         description="One barcode per CSV row, validated row by row, exported as SVG, PNG, a ZIP or a print-ready PDF sheet."
       />
+      <p className="bc-notes">
+        One symbology per sheet here. For a CSV that carries a different format
+        on each row, use the{" "}
+        <Link href="/tools/batch-studio">batch studio</Link>, which validates
+        every row, groups the export by symbology and keeps mixed formats in
+        separate archives.
+      </p>
 
       <section className="qr-card">
         <div className="qr-card-head">

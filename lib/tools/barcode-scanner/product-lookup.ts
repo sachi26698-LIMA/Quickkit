@@ -138,6 +138,29 @@ export function offHost(hostname: string): OffHost | null {
 }
 
 /**
+ * Any hostname in the OFF family, including country subdomains such as
+ * `in.openfoodfacts.org`. The API sometimes redirects a world domain to the
+ * nearest national server, so a redirect guard has to allow those — and only
+ * those. A lookalike (`openfoodfacts.org.evil.test`) does not end with the
+ * suffix and is rejected.
+ */
+export function offFamilyHost(hostname: string): OffHost | null {
+  const host = hostname.toLowerCase();
+  const asset = offAssetHost(host);
+  if (asset) return asset;
+  const families: [string, OffHost][] = [
+    ["openfoodfacts.org", "world.openfoodfacts.org"],
+    ["openbeautyfacts.org", "world.openbeautyfacts.org"],
+    ["openproductsfacts.org", "world.openproductsfacts.org"],
+    ["openpetfoodfacts.org", "world.openpetfoodfacts.org"],
+  ];
+  for (const [suffix, base] of families) {
+    if (host === suffix || host.endsWith(`.${suffix}`)) return base;
+  }
+  return null;
+}
+
+/**
  * Image and static assets are served from `images.<database>` and
  * `static.<database>` subdomains, not from the API host. Only those four
  * database domains (and their images/static subdomains) are accepted — never a
@@ -339,6 +362,50 @@ function retryAfter(response: Response): number {
 }
 
 /** Server-side lookup. Never throws: every failure is a described result. */
+/** Redirect hops the API proxy will follow before giving up. */
+export const LOOKUP_MAX_REDIRECTS = 3;
+
+type OffFetchOutcome =
+  | { kind: "response"; response: Response }
+  | { kind: "blocked"; host: string; reason: "external" | "loop" };
+
+/**
+ * Fetch an OFF API URL with redirects followed by hand.
+ *
+ * `redirect: "follow"` would let OFF's edge send this server anywhere, including
+ * a link-local address. Every hop is therefore checked against the OFF family
+ * first, so the only hosts this route can reach are the four product databases
+ * and their national subdomains.
+ */
+async function fetchOffJson(
+  startUrl: string,
+  init: RequestInit,
+  doFetch: typeof fetch,
+): Promise<OffFetchOutcome> {
+  let url = startUrl;
+  for (let hop = 0; hop <= LOOKUP_MAX_REDIRECTS; hop += 1) {
+    const response = await doFetch(url, { ...init, redirect: "manual" });
+    const isRedirect = response.status >= 300 && response.status < 400;
+    if (!isRedirect) return { kind: "response", response };
+    const location = response.headers.get("location");
+    if (!location) return { kind: "response", response };
+    let next: URL;
+    try {
+      next = new URL(location, url);
+    } catch {
+      return { kind: "response", response };
+    }
+    if (next.protocol !== "https:" || !offFamilyHost(next.hostname)) {
+      return { kind: "blocked", host: next.hostname, reason: "external" };
+    }
+    if (next.toString() === url) {
+      return { kind: "blocked", host: next.hostname, reason: "loop" };
+    }
+    url = next.toString();
+  }
+  return { kind: "blocked", host: new URL(url).hostname, reason: "loop" };
+}
+
 export async function lookupProduct(
   rawGtin: string,
   options: {
@@ -358,15 +425,31 @@ export async function lookupProduct(
   const doFetch = options.fetchImpl ?? fetch;
   const timeoutMs = options.timeoutMs ?? 8000;
   try {
-    const response = await doFetch(productUrl(gtin), {
-      headers: {
-        "User-Agent": userAgent(),
-        Accept: "application/json",
+    const outcome = await fetchOffJson(
+      productUrl(gtin),
+      {
+        headers: {
+          "User-Agent": userAgent(),
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(timeoutMs),
+        cache: "no-store",
       },
-      redirect: "follow",
-      signal: AbortSignal.timeout(timeoutMs),
-      cache: "no-store",
-    });
+      doFetch,
+    );
+
+    if (outcome.kind === "blocked") {
+      return {
+        status: "error",
+        reason: "upstream",
+        message:
+          outcome.reason === "loop"
+            ? `${PRODUCT_DATABASE.name} kept redirecting (${outcome.host}) without reaching a product, so the lookup was stopped. Nothing is shown rather than a partial guess.`
+            : `The lookup was stopped because ${PRODUCT_DATABASE.name} redirected to ${outcome.host}, which is not one of its own databases. No request was sent there.`,
+      };
+    }
+
+    const response = outcome.response;
 
     if (response.status === 404)
       return {

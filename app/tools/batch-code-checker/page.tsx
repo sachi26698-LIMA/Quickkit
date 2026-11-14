@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import ToolShell from "@/components/tool-shell";
 import BatchChecker from "@/components/tools/batch-code-checker";
 import BrandDirectory from "@/components/tools/batch-code-checker/brand-directory";
@@ -64,9 +63,7 @@ export default function Page() {
         ],
       }}
     >
-      <Suspense fallback={null}>
-        <BatchChecker />
-      </Suspense>
+      <BatchChecker />
     </ToolShell>
   );
 }

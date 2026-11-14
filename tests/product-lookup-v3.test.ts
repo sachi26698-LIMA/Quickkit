@@ -83,7 +83,8 @@ describe("request construction", () => {
     });
     const headers = seen[0].headers as Record<string, string>;
     expect(headers["User-Agent"]).toBe(userAgent());
-    expect(seen[0].redirect).toBe("follow");
+    // Redirects are followed by hand so every hop can be checked first.
+    expect(seen[0].redirect).toBe("manual");
     expect(seen[0].cache).toBe("no-store");
   });
 });

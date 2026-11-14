@@ -10,6 +10,11 @@
 import { gtinCheckOk } from "@/lib/tools/barcode/checksums";
 import { brandBySlug } from "@/lib/tools/batch-code/brands";
 import {
+  BRAND_DECODERS,
+  decodeBrandCode,
+  type BrandDecoder,
+} from "@/lib/tools/batch-code/brand-decoders";
+import {
   addMonths,
   daysBetween,
   decodeCode,
@@ -62,7 +67,18 @@ function problem(code: string, message: string) {
   return { code, message };
 }
 
-export function checkBatchCode(input: CheckInput): CheckOutcome {
+export type CheckOptions = {
+  /**
+   * Brand decoder registry. Real callers use the default (empty until a
+   * manufacturer document exists); tests inject fixtures to prove the path.
+   */
+  brandDecoders?: readonly BrandDecoder[];
+};
+
+export function checkBatchCode(
+  input: CheckInput,
+  options: CheckOptions = {},
+): CheckOutcome {
   const problems: { code: string; message: string }[] = [];
 
   const brand: BrandRecord | undefined = brandBySlug(input.brandSlug);
@@ -158,6 +174,11 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
   if (problems.length || !brand) return { ok: false, problems };
 
   const decoded = decodeCode(brand, code);
+  const brandDecoded = decodeBrandCode(
+    brand.slug,
+    code,
+    options.brandDecoders ?? BRAND_DECODERS,
+  );
   const todayLabel = formatDate(today);
   const warnings: string[] = [];
   const notes: string[] = [];
@@ -171,6 +192,14 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
       method: "Printed on the pack — read directly from the packaging",
       confidence: "verified",
       evidence: "Manufacturer-printed date",
+    };
+  } else if (brandDecoded) {
+    manufacture = {
+      date: brandDecoded.result.date,
+      source: "brand-decoder",
+      method: `Decoded by the ${brand.name} lot-code rule recorded for this brand (${brandDecoded.decoder.id} v${brandDecoded.decoder.version}): ${brandDecoded.result.explanation}`,
+      confidence: "verified",
+      evidence: `${brandDecoded.decoder.evidence.label} — ${brandDecoded.decoder.evidence.url} (read ${brandDecoded.decoder.evidence.verifiedOn})`,
     };
   } else if (decoded.manufacture) {
     const fromStandards = decoded.verdict.status === "verified";
@@ -279,7 +308,10 @@ export function checkBatchCode(input: CheckInput): CheckOutcome {
       "More than one date-shaped reading exists in this code. The alternatives are listed below; the packaging decides which is real.",
     );
 
-  if (!printedExpiryFact && !estimatedExpiry && !paoExpiry)
+  // A GS1 carrier can define an expiry with no printed date, no estimate and no
+  // PAO window. Without `decodedExpiry` here, a VERIFIED result contradicted
+  // itself by also warning that no usable date had come out of the check.
+  if (!printedExpiryFact && !estimatedExpiry && !paoExpiry && !decodedExpiry)
     warnings.push(
       "No usable date came out of this check. Nothing is estimated, because no date and no defensible shelf-life guidance were available.",
     );
