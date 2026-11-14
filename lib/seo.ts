@@ -221,6 +221,7 @@ export function toolStructuredData({
   category,
   slug,
   faqs = [],
+  networkProcessing = false,
 }: {
   name: string;
   description: string;
@@ -229,6 +230,7 @@ export function toolStructuredData({
   slug?: string;
   steps?: string[];
   faqs?: { q: string; a: string }[];
+  networkProcessing?: boolean;
 }) {
   const url = siteOrigin ? siteOrigin + path : undefined;
   const serverProcessed =
@@ -242,9 +244,11 @@ export function toolStructuredData({
       inLanguage: "en",
       applicationCategory: resolveApplicationCategory(category, slug),
       operatingSystem: "Any",
-      browserRequirements: serverProcessed
-        ? "Requires JavaScript. Converts DOCX documents via explicit-consent server processing."
-        : "Requires JavaScript. Runs locally in modern browsers without uploading tool inputs.",
+      browserRequirements: networkProcessing
+        ? "Requires JavaScript and a network connection to a third-party lookup service."
+        : serverProcessed
+          ? "Requires JavaScript. Converts DOCX documents via explicit-consent server processing."
+          : "Requires JavaScript. Runs locally in modern browsers without uploading tool inputs.",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       isAccessibleForFree: true,
       ...(siteOrigin

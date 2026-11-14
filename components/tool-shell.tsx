@@ -27,6 +27,7 @@ export default function ToolShell({
   faqsHeading = "A few useful answers",
   relatedHeading = "Keep the good work going",
   referenceSection,
+  privacyNotice,
 }: {
   slug: string;
   children: React.ReactNode;
@@ -38,6 +39,7 @@ export default function ToolShell({
   faqsHeading?: string;
   relatedHeading?: string;
   referenceSection?: React.ReactNode;
+  privacyNotice?: string;
 }) {
   const compact = variant === "compact";
   const tool = tools.find((t) => t.slug === slug)!;
@@ -89,6 +91,7 @@ export default function ToolShell({
           category: tool.category,
           slug: tool.slug,
           faqs: content.faqs,
+          networkProcessing: Boolean(privacyNotice),
         })}
       />
       {compact ? (
@@ -132,8 +135,9 @@ export default function ToolShell({
       {children}
       {!compact ? (
         <p className="privacy-inline">
-          <ShieldCheck size={17} /> Processed on your device. Tool inputs are
-          not uploaded or saved by QUICKKIT.
+          <ShieldCheck size={17} />{" "}
+          {privacyNotice ??
+            "Processed on your device. Tool inputs are not uploaded or saved by QUICKKIT."}
         </p>
       ) : null}
       {referenceSection}

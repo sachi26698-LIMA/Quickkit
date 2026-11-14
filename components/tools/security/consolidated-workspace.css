@@ -1,0 +1,48 @@
+.security-consolidated {
+  min-width: 0;
+}
+.security-tabs-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+.security-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+.security-tabs button {
+  border: 1px solid var(--border, #b7bfcc);
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.security-tabs button[aria-selected="true"] {
+  background: #263a78;
+  border-color: #263a78;
+  color: #fff;
+}
+.security-tabs button:focus-visible {
+  outline: 3px solid #8057d9;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .security-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.25rem 0.1rem 0.75rem;
+  }
+  .security-tabs button {
+    flex: 0 0 auto;
+    max-width: 80vw;
+  }
+}
+
+.security-consolidated input[type="file"] {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}

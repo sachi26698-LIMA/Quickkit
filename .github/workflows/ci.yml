@@ -7,9 +7,11 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # The full cross-browser suite plus focused regression runs can exceed 45
+    # minutes on a busy runner; leave time for retries and failure artifacts.
+    timeout-minutes: 65
     env:
-      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,7 +19,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: '26'
+          node-version: "26"
           cache: npm
       - run: npm ci
       - run: npm run format:check
@@ -27,6 +29,10 @@ jobs:
       - run: npm run typecheck
       - run: npm audit --omit=dev
       - run: npx playwright install --with-deps chromium firefox webkit
+      # Catch cancellation regressions early while retaining the complete suite below.
+      - run: npx playwright test tests/e2e/pdf-compressor.spec.ts --project=webkit --project=firefox --grep 'cancels a large batch' --repeat-each=2
+      # Verify fixed preview dialogs stay interactive above the site header.
+      - run: npx playwright test tests/e2e/pdf-to-word.spec.ts --project=chromium --project=firefox --project=webkit --grep 'previews the original PDF'
       - run: npm run test:e2e
         env:
           # Exercise the real visitor API without production credentials or data.

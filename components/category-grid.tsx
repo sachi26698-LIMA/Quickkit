@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
-import { categoryMeta, toolsByCategory } from "@/lib/catalog";
+import type { CategoryMeta } from "@/lib/catalog";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 import TiltGrid from "@/components/tilt-grid";
 
@@ -12,11 +12,14 @@ import TiltGrid from "@/components/tilt-grid";
  * made the landing page's JavaScript several times bigger than the page itself.
  * The tilt is delegated by `<TiltGrid />`, the only client code here.
  */
-export default function CategoryGrid() {
+export default function CategoryGrid({
+  cards,
+}: {
+  cards: { meta: CategoryMeta; count: number }[];
+}) {
   return (
     <TiltGrid className="category-grid">
-      {categoryMeta.map((meta) => {
-        const count = toolsByCategory(meta.name).length;
+      {cards.map(({ meta, count }) => {
         const comingSoon = count === 0;
         return (
           <Link

@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useSyncExternalStore } from "react";
+import { legacySecurityFavorites } from "@/lib/tools/security/consolidation";
 
 export const FAVORITES_KEY = "quickkit:saved-tools";
 const EVENT = "quickkit:saved-tools-changed";
@@ -11,6 +12,7 @@ const EVENT = "quickkit:saved-tools-changed";
  */
 export const SLUG_MIGRATIONS: Record<string, string> = {
   "image-converter": "image-to-image",
+  ...legacySecurityFavorites,
 };
 
 function readRaw(): string {

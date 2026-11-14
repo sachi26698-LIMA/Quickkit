@@ -1,3 +1,8 @@
+import {
+  securityGroups,
+  securityGroupKeywords,
+} from "@/lib/tools/security/consolidation";
+
 export const toolCategories = [
   "PDF Tools",
   "Image Tools",
@@ -87,10 +92,10 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "Security & Privacy",
     slug: "security-privacy",
-    seoTitle: "Security & Privacy — Browser Password Generator",
+    seoTitle: "Security & Privacy — Local Tools",
     blurb: "Generate, check and manage your data securely.",
     description:
-      "Generate high-entropy 8–64 character random passwords in your browser using Web Crypto (crypto.getRandomValues) with zero network requests or storage.",
+      "Use browser tools for passwords, encryption, hashes, metadata and privacy reviews, plus consent-based public DNS lookups.",
     tint: "tint-security",
     icon: "shield",
   },
@@ -100,7 +105,7 @@ export const categoryMeta: CategoryMeta[] = [
     seoTitle: "AI Tools (Coming Soon) — Roadmap Category",
     blurb: "Smart tools powered by artificial intelligence.",
     description:
-      "AI-assisted document and text utilities are on the QUICKKIT roadmap. Explore all 42 live PDF, image, OCR, QR, developer and calculator tools today.",
+      "AI-assisted document and text utilities are on the QUICKKIT roadmap. Explore the live PDF, image, OCR, QR, developer, calculator and privacy tools today.",
     tint: "tint-ai",
     icon: "sparkles",
   },
@@ -210,6 +215,7 @@ export const tools = [
     slug: "base64-encoder-decoder",
     name: "Base64 Encoder / Decoder",
     category: "Developer Tools",
+    categories: ["Developer Tools"],
     description:
       "Encode Unicode text or local files to Base64, or decode Base64 back to UTF-8 text or a downloadable binary file.",
     keywords: "base64 encode decode binary file utf-8 unicode text developer",
@@ -256,10 +262,12 @@ export const tools = [
     slug: "hash-generator",
     name: "Hash Generator",
     category: "Developer Tools",
+    categories: ["Developer Tools", "Security & Privacy"],
     description:
-      "Generate MD5, SHA-1, SHA-256 or SHA-512 digests from text or files, locally and in chunks.",
+      "Hash text and files, verify batch checksums, compare digests and inspect file signature hints locally.",
     keywords:
-      "checksum digest md5 sha1 sha-1 sha256 sha-256 sha512 sha-512 hash file developer",
+      "checksum digest md5 sha1 sha-1 sha256 sha-256 sha384 sha-384 sha512 sha-512 hash file developer " +
+      securityGroupKeywords("hash-generator"),
     icon: "code",
     color: "emerald",
     phase: 20,
@@ -280,8 +288,10 @@ export const tools = [
     name: "Password Generator",
     category: "Security & Privacy",
     description:
-      "Create strong, random passwords with the length and characters you choose.",
-    keywords: "secure random crypto credentials",
+      "Generate passwords and passphrases, check strength and entropy, and build a password policy locally.",
+    keywords:
+      "secure random crypto credentials " +
+      securityGroupKeywords("password-generator"),
     icon: "key",
     color: "purple",
     phase: 2,
@@ -625,6 +635,25 @@ export const tools = [
     color: "purple",
     phase: 9,
   },
+  ...securityGroups
+    .filter(
+      (item) =>
+        item.slug !== "password-generator" && item.slug !== "hash-generator",
+    )
+    .map((item) => ({
+      slug: item.slug,
+      name: item.name,
+      description: item.description,
+      category: "Security & Privacy" as const,
+      keywords:
+        "privacy security " +
+        item.name.toLowerCase() +
+        " " +
+        securityGroupKeywords(item.slug),
+      icon: "key" as const,
+      color: "purple" as const,
+      phase: 30,
+    })),
   {
     slug: "gs1-intelligence",
     name: "GS1 Intelligence",
@@ -1076,13 +1105,13 @@ export function relatedTools(tool: Tool, limit = 6): Tool[] {
 }
 
 export function filterTools(query: string, category: Category) {
-  const search = query.trim().toLocaleLowerCase();
+  const search = query.trim().toLowerCase();
   const matches = tools.filter(
     (tool) =>
       (category === "All tools" ||
         toolCategoriesOf(tool).includes(category as ToolCategory)) &&
       `${tool.name} ${tool.description} ${tool.keywords}`
-        .toLocaleLowerCase()
+        .toLowerCase()
         .includes(search),
   );
   if (!search) return matches;
@@ -1090,7 +1119,7 @@ export function filterTools(query: string, category: Category) {
   // keyword, so typing "JSON" lands on JSON Formatter and JSON Validator first.
   // Ordering stays stable within each group.
   const byName = matches.filter((tool) =>
-    tool.name.toLocaleLowerCase().includes(search),
+    tool.name.toLowerCase().includes(search),
   );
   return byName.length
     ? [...byName, ...matches.filter((tool) => !byName.includes(tool))]

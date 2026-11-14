@@ -85,14 +85,14 @@ export default function SecurityPage() {
 
       <h2 id="data-handling">3. Data handling</h2>
       <p>
-        For the 41 browser-local tools, inputs are processed in tab memory and
+        For browser-local tools, inputs are processed in tab memory and
         discarded on reset, refresh or tab close; consented Word to PDF jobs use
         bounded temporary server files deleted after conversion. Preferences use
         browser storage; optional conversion history is opt-in, capped at 20
         items and 10 MB each, and expires on your chosen retention window.
         Source documents are never written to history — only converted outputs.
-        Details are in the{" "}
-        <Link href="/file-handling">File Handling Policy</Link>.
+        Opt-in DNS and public IP lookups contact external services. Details are
+        in the <Link href="/file-handling">File Handling Policy</Link>.
       </p>
       <p>
         PDF passwords you supply are kept in page or worker memory for the

@@ -159,6 +159,41 @@ export const toolPalette: ToolPaletteEntry[] = [
   },
   { slug: "time-converter", name: "Time Converter", category: "Calculators" },
   {
+    slug: "advanced-cryptography",
+    name: "Ultimate Encryption & Cryptography",
+    category: "Security & Privacy",
+  },
+  {
+    slug: "dns-email-security",
+    name: "Ultimate DNS & Email Security",
+    category: "Security & Privacy",
+  },
+  {
+    slug: "website-security-review",
+    name: "Ultimate Website Security Review",
+    category: "Security & Privacy",
+  },
+  {
+    slug: "privacy-metadata-manager",
+    name: "Ultimate Privacy & Metadata Manager",
+    category: "Security & Privacy",
+  },
+  {
+    slug: "url-network-privacy",
+    name: "Ultimate URL, IP & Browser Privacy",
+    category: "Security & Privacy",
+  },
+  {
+    slug: "privacy-policy-workbench",
+    name: "Privacy Policy & Compliance Workbench",
+    category: "Security & Privacy",
+  },
+  {
+    slug: "api-credential-tools",
+    name: "API Credential & Request Review",
+    category: "Security & Privacy",
+  },
+  {
     slug: "gs1-intelligence",
     name: "GS1 Intelligence",
     category: "QR & Barcode",

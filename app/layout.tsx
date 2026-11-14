@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     template: "%s | QUICKKIT",
   },
   description:
-    "Use 42 free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities with no account or signup.",
+    "Use free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities with no account or signup.",
   metadataBase: new URL(
     siteOrigin ||
       (process.env.VERCEL_URL

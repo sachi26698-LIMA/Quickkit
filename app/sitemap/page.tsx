@@ -7,7 +7,7 @@ import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "HTML Sitemap — All Tools, Categories & Policies",
-  "Explore the complete HTML sitemap for QUICKKIT: direct links to all 42 online tools, 7 active tool categories, help guides, legal terms and trust policies.",
+  "Explore the complete HTML sitemap for QUICKKIT: direct links to online tools, 7 active tool categories, help guides, legal terms and trust policies.",
   "/sitemap",
 );
 

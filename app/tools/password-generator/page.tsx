@@ -1,5 +1,5 @@
 import ToolShell from "@/components/tool-shell";
-import PasswordGenerator from "@/components/tools/password-generator";
+import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
 import { pageMetadata } from "@/lib/seo";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -27,7 +27,7 @@ export default function Page() {
         steps: [
           "Choose a length from 8 to 64 characters.",
           "Select at least one character set and optionally exclude look-alike characters.",
-          "Check the strength meter (100+ bits is excellent), generate, and copy your password into a password manager.",
+          "Generate one or more passwords and copy them into a password manager.",
           "Save the copied password directly into a password manager and avoid reusing it across accounts.",
         ],
         faqs: [
@@ -37,7 +37,7 @@ export default function Page() {
           },
           {
             q: "Are generated passwords saved?",
-            a: "No. Passwords stay in this page’s memory and are not sent to a server or analytics. Copying places the password on your device clipboard, which other applications may access.",
+            a: "The tool keeps passwords in page memory and does not send them to a server or analytics. Copying places them on your clipboard; downloading saves a plaintext file on your device.",
           },
           {
             q: "Is a generated password enough to secure an account?",
@@ -45,12 +45,12 @@ export default function Page() {
           },
           {
             q: "What does the entropy number mean?",
-            a: "It estimates the number of random bits from the selected length and character pool. It does not account for how you store, reuse, or expose the password.",
+            a: "It is an upper bound based on length and character pool, not the actual entropy of this constrained generator. It does not account for storage, reuse, or exposure.",
           },
         ],
       }}
     >
-      <PasswordGenerator />
+      <ConsolidatedWorkspace slug="password-generator" />
     </ToolShell>
   );
 }

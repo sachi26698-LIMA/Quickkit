@@ -92,13 +92,13 @@ export const categoryContent: Record<string, CategoryCopy> = {
     ],
   },
   "security-privacy": {
-    heading: "Passwords generated on the device that will use them",
+    heading: "Practical security tools on your device",
     intro:
-      "One tool, one job: produce a random password here, so the candidate never travels to a server to be judged.",
+      "Use local tools for passwords, encrypted text and files, checksums, metadata and reviewing supplied security information. DNS lookups contact a public resolver only with your consent. Read each tool’s limitations before relying on its result.",
     paragraphs: [
-      "Most password generators are web forms that send your choice back for a strength check, which means the password — or something derived from it — leaves your machine. This one does not: every character comes from the platform's own cryptographic generator, the strength meter is computed from the number of possible combinations, and the result is copied to your clipboard locally. Nothing is stored, logged or transmitted, and reloading the page leaves no trace.",
+      "This generator uses the platform’s cryptographic random number generator and processes passwords in the browser. The pool-size indicator describes an unconstrained upper bound, not the actual entropy of this generator. Copying or downloading a password places it on your device; protect or delete any plaintext file after importing passwords into your password manager.",
       "The options are deliberately narrow. You choose a length from 8 to 64 characters, which character sets to include (lowercase, uppercase, digits, symbols) and whether to exclude characters that are easy to confuse — l and 1, O and 0. That is enough control to satisfy a site that insists on a symbol without producing a password you cannot retype from a phone screen.",
-      "The strength meter is honest about what length buys. Every extra character multiplies the number of possibilities by the size of the alphabet, so a 16-character password from a full set is not slightly stronger than an 8-character one, it is billions of times stronger. A long password made of ordinary words beats a short one with a symbol swapped for an @, and the tool shows the number growing as you drag the slider, which makes that lesson visible rather than theoretical.",
+      "The pool-size indicator illustrates what length buys. Every extra character multiplies the number of possibilities by the size of the alphabet, so a 16-character password from a full set is not slightly stronger than an 8-character one, it is billions of times stronger. A long password made of ordinary words beats a short one with a symbol swapped for an @, and the tool shows the number growing as you drag the slider, which makes that lesson visible rather than theoretical.",
       "What this page cannot do: it cannot tell you whether a password has already appeared in a breach, because that check requires a network lookup against a service that would learn something about your candidate. It also cannot protect you from reusing the same password on ten sites. Generate one long random password per account, let a password manager remember them, and use PDF Lock & Unlock (AES-256) or Hash Generator (SHA-256 / SHA-512) alongside it when you need to protect documents or verify file integrity locally.",
     ],
   },

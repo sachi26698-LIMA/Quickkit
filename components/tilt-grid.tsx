@@ -21,7 +21,11 @@ export default function TiltGrid({
   useEffect(() => {
     const grid = ref.current;
     if (!grid) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      typeof window.matchMedia !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
     const card = (target: EventTarget | null) =>
       target instanceof Element
         ? (target.closest<HTMLAnchorElement>(

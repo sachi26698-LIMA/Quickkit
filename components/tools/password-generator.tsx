@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Dices, Eye, EyeOff, History, RotateCcw } from "lucide-react";
 import {
   defaultPasswordOptions,
-  generatePassword,
+  generatePasswordBatch,
   passwordEntropy,
   passwordStrength,
   type PasswordOptions,
 } from "@/lib/tools/password";
 import CopyButton from "./copy-button";
+import { downloadText } from "@/lib/tools/download";
 import { WorkspaceHeading } from "./tool-ui";
 
 export default function PasswordGenerator() {
@@ -18,6 +19,7 @@ export default function PasswordGenerator() {
     defaultPasswordOptions,
   );
   const [password, setPassword] = useState("");
+  const [count, setCount] = useState(1);
   const [error, setError] = useState("");
   const [visible, setVisible] = useState(true);
   const [history, setHistory] = useState<string[]>([]);
@@ -37,11 +39,13 @@ export default function PasswordGenerator() {
   }
   function generate() {
     try {
-      const next = generatePassword(options);
+      const next = generatePasswordBatch(options, count).join("\n");
       setPassword(next);
       setError("");
       setHistory((prev) =>
-        [next, ...prev.filter((p) => p !== next)].slice(0, 5),
+        count === 1
+          ? [next, ...prev.filter((p) => p !== next)].slice(0, 5)
+          : [],
       );
     } catch (e) {
       setPassword("");
@@ -59,7 +63,7 @@ export default function PasswordGenerator() {
     >
       <WorkspaceHeading
         title="Random, not predictable"
-        description="Cryptographically secure randomness (crypto.getRandomValues). Made on your device, never stored."
+        description="Cryptographically secure randomness (crypto.getRandomValues). Generated on your device; copying or downloading saves a separate copy."
       />
       <label htmlFor="password-length">Password length</label>
       <div className="range-row">
@@ -88,18 +92,18 @@ export default function PasswordGenerator() {
       <div className="strength" aria-live="polite">
         <div className="strength-head">
           <span>
-            Strength: <strong>{strength.label}</strong>
+            Pool-size indicator: <strong>{strength.label}</strong>
           </span>
-          <span>{bits} bits of entropy</span>
+          <span>Approximately {bits} bits (unconstrained pool)</span>
         </div>
         <div
           className="strength-track"
           role="meter"
-          aria-label="Estimated password strength"
+          aria-label="Unconstrained pool-size indicator"
           aria-valuemin={0}
           aria-valuemax={4}
           aria-valuenow={strength.level}
-          aria-valuetext={`${strength.label}, ${bits} bits`}
+          aria-valuetext={`${strength.label}, approximately ${bits} bits for an unconstrained pool`}
         >
           {[1, 2, 3, 4].map((level) => (
             <span
@@ -109,8 +113,10 @@ export default function PasswordGenerator() {
           ))}
         </div>
         <p className="help">
-          Entropy estimate for these settings — longer is stronger. 100+ bits is
-          an excellent target for important accounts.
+          This is an upper bound for unconstrained random strings, not a
+          measured strength: requiring each selected character set changes the
+          distribution. Longer unique passwords and a password manager are
+          recommended.
         </p>
       </div>
 
@@ -137,6 +143,19 @@ export default function PasswordGenerator() {
           </label>
         ))}
       </div>
+      <label htmlFor="password-count">Number of passwords (1–50)</label>
+      <input
+        id="password-count"
+        type="number"
+        min={1}
+        max={50}
+        value={count}
+        onChange={(event) => {
+          setCount(event.currentTarget.valueAsNumber);
+          setPassword("");
+          setError("");
+        }}
+      />
       <div className="action-row">
         <button className="primary" onClick={generate}>
           <Dices size={16} /> Generate password
@@ -146,6 +165,7 @@ export default function PasswordGenerator() {
           onClick={() => {
             change(defaultPasswordOptions);
             setHistory([]);
+            setCount(1);
           }}
         >
           <RotateCcw size={15} /> Reset
@@ -158,7 +178,9 @@ export default function PasswordGenerator() {
       )}
       <div className="result-panel">
         <div className="tool-toolbar">
-          <label htmlFor="password-output">Generated password</label>
+          <label htmlFor="password-output">
+            Generated password{count === 1 ? "" : "s"}
+          </label>
           <button
             type="button"
             className="toolbar-button"
@@ -183,9 +205,21 @@ export default function PasswordGenerator() {
             password manager and never reuse passwords.
           </p>
           <CopyButton key={password} text={password} />
+          <button
+            type="button"
+            className="secondary"
+            disabled={!password}
+            onClick={() => downloadText(password, "quickkit-passwords.txt")}
+          >
+            Download passwords
+          </button>
         </div>
       </div>
 
+      <p className="help">
+        Downloading saves passwords as plaintext on your device; protect or
+        delete the file after importing them into a password manager.
+      </p>
       {history.length > 1 && (
         <section className="history" aria-labelledby="password-history">
           <h3 id="password-history">
