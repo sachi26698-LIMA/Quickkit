@@ -407,6 +407,10 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
         : { width: 1280, height: 900 },
     );
     await page.goto("/tools/compress-pdf");
+    // Avoid smooth-scroll timing races when exercising the real controls.
+    await page.addStyleTag({
+      content: "*, html { scroll-behavior: auto !important; }",
+    });
     const copies = Array.from({ length: 12 }, (_, i) => i + 1).map((index) => ({
       ...largeImagePdf,
       name: `Large scan ${index}.pdf`,
@@ -431,7 +435,9 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
       await expect(mobileAction).toHaveText("Cancel");
       // On WebKit the expanded progress panel can push the sticky bar below
       // the viewport. Scroll it back before sending the real pointer event.
-      await mobileAction.scrollIntoViewIfNeeded();
+      await mobileAction.evaluate((button) =>
+        button.scrollIntoView({ block: "center", behavior: "instant" }),
+      );
       const bounds = await mobileAction.boundingBox();
       expect(bounds).not.toBeNull();
       const hit = await mobileAction.evaluate((button) => {
