@@ -12,8 +12,8 @@ import {
 } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "All 43 Free Tools — PDF, Image, Barcode & Code",
-  "Browse all 43 free online tools on QUICKKIT: PDF, image, 8-language OCR, QR and barcode tools, developer utilities and calculators — all local.",
+  "Free Online Tools — PDF, Image, Barcode & Code",
+  "Browse free online tools on QUICKKIT: PDF, image, OCR, QR and barcode tools, developer utilities, calculators and privacy.",
   "/tools",
 );
 

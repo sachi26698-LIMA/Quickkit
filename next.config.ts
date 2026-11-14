@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
+import { legacySecurityRedirects } from "./lib/tools/security/consolidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Content-Security-Policy.
@@ -121,6 +122,7 @@ const config: NextConfig = {
   ...(enforcing ? {} : { allowedDevOrigins: devAllowedOrigins }),
   async redirects() {
     return [
+      ...legacySecurityRedirects,
       {
         // The combined Image & PDF Converter was split into four separate
         // tools. Existing bookmarks, saved cards and inbound links keep
@@ -154,6 +156,39 @@ const config: NextConfig = {
           },
         ],
       },
+      // Only these explicit routes may contact the opt-in DNS/IP services.
+      ...[
+        {
+          source: "/tools/dns-email-security",
+          host: "https://cloudflare-dns.com",
+        },
+        {
+          source: "/tools/url-network-privacy",
+          host: "https://api.ipify.org https://api64.ipify.org",
+        },
+        { source: "/tools/dns-lookup", host: "https://cloudflare-dns.com" },
+        {
+          source: "/tools/dnssec-status-checker",
+          host: "https://cloudflare-dns.com",
+        },
+        {
+          source: "/tools/public-ip-information",
+          host: "https://api.ipify.org https://api64.ipify.org",
+        },
+      ].map(({ source, host }) => ({
+        source,
+        headers: [
+          {
+            key: enforcing
+              ? "Content-Security-Policy"
+              : "Content-Security-Policy-Report-Only",
+            value: CSP.replace(
+              "connect-src 'self'",
+              `connect-src 'self' ${host}`,
+            ),
+          },
+        ],
+      })),
       // Three pages can use a camera — the QR Code Scanner, the Barcode
       // Studio's scanner tab and the stand-alone Barcode Scanner. A
       // Permissions-Policy on `/:path*` would otherwise

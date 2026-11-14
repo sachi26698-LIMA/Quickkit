@@ -67,6 +67,13 @@ export const toolThemes: Record<string, ToolTheme> = {
 
   // Security & Privacy — teal
   "password-generator": t("17 139 119", "20 184 166", "#115e59"),
+  "advanced-cryptography": t("20 112 130", "56 189 201", "#0b3944"),
+  "dns-email-security": t("31 122 107", "70 190 164", "#0b3c35"),
+  "website-security-review": t("38 111 153", "91 177 225", "#10344b"),
+  "privacy-metadata-manager": t("88 105 156", "157 171 232", "#292f55"),
+  "url-network-privacy": t("46 126 133", "101 197 195", "#123b3f"),
+  "privacy-policy-workbench": t("111 93 146", "181 158 222", "#352849"),
+  "api-credential-tools": t("84 119 94", "152 192 143", "#263a2b"),
   // Calculators — distinct accents across finance, health and converters
   "percentage-calculator": t("29 78 216", "96 165 250", "#1e3a8a"),
   "bmi-calculator": t("101 163 13", "163 230 53", "#3f6212"),

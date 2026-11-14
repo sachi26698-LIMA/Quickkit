@@ -42,7 +42,7 @@ export function passwordPoolSize(options: PasswordOptions) {
     .join("").length;
 }
 
-/** Theoretical entropy in bits: length × log2(pool). */
+/** Unconstrained pool-size upper bound, not the entropy of the constrained generator. */
 export function passwordEntropy(options: PasswordOptions) {
   const pool = passwordPoolSize(options);
   if (!pool || !Number.isInteger(options.length) || options.length < 1)
@@ -81,4 +81,11 @@ export function generatePassword(options: PasswordOptions) {
     [chars[i], chars[j]] = [chars[j], chars[i]];
   }
   return chars.join("");
+}
+
+/** Generate a bounded batch without persisting passwords. */
+export function generatePasswordBatch(options: PasswordOptions, count: number) {
+  if (!Number.isInteger(count) || count < 1 || count > 50)
+    throw new Error("Choose a whole number of passwords from 1 to 50.");
+  return Array.from({ length: count }, () => generatePassword(options));
 }

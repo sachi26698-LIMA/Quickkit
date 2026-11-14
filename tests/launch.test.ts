@@ -47,8 +47,11 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   const { default: sitemap } = await import("../app/sitemap");
   const routes = sitemap();
   const { BRANDS } = await import("../lib/tools/batch-code/brands");
-  // Every published tool, plus one page per brand record in the checker.
-  expect(routes).toHaveLength(73 + BRANDS.length);
+  const { tools } = await import("../lib/catalog");
+  const { legalPages } = await import("../lib/legal");
+  expect(routes).toHaveLength(
+    5 + legalPages.length + 7 + tools.length + BRANDS.length,
+  );
   expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
     routes.every((route) => {

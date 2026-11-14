@@ -11,6 +11,7 @@ import {
   toolsByCategory,
 } from "@/lib/catalog";
 import { legalPages } from "@/lib/legal";
+import { securityGroupBySlug } from "@/lib/tools/security/consolidation";
 import { BRANDS } from "@/lib/tools/batch-code/brands";
 
 /**
@@ -215,6 +216,29 @@ export function routeSourceFiles(
       for (const extra of EXTRA_ROUTE_SOURCES[path] ?? [])
         if (repoFileExists(repoPath(repoRoot, extra))) found.push(extra);
       return [...new Set(found)];
+    }
+
+    if (securityGroupBySlug(slug)) {
+      return [
+        "app/tools/[calculator]/page.tsx",
+        "lib/tools/security/catalog.ts",
+        "lib/tools/security/consolidation.ts",
+        "components/tools/security/consolidated-workspace.tsx",
+        "lib/tools/security/logic.ts",
+        "lib/tools/security/review.ts",
+        "lib/tools/security/email.ts",
+        "lib/tools/security/legal.ts",
+        "lib/tools/security/metadata.ts",
+        "lib/tools/security/certificate.ts",
+        "lib/tools/security/hmac.ts",
+        "lib/tools/security/rsa.ts",
+        "lib/tools/security/file-signature.ts",
+        "lib/tools/security/url-review.ts",
+        "components/tools/security/rsa-workspace.tsx",
+        "lib/tools/security/network.ts",
+        "components/tools/security/network-workspace.tsx",
+        "components/tools/security/workspace.tsx",
+      ];
     }
 
     const calcSpecific = CALCULATOR_SOURCE_FILES[slug];

@@ -3,7 +3,7 @@
  *
  * It only reports what a file *contains* so the UI can show a privacy summary;
  * the canvas pipeline always writes clean output with no metadata.
- * Bounded parsing: we never walk past the first 256 KB of the file.
+ * Default scan is limited to 256 KiB; callers may request up to 15 MiB.
  */
 
 export type MetadataReport = {
@@ -64,7 +64,7 @@ export function scanExifBlock(block: Uint8Array): {
       const entries = u32(entry + 4);
       const valueOffset = entry + 8;
       const ascii = () => {
-        if (entries === 0) return "";
+        if (entries === 0 || entries > 4096) return "";
         const start = entries <= 4 ? valueOffset : u32(valueOffset);
         if (start < 0 || start + entries > block.length) return "";
         return clean(ASCII(block, start, entries));
@@ -95,7 +95,11 @@ export function scanExifBlock(block: Uint8Array): {
   return result;
 }
 
-export function scanMetadata(bytes: Uint8Array, type: string): MetadataReport {
+export function scanMetadata(
+  bytes: Uint8Array,
+  type: string,
+  scanLimit = METADATA_SCAN_LIMIT,
+): MetadataReport {
   const report: MetadataReport = {
     format: type.replace("image/", "").toUpperCase(),
     hasExif: false,
@@ -107,7 +111,10 @@ export function scanMetadata(bytes: Uint8Array, type: string): MetadataReport {
     captured: null,
     stripped: true,
   };
-  const data = bytes.subarray(0, METADATA_SCAN_LIMIT);
+  const data = bytes.subarray(
+    0,
+    Math.min(Math.max(0, scanLimit), 15 * 1024 * 1024),
+  );
 
   if (type === "image/jpeg") {
     let offset = 2;
@@ -185,7 +192,14 @@ export function scanMetadata(bytes: Uint8Array, type: string): MetadataReport {
       if (size < 0) break;
       if (chunk === "EXIF") {
         report.hasExif = true;
-        report.orientation = null;
+        const block = data.subarray(offset + 8, offset + 8 + size);
+        const exif = scanExifBlock(
+          ASCII(block, 0, 6) === "Exif\u0000\u0000" ? block.subarray(6) : block,
+        );
+        report.orientation = exif.orientation;
+        report.camera = exif.camera;
+        report.captured = exif.captured;
+        report.hasGps = report.hasGps || exif.hasGps;
       }
       if (chunk === "ICCP") report.hasIcc = true;
       if (chunk === "XMP ") report.hasXmp = true;
