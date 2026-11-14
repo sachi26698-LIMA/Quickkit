@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { enableMotionForGeometryTest } from "./helpers/hero-motion";
 
 for (const width of [320, 390, 768, 1440, 1920]) {
   test(`all four UI corners follow the physical display at ${width}px`, async ({
@@ -9,6 +10,7 @@ for (const width of [320, 390, 768, 1440, 1920]) {
     await expect(page.locator("#tool-search")).toBeEnabled();
     const plane = page.locator('[data-screen-alignment="four-corner-v1"]');
     await expect(plane).toBeVisible();
+    await enableMotionForGeometryTest(page, width);
     const samples = await plane.evaluate(async (el) => {
       const laptop = document.querySelector<HTMLElement>("[data-laptop-body]")!;
       const motion = laptop.getAnimations()[0];

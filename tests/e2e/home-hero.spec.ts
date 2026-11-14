@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { enableMotionForGeometryTest } from "./helpers/hero-motion";
 
 const sceneSelector = '[class*="_scene"]';
 const laptopSelector = '[class*="_laptop"] img';
@@ -52,6 +53,7 @@ for (const width of [320, 375, 390, 430, 768, 1024, 1280, 1440, 1920]) {
         .locator(".hero-copy")
         .getByRole("button", { name: "Share feedback" }),
     ).toHaveCount(0);
+    await enableMotionForGeometryTest(page, width);
     await expect
       .poll(() =>
         laptop.evaluate(
@@ -495,6 +497,7 @@ for (const width of [390, 1440]) {
     await page.goto("/");
     await expect(page.locator("#tool-search")).toBeEnabled();
     await expect(page.locator('[class*="_backShadow"]')).toHaveCount(0);
+    await enableMotionForGeometryTest(page, width);
     const paths = await page.evaluate(async () => {
       const animations = document.getAnimations();
       animations.forEach((animation) => animation.pause());
