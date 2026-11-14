@@ -131,6 +131,12 @@
   }
 }
 
+/* The preview is a viewport overlay, so it must escape the tool page's
+   isolated stacking context and sit above the sticky site header. */
+.tool-page.tool-page[data-tool]:has(.p2wv-backdrop) {
+  isolation: auto;
+}
+
 body:has(.tool-page[data-tool]) {
   overflow-x: clip;
 }
