@@ -1046,15 +1046,24 @@ body:has(.tool-page[data-tool]) {
   }
   to {
     opacity: 1;
-    /* A retained translate (even 0 0) creates a containing block for fixed
-       controls. Release it after the entrance so mobile action bars stay
-       anchored to the viewport across browsers. */
-    translate: none;
+    translate: 0 0;
   }
 }
-.tool-page.tool-page[data-tool] .tool-title,
-.tool-page.tool-page[data-tool] .workspace:first-of-type {
+@keyframes workspace-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.tool-page.tool-page[data-tool] .tool-title {
   animation: tool-rise 0.45s var(--t-ease) both;
+}
+/* A transform animation (even at its zero endpoint) can contain fixed mobile
+   controls for its entire fill duration. Fade the workspace without moving it. */
+.tool-page.tool-page[data-tool] .workspace:first-of-type {
+  animation: workspace-fade 0.45s var(--t-ease) both;
 }
 @media (prefers-reduced-motion: reduce) {
   .tool-page.tool-page[data-tool] *,
