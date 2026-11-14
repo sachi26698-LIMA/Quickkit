@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { tools } from "@/lib/catalog";
+import { toolPalette } from "@/lib/tool-palette";
 import { toolTheme } from "@/lib/tool-theme";
 
 const firstSlugs = [
@@ -11,8 +11,8 @@ const firstSlugs = [
   "qr-code-scanner",
 ];
 const orderedTools = [
-  ...firstSlugs.map((slug) => tools.find((tool) => tool.slug === slug)!),
-  ...tools.filter((tool) => !firstSlugs.includes(tool.slug)),
+  ...firstSlugs.map((slug) => toolPalette.find((tool) => tool.slug === slug)!),
+  ...toolPalette.filter((tool) => !firstSlugs.includes(tool.slug)),
 ];
 export const LAPTOP_FINISHES = orderedTools.map((tool) => ({
   name: tool.name,

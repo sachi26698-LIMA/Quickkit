@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Search, X } from "lucide-react";
-import { filterTools } from "@/lib/catalog";
+import { useToolSearch } from "@/lib/use-tool-search";
 import ToolIcon from "@/components/tool-icon";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -24,7 +24,9 @@ export default function HeroSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const searching = query.trim().length > 0;
-  const results = searching ? filterTools(query, "All tools") : [];
+  // The catalogue is fetched on first interaction, not with the page.
+  const { filter, load: loadCatalogue } = useToolSearch();
+  const results = searching && filter ? filter(query, "All tools") : [];
 
   useEffect(() => {
     if (!ready) return;
@@ -90,10 +92,14 @@ export default function HeroSearch() {
           placeholder="Search tools (e.g. PDF merge, QR code, JSON…)"
           value={query}
           aria-keyshortcuts="Control+K Meta+K"
-          onFocus={() => setPanelOpen(true)}
+          onFocus={() => {
+            setPanelOpen(true);
+            loadCatalogue();
+          }}
           onChange={(e) => {
             setQuery(e.target.value);
             setPanelOpen(true);
+            loadCatalogue();
           }}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
@@ -130,7 +136,11 @@ export default function HeroSearch() {
       </form>
       {panelOpen && searching ? (
         <div className="search-panel">
-          {results.length ? (
+          {!filter ? (
+            <p className="search-panel-empty" role="status">
+              Searching…
+            </p>
+          ) : results.length ? (
             <>
               <ul className="search-results">
                 {results.slice(0, 5).map((tool) => (

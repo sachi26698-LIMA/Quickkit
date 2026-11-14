@@ -7,6 +7,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
+import AnalyticsConsent from "@/components/analytics-consent";
 
 export const metadata = pageMetadata(
   "Cookie Policy — what we store and what we don’t",
@@ -38,10 +39,10 @@ export default function CookiesPage() {
         </li>
         <li>
           <strong>Analytics:</strong> optional first-party visitor counts, only
-          after you allow participation in the footer. When advertising is
-          enabled, the AdSense verification script is an advertising-platform
-          script; review sections 6 and 8 for its potential cookie use and
-          consent considerations.
+          after you allow participation on this page (section 8). When
+          advertising is enabled, the AdSense verification script is an
+          advertising-platform script; review sections 6 and 8 for its potential
+          cookie use and consent considerations.
         </li>
       </ul>
 
@@ -104,7 +105,7 @@ export default function CookiesPage() {
                 files or URLs. Used for aggregate visitor counts, not
                 advertising.
               </td>
-              <td>You allow anonymous visitor statistics in the footer</td>
+              <td>You allow anonymous visitor statistics on this page</td>
               <td>
                 Turning statistics off removes the ID; consent choice remains
                 until site data is cleared.
@@ -267,6 +268,7 @@ export default function CookiesPage() {
       </p>
 
       <h2 id="consent">8. Consent</h2>
+      <AnalyticsConsent />
       <p>
         The local-storage entries above are functional preferences. When
         advertising is enabled, the AdSense script is a separate

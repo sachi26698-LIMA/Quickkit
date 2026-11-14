@@ -6,6 +6,7 @@ import {
   legalPages,
   legalPageByHref,
   footerGroups,
+  footerHomeLinks,
   LEGAL_LAST_UPDATED_ISO,
 } from "../lib/legal";
 import {
@@ -21,6 +22,9 @@ import {
 import Footer from "../components/footer";
 
 afterEach(cleanup);
+
+/** Stable comparison helper: the same set of hrefs, order-independent. */
+const marks = (hrefs: (string | null)[]) => [...hrefs].sort();
 
 /**
  * These tests guard the *structure* of the legal section: every required route
@@ -139,6 +143,30 @@ describe("footer navigation", () => {
     }
   });
 
+  it("keeps the homepage subset inside the real footer", () => {
+    const all = new Set(
+      footerGroups.flatMap((group) => group.links.map((link) => link.href)),
+    );
+    for (const href of footerHomeLinks) {
+      expect(all, `${href} exists in a footer column`).toContain(href);
+    }
+    // The three legal pages every site must surface stay on the homepage.
+    for (const href of ["/privacy", "/terms", "/cookies"]) {
+      expect(footerHomeLinks).toContain(href);
+    }
+    // The long policy documents are hidden there, not removed from the site.
+    for (const href of [
+      "/disclaimer",
+      "/copyright",
+      "/intellectual-property",
+      "/accessibility",
+      "/file-handling",
+    ]) {
+      expect(footerHomeLinks).not.toContain(href);
+      expect(all).toContain(href);
+    }
+  });
+
   it("places each legal page in the group its registry record declares", () => {
     for (const page of legalPages) {
       const group = footerGroups.find((candidate) =>
@@ -160,6 +188,24 @@ describe("owner-detail honesty rules", () => {
     }
     expect(hasOwnerDetail("legalName")).toBe(false);
     expect(ownerDetail("legalName")).toBeUndefined();
+  });
+
+  it("marks exactly the non-homepage links for the homepage footer", () => {
+    const { container } = render(<Footer />);
+    const marked = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(
+        '.footer-top nav a[data-home-link="hidden"]',
+      ),
+    ).map((link) => link.getAttribute("href"));
+    const all = footerGroups
+      .flatMap((group) => group.links.map((link) => link.href))
+      .filter((href) => !footerHomeLinks.includes(href));
+    expect(marks(marked)).toEqual(marks(all));
+    // Never hide a page that a visitor has to be able to reach from the landing
+    // page: privacy, terms and cookies stay.
+    for (const required of ["/privacy", "/terms", "/cookies"]) {
+      expect(marked).not.toContain(required);
+    }
   });
 
   it("keeps the unverified social row out of the footer", () => {

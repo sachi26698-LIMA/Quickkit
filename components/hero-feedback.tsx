@@ -20,7 +20,7 @@ import {
   X,
   Check,
 } from "lucide-react";
-import { tools } from "@/lib/catalog";
+import type { Tool } from "@/lib/catalog";
 import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import {
   parseToolFeedback,
@@ -119,11 +119,13 @@ function FeedbackDialog({
   onSave,
   entries,
   toolEntries,
+  catalogue,
 }: {
   onClose: () => void;
   onSave: (entry: Feedback) => boolean;
   entries: Feedback[];
   toolEntries: ToolFeedback[];
+  catalogue: readonly Tool[];
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
@@ -268,7 +270,7 @@ function FeedbackDialog({
               <label htmlFor="feedback-tool">About</label>
               <select id="feedback-tool" name="tool" defaultValue="">
                 <option value="">QUICKKIT overall</option>
-                {tools.map((tool) => (
+                {catalogue.map((tool) => (
                   <option value={tool.slug} key={tool.slug}>
                     {tool.name}
                   </option>
@@ -344,7 +346,7 @@ function FeedbackDialog({
               {toolEntries.slice(0, 12).map((entry, index) => (
                 <li key={`${index}-${entry.createdAt}`}>
                   <strong>
-                    {tools.find((tool) => tool.slug === entry.tool)?.name ??
+                    {catalogue.find((tool) => tool.slug === entry.tool)?.name ??
                       entry.tool}{" "}
                     · {entry.rating}/5
                   </strong>
@@ -383,6 +385,30 @@ function FeedbackDialog({
 }
 
 export default function HeroFeedback() {
+  /*
+   * The catalogue (every tool description and keyword) is loaded after the page
+   * is idle instead of being imported at module scope. It is only needed to
+   * name a tool inside the feedback dialog, so paying ~45 kB of first-load
+   * JavaScript for it on the homepage was the wrong trade.
+   */
+  const [catalogue, setCatalogue] = useState<readonly Tool[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      void import("@/lib/catalog").then((module) => {
+        if (!cancelled) setCatalogue(module.tools);
+      });
+    };
+    const idle = "requestIdleCallback" in window;
+    const handle = idle
+      ? window.requestIdleCallback(load, { timeout: 2500 })
+      : window.setTimeout(load, 1500);
+    return () => {
+      cancelled = true;
+      if (idle) window.cancelIdleCallback(handle as number);
+      else window.clearTimeout(handle as number);
+    };
+  }, []);
   const raw = useSyncExternalStore(subscribe, readFeedback, () => "[]");
   const entries = useMemo(() => parseFeedback(raw), [raw]);
   const toolRaw = useSyncExternalStore(
@@ -394,8 +420,8 @@ export default function HeroFeedback() {
     () =>
       parseToolFeedback(toolRaw)
         .reverse()
-        .filter((entry) => tools.some((tool) => tool.slug === entry.tool)),
-    [toolRaw],
+        .filter((entry) => catalogue.some((tool) => tool.slug === entry.tool)),
+    [toolRaw, catalogue],
   );
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -437,7 +463,7 @@ export default function HeroFeedback() {
         </div>
         <div className={styles.feedbackCards} aria-live="polite">
           {toolEntries.slice(0, 8).map((entry, index) => {
-            const tool = tools.find((tool) => tool.slug === entry.tool)!;
+            const tool = catalogue.find((tool) => tool.slug === entry.tool)!;
             const Mood =
               entry.rating >= 5 ? Heart : entry.rating >= 3 ? Smile : Frown;
             return (
@@ -530,6 +556,7 @@ export default function HeroFeedback() {
           onSave={save}
           entries={entries}
           toolEntries={toolEntries}
+          catalogue={catalogue}
         />
       )}
     </>
