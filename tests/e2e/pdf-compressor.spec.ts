@@ -399,6 +399,8 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
     page,
   }) => {
     test.setTimeout(120_000);
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.setViewportSize(
       mode === "mobile pointer"
         ? { width: 390, height: 844 }
@@ -438,7 +440,30 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
       await page.keyboard.press("Enter");
     }
 
-    await expect(page.getByText(/Compression cancelled/)).toBeVisible();
+    try {
+      await expect(page.getByText(/Compression cancelled/)).toBeVisible();
+    } catch (error) {
+      const state = await page.evaluate(() => ({
+        notices: Array.from(
+          document.querySelectorAll('[role="status"], [role="alert"]'),
+        ).map((el) => el.textContent?.trim()),
+        actions: Array.from(
+          document.querySelectorAll(
+            ".pdf-mobile-action button, .pdf-merge-actions button",
+          ),
+        ).map((el) => ({
+          text: el.textContent?.trim(),
+          disabled: (el as HTMLButtonElement).disabled,
+        })),
+        progress: document
+          .querySelector('[role="progressbar"]')
+          ?.getAttribute("aria-valuenow"),
+      }));
+      throw new Error(
+        `Cancellation did not show its notice. State: ${JSON.stringify(state)}. Page errors: ${JSON.stringify(pageErrors)}`,
+        { cause: error },
+      );
+    }
     await expect(page.locator(".pdf-entry")).toHaveCount(3);
     await expect(
       page.getByRole("button", { name: /Compress [1-3] PDFs?/ }),
