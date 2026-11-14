@@ -431,6 +431,23 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
       await expect(mobileAction).toHaveText("Cancel");
       const bounds = await mobileAction.boundingBox();
       expect(bounds).not.toBeNull();
+      const hit = await mobileAction.evaluate((button) => {
+        const rect = button.getBoundingClientRect();
+        const node = document.elementFromPoint(
+          rect.x + rect.width / 2,
+          rect.y + rect.height / 2,
+        );
+        return {
+          matches: node === button || (node !== null && button.contains(node)),
+          element: node?.outerHTML.slice(0, 500),
+          rectangle: [rect.x, rect.y, rect.width, rect.height],
+          viewport: [innerWidth, innerHeight],
+        };
+      });
+      expect(
+        hit,
+        `mobile cancel pointer target: ${JSON.stringify(hit)}`,
+      ).toMatchObject({ matches: true });
       // A direct pointer action avoids waiting for animation stability after
       // the fixed control changes label, while still exercising the real UI.
       await page.mouse.click(
