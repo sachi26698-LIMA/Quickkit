@@ -59,6 +59,18 @@ function submit() {
 }
 
 describe("batch code checker form", () => {
+  it("fills the brand field from a ?brand= shared link", () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/tools/batch-code-checker?brand=cerave",
+    );
+    render(<BatchChecker />);
+    expect(screen.getByRole("combobox", { name: "Brand" })).toHaveValue(
+      "CeraVe",
+    );
+  });
+
   it("refuses to check without a brand and explains why", () => {
     render(<BatchChecker />);
     fillCode("28H300");

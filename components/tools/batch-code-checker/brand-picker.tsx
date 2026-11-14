@@ -32,6 +32,15 @@ export default function BrandPicker({
   const listId = useId();
   const inputId = useId();
   const [query, setQuery] = useState(brandName);
+  // The brand can also come from outside the input: a `?brand=` shared link
+  // arrives one render after hydration, and clearing the brand resets it to
+  // "". Track the last external name so those changes reach the field without
+  // overwriting whatever the visitor is typing.
+  const [externalName, setExternalName] = useState(brandName);
+  if (brandName !== externalName) {
+    setExternalName(brandName);
+    setQuery(brandName);
+  }
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const blurTimer = useRef<number | null>(null);
