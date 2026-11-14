@@ -429,6 +429,9 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
       await mobileAction.click();
       await expect(page.getByRole("progressbar")).toBeVisible();
       await expect(mobileAction).toHaveText("Cancel");
+      // On WebKit the expanded progress panel can push the sticky bar below
+      // the viewport. Scroll it back before sending the real pointer event.
+      await mobileAction.scrollIntoViewIfNeeded();
       const bounds = await mobileAction.boundingBox();
       expect(bounds).not.toBeNull();
       const hit = await mobileAction.evaluate((button) => {
