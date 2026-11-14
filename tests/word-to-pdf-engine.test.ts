@@ -139,13 +139,22 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
   it("cancels the active process and cleans its directory", async () => {
     const record = await executable(1, true);
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 250);
+    // Wait for the fake converter to actually start before cancellation.
+    // A fixed 250ms also cancelled health-check/startup under a loaded suite,
+    // so it never exercised the active-process cleanup this test promises.
+    const conversion = convert(
+      await source(),
+      defaults,
+      controller.signal,
+      () => {},
+    );
+    const rejected = expect(conversion).rejects.toThrow(/cancelled/);
     try {
-      await expect(
-        convert(await source(), defaults, controller.signal, () => {}),
-      ).rejects.toThrow(/cancelled/);
+      await vi.waitFor(() => access(record), { timeout: 5000, interval: 20 });
+      controller.abort();
+      await rejected;
     } finally {
-      clearTimeout(timer);
+      controller.abort();
     }
     const args = JSON.parse(await readFile(record, "utf8"));
     await expect(access(dirname(args.at(-1)))).rejects.toThrow();

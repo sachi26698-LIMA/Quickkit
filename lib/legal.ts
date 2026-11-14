@@ -16,12 +16,8 @@
 export const LEGAL_LAST_UPDATED = "7 November 2026";
 export const LEGAL_LAST_UPDATED_ISO = "2026-11-07";
 
-/**
- * `dateTime` in JSX is emitted verbatim as a camel-cased attribute in the
- * prerendered HTML; the attribute parsers actually expect is `datetime`.
- * Spread this over a `<time>` element so every page emits valid markup.
- */
-export const isoDatetime = (value: string) => ({ datetime: value });
+/** React uses dateTime; the HTML serializer emits the standard datetime attribute. */
+export const isoDatetime = (value: string) => ({ dateTime: value });
 
 export type LegalGroup = "company" | "legal" | "trust" | "tools";
 

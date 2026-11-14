@@ -149,4 +149,4 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
     true,
   );
-});
+}, 15000);

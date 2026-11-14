@@ -26,6 +26,7 @@
   "dependencies": {
     "@cantoo/fontkit": "^2.0.12",
     "@cantoo/pdf-lib": "2.11.1",
+    "@libsql/client": "^0.18.0",
     "@neslinesli93/qpdf-wasm": "0.3.1",
     "@tesseract.js-data/ben": "1.0.0",
     "@tesseract.js-data/eng": "^1.0.0",

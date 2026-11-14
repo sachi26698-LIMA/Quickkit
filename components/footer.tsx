@@ -1,3 +1,4 @@
+import VisitorTracking from "./visitor-tracking";
 import Link from "next/link";
 import { Heart, ShieldCheck } from "lucide-react";
 import Brand from "@/components/brand";
@@ -47,7 +48,7 @@ export default function Footer() {
               <strong>Your work stays yours.</strong>
               <br />
               Most tools run on your device. Word to PDF asks before upload. No
-              sign-up or tracking analytics.
+              sign-up. Visitor statistics are optional.
             </span>
           </p>
         </div>
@@ -69,6 +70,7 @@ export default function Footer() {
           <span className="sr-only">love</span> for a simpler digital life.
         </span>
       </div>
+      <VisitorTracking />
     </footer>
   );
 }

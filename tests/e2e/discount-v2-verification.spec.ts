@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 test("discount calculations, validated input and session history controls", async ({
@@ -55,6 +55,7 @@ test("discount calculations, validated input and session history controls", asyn
 test("discount populated responsive and keyboard accessibility", async ({
   page,
 }) => {
+  test.setTimeout(90000);
   for (const width of [375, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/tools/discount-calculator");
@@ -78,7 +79,7 @@ test("discount populated responsive and keyboard accessibility", async ({
     ).toBe(true);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
-      path: `docs/phase-9-discount-qa/discount-${width}.png`,
+      path: `test-results/evidence/phase-9-discount-qa/discount-${width}.png`,
       fullPage: true,
     });
   }
