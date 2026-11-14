@@ -113,10 +113,20 @@ describe("catalog discovery", () => {
     expect(toolsByCategory("Text & Writing")).toHaveLength(3);
     expect(toolsByCategory("Image Tools")).toHaveLength(4);
     expect(toolsByCategory("PDF Tools")).toHaveLength(9);
-    // QR & Barcode holds the generator and, since phase 14, the scanner.
+    // QR & Barcode holds the QR generator and scanner, the barcode studio,
+    // the stand-alone barcode scanner, the batch code checker and the four
+    // phase-19 workspaces (GS1 intelligence, product lookup, batch studio and
+    // developer tools).
     expect(toolsByCategory("QR & Barcode").map((t) => t.slug)).toEqual([
       "qr-generator",
       "qr-code-scanner",
+      "barcode-generator",
+      "batch-code-checker",
+      "barcode-scanner",
+      "gs1-intelligence",
+      "product-lookup",
+      "batch-studio",
+      "barcode-developer",
     ]);
     expect(toolsByCategory("Calculators")).toHaveLength(12);
     expect(toolsByCategory("AI Tools")).toHaveLength(0);

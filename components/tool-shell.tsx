@@ -6,7 +6,7 @@ import {
   toolCategoriesOf,
   tools,
 } from "@/lib/catalog";
-import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
+import { toolSurfaceStyle, toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import { breadcrumbStructuredData, toolStructuredData } from "@/lib/seo";
 import JsonLd from "./json-ld";
 import AdUnit from "./ad-unit";
@@ -178,6 +178,7 @@ export default function ToolShell({
           {related.map((t) => (
             <Link
               className={`related-card cat-${toolTone(t)}`}
+              style={toolSurfaceStyle(toolTheme(t.slug, t.category))}
               key={t.slug}
               href={`/tools/${t.slug}`}
             >

@@ -1,14 +1,19 @@
+import VisitorTracking from "./visitor-tracking";
 import Link from "next/link";
 import { Heart, ShieldCheck } from "lucide-react";
 import Brand from "@/components/brand";
 import SocialGlyph from "@/components/social-icons";
-import { footerGroups } from "@/lib/legal";
+import { footerGroups, footerLinkOnHome } from "@/lib/legal";
 import { socials, socialsVisible } from "@/lib/site";
 
 /**
  * Footer navigation is generated from `lib/legal.ts`, which is also the source
  * for the sitemap page and the XML sitemap. One list means no duplicate links,
  * no dead `#` hrefs and no route that exists but is unreachable.
+ *
+ * Every link is always in the document — the homepage only *hides* the
+ * secondary ones (see `footerHomeLinks`), so crawlers, screen readers and the
+ * "all policies" route keep the full set while the landing page stays short.
  */
 export default function Footer() {
   return (
@@ -46,8 +51,7 @@ export default function Footer() {
             <span>
               <strong>Your work stays yours.</strong>
               <br />
-              Most tools run on your device. Word to PDF asks before upload. No
-              sign-up or tracking analytics.
+              Most tools run on your device. No sign-up, no accounts.
             </span>
           </p>
         </div>
@@ -55,7 +59,11 @@ export default function Footer() {
           <nav key={group.id} aria-label={group.heading}>
             <h2>{group.heading}</h2>
             {group.links.map(({ href, label }) => (
-              <Link key={href} href={href}>
+              <Link
+                key={href}
+                href={href}
+                data-home-link={footerLinkOnHome(href) ? undefined : "hidden"}
+              >
                 {label}
               </Link>
             ))}
@@ -69,6 +77,10 @@ export default function Footer() {
           <span className="sr-only">love</span> for a simpler digital life.
         </span>
       </div>
+      {/* Opt-in visitor counting only: the consent control lives on /cookies
+          now, and this mount sends an occasional anonymous ping once the
+          visitor has switched it on there. It renders nothing. */}
+      <VisitorTracking />
     </footer>
   );
 }

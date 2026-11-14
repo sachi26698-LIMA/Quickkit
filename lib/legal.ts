@@ -16,12 +16,8 @@
 export const LEGAL_LAST_UPDATED = "7 November 2026";
 export const LEGAL_LAST_UPDATED_ISO = "2026-11-07";
 
-/**
- * `dateTime` in JSX is emitted verbatim as a camel-cased attribute in the
- * prerendered HTML; the attribute parsers actually expect is `datetime`.
- * Spread this over a `<time>` element so every page emits valid markup.
- */
-export const isoDatetime = (value: string) => ({ datetime: value });
+/** React uses dateTime; the HTML serializer emits the standard datetime attribute. */
+export const isoDatetime = (value: string) => ({ dateTime: value });
 
 export type LegalGroup = "company" | "legal" | "trust" | "tools";
 
@@ -368,6 +364,41 @@ export const legalPagesRequiringOwnerInput = [
   "/contact",
   "/intellectual-property",
 ] as const;
+
+/**
+ * Footer links shown on the homepage.
+ *
+ * The homepage footer is deliberately short: it answers "where do I go next?"
+ * with the pages a first-time visitor actually needs (tools, the four company
+ * pages, the three legal pages every site must surface, security and the
+ * sitemap). Everything else — disclaimer, copyright, intellectual property,
+ * accessibility and the long file-handling document — stays in the footer of
+ * every other page and is one click away from `/sitemap`, so nothing becomes
+ * unreachable while the landing page stops carrying eleven policy links.
+ *
+ * The list is href-based so it cannot drift from `footerGroups`: a test asserts
+ * all new links are covered by one of the two lists.
+ */
+export const footerHomeLinks: string[] = [
+  "/tools",
+  "/#categories",
+  "/category/pdf-tools",
+  "/category/image-tools",
+  "/category/qr-barcode",
+  "/category/calculators",
+  "/about",
+  "/contact",
+  "/faq",
+  "/terms",
+  "/privacy",
+  "/cookies",
+  "/security",
+  "/sitemap",
+];
+
+/** True when a footer link should stay visible on the homepage footer. */
+export const footerLinkOnHome = (href: string): boolean =>
+  footerHomeLinks.includes(href);
 
 /** Footer column definitions — the single source for both footer variants. */
 export const footerGroups: {

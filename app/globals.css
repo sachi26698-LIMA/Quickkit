@@ -1506,10 +1506,11 @@ h2 {
 }
 .footer-top > div > a:not(.brand) {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-size: 12px;
-  min-height: 36px;
+  line-height: 1.5;
+  padding-block: 8px;
   color: var(--secondary);
 }
 .footer-top > div > a:hover {
@@ -1582,6 +1583,55 @@ h2 {
   padding-block: 20px;
   font-size: 11px;
   color: var(--secondary);
+}
+
+/* Opt-in switch for the anonymous visitor counter, on /cookies. */
+.analytics-consent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin: 18px 0 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--blush-soft);
+}
+.analytics-consent-copy {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.analytics-consent-copy strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+.analytics-consent-copy p {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.analytics-consent-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid var(--plum);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--plum);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+.analytics-consent-button.is-on {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #fff;
+}
+.analytics-consent-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* ---------- Inner pages & shared blocks ---------- */
@@ -15887,6 +15937,27 @@ details.qr-acc {
 .legal-page {
   padding-bottom: 96px;
 }
+/* A text page must never be able to widen itself: everything here is a column
+   of prose plus (scrollable) tables. Without this, one wide child pushed the
+   article past the viewport and `.home`'s `overflow-x: clip` cut the paragraphs
+   in half at the right edge — text that looked "out of the box". */
+.legal-page .container,
+.legal-page .legal-layout,
+.legal-page .legal-sidebar,
+.legal-page .legal-body {
+  /* `min-width: 0` lets the grid/flex columns shrink instead of forcing the
+     page wider than the screen. The reading measure (`78ch` on .legal-body) is
+     left untouched. */
+  min-width: 0;
+}
+.legal-page .legal-body p,
+.legal-page .legal-body li,
+.legal-page .legal-body h2,
+.legal-page .legal-body h3,
+.legal-page .legal-body pre {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
 .legal-page .container > .legal-hero,
 .legal-page .legal-layout,
 .legal-page .legal-section,
@@ -16226,7 +16297,10 @@ details.qr-acc {
   width: 100%;
   border-collapse: collapse;
   font-size: 12.5px;
-  min-width: 560px;
+  /* Wide enough to stay readable, never wider than the space it has: a fixed
+     560px minimum inside a phone-width column is what pushed the whole page
+     past the viewport. */
+  min-width: min(560px, 100%);
 }
 .legal-table th,
 .legal-table td {
@@ -16500,15 +16574,30 @@ details.qr-acc {
   color: var(--ink);
 }
 .footer-top nav > a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  min-height: 32px;
+  /* Each label is one block of text. It used to be a flex box with a fixed
+     min-height, so a label long enough to wrap ("File Handling Policy",
+     "Intellectual Property") painted its second line into the box below it in
+     narrow columns. A normal block with real leading cannot overlap. */
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-block: 6px;
   color: var(--secondary);
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
 .footer-top nav > a:hover {
   color: var(--purple);
+}
+
+/* Homepage footer: the landing page shows only the links a first-time visitor
+   needs. The rest stay in the document (crawlable, screen-reader reachable and
+   linked from every other page's footer) but are not rendered there.
+   `home-landing` is on the homepage only — `.home` is also on every legal page
+   (the shell reuses it for the background), so keying off `.home` would have
+   shortened those footers too. */
+body:has(.home-landing) .site-footer nav > a[data-home-link="hidden"] {
+  display: none;
 }
 
 /* ---- Sitemap page extras ---- */
@@ -16523,7 +16612,7 @@ details.qr-acc {
 /* ---- Responsive ---- */
 @media (max-width: 1080px) {
   .legal-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
   .legal-sidebar {
@@ -16531,11 +16620,28 @@ details.qr-acc {
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
     order: -1;
   }
+  /* Two columns, not three: three columns of policy links on a phone leaves
+     ~100px per column, which is where "Copyright Policy" and "File Handling
+     Policy" broke into stacked, hard-to-read fragments. */
   .footer-top--wide {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px 28px;
   }
   .footer-brand-col {
     grid-column: 1 / -1;
+  }
+}
+@media (max-width: 560px) {
+  .footer-top--wide {
+    gap: 22px 18px;
+    padding-block: 30px;
+  }
+  .footer-top nav h2 {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .footer-top nav > a {
+    font-size: 12px;
   }
 }
 @media (max-width: 760px) {
@@ -16783,7 +16889,7 @@ details.qr-acc {
     padding: 13px 14px;
   }
   .legal-table {
-    min-width: 520px;
+    min-width: min(520px, 100%);
     font-size: 12px;
   }
   .legal-table th,
@@ -16812,6 +16918,86 @@ details.qr-acc {
   }
 }
 
+/* ---- Mobile: legal tables become labelled cards ----
+   The storage inventory has five columns and the licence tables three. On a
+   phone those columns were a few characters wide — one word per line, every
+   row two screens tall — and their minimum width pushed the page sideways, so
+   the surrounding paragraphs were clipped at the edge of the screen. Below
+   700px each row is laid out as a block and every cell is prefixed with its
+   column name (the `data-label` written in the markup). The table keeps its
+   roles so screen readers still announce it as a table. */
+@media (max-width: 700px) {
+  .legal-table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    margin: 14px 0 20px;
+  }
+  .legal-table-wrap::after {
+    display: none;
+  }
+  .legal-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    font-size: 13px;
+    border-collapse: separate;
+  }
+  .legal-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .legal-table tbody {
+    display: block;
+  }
+  .legal-table tr {
+    display: block;
+    margin: 0 0 12px;
+    padding: 6px 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgb(59 27 79 / 0.04);
+  }
+  .legal-table td {
+    display: block;
+    padding: 7px 14px;
+    border: 0;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .legal-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    margin-bottom: 2px;
+  }
+  .legal-table td[data-label=""]::before,
+  .legal-table td:not([data-label])::before {
+    content: none;
+  }
+  .legal-table td code,
+  .legal-table th code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .legal-table tbody tr:nth-child(even) td {
+    background: none;
+  }
+  .legal-table tbody tr:hover {
+    background: #fff;
+  }
+}
+
 @media (max-width: 430px) {
   /* A single column of ToC chips is easier to tap than two cramped ones. */
   .legal-toc-list {
@@ -16821,9 +17007,6 @@ details.qr-acc {
     font-size: 11px;
     gap: 6px;
     row-gap: 4px;
-  }
-  .legal-table {
-    min-width: 460px;
   }
 }
 

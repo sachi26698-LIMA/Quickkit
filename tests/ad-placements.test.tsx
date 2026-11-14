@@ -181,16 +181,19 @@ describe("ad unit registry", () => {
 describe("route coverage", () => {
   it("covers or explicitly excludes every sitemap route", async () => {
     const paths = await sitemapPaths();
-    const { securityGroups } =
-      await import("../lib/tools/security/consolidation");
-    expect(paths).toHaveLength(65 + securityGroups.length - 2);
+    const { tools } = await import("../lib/catalog");
+    const { legalPages } = await import("../lib/legal");
+    const { BRANDS } = await import("../lib/tools/batch-code/brands");
+    expect(paths).toHaveLength(
+      5 + legalPages.length + 7 + tools.length + BRANDS.length,
+    );
 
     const excluded = paths.filter((path) => !isAdEligible(path));
     const covered = paths.filter((path) => isAdEligible(path));
 
     // Two sitemap pages are deliberately ad-free, each for a stated reason.
     expect(excluded.sort()).toEqual(["/contact", "/sitemap"]);
-    expect(covered).toHaveLength(63 + securityGroups.length - 2);
+    expect(covered).toHaveLength(paths.length - 2);
 
     for (const path of excluded) {
       expect(AD_EXCLUDED_ROUTES[path]?.length ?? 0).toBeGreaterThan(20);
@@ -246,11 +249,11 @@ describe("route coverage", () => {
 });
 
 describe("tool route coverage", () => {
-  it("routes every one of the 42 tools through the shared shell", async () => {
+  it("routes every one of the 49 tools through the shared shell", async () => {
     const { tools } = await import("../lib/catalog");
     const { securityGroups } =
       await import("../lib/tools/security/consolidation");
-    expect(tools).toHaveLength(42 + securityGroups.length - 2);
+    expect(tools).toHaveLength(49 + securityGroups.length - 2);
 
     const pageFiles = readdirSync("app/tools").filter(
       (entry) => !entry.includes("."),
@@ -263,7 +266,7 @@ describe("tool route coverage", () => {
       if (!existsSync(page)) continue;
       const source = readFileSync(page, "utf8");
       // Each tool page either mounts ToolShell or delegates to the developer
-      // tool wrapper, which does — so all 42 inherit the same three slots.
+      // tool wrapper, which does — so all 49 inherit the same three slots.
       expect(
         source.includes("ToolShell") ||
           source.includes("@/components/tools/devtools/page"),

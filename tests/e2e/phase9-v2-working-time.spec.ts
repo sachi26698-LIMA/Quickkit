@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 test.use({ timezoneId: "America/New_York" });
 test("working hours, CSV and daylight saving gap", async ({ page }) => {
@@ -39,7 +39,7 @@ test("working-time populated responsive view and accessibility", async ({
     ).toBe(true);
     if (width === 375 || width === 1440)
       await page.screenshot({
-        path: `docs/phase-9-v2-screenshots/time-converter-working-${width}.png`,
+        path: `test-results/evidence/phase-9-v2-screenshots/time-converter-working-${width}.png`,
         fullPage: true,
       });
   }

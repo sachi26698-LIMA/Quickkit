@@ -1097,3 +1097,589 @@ body:has(.tool-page[data-tool]) {
     }
   }
 }
+
+/* ==========================================================================
+   Barcode Studio (barcode-generator)
+
+   Scoped to the one tool page. The shared `.qr-*` primitives (cards, tabs,
+   fields, badges) are reused as-is; only the studio-specific pieces are here —
+   the format grid, the preview stage, the bulk table and the scanner stage.
+   ========================================================================== */
+.tool-page[data-tool="barcode-generator"] {
+  & .bc-hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -4px 0 16px;
+    padding: 0;
+    list-style: none;
+
+    & li {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border: 1px solid var(--t-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, rgb(var(--t-rgb)) 5%, #fff);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--t-body);
+    }
+    & li::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgb(var(--t-rgb));
+      flex: 0 0 6px;
+    }
+  }
+
+  /* The workspace itself: a plain block that never lets a wide label table
+     push the page sideways. */
+  & .bc-studio {
+    display: block;
+    min-width: 0;
+  }
+
+  & .bc-loading {
+    padding: 28px 18px;
+    border: 1px dashed var(--t-line-strong);
+    border-radius: 14px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--t-muted);
+    background: #fff;
+  }
+
+  /* ---------- Format picker ---------- */
+  & .bc-format-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 12px;
+  }
+  & .bc-format-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-height: 52px;
+    padding: 8px 10px;
+    border: 1px solid var(--t-line);
+    border-radius: 11px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 0.16s ease,
+      background 0.16s ease;
+  }
+  & .bc-format-card:hover {
+    border-color: var(--t-line-strong);
+    background: color-mix(in srgb, rgb(var(--t-rgb)) 4%, #fff);
+  }
+  & .bc-format-card.active {
+    border-color: rgb(var(--t-rgb));
+    background: color-mix(in srgb, rgb(var(--t-rgb)) 10%, #fff);
+    box-shadow: 0 0 0 1px rgb(var(--t-rgb) / 0.25) inset;
+  }
+  & .bc-format-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12.5px;
+    font-weight: 650;
+    color: var(--t-ink);
+  }
+  & .bc-format-group {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--t-muted);
+  }
+
+  & .bc-example-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  & .bc-dim {
+    font-size: 11px;
+    color: var(--t-muted);
+  }
+  & .bc-notes {
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 5px;
+
+    & li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--t-body);
+    }
+    & svg {
+      flex: 0 0 auto;
+      margin-top: 2px;
+      color: rgb(var(--t-rgb));
+    }
+  }
+  & .bc-options {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--t-line);
+  }
+  & .bc-rules {
+    margin-top: 12px;
+
+    & ul {
+      margin: 6px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: var(--t-body);
+    }
+  }
+
+  /* ---------- Customise ---------- */
+  & .bc-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0 14px;
+  }
+  & .bc-color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    & input[type="color"] {
+      width: 42px;
+      height: 38px;
+      padding: 2px;
+      border: 1px solid var(--t-line);
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      flex: 0 0 42px;
+    }
+  }
+  & .bc-seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--t-line);
+    border-radius: 11px;
+    background: color-mix(in srgb, rgb(var(--t-rgb)) 5%, #fff);
+  }
+  & .bc-seg .qr-seg-tab {
+    flex: 1;
+  }
+  & .bc-contrast {
+    margin: 10px 0 0;
+    padding: 8px 11px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  & .bc-contrast.good {
+    border: 1px solid #cfe8dc;
+    background: #f2fbf6;
+    color: #1f6b47;
+  }
+  & .bc-contrast.bad {
+    border: 1px solid #f1dfc4;
+    background: #fff9ef;
+    color: #7a5320;
+  }
+
+  /* ---------- Preview ---------- */
+  & .bc-preview-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 14px;
+    border: 1px solid var(--t-line);
+    border-radius: 14px;
+    background: #fff;
+    overflow: auto;
+  }
+  & .bc-preview-stage.transparent {
+    background-color: #fff;
+    background-image:
+      linear-gradient(45deg, #eceae6 25%, transparent 25%),
+      linear-gradient(-45deg, #eceae6 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #eceae6 75%),
+      linear-gradient(-45deg, transparent 75%, #eceae6 75%);
+    background-size: 16px 16px;
+    background-position:
+      0 0,
+      0 8px,
+      8px -8px,
+      -8px 0;
+  }
+  & .bc-preview-img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    image-rendering: auto;
+  }
+  & .bc-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 12px 0 0;
+
+    & div {
+      padding: 8px 10px;
+      border: 1px solid var(--t-line);
+      border-radius: 10px;
+      background: color-mix(in srgb, rgb(var(--t-rgb)) 4%, #fff);
+      min-width: 0;
+    }
+    & dt {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--t-muted);
+    }
+    & dd {
+      margin: 3px 0 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--t-ink);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+  & .bc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+
+    & .primary,
+    & .secondary {
+      flex: 1 1 auto;
+      min-height: 40px;
+      justify-content: center;
+    }
+  }
+  & .bc-print-options {
+    margin-top: 14px;
+
+    & .bc-grid {
+      margin-top: 8px;
+    }
+  }
+
+  & .bc-preview-card {
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* ---------- Bulk ---------- */
+  & .bc-bulk,
+  & .bc-scanner {
+    display: grid;
+    gap: 16px;
+  }
+  & .bc-bulk-config,
+  & .bc-bulk-controls {
+    margin-top: 12px;
+  }
+  & .bc-thumbs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+
+    & img {
+      width: 100%;
+      height: auto;
+      padding: 6px;
+      border: 1px solid var(--t-line);
+      border-radius: 10px;
+      background: #fff;
+      object-fit: contain;
+    }
+  }
+  & .bc-progress {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 10px 0 0;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--t-body);
+  }
+  & .bc-table-wrap {
+    margin-top: 14px;
+    overflow: auto;
+    max-height: 420px;
+    border: 1px solid var(--t-line);
+    border-radius: 12px;
+    background: #fff;
+    -webkit-overflow-scrolling: touch;
+  }
+  & .bc-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 11.5px;
+
+    & caption {
+      text-align: left;
+    }
+    & th,
+    & td {
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid #f1edf8;
+      line-height: 1.5;
+    }
+    & thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: color-mix(in srgb, rgb(var(--t-rgb)) 7%, #fff);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--t-muted);
+      white-space: nowrap;
+    }
+    & tbody th {
+      font-weight: 650;
+      color: var(--t-ink);
+      white-space: nowrap;
+    }
+    & tbody tr:last-child > * {
+      border-bottom: 0;
+    }
+  }
+  & .bc-row.invalid {
+    background: #fffafb;
+  }
+  & .bc-row.duplicate,
+  & .bc-row.skipped {
+    background: #fdfcf6;
+  }
+  & .bc-cell-data {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11px;
+    word-break: break-all;
+    max-width: 220px;
+  }
+  & .bc-row-actions {
+    display: inline-flex;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  /* ---------- Scanner ---------- */
+  & .bc-scan-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  & .bc-camera {
+    display: grid;
+    gap: 12px;
+  }
+  & .bc-video-wrap {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0f172a;
+    min-height: 220px;
+  }
+  & .bc-video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: #0f172a;
+  }
+  & .bc-video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 10px;
+    justify-items: center;
+    padding: 18px;
+    text-align: center;
+    color: #e5edff;
+    background: rgb(15 23 42 / 0.72);
+
+    & p {
+      margin: 0;
+      max-width: 32ch;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #c9d6f5;
+    }
+  }
+  & .bc-capture {
+    display: none;
+  }
+  & .bc-upload {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+
+    & .qr-dropzone {
+      cursor: pointer;
+    }
+    & input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    & small {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--t-muted);
+    }
+  }
+  & .bc-device-select {
+    flex: 1 1 160px;
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--t-line);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 12px;
+    color: var(--t-ink);
+  }
+  & .bc-results {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & li {
+      padding: 11px 12px;
+      border: 1px solid var(--t-line);
+      border-radius: 12px;
+      background: #fff;
+    }
+  }
+  & .bc-result-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    & .qr-icon-button {
+      margin-left: auto;
+    }
+  }
+  & .bc-result-text {
+    margin: 7px 0 0;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    word-break: break-word;
+    color: var(--t-ink);
+  }
+
+  /* ---------- Reference ---------- */
+  & .bc-reference {
+    margin-top: 32px;
+
+    & h2 {
+      margin: 0 0 10px;
+    }
+    & .bc-table-wrap {
+      max-height: none;
+      margin-top: 14px;
+    }
+  }
+  & .bc-trouble {
+    display: grid;
+    gap: 12px;
+    margin: 14px 0 0;
+
+    & div {
+      padding: 12px 14px;
+      border: 1px solid var(--t-line);
+      border-radius: 12px;
+      background: #fff;
+    }
+    & dt {
+      font-size: 13px;
+      font-weight: 650;
+      color: var(--t-ink);
+    }
+    & dd {
+      margin: 5px 0 0;
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: var(--t-body);
+    }
+  }
+}
+
+@media (min-width: 560px) {
+  .tool-page[data-tool="barcode-generator"] .bc-grid,
+  .tool-page[data-tool="barcode-generator"] .bc-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tool-page[data-tool="barcode-generator"] .bc-format-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .tool-page[data-tool="barcode-generator"] .bc-format-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .tool-page[data-tool="barcode-generator"] .bc-scan-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+}
+
+@media (max-width: 559px) {
+  .tool-page[data-tool="barcode-generator"] .bc-actions > button {
+    flex: 1 1 100%;
+  }
+  .tool-page[data-tool="barcode-generator"] .bc-preview-stage {
+    padding: 10px;
+  }
+  /* A 51-module UPC-E at a large bar width is wider than a 360 px screen:
+     scroll the stage rather than letting the page itself overflow. */
+  .tool-page[data-tool="barcode-generator"] .bc-preview-img {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-page[data-tool="barcode-generator"] .bc-format-card {
+    transition: none;
+  }
+}

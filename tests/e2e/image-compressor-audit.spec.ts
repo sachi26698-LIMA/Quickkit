@@ -1,4 +1,4 @@
-import { test, expect, type Page, type TestInfo } from "@playwright/test";
+import { test, expect, type Page, type TestInfo } from "./helpers/tool-test";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";

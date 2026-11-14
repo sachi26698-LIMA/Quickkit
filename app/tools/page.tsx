@@ -12,8 +12,8 @@ import {
 } from "@/lib/seo";
 
 export const metadata = pageMetadata(
-  "Free Online Tools — PDF, Image & Code",
-  "Browse free online tools on QUICKKIT: PDF merge, split, compress and Word converters, image editors, 8-language OCR, QR tools, dev utilities & math.",
+  "Free Online Tools — PDF, Image, Barcode & Code",
+  "Browse free online tools on QUICKKIT: PDF, image, OCR, QR and barcode tools, developer utilities, calculators and privacy.",
   "/tools",
 );
 

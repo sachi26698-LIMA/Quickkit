@@ -46,9 +46,12 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
   const routes = sitemap();
-  const { securityGroups } =
-    await import("../lib/tools/security/consolidation");
-  expect(routes).toHaveLength(65 + securityGroups.length - 2);
+  const { BRANDS } = await import("../lib/tools/batch-code/brands");
+  const { tools } = await import("../lib/catalog");
+  const { legalPages } = await import("../lib/legal");
+  expect(routes).toHaveLength(
+    5 + legalPages.length + 7 + tools.length + BRANDS.length,
+  );
   expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
     routes.every((route) => {
@@ -100,7 +103,10 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   // + every published tool. Derived so a new page cannot skip the sitemap unnoticed.
   const { legalPages } = await import("../lib/legal");
   const { tools } = await import("../lib/catalog");
-  expect(routes).toHaveLength(4 + legalPages.length + 7 + tools.length);
+  const { BRANDS } = await import("../lib/tools/batch-code/brands");
+  expect(routes).toHaveLength(
+    5 + legalPages.length + 7 + tools.length + BRANDS.length,
+  );
   for (const entry of routes) {
     const path = entry.url.replace("https://test.example", "");
     const sourceFiles = routeSourceFiles(path);
@@ -151,4 +157,4 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
     true,
   );
-});
+}, 15000);

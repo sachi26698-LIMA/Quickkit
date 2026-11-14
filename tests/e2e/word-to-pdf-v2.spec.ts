@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { PDFDocument, rgb } from "@cantoo/pdf-lib";
 import {

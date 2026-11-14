@@ -1,43 +1,24 @@
-"use client";
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
 import type { CategoryMeta } from "@/lib/catalog";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
+import TiltGrid from "@/components/tilt-grid";
 
 /**
- * Homepage category cards with a subtle pointer-tracked 3D tilt and glow
- * (pointer-fine devices only; inert under reduced motion via CSS guard).
+ * Homepage category cards.
+ *
+ * Server-rendered on purpose: the catalogue and the 3D icon set are large
+ * modules, and shipping them to the browser only to attach a pointer handler
+ * made the landing page's JavaScript several times bigger than the page itself.
+ * The tilt is delegated by `<TiltGrid />`, the only client code here.
  */
 export default function CategoryGrid({
   cards,
 }: {
   cards: { meta: CategoryMeta; count: number }[];
 }) {
-  const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
-    if (e.pointerType !== "mouse") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const rx = ((e.clientY - rect.top) / rect.height - 0.5) * -7;
-    const ry = ((e.clientX - rect.left) / rect.width - 0.5) * 9;
-    el.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
-    el.style.setProperty("--ry", `${ry.toFixed(2)}deg`);
-    el.style.setProperty(
-      "--gx",
-      `${(((e.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`,
-    );
-    el.style.setProperty(
-      "--gy",
-      `${(((e.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`,
-    );
-  };
-  const onLeave = (e: React.PointerEvent<HTMLAnchorElement>) => {
-    e.currentTarget.style.setProperty("--rx", "0deg");
-    e.currentTarget.style.setProperty("--ry", "0deg");
-  };
-
   return (
-    <div className="category-grid">
+    <TiltGrid className="category-grid">
       {cards.map(({ meta, count }) => {
         const comingSoon = count === 0;
         return (
@@ -45,8 +26,6 @@ export default function CategoryGrid({
             key={meta.slug}
             href={`/category/${meta.slug}`}
             className={`category-card ${meta.tint} cat-${categoryTone(meta.name)}`}
-            onPointerMove={onMove}
-            onPointerLeave={onLeave}
           >
             <span className="category-glow" aria-hidden="true" />
             <span className="category-card-top">
@@ -71,6 +50,6 @@ export default function CategoryGrid({
           </Link>
         );
       })}
-    </div>
+    </TiltGrid>
   );
 }

@@ -265,104 +265,138 @@ export default function DisclaimerPage() {
 
       <h2 id="estimated-vs-guaranteed">12. Estimates versus guarantees</h2>
       <div className="legal-table-wrap">
-        <table className="legal-table legal-table--compare">
+        <table role="table" className="legal-table legal-table--compare">
           <caption className="sr-only">
             Which QUICKKIT outputs are estimates and which are exact
           </caption>
-          <thead>
-            <tr>
-              <th scope="col">Output</th>
-              <th scope="col">Status</th>
-              <th scope="col">Why</th>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader">
+                Output
+              </th>
+              <th scope="col" role="columnheader">
+                Status
+              </th>
+              <th scope="col" role="columnheader">
+                Why
+              </th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Word / character counts</td>
-              <td>
+          <tbody role="rowgroup">
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                Word / character counts
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--exact">
                   Exact for its rule
                 </span>
               </td>
-              <td>
+              <td role="cell" data-label="Why">
                 Counted deterministically, but &ldquo;word&rdquo; means
                 whitespace-delimited token — not a linguistic judgement.
               </td>
             </tr>
-            <tr>
-              <td>Reading time</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                Reading time
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--estimate">Estimate</span>
               </td>
-              <td>Derived from a 200 words-per-minute assumption.</td>
+              <td role="cell" data-label="Why">
+                Derived from a 200 words-per-minute assumption.
+              </td>
             </tr>
-            <tr>
-              <td>JSON formatting / validation</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                JSON formatting / validation
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--exact">
                   Exact for the standard
                 </span>
               </td>
-              <td>
+              <td role="cell" data-label="Why">
                 Uses the browser&rsquo;s JSON parser; number precision is
                 JavaScript&rsquo;s.
               </td>
             </tr>
-            <tr>
-              <td>Generated passwords</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                Generated passwords
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--exact">Random</span>
               </td>
-              <td>
+              <td role="cell" data-label="Why">
                 Cryptographically random per the Web Crypto API; strength
                 depends on length and character set you choose.
               </td>
             </tr>
-            <tr>
-              <td>Calculators</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                Calculators
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--estimate">Estimate</span>
               </td>
-              <td>Formula-based, display-rounded, input-dependent.</td>
+              <td role="cell" data-label="Why">
+                Formula-based, display-rounded, input-dependent.
+              </td>
             </tr>
-            <tr>
-              <td>Image output</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                Image output
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--estimate">
                   Approximate
                 </span>
               </td>
-              <td>
+              <td role="cell" data-label="Why">
                 Lossy by design; metadata may change; target sizes vary by a few
                 percent.
               </td>
             </tr>
-            <tr>
-              <td>PDF merge / split</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                PDF merge / split
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--estimate">
                   Best effort
                 </span>
               </td>
-              <td>Advanced document features may not be preserved.</td>
+              <td role="cell" data-label="Why">
+                Advanced document features may not be preserved.
+              </td>
             </tr>
-            <tr>
-              <td>PDF &#8594; Word, OCR</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                PDF &#8594; Word, OCR
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--estimate">
                   Best effort
                 </span>
               </td>
-              <td>Heuristic reconstruction and statistical recognition.</td>
+              <td role="cell" data-label="Why">
+                Heuristic reconstruction and statistical recognition.
+              </td>
             </tr>
-            <tr>
-              <td>QR scannability check</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Output">
+                QR scannability check
+              </td>
+              <td role="cell" data-label="Status">
                 <span className="legal-tag legal-tag--estimate">
                   Indicative
                 </span>
               </td>
-              <td>Verified by a decoder, but real-world scanning varies.</td>
+              <td role="cell" data-label="Why">
+                Verified by a decoder, but real-world scanning varies.
+              </td>
             </tr>
           </tbody>
         </table>

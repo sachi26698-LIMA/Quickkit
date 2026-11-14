@@ -178,3 +178,52 @@ test("sitemap page lists every legal route", async ({ page }) => {
     ).toHaveCount(1);
   }
 });
+
+test("the homepage footer stays short while inner pages keep the full set", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const footer = page.getByRole("contentinfo");
+  // The landing page keeps the links a first-time visitor needs…
+  for (const href of [
+    "/tools",
+    "/category/pdf-tools",
+    "/about",
+    "/contact",
+    "/privacy",
+    "/terms",
+    "/cookies",
+    "/security",
+    "/sitemap",
+  ]) {
+    await expect(
+      footer.locator(`nav a[href="${href}"]`),
+      `${href} visible on the homepage`,
+    ).toBeVisible();
+  }
+  // …and hides the long policy list (still in the DOM, still crawlable).
+  for (const href of [
+    "/disclaimer",
+    "/copyright",
+    "/intellectual-property",
+    "/accessibility",
+    "/file-handling",
+    "/help",
+  ]) {
+    await expect(
+      footer.locator(`nav a[href="${href}"]`),
+      `${href} hidden on the homepage`,
+    ).toBeHidden();
+  }
+
+  // Every one of those pages is one click from the sitemap, and the full footer
+  // is back as soon as the visitor leaves the homepage.
+  await page.goto("/privacy");
+  const inner = page.getByRole("contentinfo");
+  for (const href of REQUIRED) {
+    await expect(
+      inner.locator(`nav a[href="${href}"]`),
+      `${href} visible on /privacy`,
+    ).toBeVisible();
+  }
+});

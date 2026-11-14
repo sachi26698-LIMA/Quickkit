@@ -1,4 +1,9 @@
-import { test, expect, type Page } from "@playwright/test";
+import {
+  test,
+  expect,
+  dismissOptionalDownloadFeedback,
+  type Page,
+} from "./helpers/tool-test";
 import { unzipSync } from "fflate";
 import AxeBuilder from "@axe-core/playwright";
 import {
@@ -10,7 +15,7 @@ import {
 } from "@cantoo/pdf-lib";
 import { Document, Packer, Paragraph, PageBreak, TextRun } from "docx";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-const dir = "docs/word-to-pdf/v3";
+const dir = "test-results/evidence/word-to-pdf-v3";
 test.setTimeout(60_000);
 async function sourcePdf(count = 3) {
   const pdf = await PDFDocument.create();
@@ -386,6 +391,7 @@ test("V3 mobile touch page reordering, edit/preview panels and accessible export
     isMobile: true,
   });
   const page = await context.newPage();
+  await dismissOptionalDownloadFeedback(page);
   try {
     const posts = await engine(page);
     await convert(page);
@@ -770,7 +776,7 @@ test("V3 worker ZIP has real progress, cancellation, retry, custom names and unc
           window.setTimeout(() => {
             if (!this.terminated)
               super.postMessage(message, transfer as Transferable[]);
-          }, 1000);
+          }, 4000);
         else super.postMessage(message, transfer as Transferable[]);
       }
     };

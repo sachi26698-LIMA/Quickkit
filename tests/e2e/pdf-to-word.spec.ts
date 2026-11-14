@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./helpers/tool-test";
 import { readFile } from "node:fs/promises";
 import { strFromU8, unzipSync } from "fflate";
 
