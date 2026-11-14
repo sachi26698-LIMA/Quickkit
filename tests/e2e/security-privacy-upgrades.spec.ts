@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./helpers/tool-test";
 
 test("HMAC produces and downloads a real local digest", async ({ page }) => {
   await page.goto("/tools/hmac-generator-verifier");
