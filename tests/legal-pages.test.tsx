@@ -285,6 +285,43 @@ describe("legal page content safeguards", () => {
   });
 });
 
+describe("legal tables on a phone", () => {
+  // Below 700px the storage-inventory/licence tables are laid out as cards, so
+  // every cell has to carry the name of its column. A cell without a label
+  // would read as an unlabelled value on a phone.
+  const TABLES = [
+    "../app/cookies/page",
+    "../app/copyright/page",
+    "../app/disclaimer/page",
+    "../app/file-handling/page",
+    "../app/intellectual-property/page",
+  ] as const;
+
+  it.each(TABLES)("%s labels every cell with its column", async (path) => {
+    const { default: Page } = await import(path);
+    const { container, unmount } = render(<Page />);
+    const cells = Array.from(
+      container.querySelectorAll<HTMLTableCellElement>(
+        "table.legal-table td[role='cell']",
+      ),
+    );
+    expect(cells.length).toBeGreaterThan(0);
+    for (const cell of cells) {
+      expect(
+        cell.getAttribute("data-label"),
+        cell.textContent ?? "",
+      ).toBeTruthy();
+      expect(cell.getAttribute("role")).toBe("cell");
+    }
+    // The header row keeps its semantics even when CSS hides it on a phone.
+    const headers = container.querySelectorAll(
+      "table.legal-table th[role='columnheader']",
+    );
+    expect(headers.length).toBeGreaterThan(0);
+    unmount();
+  });
+});
+
 describe("rendered legal page shell", () => {
   it("renders breadcrumbs, one h1, the date, a table of contents and related pages", async () => {
     const { default: TermsPage } = await import("../app/terms/page");

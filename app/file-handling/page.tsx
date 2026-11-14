@@ -593,63 +593,113 @@ export default function FileHandlingPage() {
 
       <h2 id="retention">26. Retention and deletion</h2>
       <div className="legal-table-wrap">
-        <table className="legal-table">
+        <table role="table" className="legal-table">
           <caption className="sr-only">
             Retention of data by storage location
           </caption>
-          <thead>
-            <tr>
-              <th scope="col">Where</th>
-              <th scope="col">What</th>
-              <th scope="col">How long</th>
-              <th scope="col">How to delete</th>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader">
+                Where
+              </th>
+              <th scope="col" role="columnheader">
+                What
+              </th>
+              <th scope="col" role="columnheader">
+                How long
+              </th>
+              <th scope="col" role="columnheader">
+                How to delete
+              </th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Page / worker memory</td>
-              <td>Sources, intermediates, outputs, PDF passwords</td>
-              <td>Until reset, refresh, navigation or tab close</td>
-              <td>Reset the workspace, refresh, or close the tab</td>
+          <tbody role="rowgroup">
+            <tr role="row">
+              <td role="cell" data-label="Where">
+                Page / worker memory
+              </td>
+              <td role="cell" data-label="What">
+                Sources, intermediates, outputs, PDF passwords
+              </td>
+              <td role="cell" data-label="How long">
+                Until reset, refresh, navigation or tab close
+              </td>
+              <td role="cell" data-label="How to delete">
+                Reset the workspace, refresh, or close the tab
+              </td>
             </tr>
-            <tr>
-              <td>localStorage</td>
-              <td>Preferences and QR presets/history</td>
-              <td>Until removed</td>
-              <td>Use the tool&rsquo;s clear action, or clear site data</td>
+            <tr role="row">
+              <td role="cell" data-label="Where">
+                localStorage
+              </td>
+              <td role="cell" data-label="What">
+                Preferences and QR presets/history
+              </td>
+              <td role="cell" data-label="How long">
+                Until removed
+              </td>
+              <td role="cell" data-label="How to delete">
+                Use the tool&rsquo;s clear action, or clear site data
+              </td>
             </tr>
-            <tr>
-              <td>IndexedDB</td>
-              <td>Optional converted outputs (opt-in)</td>
-              <td>Your retention choice, max 7 days, max 20 items</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Where">
+                IndexedDB
+              </td>
+              <td role="cell" data-label="What">
+                Optional converted outputs (opt-in)
+              </td>
+              <td role="cell" data-label="How long">
+                Your retention choice, max 7 days, max 20 items
+              </td>
+              <td role="cell" data-label="How to delete">
                 Clear history in the tool, set retention to session, or clear
                 site data
               </td>
             </tr>
-            <tr>
-              <td>Your filesystem</td>
-              <td>Files you downloaded</td>
-              <td>Until you delete them</td>
-              <td>Delete the file</td>
+            <tr role="row">
+              <td role="cell" data-label="Where">
+                Your filesystem
+              </td>
+              <td role="cell" data-label="What">
+                Files you downloaded
+              </td>
+              <td role="cell" data-label="How long">
+                Until you delete them
+              </td>
+              <td role="cell" data-label="How to delete">
+                Delete the file
+              </td>
             </tr>
-            <tr>
-              <td>QUICKKIT servers</td>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Where">
+                QUICKKIT servers
+              </td>
+              <td role="cell" data-label="What">
                 Temporary consented Word to PDF job files; no default permanent
                 document store
               </td>
-              <td>
+              <td role="cell" data-label="How long">
                 Job cleanup; host crash/log retention requires operator
                 verification
               </td>
-              <td>Contact the operator about server processing/retention</td>
+              <td role="cell" data-label="How to delete">
+                Contact the operator about server processing/retention
+              </td>
             </tr>
-            <tr>
-              <td>Hosting provider</td>
-              <td>Ordinary request metadata</td>
-              <td>Set by the provider; see Privacy Policy §9</td>
-              <td>Contact the operator, subject to provider practice</td>
+            <tr role="row">
+              <td role="cell" data-label="Where">
+                Hosting provider
+              </td>
+              <td role="cell" data-label="What">
+                Ordinary request metadata
+              </td>
+              <td role="cell" data-label="How long">
+                Set by the provider; see Privacy Policy §9
+              </td>
+              <td role="cell" data-label="How to delete">
+                Contact the operator, subject to provider practice
+              </td>
             </tr>
           </tbody>
         </table>
