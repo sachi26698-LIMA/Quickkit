@@ -425,12 +425,18 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
     await page.getByLabel("Target unit").selectOption("KiB");
     if (mode === "mobile pointer") {
       // The sticky mobile control stays in place while work is running.
-      await page.locator(".pdf-mobile-action .primary").click();
+      const mobileAction = page.locator(".pdf-mobile-action .primary");
+      await mobileAction.click();
       await expect(page.getByRole("progressbar")).toBeVisible();
-      await page
-        .locator(".pdf-mobile-action")
-        .getByRole("button", { name: "Cancel", exact: true })
-        .click();
+      await expect(mobileAction).toHaveText("Cancel");
+      const bounds = await mobileAction.boundingBox();
+      expect(bounds).not.toBeNull();
+      // A direct pointer action avoids waiting for animation stability after
+      // the fixed control changes label, while still exercising the real UI.
+      await page.mouse.click(
+        bounds!.x + bounds!.width / 2,
+        bounds!.y + bounds!.height / 2,
+      );
     } else {
       await page.getByRole("button", { name: "Compress 12 PDFs" }).click();
       await expect(page.getByRole("progressbar")).toBeVisible();
