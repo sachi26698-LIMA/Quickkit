@@ -15,6 +15,15 @@ export async function dismissOptionalDownloadFeedback(page: Page) {
     },
   );
 }
+/** Await the delayed prompt before continuing focus-sensitive legacy journeys. */
+export async function closeDownloadFeedback(page: Page) {
+  const dialog = page.locator("dialog[data-feedback-tool][open]");
+  await page.removeLocatorHandler(dialog);
+  await page
+    .getByRole("button", { name: "Close feedback", exact: true })
+    .click();
+  await dismissOptionalDownloadFeedback(page);
+}
 export const test = base.extend({
   page: async ({ page }, runTest) => {
     await dismissOptionalDownloadFeedback(page);

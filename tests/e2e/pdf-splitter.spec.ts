@@ -1,5 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "./helpers/tool-test";
+import {
+  expect,
+  test,
+  closeDownloadFeedback,
+  type Page,
+} from "./helpers/tool-test";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { open, readFile } from "node:fs/promises";
 
@@ -145,6 +150,7 @@ test("splits custom ranges locally and downloads validated PDFs and a ZIP", asyn
   const pendingZip = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download ZIP (3 PDFs)" }).click();
   const zipDownload = await pendingZip;
+  await closeDownloadFeedback(page);
   expect(zipDownload.suggestedFilename().replaceAll("_", " ")).toBe(
     "Board files.zip",
   );
@@ -172,6 +178,7 @@ test("splits custom ranges locally and downloads validated PDFs and a ZIP", asyn
     .first()
     .click();
   const pdfDownload = await pendingPdf;
+  await closeDownloadFeedback(page);
   expect(pdfDownload.suggestedFilename().replaceAll("_", " ")).toBe(
     "Board pack-part-01-pages-1-3.pdf",
   );
@@ -208,6 +215,9 @@ test("surfaces unsupported, corrupt, oversized and invalid split plans clearly",
   page,
 }, testInfo) => {
   await page.goto("/tools/split-pdf");
+  await expect(
+    page.getByRole("button", { name: "Choose PDF", exact: true }),
+  ).toBeEnabled();
   await page.evaluate((pdfBase64) => {
     const binary = atob(pdfBase64);
     const bytes = Uint8Array.from(binary, (character) =>
@@ -331,6 +341,7 @@ test("unlocks an encrypted PDF, clears its password after splitting, and downloa
   const pendingZip = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download ZIP (2 PDFs)" }).click();
   const zipDownload = await pendingZip;
+  await closeDownloadFeedback(page);
   const entries = readStoredZipEntries(
     await readFile((await zipDownload.path())!),
   );

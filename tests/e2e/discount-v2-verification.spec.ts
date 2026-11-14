@@ -1,4 +1,4 @@
-import { test, expect } from "./helpers/tool-test";
+import { test, expect, closeDownloadFeedback } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 test("discount calculations, validated input and session history controls", async ({
@@ -33,6 +33,7 @@ test("discount calculations, validated input and session history controls", asyn
   const pending = page.waitForEvent("download");
   await basic.getByRole("button", { name: "Export history CSV" }).click();
   const file = await pending;
+  await closeDownloadFeedback(page);
   expect(await readFile(await file.path(), "utf8")).toContain("1,200.65");
   await basic.getByRole("button", { name: "Clear history" }).click();
   await basic.getByRole("button", { name: "Cancel clear history" }).click();
