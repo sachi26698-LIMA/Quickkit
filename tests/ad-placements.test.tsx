@@ -181,14 +181,16 @@ describe("ad unit registry", () => {
 describe("route coverage", () => {
   it("covers or explicitly excludes every sitemap route", async () => {
     const paths = await sitemapPaths();
-    expect(paths).toHaveLength(65);
+    const { securityGroups } =
+      await import("../lib/tools/security/consolidation");
+    expect(paths).toHaveLength(65 + securityGroups.length - 2);
 
     const excluded = paths.filter((path) => !isAdEligible(path));
     const covered = paths.filter((path) => isAdEligible(path));
 
     // Two sitemap pages are deliberately ad-free, each for a stated reason.
     expect(excluded.sort()).toEqual(["/contact", "/sitemap"]);
-    expect(covered).toHaveLength(63);
+    expect(covered).toHaveLength(63 + securityGroups.length - 2);
 
     for (const path of excluded) {
       expect(AD_EXCLUDED_ROUTES[path]?.length ?? 0).toBeGreaterThan(20);
@@ -246,7 +248,9 @@ describe("route coverage", () => {
 describe("tool route coverage", () => {
   it("routes every one of the 42 tools through the shared shell", async () => {
     const { tools } = await import("../lib/catalog");
-    expect(tools).toHaveLength(42);
+    const { securityGroups } =
+      await import("../lib/tools/security/consolidation");
+    expect(tools).toHaveLength(42 + securityGroups.length - 2);
 
     const pageFiles = readdirSync("app/tools").filter(
       (entry) => !entry.includes("."),
@@ -270,7 +274,11 @@ describe("tool route coverage", () => {
     // dynamic route.
     for (const tool of tools) {
       const own = existsSync(join("app/tools", tool.slug, "page.tsx"));
-      const viaCalculator = existsSync("app/tools/[calculator]/page.tsx");
+      const { calculatorInfo } = await import("../lib/calculator-info");
+      const viaCalculator =
+        existsSync("app/tools/[calculator]/page.tsx") &&
+        (tool.slug in calculatorInfo ||
+          securityGroups.some((entry) => entry.slug === tool.slug));
       expect(own || viaCalculator).toBe(true);
     }
   });

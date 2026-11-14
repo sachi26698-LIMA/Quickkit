@@ -5,6 +5,7 @@ import { FileSearch } from "lucide-react";
 import { formatBytes } from "@/lib/tools/download";
 import {
   hashFile,
+  hashFileBatch,
   hashText,
   MAX_HASH_FILE_BYTES,
   type HashAlgorithm,
@@ -17,13 +18,20 @@ import {
   yieldForUi,
 } from "./shared";
 
-const ALGORITHMS: HashAlgorithm[] = ["MD5", "SHA-1", "SHA-256", "SHA-512"];
+const ALGORITHMS: HashAlgorithm[] = [
+  "MD5",
+  "SHA-1",
+  "SHA-256",
+  "SHA-384",
+  "SHA-512",
+];
 
 export default function HashGenerator() {
   const [algorithm, setAlgorithm] = useState<HashAlgorithm>("SHA-256");
   const [source, setSource] = useState<"text" | "file">("text");
   const [input, setInput] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [manifest, setManifest] = useState("");
   const [output, setOutput] = useState("");
   const [message, setMessage] = useState<ToolMessage | null>(null);
   const [progress, setProgress] = useState(0);
@@ -31,7 +39,8 @@ export default function HashGenerator() {
 
   const clear = () => {
     setInput("");
-    setFile(null);
+    setFiles([]);
+    setManifest("");
     setOutput("");
     setMessage(null);
     setProgress(0);
@@ -50,8 +59,10 @@ export default function HashGenerator() {
     try {
       await yieldForUi();
       const digest =
-        source === "file" && file
-          ? await hashFile(file, algorithm, setProgress)
+        source === "file" && files.length
+          ? files.length === 1 && !manifest.trim()
+            ? await hashFile(files[0], algorithm, setProgress)
+            : await hashFileBatch(files, algorithm, setProgress, manifest)
           : source === "file"
             ? (() => {
                 throw new Error("Choose a file to hash first.");
@@ -60,8 +71,14 @@ export default function HashGenerator() {
       setOutput(digest);
       setMessage({
         kind:
-          algorithm === "MD5" || algorithm === "SHA-1" ? "warning" : "success",
-        text: `${algorithm} digest generated locally from ${source === "file" ? `${formatBytes(file?.size ?? 0)} file data` : `${new TextEncoder().encode(input).byteLength.toLocaleString()} UTF-8 bytes`}.${algorithm === "MD5" || algorithm === "SHA-1" ? " This legacy digest is not recommended for security-sensitive integrity checks." : ""}`,
+          algorithm === "MD5" ||
+          algorithm === "SHA-1" ||
+          digest.includes("[MISMATCH]") ||
+          digest.includes("[NO REFERENCE]") ||
+          /[1-9]\d* reference\(s\) without/.test(digest)
+            ? "warning"
+            : "success",
+        text: `${algorithm} digest generated locally from ${source === "file" ? `${files.length} file(s), ${formatBytes(files.reduce((sum, file) => sum + file.size, 0))} total` : `${new TextEncoder().encode(input).byteLength.toLocaleString()} UTF-8 bytes`}.${algorithm === "MD5" || algorithm === "SHA-1" ? " This legacy digest is not recommended for security-sensitive integrity checks." : ""}`,
       });
     } catch (error) {
       setOutput("");
@@ -77,31 +94,35 @@ export default function HashGenerator() {
     }
   }
 
-  function loadFile(selected: File) {
-    if (selected.size > MAX_HASH_FILE_BYTES) {
-      setFile(null);
+  function loadFiles(selected: File[]) {
+    if (
+      selected.length > 50 ||
+      selected.some((file) => file.size > MAX_HASH_FILE_BYTES) ||
+      selected.reduce((sum, file) => sum + file.size, 0) > 500 * 1024 * 1024
+    ) {
+      setFiles([]);
       setOutput("");
       setProgress(0);
       setMessage({
         kind: "error",
-        text: `File is too large. Keep it below ${Math.round(MAX_HASH_FILE_BYTES / 1024 / 1024)} MB.`,
+        text: "Choose up to 50 files, each at most 100 MiB and 500 MiB total.",
       });
       return;
     }
-    setFile(selected);
+    setFiles(selected);
     setInput("");
     setOutput("");
     setProgress(0);
     setMessage({
       kind: "success",
-      text: `Selected ${selected.name} locally (${formatBytes(selected.size)}). Choose Generate hash to calculate its digest.`,
+      text: `Selected ${selected.length} file(s) locally. Choose Generate hash to calculate the digests.`,
     });
   }
 
   return (
     <DevToolFrame
-      title="One file in, one digest out"
-      description="Generate MD5, SHA-1, SHA-256 or SHA-512 from UTF-8 text or local file bytes. Hashing is chunked and stays in your browser."
+      title="Local text and file checksums"
+      description="Generate MD5, SHA-1, SHA-256, SHA-384 or SHA-512 from UTF-8 text or local file bytes. Hashing is chunked and stays in your browser."
       message={message}
       output={output}
       busy={busy}
@@ -109,10 +130,10 @@ export default function HashGenerator() {
       filename={`quickkit-${algorithm.toLowerCase().replaceAll("-", "")}-hash.txt`}
       mimeType="text/plain;charset=utf-8"
       downloadLabel="Download hash"
-      hasContent={Boolean(input || file || output)}
+      hasContent={Boolean(input || files.length || output)}
       onClear={clear}
       onReset={reset}
-      help={`Supported digests: ${ALGORITHMS.join(", ")}. MD5 and SHA-1 are provided for compatibility only; do not use them for security-sensitive signatures or password storage. Text is UTF-8 encoded and files are read in 1 MiB chunks, up to ${Math.round(MAX_HASH_FILE_BYTES / 1024 / 1024)} MB.`}
+      help={`Supported digests: ${ALGORITHMS.join(", ")}. MD5 and SHA-1 are provided for compatibility only; do not use them for security-sensitive signatures or password storage. Text is UTF-8 encoded and files are read in 1 MiB chunks, up to ${Math.round(MAX_HASH_FILE_BYTES / 1024 / 1024)} MiB each; up to 50 files and 500 MiB combined.`}
     >
       <div className="devtool-options">
         <label>
@@ -141,7 +162,8 @@ export default function HashGenerator() {
             onChange={(event) => {
               setSource(event.currentTarget.value as "text" | "file");
               setInput("");
-              setFile(null);
+              setFiles([]);
+              setManifest("");
               setOutput("");
               setProgress(0);
               setMessage(null);
@@ -179,29 +201,29 @@ export default function HashGenerator() {
               <span className="field-label">File input</span>
             </div>
             <label className="secondary" htmlFor="hash-file-input">
-              <FileSearch size={15} aria-hidden="true" /> Choose a file
+              <FileSearch size={15} aria-hidden="true" /> Choose files
             </label>
             <input
               id="hash-file-input"
               className="sr-only"
               type="file"
+              multiple
               aria-label="Choose a file to hash"
               onChange={(event) => {
-                const selected = event.currentTarget.files?.[0];
-                if (selected) loadFile(selected);
+                const selected = Array.from(event.currentTarget.files ?? []);
+                if (selected.length) loadFiles(selected);
                 event.currentTarget.value = "";
               }}
             />
-            {file ? (
+            {files.length ? (
               <p className="devtool-file-note">
-                {file.name} · {formatBytes(file.size)} · read locally in 1 MiB
-                chunks
+                {files.length} file(s) selected · read locally in 1 MiB chunks
               </p>
             ) : (
               <p className="devtool-file-note">
-                Choose any file up to{" "}
-                {Math.round(MAX_HASH_FILE_BYTES / 1024 / 1024)} MB. Empty files
-                are valid inputs.
+                Choose up to 50 files, each up to{" "}
+                {Math.round(MAX_HASH_FILE_BYTES / 1024 / 1024)} MiB, 500 MiB
+                combined. Empty files are valid inputs.
               </p>
             )}
           </div>
@@ -213,6 +235,28 @@ export default function HashGenerator() {
           placeholder="The hexadecimal digest appears here…"
         />
       </div>
+      {source === "file" && (
+        <label>
+          Expected checksums (optional JSON array of name and digest objects)
+          <textarea
+            rows={4}
+            maxLength={100000}
+            value={manifest}
+            placeholder={'[{"name":"file.txt","digest":"..."}]'}
+            onChange={(event) => {
+              setManifest(event.target.value);
+              setOutput("");
+              setMessage(null);
+            }}
+          />
+          <span className="help">
+            Supply trusted reference digests using the selected algorithm.
+            Missing files or references are reported; filenames must be unique.
+            Possible duplicates are based on matching sizes and digests, not
+            byte-by-byte comparison.
+          </span>
+        </label>
+      )}
       {busy ? (
         <div className="devtool-progress-wrap" role="status" aria-live="polite">
           <span>Hashing locally… {progress}%</span>

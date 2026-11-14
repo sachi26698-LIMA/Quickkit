@@ -120,7 +120,12 @@ test("password premium: strength meter, history and hide toggle", async ({
   page,
 }) => {
   await page.goto("/tools/password-generator");
-  await expect(page.getByText(/^\d+ bits of entropy$/)).toBeVisible();
+  await expect(
+    page.getByText(/^Approximately \d+ bits \(unconstrained pool\)$/),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/This is an upper bound for unconstrained random strings/),
+  ).toBeVisible();
   await page.getByLabel("Password length in characters").fill("8");
   await expect(page.locator(".strength-head")).not.toContainText("Excellent");
   await page.getByLabel("Password length in characters").fill("64");

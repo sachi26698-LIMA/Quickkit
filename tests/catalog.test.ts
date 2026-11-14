@@ -19,10 +19,11 @@ describe("catalog discovery", () => {
       tools.filter((tool) => /json/iu.test(tool.name)).map((tool) => tool.slug),
     ).toEqual(["json-formatter", "json-validator"]);
   });
-  it("searches keywords", () =>
-    expect(filterTools("crypto", "All tools")[0].slug).toBe(
-      "password-generator",
-    ));
+  it("ranks the cryptography workbench by name while retaining password keyword discovery", () => {
+    const results = filterTools("crypto", "All tools").map((tool) => tool.slug);
+    expect(results[0]).toBe("advanced-cryptography");
+    expect(results).toContain("password-generator");
+  });
   it("combines category and query", () =>
     expect(filterTools("json-formatter", "Text & Writing")).toHaveLength(0));
   it("filters text tools", () =>
@@ -150,10 +151,11 @@ describe("catalog discovery", () => {
       ).toBeGreaterThan(0);
     }
   });
-  it("keeps each split tool in exactly one category, with no dual listings", () => {
-    // The combined converter used to be listed in both Image Tools and PDF
-    // Tools. After the split every tool belongs to exactly one category.
-    expect(tools.filter((t) => toolCategoriesOf(t).length > 1)).toEqual([]);
+  it("keeps each split tool in exactly one category and cross-lists security utilities without duplicating routes", () => {
+    // Hash is shared with Developer Tools; Base64 remains there and is also an operation in cryptography.
+    expect(
+      tools.filter((t) => toolCategoriesOf(t).length > 1).map((t) => t.slug),
+    ).toEqual(["hash-generator"]);
 
     for (const slug of [
       "image-to-image",

@@ -1,3 +1,5 @@
+import { securityToolDefinitions } from "@/lib/tools/security/catalog";
+import { SecurityGlyph } from "@/components/security-glyphs";
 import { useId, type CSSProperties, type ReactNode } from "react";
 import type { CategoryMeta, Tool, ToolCategory } from "@/lib/catalog";
 
@@ -41,6 +43,7 @@ export type Tone =
   | "rose";
 
 export type GlyphName =
+  | `security-${string}`
   | "pdf"
   | "image"
   | "qr"
@@ -165,7 +168,10 @@ function Landscape({ p, w, h }: { p: Paint; w: number; h: number }) {
   );
 }
 
-const glyphs: Record<GlyphName, (p: Paint) => ReactNode> = {
+const glyphs: Record<
+  Exclude<GlyphName, `security-${string}`>,
+  (p: Paint) => ReactNode
+> = {
   /* ---------------- categories ---------------- */
   pdf: (p) => (
     <>
@@ -1394,7 +1400,11 @@ export default function Icon3D({
               </linearGradient>
             </defs>
             {/* userSpaceOnUse gradients: straight (zero-width bbox) strokes still paint */}
-            {glyphs[name](paint)}
+            {name.startsWith("security-") ? (
+              <SecurityGlyph slug={name.slice(9)} color={paint.w} />
+            ) : (
+              glyphs[name as Exclude<GlyphName, `security-${string}`>](paint)
+            )}
           </svg>
           <span className="i3d-shine" />
         </span>
@@ -1432,6 +1442,19 @@ export const categoryArt: Record<CategoryMeta["icon"], GlyphName> = {
 
 /** One unique glyph per tool, keyed by route slug (the catalog's `icon` key is shared by e.g. every calculator). */
 export const toolArt: Record<string, GlyphName> = {
+  ...Object.fromEntries(
+    securityToolDefinitions.map((item) => [
+      item.slug,
+      `security-${item.slug}` as const,
+    ]),
+  ),
+  "advanced-cryptography": "security-rsa-cryptography",
+  "dns-email-security": "security-dns-lookup",
+  "website-security-review": "security-security-headers-analyzer",
+  "privacy-metadata-manager": "security-image-metadata-inspector",
+  "url-network-privacy": "security-url-safety-review",
+  "privacy-policy-workbench": "security-privacy-policy-generator",
+  "api-credential-tools": "security-api-key-format-validator",
   "word-counter": "wordCount",
   "case-converter": "case",
   "json-formatter": "json",

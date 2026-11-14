@@ -15,11 +15,16 @@ import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
 import { pageMetadata } from "@/lib/seo";
-import { toolBySlug, tools } from "@/lib/catalog";
+import {
+  categoryMeta,
+  toolBySlug,
+  tools,
+  toolsByCategory,
+} from "@/lib/catalog";
 
 export const metadata = pageMetadata(
   "Free Online PDF, Image, QR, Code & Math Tools",
-  "Use 42 free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities with no account or signup.",
+  `Use ${tools.length} free online tools for PDFs, images, OCR, QR codes, JSON/code formatting, calculators and privacy. Fast browser-first utilities with no account or signup.`,
   "/",
 );
 
@@ -35,7 +40,7 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
   {
     Icon: ShieldCheck,
     title: "Privacy Focused",
-    text: "41 of 42 tools run locally in your browser so files stay on your device — and Word to PDF asks before converting on our server.",
+    text: "Most tools process inputs locally. Word to PDF asks before server conversion; DNS and public IP lookups contact external services only with consent.",
   },
   {
     Icon: Sparkles,
@@ -129,7 +134,12 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <CategoryGrid />
+            <CategoryGrid
+              cards={categoryMeta.map((meta) => ({
+                meta,
+                count: toolsByCategory(meta.name).length,
+              }))}
+            />
           </Reveal>
         </section>
 

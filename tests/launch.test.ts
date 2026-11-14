@@ -46,7 +46,9 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
   const routes = sitemap();
-  expect(routes).toHaveLength(65);
+  const { securityGroups } =
+    await import("../lib/tools/security/consolidation");
+  expect(routes).toHaveLength(65 + securityGroups.length - 2);
   expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
     routes.every((route) => {

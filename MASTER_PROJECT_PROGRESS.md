@@ -50,3 +50,23 @@ All work remains on `arena/ce249373-quickkit`. This section supersedes earlier v
 - **No push, PR, merge, deployment or launch-setting changes.** Application code/design were not changed for this final report consolidation; only requested documentation is being consolidated.
 
 See `FINAL_LAUNCH_READINESS_REPORT.md` for exact evidence, blockers and the named 83-case comparison.
+
+## Security & Privacy toolkit checkpoint — 13 November 2026 UTC
+
+Current branch `arena/ca3f5bd0-quickkit`: **NEEDS ATTENTION — implementation incomplete**. Extended existing password generator with bounded batches and optional plaintext download, clarified pool-size entropy limitations, and added SHA-384 to existing text/file hash generator. No new routes or database changes. Full Vitest 106 files / 1,746 tests, TypeScript, ESLint, formatting, production build and npm audits passed locally on final code; Playwright browser launch blocked by missing Chromium. Live Supabase schema, RLS and Master Admin architecture are not present or verified in this checkout. See `SECURITY_PRIVACY_MASTER_REPORT.md`, `SECURITY_PRIVACY_TOOL_INVENTORY.md`, `SECURITY_PRIVACY_TEST_REPORT.md`, `SECURITY_PRIVACY_SETUP.md` and `SECURITY_PRIVACY_CHECKLIST.md` for precise scope, remaining work and commands. No push, merge or deployment.
+
+## Security & Privacy focus-mode checkpoint — 13 November 2026 UTC
+
+Added 53 Security & Privacy workspaces (with combined routes for overlapping jobs), preserving existing tools. The inventory now records each of the 72 requested capabilities, including partial and missing work. Final full Vitest passed 112 files / 1,806 tests, including expanded UI, consent and text-envelope boundary checks. Build, typecheck, lint and formatting passed; all 53 new routes returned HTTP 200 in the local dev server. Browser E2E and live third-party DNS/IP calls remain unverified. URL-based website checks, PDF metadata cleaning and other partial functionality remain open. See `SECURITY_PRIVACY_CONTINUATION.md` for exact next steps; this supersedes the earlier security-tool count in the preceding checkpoint.
+
+## Security & Privacy advanced-upgrade checkpoint — 13 November 2026 UTC
+
+JWT verification (HS256/RS256), batch file hashes, narrowly scoped document-level PDF metadata removal, configurable security-policy builders, enhanced email/PII reviews, passphrase batches and local policy length checks added. Full Vitest: 114 files / 1,825 tests; build, typecheck, lint and formatting passed. Browser and live external validation remain unverified, and numerous advanced capabilities remain incomplete. Current status: `SECURITY_PRIVACY_TOOL_INVENTORY.md`, `SECURITY_PRIVACY_ADVANCED_UPGRADE_REPORT.md`, and `SECURITY_PRIVACY_CONTINUATION.md`.
+
+## Security & Privacy continuation — 13 November 2026 UTC
+
+Added consent-based SPF/DKIM/DMARC TXT lookup modes, local PEM certificate inspector and page-level PDF metadata-reference removal with shared-object protection. 57 security-related routes returned HTTP 200. Following the image metadata expansion, full Vitest passed 115 files / 1,837 tests, and production build, lint, format and typecheck passed; production audit previously passed. Live HTTPS/TLS checks, actual DNS/CORS and per-tool browser verification remain unimplemented or unverified. See `SECURITY_PRIVACY_CONTINUATION.md` and updated inventory/report.
+
+## Security & Privacy expanded tools checkpoint — 13 November 2026 UTC
+
+Added local RSA-OAEP and RS256 signature workspace, HMAC workspace, offline URL review, batch checksum manifest comparison and duplicate candidates, signature/MIME hints in File Privacy Checker, and static CORS/cookie/HSTS findings. All 60 security-related routes returned HTTP 200. Full Vitest passed 120 files / 1,852 tests; build, lint, format, typecheck and dependency audit passed. New Playwright E2E could not launch without Chromium; live HTTPS/TLS, independent DNSSEC and individual browser acceptance remain incomplete. See security inventory, report and continuation checkpoint.

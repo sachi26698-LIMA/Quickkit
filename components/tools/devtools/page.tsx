@@ -174,7 +174,7 @@ const pageContent: Record<string, ToolContent> = {
   },
   "hash-generator": {
     steps: [
-      "Choose MD5, SHA-1, SHA-256 or SHA-512, then select Text or File as the input source.",
+      "Choose MD5, SHA-1, SHA-256, SHA-384 or SHA-512, then select Text or File as the input source.",
       "Type UTF-8 text or choose a file. Empty text and empty files are valid hash inputs.",
       "Choose Generate hash, then copy or download the lowercase hexadecimal digest.",
     ],

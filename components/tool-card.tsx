@@ -11,8 +11,10 @@ import FavoriteButton from "@/components/favorite-button";
 export default function ToolCard({
   tool,
   category,
+  href,
 }: {
   tool: Tool;
+  href?: string;
   /** Label for the listing the card appears in; defaults to the primary category. */
   category?: string;
 }) {
@@ -26,7 +28,7 @@ export default function ToolCard({
         </span>
       </div>
       <h3>
-        <Link className="card-link" href={`/tools/${tool.slug}`}>
+        <Link className="card-link" href={href ?? `/tools/${tool.slug}`}>
           {tool.name}
         </Link>
       </h3>

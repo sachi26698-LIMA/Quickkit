@@ -15,7 +15,7 @@ import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Help Center — Tool Guides, Privacy & Support",
-  "Get help using QUICKKIT's 42 online tools: how browser-local processing works, the Word to PDF server exception, supported browsers, limits and saved tools.",
+  "Get help using QUICKKIT's online tools: how browser-local processing works, the Word to PDF server exception, supported browsers, limits and saved tools.",
   "/help",
 );
 
@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     q: "Are my files and text uploaded to a server?",
-    a: "41 of the 42 tools process PDFs, images, OCR, text, JSON, hashes, passwords and QR content locally in your browser without uploading files. Word to PDF is the single explicit-consent exception: it sends DOCX bytes to our server conversion engine only when you confirm conversion, using temporary job files that are deleted afterward. See the Privacy Policy and File Handling Policy for full details.",
+    a: "Many tools process PDFs, images, OCR, text, hashes, passwords and QR content locally without uploading files. Word to PDF sends DOCX bytes to our server conversion engine only with explicit consent, using temporary job files that are deleted afterward. Public DNS and IP tools contact external services only with your consent. See the Privacy Policy and File Handling Policy for full details.",
   },
   {
     q: "How do I save a tool for later?",

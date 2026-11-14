@@ -1,5 +1,5 @@
 import DeveloperToolPage from "@/components/tools/devtools/page";
-import HashGenerator from "@/components/tools/devtools/hash-generator";
+import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
 import { pageMetadata } from "@/lib/seo";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
@@ -12,7 +12,7 @@ export const metadata = pageMetadata(
 export default function Page() {
   return (
     <DeveloperToolPage slug="hash-generator">
-      <HashGenerator />
+      <ConsolidatedWorkspace slug="hash-generator" />
     </DeveloperToolPage>
   );
 }

@@ -165,7 +165,7 @@ export const legalPages: LegalPage[] = [
     intro:
       "A free browser toolkit for the small tasks that interrupt a working day — built to run on your device.",
     description:
-      "Learn what QUICKKIT builds, how 41 of 42 tools process files locally in your browser, how Word to PDF handles server conversion, and which devices work.",
+      "Learn what QUICKKIT builds, how tools process files locally or with consent, how Word to PDF handles server conversion, and which devices work.",
     group: "company",
     indexable: true,
     sections: [

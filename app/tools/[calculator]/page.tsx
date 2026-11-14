@@ -1,3 +1,8 @@
+import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
+import {
+  securityGroupBySlug,
+  securityGroups,
+} from "@/lib/tools/security/consolidation";
 import { notFound } from "next/navigation";
 import ToolShell from "@/components/tool-shell";
 import Calculator from "@/components/tools/calculator";
@@ -19,7 +24,15 @@ import { pageMetadata } from "@/lib/seo";
 import { calculatorInfo } from "@/lib/calculator-info";
 
 export function generateStaticParams() {
-  return Object.keys(calculatorInfo).map((calculator) => ({ calculator }));
+  return [
+    ...Object.keys(calculatorInfo),
+    ...securityGroups
+      .filter(
+        (tool) =>
+          tool.slug !== "password-generator" && tool.slug !== "hash-generator",
+      )
+      .map((tool) => tool.slug),
+  ].map((calculator) => ({ calculator }));
 }
 export async function generateMetadata({
   params,
@@ -27,6 +40,13 @@ export async function generateMetadata({
   params: Promise<{ calculator: string }>;
 }) {
   const { calculator } = await params;
+  const security = securityGroupBySlug(calculator);
+  if (security)
+    return pageMetadata(
+      security.name,
+      security.description,
+      `/tools/${calculator}`,
+    );
   const info = calculatorInfo[calculator];
   return info
     ? pageMetadata(info.seoTitle, info.description, `/tools/${calculator}`)
@@ -38,6 +58,44 @@ export default async function Page({
   params: Promise<{ calculator: string }>;
 }) {
   const { calculator } = await params;
+  const security = securityGroupBySlug(calculator);
+  if (security)
+    return (
+      <ToolShell
+        slug={calculator}
+        privacyNotice={
+          security.slug === "dns-email-security"
+            ? "Optional DNS queries send your domain and IP address to Cloudflare after your consent."
+            : security.slug === "url-network-privacy"
+              ? "The optional public IP lookup contacts ipify after your consent; other operations are local."
+              : undefined
+        }
+        content={{
+          steps: [
+            "Choose an operation tab.",
+            "Enter the requested input and process it locally, or explicitly consent to an optional external lookup.",
+            "Review, copy or download the result; switching tabs clears the current workspace.",
+          ],
+          faqs: [
+            {
+              q: "Where is my input processed?",
+              a:
+                security.slug === "dns-email-security"
+                  ? "Local reviews stay in the browser. An optional DNS query sends its domain and your IP to Cloudflare after consent."
+                  : security.slug === "url-network-privacy"
+                    ? "Local reviews stay in the browser. The optional IP lookup contacts ipify after consent."
+                    : "Processing happens in your browser. Copying and downloading create local copies; protect them as appropriate.",
+            },
+            {
+              q: "Are there limitations?",
+              a: "Read the guidance in each operation. Reviews do not guarantee safety, legal compliance or live server security.",
+            },
+          ],
+        }}
+      >
+        <ConsolidatedWorkspace slug={security.slug} />
+      </ToolShell>
+    );
   const info = calculatorInfo[calculator];
   if (!info) notFound();
   const referenceSection = (

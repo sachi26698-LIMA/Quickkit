@@ -1,14 +1,18 @@
 "use client";
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
-import { categoryMeta, toolsByCategory } from "@/lib/catalog";
+import type { CategoryMeta } from "@/lib/catalog";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 
 /**
  * Homepage category cards with a subtle pointer-tracked 3D tilt and glow
  * (pointer-fine devices only; inert under reduced motion via CSS guard).
  */
-export default function CategoryGrid() {
+export default function CategoryGrid({
+  cards,
+}: {
+  cards: { meta: CategoryMeta; count: number }[];
+}) {
   const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
     if (e.pointerType !== "mouse") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -34,8 +38,7 @@ export default function CategoryGrid() {
 
   return (
     <div className="category-grid">
-      {categoryMeta.map((meta) => {
-        const count = toolsByCategory(meta.name).length;
+      {cards.map(({ meta, count }) => {
         const comingSoon = count === 0;
         return (
           <Link

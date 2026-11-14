@@ -57,10 +57,13 @@ describe("cross-tool regression: the four split tools", () => {
     expect(new Set(slugs).size).toBe(slugs.length);
   });
 
-  it("place each tool in exactly one category, with none dual-listed", () => {
-    // The retired combined tool was dual-listed in Image Tools and PDF Tools.
-    // Nothing is dual-listed any more.
-    expect(tools.filter((t) => toolCategoriesOf(t).length > 1)).toEqual([]);
+  it("place each split tool in exactly one category", () => {
+    // Security utilities may be cross-listed, but the split tools remain single-category.
+    for (const slug of SPLIT_TOOLS) {
+      expect(
+        toolCategoriesOf(tools.find((tool) => tool.slug === slug)!),
+      ).toHaveLength(1);
+    }
 
     expect(toolsByCategory("Image Tools").map((t) => t.slug)).toContain(
       "image-to-image",
@@ -95,13 +98,13 @@ describe("cross-tool regression: the four split tools", () => {
     expect(toolsByCategory("PDF Tools")).toHaveLength(9);
 
     // Every category's listing must be a subset of the catalogue, and the
-    // per-category counts must sum to the total now that nothing is dual-listed.
+    // per-category counts must match the number of category memberships.
     const sum = categoryMeta.reduce(
       (total, category) => total + toolsByCategory(category.name).length,
       0,
     );
-    expect(sum, "category counts sum to the catalogue total").toBe(
-      tools.length,
+    expect(sum, "category counts match memberships").toBe(
+      tools.reduce((total, tool) => total + toolCategoriesOf(tool).length, 0),
     );
   });
 

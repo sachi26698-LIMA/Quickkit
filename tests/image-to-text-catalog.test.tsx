@@ -55,7 +55,9 @@ describe("catalogue entry", () => {
       (total, category) => total + toolsByCategory(category.name).length,
       0,
     );
-    expect(sum).toBe(tools.length);
+    expect(sum).toBe(
+      tools.reduce((total, tool) => total + toolCategoriesOf(tool).length, 0),
+    );
   });
 
   it("is reachable by every realistic search phrase", () => {

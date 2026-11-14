@@ -13,6 +13,7 @@ import {
   type Category,
 } from "@/lib/catalog";
 import ToolCard from "@/components/tool-card";
+import { operationForSearch } from "@/lib/tools/security/consolidation";
 import { useHydrated } from "@/lib/use-hydrated";
 
 export function resolveExplorerCategory(
@@ -134,9 +135,20 @@ function ToolExplorerContent({
 
       {results.length ? (
         <div className="tool-grid">
-          {results.map((tool) => (
-            <ToolCard key={tool.slug} tool={tool} />
-          ))}
+          {results.map((tool) => {
+            const operation = operationForSearch(tool.slug, query);
+            return (
+              <ToolCard
+                key={tool.slug}
+                tool={tool}
+                href={
+                  operation
+                    ? `/tools/${tool.slug}?operation=${encodeURIComponent(operation)}`
+                    : undefined
+                }
+              />
+            );
+          })}
         </div>
       ) : categoryEmpty ? (
         <div className="empty coming-soon">
