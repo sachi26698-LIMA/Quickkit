@@ -132,6 +132,7 @@ export default function AdminSiteSettings() {
       if (!response.ok)
         throw new Error(body.error ?? "Could not save settings");
       setSavedSettings(settings);
+      window.dispatchEvent(new Event("quickkit:admin-mutated"));
       setMessage(
         "Supported settings saved successfully; the Admin API confirmed the database write.",
       );
