@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -82,6 +88,10 @@ it("uses verified Git dates in full and shallow history without inventing dates"
     );
 
     const { gitLastModifiedForFiles } = await import("../app/sitemap");
+    // Checkout/extraction times are not content history. Even a future-dated
+    // filesystem mtime must not replace the source commit's recorded date.
+    const futureMtime = new Date("2031-07-08T12:00:00.000Z");
+    utimesSync(source, futureMtime, futureMtime);
     expect(
       gitLastModifiedForFiles(["app/(public)/page.tsx"], {
         repoRoot: fullRoot,
@@ -101,6 +111,19 @@ it("uses verified Git dates in full and shallow history without inventing dates"
         repoRoot: depthOneRoot,
       }),
     ).toBeUndefined();
+
+    // A later source commit stays later than an audit reference. The sitemap
+    // must not silently clamp or backdate history to a wall-clock cap.
+    commitSource(
+      "export default function Home() { return <article />; }\n",
+      "2026-11-15",
+    );
+    vi.stubEnv("SITEMAP_LASTMOD_NOT_AFTER", "2026-11-10");
+    expect(
+      gitLastModifiedForFiles(["app/(public)/page.tsx"], {
+        repoRoot: fullRoot,
+      }),
+    ).toBe("2026-11-15");
   } finally {
     rmSync(workspace, { recursive: true, force: true });
   }
@@ -178,6 +201,13 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   );
   for (const entry of routes) {
     const path = entry.url.replace("https://test.example", "");
+    const canonical = new URL(entry.url);
+    expect(canonical.origin, `canonical origin for ${path}`).toBe(
+      "https://test.example",
+    );
+    expect(canonical.pathname, `canonical path for ${path}`).toBe(path);
+    expect(canonical.search, `canonical query for ${path}`).toBe("");
+    expect(canonical.hash, `canonical fragment for ${path}`).toBe("");
     const sourceFiles = routeSourceFiles(path);
     expect(sourceFiles.length, `mapped files for ${path}`).toBeGreaterThan(0);
     const sitemapDate =
