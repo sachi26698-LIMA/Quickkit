@@ -4,6 +4,7 @@ export default function AdminSubmissionsPage() {
   return (
     <>
       <PageHeading
+        kicker="Inbox"
         title="Contact submissions"
         description="Private visitor messages. Status and internal notes are only available to authorized administrators."
       />

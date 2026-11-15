@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Lock, Mail, ShieldCheck } from "lucide-react";
 import styles from "./admin.module.css";
 
 export default function AdminLoginForm({ message = "" }: { message?: string }) {
@@ -10,6 +11,7 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -36,6 +38,7 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
       setPending(false);
     }
   }
+
   return (
     <>
       {message ? (
@@ -49,37 +52,46 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
         </div>
       ) : null}
       <form className={styles["admin-form"]} onSubmit={submit}>
-        <label>
-          Email address
-          <input
-            type="email"
-            autoComplete="username"
-            required
-            maxLength={254}
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
+        <label className={styles["admin-field"]}>
+          <span>Email address</span>
+          <div className={styles["admin-input-icon-wrap"]}>
+            <Mail size={15} aria-hidden="true" />
+            <input
+              type="email"
+              autoComplete="username"
+              required
+              maxLength={254}
+              placeholder="owner@domain.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
         </label>
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete="current-password"
-            required
-            maxLength={1024}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
+        <label className={styles["admin-field"]}>
+          <span>Password</span>
+          <div className={styles["admin-input-icon-wrap"]}>
+            <Lock size={15} aria-hidden="true" />
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              maxLength={1024}
+              placeholder="Enter administrator password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
         </label>
         <button
-          className={styles["admin-button"]}
+          className={`${styles["admin-button"]} ${styles["admin-login-submit"]}`}
           type="submit"
           disabled={pending}
         >
-          {pending ? "Verifying…" : "Sign in to Master Admin"}
+          <ShieldCheck size={16} aria-hidden="true" />
+          {pending ? "Verifying…" : "Sign in to Control Center"}
         </button>
       </form>
-      <p>
+      <p className={styles["admin-login-footnote"]}>
         Access is limited to explicitly allowlisted administrators. Public
         registration is disabled.
       </p>

@@ -7,6 +7,7 @@ export default async function AdminToolsPage() {
   return (
     <>
       <PageHeading
+        kicker="Catalog"
         title="Tool management"
         description="Manage metadata overlays for the existing catalog. Slugs and tool implementations cannot be changed here."
       />

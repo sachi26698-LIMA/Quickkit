@@ -1,27 +1,53 @@
 /* Admin-only base reset: the public QUICKKIT shell and styles are untouched. */
-.admin-root * {
+.admin-root,
+.admin-root *,
+.admin-root *::before,
+.admin-root *::after {
   box-sizing: border-box;
 }
+
+.admin-root {
+  font-family:
+    var(--font-geist),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .admin-root button,
 .admin-login-wrap button {
   font: inherit;
 }
+
+.admin-root :where(button, input, select, textarea) {
+  font-family: inherit;
+}
+
 .admin-root a:focus-visible,
 .admin-root button:focus-visible,
 .admin-root input:focus-visible,
 .admin-root select:focus-visible,
 .admin-root textarea:focus-visible,
-.admin-login-wrap a:focus-visible,
-.admin-login-wrap button:focus-visible,
-.admin-login-wrap input:focus-visible {
-  outline: 3px solid #ff6b6b;
+.admin-root [tabindex]:focus-visible {
+  outline: 3px solid #7828d8;
   outline-offset: 2px;
 }
+
+.admin-root [data-theme="dark"] a:focus-visible,
+.admin-root [data-theme="dark"] button:focus-visible,
+.admin-root [data-theme="dark"] input:focus-visible,
+.admin-root [data-theme="dark"] select:focus-visible,
+.admin-root [data-theme="dark"] textarea:focus-visible,
+.admin-root [data-theme="dark"] [tabindex]:focus-visible {
+  outline-color: #35c6d0;
+}
+
+.admin-root h1,
 .admin-root h2,
 .admin-root h3,
+.admin-root h4,
 .admin-root p {
   line-height: 1.45;
-}
-.admin-root :where(button, input, select, textarea) {
-  font-family: inherit;
 }

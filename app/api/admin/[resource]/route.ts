@@ -12,6 +12,7 @@ import {
   parseJsonObject,
 } from "@/lib/supabase/admin-api";
 import {
+  getOverviewSnapshot,
   readCategoryCatalog,
   readToolCatalog,
 } from "@/lib/supabase/admin-data";
@@ -57,51 +58,10 @@ export async function GET(
   const { resource } = await context.params;
   try {
     if (resource === "overview") {
-      const [toolCatalog, categoryCatalog, contacts, feedback, activity] =
-        await Promise.all([
-          readToolCatalog(),
-          readCategoryCatalog(),
-          access.context.db
-            .from("quickkit_contact_submissions")
-            .select("id", { count: "exact", head: true }),
-          access.context.db
-            .from("quickkit_feedback_submissions")
-            .select("id", { count: "exact", head: true }),
-          access.context.db
-            .from("quickkit_admin_activity")
-            .select(
-              "id,actor_email,action,entity_type,entity_id,created_at,details",
-            )
-            .order("created_at", { ascending: false })
-            .limit(8),
-        ]);
-      if (
-        !toolCatalog.configured ||
-        !categoryCatalog.configured ||
-        contacts.error ||
-        feedback.error ||
-        activity.error
-      )
+      const snapshot = await getOverviewSnapshot();
+      if (!snapshot.connected)
         return apiError(503, "Admin database tables are not ready.");
-      return noStoreJson({
-        data: {
-          total_tools: toolCatalog.tools.length,
-          active_tools: toolCatalog.tools.filter(
-            (t) => t.is_enabled && t.is_published,
-          ).length,
-          published_tools: toolCatalog.tools.filter((t) => t.is_published)
-            .length,
-          unpublished_tools: toolCatalog.tools.filter((t) => !t.is_published)
-            .length,
-          total_categories: categoryCatalog.categories.length,
-          published_categories: categoryCatalog.categories.filter(
-            (c) => c.is_published,
-          ).length,
-          contact_count: contacts.count ?? 0,
-          feedback_count: feedback.count ?? 0,
-          activity: activity.data ?? [],
-        },
-      });
+      return noStoreJson({ data: snapshot });
     }
     if (resource === "tools") {
       const [catalog, categories] = await Promise.all([
@@ -248,6 +208,18 @@ export async function GET(
             ? "Migration/table unavailable; verify in Supabase"
             : "RLS catalog is not introspected by the app; inspect the migration and project catalog",
           signup_disabled: null,
+          checked_at: new Date().toISOString(),
+          analytics_url_present: Boolean(
+            process.env.ANALYTICS_DATABASE_URL?.trim(),
+          ),
+          analytics_token_present: Boolean(
+            process.env.ANALYTICS_DATABASE_TOKEN?.trim(),
+          ),
+          sitemap_origin_configured: Boolean(siteOrigin),
+          indexing_enabled: indexingEnabled,
+          smtp_status:
+            "Managed externally in Supabase Auth · not verified by app",
+          error_monitoring_status: "Not configured",
         },
       });
     }

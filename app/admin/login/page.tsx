@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ArrowLeft, Zap } from "lucide-react";
 import AdminLoginForm from "@/components/admin/admin-login-form";
 import styles from "@/components/admin/admin.module.css";
 import { verifyAdminSession } from "@/lib/supabase/admin-auth";
@@ -28,21 +29,31 @@ export default async function AdminLoginPage({
               : auth.status === "unavailable"
                 ? "Supabase authentication is temporarily unavailable."
                 : "Only explicitly approved QUICKKIT administrators can sign in here.";
+
   return (
     <div className={styles["admin-login-wrap"]}>
+      <div className={styles["admin-login-glow"]} aria-hidden="true" />
       <section className={styles["admin-login"]}>
-        <Link href="/" className={styles["admin-brand"]}>
-          QUICKKIT
+        <Link href="/" className={styles["admin-login-brand"]}>
+          <span className={styles["admin-brand-mark"]} aria-hidden="true">
+            <Zap size={18} strokeWidth={2.3} />
+          </span>
+          <span>
+            <strong>QUICKKIT</strong>
+            <small>CONTROL CENTER</small>
+          </span>
         </Link>
-        <span className={styles["admin-kicker"]}>PRIVATE CONTROL ROOM</span>
+        <span className={styles["admin-kicker"]}>OWNER-ONLY ACCESS</span>
         <h1>Administrator sign in</h1>
         <p>
-          This area is private. Public registration is disabled and no visitor
-          account is required to use QUICKKIT tools.
+          This workspace is restricted to allowlisted owners. Public
+          registration is disabled and no visitor account is required to use
+          QUICKKIT tools.
         </p>
         <AdminLoginForm message={message} />
-        <p>
+        <p className={styles["admin-login-back"]}>
           <Link href="/" className={styles["admin-link"]}>
+            <ArrowLeft size={14} aria-hidden="true" />
             Return to public tools
           </Link>
         </p>

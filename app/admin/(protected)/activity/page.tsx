@@ -4,6 +4,7 @@ export default function AdminActivityPage() {
   return (
     <>
       <PageHeading
+        kicker="Governance"
         title="Admin activity"
         description="Chronological audit events for recorded administrator changes. The current schema does not retain failed request events or per-event success flags; sensitive form content, passwords and tokens are excluded."
       />

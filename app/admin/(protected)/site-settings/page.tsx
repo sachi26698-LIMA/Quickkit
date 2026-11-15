@@ -4,6 +4,7 @@ export default function AdminSiteSettingsPage() {
   return (
     <>
       <PageHeading
+        kicker="Configuration"
         title="Site settings"
         description="Edit the explicitly supported public settings. Secret values and arbitrary environment variables are never available in this panel."
       />

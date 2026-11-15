@@ -1,9 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import {
+  ExternalLink,
+  Globe,
+  Home,
+  Link2,
+  Megaphone,
+  Plus,
+  RotateCcw,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import styles from "./admin.module.css";
 import { AdminNotice } from "./admin-page";
+import { useAdminLive } from "./admin-live-context";
 
 type PublicLink = { label: string; href: string };
 type Settings = {
@@ -29,12 +41,14 @@ const defaults: Settings = {
 
 export default function AdminSiteSettings() {
   const router = useRouter();
+  const { pushToast, setSyncSnapshot } = useAdminLive();
   const [settings, setSettings] = useState(defaults);
   const [savedSettings, setSavedSettings] = useState(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
   useEffect(() => {
     fetch("/api/admin/settings", { cache: "no-store" })
       .then(async (response) => {
@@ -62,12 +76,14 @@ export default function AdminSiteSettings() {
         }
         setSettings(next);
         setSavedSettings(next);
+        setSyncSnapshot({ syncState: "connected", lastSynced: Date.now() });
       })
       .catch((e) =>
         setError(e instanceof Error ? e.message : "Could not load settings"),
       )
       .finally(() => setLoading(false));
-  }, [router]);
+  }, [router, setSyncSnapshot]);
+
   const dirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
   useEffect(() => {
     if (!dirty) return;
@@ -78,6 +94,7 @@ export default function AdminSiteSettings() {
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
+
   const setString = (
     key: "website_name" | "tagline" | "contact_email",
     value: string,
@@ -105,6 +122,7 @@ export default function AdminSiteSettings() {
       ...s,
       [key]: s[key].filter((_, i) => i !== index),
     }));
+
   async function save() {
     setSaving(true);
     setError("");
@@ -133,19 +151,40 @@ export default function AdminSiteSettings() {
         throw new Error(body.error ?? "Could not save settings");
       setSavedSettings(settings);
       window.dispatchEvent(new Event("quickkit:admin-mutated"));
-      setMessage(
-        "Supported settings saved successfully; the Admin API confirmed the database write.",
-      );
+      const msg =
+        "Supported settings saved successfully; the Admin API confirmed the database write.";
+      setMessage(msg);
+      pushToast({
+        tone: "success",
+        title: "Site settings saved",
+        description: "Database write confirmed and recorded in audit log.",
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save settings");
+      const errMsg = e instanceof Error ? e.message : "Could not save settings";
+      setError(errMsg);
+      pushToast({ tone: "error", title: "Save failed", description: errMsg });
     } finally {
       setSaving(false);
     }
   }
+
   if (loading)
-    return <AdminNotice>Loading database-backed settings…</AdminNotice>;
+    return (
+      <div className={styles["admin-skeleton-panel"]} role="status">
+        <span className={styles["admin-visually-hidden"]}>
+          Loading database-backed settings…
+        </span>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div className={styles["admin-skeleton-row"]} key={index}>
+            <span className={styles["admin-skeleton-bar"]} />
+            <span className={styles["admin-skeleton-bar"]} />
+          </div>
+        ))}
+      </div>
+    );
+
   return (
-    <>
+    <div className={styles["admin-settings-stack"]}>
       <AdminNotice warning>
         Only these explicitly supported public settings can be changed.
         Environment variables, credentials, arbitrary code, and private server
@@ -162,13 +201,36 @@ export default function AdminSiteSettings() {
         </p>
       ) : null}
       {dirty ? (
-        <p
-          className={`${styles["admin-state"]} ${styles["admin-state--warn"]}`}
+        <div
+          className={`${styles["admin-state"]} ${styles["admin-state--warn"]} ${styles["admin-stale-banner"]}`}
           role="status"
         >
-          Unsaved changes. Leaving this page may discard your edits.
-        </p>
+          <span>
+            Unsaved changes. Leaving this page may discard your edits.
+          </span>
+          <div className={styles["admin-row-actions"]}>
+            <button
+              type="button"
+              className={`${styles["admin-button"]} ${styles["admin-button--soft"]} ${styles["admin-button--sm"]}`}
+              onClick={() => setSettings(savedSettings)}
+              disabled={saving}
+            >
+              <RotateCcw size={13} aria-hidden="true" />
+              Discard
+            </button>
+            <button
+              type="button"
+              className={`${styles["admin-button"]} ${styles["admin-button--sm"]}`}
+              onClick={() => void save()}
+              disabled={saving}
+            >
+              <Save size={13} aria-hidden="true" />
+              {saving ? "Saving…" : "Save now"}
+            </button>
+          </div>
+        </div>
       ) : null}
+
       <div className={styles["admin-cms-toolbar"]}>
         <p>
           Settings are applied directly after a successful save; the current
@@ -176,18 +238,37 @@ export default function AdminSiteSettings() {
           opens the currently published site.
         </p>
         <a
-          className={styles["admin-button"]}
+          className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
           href="/"
           target="_blank"
           rel="noreferrer"
         >
-          Preview published site ↗
+          Preview published site
+          <ExternalLink size={14} aria-hidden="true" />
         </a>
       </div>
-      <div className={styles["admin-card"]}>
+
+      {/* Brand Identity */}
+      <section className={styles["admin-panel"]}>
+        <div className={styles["admin-panel-heading"]}>
+          <div className={styles["admin-panel-title-group"]}>
+            <span
+              className={`${styles["admin-panel-badge"]} ${styles["admin-panel-badge--violet"]}`}
+              aria-hidden="true"
+            >
+              <Globe size={15} />
+            </span>
+            <div>
+              <h3>Brand &amp; contact identity</h3>
+              <p className={styles["admin-panel-subtitle"]}>
+                Public website name, tagline, and display contact address
+              </p>
+            </div>
+          </div>
+        </div>
         <div className={styles["admin-settings-grid"]}>
-          <label>
-            Website name
+          <label className={styles["admin-field"]}>
+            <span>Website name</span>
             <input
               className={styles["admin-input"]}
               maxLength={80}
@@ -195,17 +276,8 @@ export default function AdminSiteSettings() {
               onChange={(e) => setString("website_name", e.target.value)}
             />
           </label>
-          <label>
-            Tagline
-            <input
-              className={styles["admin-input"]}
-              maxLength={160}
-              value={settings.tagline}
-              onChange={(e) => setString("tagline", e.target.value)}
-            />
-          </label>
-          <label>
-            Contact email
+          <label className={styles["admin-field"]}>
+            <span>Contact email</span>
             <input
               className={styles["admin-input"]}
               type="email"
@@ -214,6 +286,39 @@ export default function AdminSiteSettings() {
               onChange={(e) => setString("contact_email", e.target.value)}
             />
           </label>
+          <label
+            className={`${styles["admin-field"]} ${styles["admin-span-2"]}`}
+          >
+            <span>Tagline</span>
+            <input
+              className={styles["admin-input"]}
+              maxLength={160}
+              value={settings.tagline}
+              onChange={(e) => setString("tagline", e.target.value)}
+            />
+          </label>
+        </div>
+      </section>
+
+      {/* Banners & Notices */}
+      <section className={styles["admin-panel"]}>
+        <div className={styles["admin-panel-heading"]}>
+          <div className={styles["admin-panel-title-group"]}>
+            <span
+              className={`${styles["admin-panel-badge"]} ${styles["admin-panel-badge--rose"]}`}
+              aria-hidden="true"
+            >
+              <Megaphone size={15} />
+            </span>
+            <div>
+              <h3>Site-wide notices</h3>
+              <p className={styles["admin-panel-subtitle"]}>
+                Optional public announcement and non-blocking maintenance banner
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className={styles["admin-settings-grid"]}>
           <label
             className={`${styles["admin-toggle"]} ${styles["admin-span-2"]}`}
           >
@@ -229,11 +334,13 @@ export default function AdminSiteSettings() {
                   },
                 }))
               }
-            />{" "}
-            Public announcement enabled
+            />
+            <span>Public announcement enabled</span>
           </label>
-          <label className={styles["admin-span-2"]}>
-            Announcement text
+          <label
+            className={`${styles["admin-field"]} ${styles["admin-span-2"]}`}
+          >
+            <span>Announcement text</span>
             <textarea
               className={styles["admin-input"]}
               maxLength={500}
@@ -258,11 +365,15 @@ export default function AdminSiteSettings() {
                   maintenance: { ...s.maintenance, enabled: e.target.checked },
                 }))
               }
-            />{" "}
-            Maintenance notice enabled (this does not block public routes)
+            />
+            <span>
+              Maintenance notice enabled (this does not block public routes)
+            </span>
           </label>
-          <label className={styles["admin-span-2"]}>
-            Maintenance notice text
+          <label
+            className={`${styles["admin-field"]} ${styles["admin-span-2"]}`}
+          >
+            <span>Maintenance notice text</span>
             <textarea
               className={styles["admin-input"]}
               maxLength={500}
@@ -275,8 +386,33 @@ export default function AdminSiteSettings() {
               }
             />
           </label>
-          <label className={styles["admin-span-2"]}>
-            Homepage update title
+        </div>
+      </section>
+
+      {/* Homepage Content */}
+      <section className={styles["admin-panel"]} id="homepage-content">
+        <div className={styles["admin-panel-heading"]}>
+          <div className={styles["admin-panel-title-group"]}>
+            <span
+              className={`${styles["admin-panel-badge"]} ${styles["admin-panel-badge--teal"]}`}
+              aria-hidden="true"
+            >
+              <Home size={15} />
+            </span>
+            <div>
+              <h3>Homepage content</h3>
+              <p className={styles["admin-panel-subtitle"]}>
+                Supported update callout displayed on the public QUICKKIT home
+                page
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className={styles["admin-settings-grid"]}>
+          <label
+            className={`${styles["admin-field"]} ${styles["admin-span-2"]}`}
+          >
+            <span>Homepage update title</span>
             <input
               className={styles["admin-input"]}
               maxLength={500}
@@ -292,8 +428,10 @@ export default function AdminSiteSettings() {
               }
             />
           </label>
-          <label className={styles["admin-span-2"]}>
-            Homepage update text
+          <label
+            className={`${styles["admin-field"]} ${styles["admin-span-2"]}`}
+          >
+            <span>Homepage update text</span>
             <textarea
               className={styles["admin-input"]}
               maxLength={500}
@@ -310,74 +448,106 @@ export default function AdminSiteSettings() {
             />
           </label>
         </div>
-        {(["social_links", "footer_links"] as const).map((key) => (
-          <fieldset className={styles["admin-card"]} key={key}>
-            <legend>
-              {key === "social_links"
-                ? "Social links"
-                : "Additional footer links"}
-            </legend>
-            <p>Only HTTPS links are accepted. Maximum 20 links per group.</p>
-            {settings[key].map((link, index) => (
-              <div
-                className={styles["admin-detail-grid"]}
-                key={`${key}-${index}`}
-              >
-                <label>
-                  Link label
-                  <input
-                    className={styles["admin-input"]}
-                    maxLength={50}
-                    aria-label={`${key} ${index + 1} label`}
-                    value={link.label}
-                    onChange={(e) =>
-                      setLink(key, index, "label", e.target.value)
-                    }
-                  />
-                </label>
-                <label>
-                  HTTPS URL
-                  <input
-                    className={styles["admin-input"]}
-                    type="url"
-                    maxLength={500}
-                    aria-label={`${key} ${index + 1} URL`}
-                    value={link.href}
-                    onChange={(e) =>
-                      setLink(key, index, "href", e.target.value)
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className={`${styles["admin-button"]} ${styles["admin-button--danger"]}`}
-                  onClick={() => removeLink(key, index)}
-                  aria-label={`Remove ${key} link ${index + 1}`}
-                >
-                  Remove link
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
-              disabled={settings[key].length >= 20}
-              onClick={() => addLink(key)}
+      </section>
+
+      {/* Links */}
+      <section className={styles["admin-panel"]}>
+        <div className={styles["admin-panel-heading"]}>
+          <div className={styles["admin-panel-title-group"]}>
+            <span
+              className={`${styles["admin-panel-badge"]} ${styles["admin-panel-badge--violet"]}`}
+              aria-hidden="true"
             >
-              Add {key === "social_links" ? "social" : "footer"} link
-            </button>
-          </fieldset>
-        ))}
-        <p>
-          <button
-            className={styles["admin-button"]}
-            disabled={saving}
-            onClick={() => void save()}
-          >
-            {saving ? "Saving…" : "Save website settings"}
-          </button>
-        </p>
+              <Link2 size={15} />
+            </span>
+            <div>
+              <h3>Social &amp; footer links</h3>
+              <p className={styles["admin-panel-subtitle"]}>
+                Only HTTPS URLs without credentials are accepted (maximum 20 per
+                group)
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className={styles["admin-links-groups"]}>
+          {(["social_links", "footer_links"] as const).map((key) => (
+            <fieldset className={styles["admin-link-fieldset"]} key={key}>
+              <legend>
+                {key === "social_links"
+                  ? "Social links"
+                  : "Additional footer links"}
+              </legend>
+              {settings[key].length === 0 ? (
+                <p className={styles["admin-field-hint"]}>
+                  No links configured yet.
+                </p>
+              ) : null}
+              {settings[key].map((link, index) => (
+                <div
+                  className={styles["admin-link-row"]}
+                  key={`${key}-${index}`}
+                >
+                  <label className={styles["admin-field"]}>
+                    <span>Link label</span>
+                    <input
+                      className={styles["admin-input"]}
+                      maxLength={50}
+                      aria-label={`${key} ${index + 1} label`}
+                      value={link.label}
+                      onChange={(e) =>
+                        setLink(key, index, "label", e.target.value)
+                      }
+                    />
+                  </label>
+                  <label className={styles["admin-field"]}>
+                    <span>HTTPS URL</span>
+                    <input
+                      className={styles["admin-input"]}
+                      type="url"
+                      maxLength={500}
+                      aria-label={`${key} ${index + 1} URL`}
+                      value={link.href}
+                      onChange={(e) =>
+                        setLink(key, index, "href", e.target.value)
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className={`${styles["admin-button"]} ${styles["admin-button--danger"]} ${styles["admin-button--sm"]}`}
+                    onClick={() => removeLink(key, index)}
+                    aria-label={`Remove ${key} link ${index + 1}`}
+                  >
+                    <Trash2 size={13} aria-hidden="true" />
+                    Remove link
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className={`${styles["admin-button"]} ${styles["admin-button--soft"]} ${styles["admin-button--sm"]}`}
+                disabled={settings[key].length >= 20}
+                onClick={() => addLink(key)}
+              >
+                <Plus size={14} aria-hidden="true" />
+                Add {key === "social_links" ? "social" : "footer"} link
+              </button>
+            </fieldset>
+          ))}
+        </div>
+      </section>
+
+      <div className={styles["admin-save-footer"]}>
+        <button
+          type="button"
+          className={styles["admin-button"]}
+          disabled={saving}
+          onClick={() => void save()}
+        >
+          <Save size={15} aria-hidden="true" />
+          {saving ? "Saving…" : "Save website settings"}
+        </button>
       </div>
-    </>
+    </div>
   );
 }

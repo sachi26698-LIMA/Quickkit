@@ -86,13 +86,13 @@ describe("Admin catalog CRUD controls", () => {
       };
     });
     vi.stubGlobal("fetch", fetchMock);
-    vi.stubGlobal(
-      "confirm",
-      vi.fn(() => true),
-    );
     render(<AdminResourceTable kind="tools" />);
     await screen.findAllByText("Merge PDF");
     fireEvent.click(screen.getByRole("button", { name: "Archive" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(dialog.textContent).toContain("Archive Merge PDF?");
+    expect(dialog.textContent).toContain("merge-pdf");
+    fireEvent.click(screen.getByRole("button", { name: "Archive tool" }));
     await waitFor(() => {
       const archiveCall = fetchMock.mock.calls.find(
         ([, init]) => init?.method === "PATCH",
@@ -134,13 +134,12 @@ describe("Admin catalog CRUD controls", () => {
       };
     });
     vi.stubGlobal("fetch", fetchMock);
-    vi.stubGlobal(
-      "confirm",
-      vi.fn(() => true),
-    );
     render(<AdminResourceTable kind="tools" />);
     await screen.findAllByText("Merge PDF");
     fireEvent.click(screen.getByRole("button", { name: "Reset overrides" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(dialog.textContent).toContain("Reset overrides for Merge PDF?");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm reset" }));
     await waitFor(() => {
       const resetCall = fetchMock.mock.calls.find(
         ([, init]) => init?.method === "DELETE",
@@ -151,5 +150,47 @@ describe("Admin catalog CRUD controls", () => {
         confirm: true,
       });
     });
+  });
+
+  it("cancels destructive confirmation without sending any mutation", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => {
+      void _url;
+      void _init;
+      return {
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              slug: "merge-pdf",
+              name: "Merge PDF",
+              description: "Combine PDFs.",
+              category: "PDF Tools",
+              icon: "pdf",
+              is_published: true,
+              is_enabled: true,
+              is_featured: false,
+              seo_title: "Merge PDF",
+              seo_description: "Combine PDFs locally.",
+              canonical_path: "/tools/merge-pdf",
+              is_indexable: true,
+              route: "/tools/merge-pdf",
+            },
+          ],
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<AdminResourceTable kind="tools" />);
+    await screen.findAllByText("Merge PDF");
+    fireEvent.click(screen.getByRole("button", { name: "Archive" }));
+    expect(await screen.findByRole("alertdialog")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).toBeNull();
+    });
+    const mutationCalls = fetchMock.mock.calls.filter(
+      ([, init]) => init?.method === "PATCH" || init?.method === "DELETE",
+    );
+    expect(mutationCalls).toHaveLength(0);
   });
 });
