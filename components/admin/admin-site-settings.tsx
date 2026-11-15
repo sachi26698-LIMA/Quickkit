@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./admin.module.css";
 import { AdminNotice } from "./admin-page";
@@ -27,7 +28,9 @@ const defaults: Settings = {
 };
 
 export default function AdminSiteSettings() {
+  const router = useRouter();
   const [settings, setSettings] = useState(defaults);
+  const [savedSettings, setSavedSettings] = useState(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -35,6 +38,16 @@ export default function AdminSiteSettings() {
   useEffect(() => {
     fetch("/api/admin/settings", { cache: "no-store" })
       .then(async (response) => {
+        if (response.status === 401 || response.status === 403) {
+          router.replace(
+            response.status === 403
+              ? "/admin/login?reason=forbidden"
+              : "/admin/login?reason=expired",
+          );
+          throw new Error(
+            "Administrator access is no longer valid. Sign in again.",
+          );
+        }
         const body = await response.json();
         if (!response.ok)
           throw new Error(body.error ?? "Could not load settings");
@@ -48,12 +61,23 @@ export default function AdminSiteSettings() {
               row.setting_value;
         }
         setSettings(next);
+        setSavedSettings(next);
       })
       .catch((e) =>
         setError(e instanceof Error ? e.message : "Could not load settings"),
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
+  const dirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
   const setString = (
     key: "website_name" | "tagline" | "contact_email",
     value: string,
@@ -94,10 +118,23 @@ export default function AdminSiteSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entries }),
       });
+      if (response.status === 401 || response.status === 403) {
+        router.replace(
+          response.status === 403
+            ? "/admin/login?reason=forbidden"
+            : "/admin/login?reason=expired",
+        );
+        throw new Error(
+          "Administrator access is no longer valid. Sign in again.",
+        );
+      }
       const body = await response.json();
       if (!response.ok)
         throw new Error(body.error ?? "Could not save settings");
-      setMessage("Supported settings saved to the database.");
+      setSavedSettings(settings);
+      setMessage(
+        "Supported settings saved successfully; the Admin API confirmed the database write.",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save settings");
     } finally {
@@ -123,6 +160,29 @@ export default function AdminSiteSettings() {
           {message}
         </p>
       ) : null}
+      {dirty ? (
+        <p
+          className={`${styles["admin-state"]} ${styles["admin-state--warn"]}`}
+          role="status"
+        >
+          Unsaved changes. Leaving this page may discard your edits.
+        </p>
+      ) : null}
+      <div className={styles["admin-cms-toolbar"]}>
+        <p>
+          Settings are applied directly after a successful save; the current
+          backend does not support separate drafts or staged publishing. Preview
+          opens the currently published site.
+        </p>
+        <a
+          className={styles["admin-button"]}
+          href="/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Preview published site ↗
+        </a>
+      </div>
       <div className={styles["admin-card"]}>
         <div className={styles["admin-settings-grid"]}>
           <label>

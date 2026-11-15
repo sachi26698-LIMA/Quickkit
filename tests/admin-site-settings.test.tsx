@@ -3,6 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AdminSiteSettings from "@/components/admin/admin-site-settings";
 
+vi.mock("next/navigation", () => {
+  const router = { replace: () => {}, push: () => {} };
+  return { useRouter: () => router };
+});
+
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Master Admin public settings editor", () => {

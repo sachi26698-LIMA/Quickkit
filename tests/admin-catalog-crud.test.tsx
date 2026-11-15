@@ -9,6 +9,11 @@ import {
 } from "@testing-library/react";
 import AdminResourceTable from "@/components/admin/admin-resource-table";
 
+vi.mock("next/navigation", () => {
+  const router = { replace: () => {}, push: () => {} };
+  return { usePathname: () => "/admin", useRouter: () => router };
+});
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();

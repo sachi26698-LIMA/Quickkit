@@ -5,7 +5,7 @@ export default function AdminActivityPage() {
     <>
       <PageHeading
         title="Admin activity"
-        description="Append-only audit events for administrator changes. Sensitive form content, passwords and tokens are excluded."
+        description="Chronological audit events for recorded administrator changes. The current schema does not retain failed request events or per-event success flags; sensitive form content, passwords and tokens are excluded."
       />
       <AdminResourceTable kind="activity" />
     </>

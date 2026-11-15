@@ -32,6 +32,13 @@ export default function AdminSeoPage() {
           </p>
         </div>
         <div className={styles["admin-card"]}>
+          <strong>Open Graph preview</strong>
+          <p>
+            Per-page Open Graph overrides are not stored by the current backend.
+            The inventory below previews title and description only.
+          </p>
+        </div>
+        <div className={styles["admin-card"]}>
           <strong>Robots</strong>
           <p>
             <a

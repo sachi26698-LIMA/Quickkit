@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./admin.module.css";
 type Data = {
@@ -13,11 +14,22 @@ type Data = {
   signup_disabled: boolean | null;
 };
 export default function SecurityOverview() {
+  const router = useRouter();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
     fetch("/api/admin/security", { cache: "no-store" })
       .then(async (r) => {
+        if (r.status === 401 || r.status === 403) {
+          router.replace(
+            r.status === 403
+              ? "/admin/login?reason=forbidden"
+              : "/admin/login?reason=expired",
+          );
+          throw new Error(
+            "Administrator access is no longer valid. Sign in again.",
+          );
+        }
         const b = await r.json();
         if (!r.ok) throw new Error(b.error ?? "Could not inspect security");
         setData(b.data);
@@ -25,7 +37,7 @@ export default function SecurityOverview() {
       .catch((e) =>
         setError(e instanceof Error ? e.message : "Could not inspect security"),
       );
-  }, []);
+  }, [router]);
   if (error)
     return (
       <p className={styles["admin-error"]} role="alert">
