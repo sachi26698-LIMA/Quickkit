@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "../lib/tool-seo-content";
 import {
   formatXml,
@@ -21,38 +22,43 @@ import {
 import { analyzeText, convertCase, countText } from "../lib/tools/text";
 
 const ROUTES = {
-  "merge-pdf": () => import("../app/tools/merge-pdf/page"),
-  "split-pdf": () => import("../app/tools/split-pdf/page"),
-  "compress-pdf": () => import("../app/tools/compress-pdf/page"),
-  "pdf-to-image": () => import("../app/tools/pdf-to-image/page"),
-  "images-to-pdf": () => import("../app/tools/images-to-pdf/page"),
-  "pdf-lock-unlock": () => import("../app/tools/pdf-lock-unlock/page"),
-  "pdf-studio": () => import("../app/tools/pdf-studio/page"),
-  "pdf-to-word": () => import("../app/tools/pdf-to-word/page"),
-  "word-to-pdf": () => import("../app/tools/word-to-pdf/page"),
-  "image-compressor": () => import("../app/tools/image-compressor/page"),
-  "image-resizer": () => import("../app/tools/image-resizer/page"),
-  "image-cropper": () => import("../app/tools/image-cropper/page"),
-  "image-to-image": () => import("../app/tools/image-to-image/page"),
-  "qr-generator": () => import("../app/tools/qr-generator/page"),
-  "qr-code-scanner": () => import("../app/tools/qr-code-scanner/page"),
-  "barcode-generator": () => import("../app/tools/barcode-generator/page"),
-  "password-generator": () => import("../app/tools/password-generator/page"),
-  "json-formatter": () => import("../app/tools/json-formatter/page"),
-  "json-validator": () => import("../app/tools/json-validator/page"),
-  "xml-formatter": () => import("../app/tools/xml-formatter/page"),
-  "html-formatter": () => import("../app/tools/html-formatter/page"),
-  "css-minifier": () => import("../app/tools/css-minifier/page"),
-  "javascript-minifier": () => import("../app/tools/javascript-minifier/page"),
+  "merge-pdf": () => import("../app/(public)/tools/merge-pdf/page"),
+  "split-pdf": () => import("../app/(public)/tools/split-pdf/page"),
+  "compress-pdf": () => import("../app/(public)/tools/compress-pdf/page"),
+  "pdf-to-image": () => import("../app/(public)/tools/pdf-to-image/page"),
+  "images-to-pdf": () => import("../app/(public)/tools/images-to-pdf/page"),
+  "pdf-lock-unlock": () => import("../app/(public)/tools/pdf-lock-unlock/page"),
+  "pdf-studio": () => import("../app/(public)/tools/pdf-studio/page"),
+  "pdf-to-word": () => import("../app/(public)/tools/pdf-to-word/page"),
+  "word-to-pdf": () => import("../app/(public)/tools/word-to-pdf/page"),
+  "image-compressor": () =>
+    import("../app/(public)/tools/image-compressor/page"),
+  "image-resizer": () => import("../app/(public)/tools/image-resizer/page"),
+  "image-cropper": () => import("../app/(public)/tools/image-cropper/page"),
+  "image-to-image": () => import("../app/(public)/tools/image-to-image/page"),
+  "qr-generator": () => import("../app/(public)/tools/qr-generator/page"),
+  "qr-code-scanner": () => import("../app/(public)/tools/qr-code-scanner/page"),
+  "barcode-generator": () =>
+    import("../app/(public)/tools/barcode-generator/page"),
+  "password-generator": () =>
+    import("../app/(public)/tools/password-generator/page"),
+  "json-formatter": () => import("../app/(public)/tools/json-formatter/page"),
+  "json-validator": () => import("../app/(public)/tools/json-validator/page"),
+  "xml-formatter": () => import("../app/(public)/tools/xml-formatter/page"),
+  "html-formatter": () => import("../app/(public)/tools/html-formatter/page"),
+  "css-minifier": () => import("../app/(public)/tools/css-minifier/page"),
+  "javascript-minifier": () =>
+    import("../app/(public)/tools/javascript-minifier/page"),
   "base64-encoder-decoder": () =>
-    import("../app/tools/base64-encoder-decoder/page"),
-  "url-encoder-decoder": () => import("../app/tools/url-encoder-decoder/page"),
-  "uuid-generator": () => import("../app/tools/uuid-generator/page"),
-  "hash-generator": () => import("../app/tools/hash-generator/page"),
-  "regex-tester": () => import("../app/tools/regex-tester/page"),
-  "word-counter": () => import("../app/tools/word-counter/page"),
-  "case-converter": () => import("../app/tools/case-converter/page"),
-  "image-to-text": () => import("../app/tools/image-to-text/page"),
+    import("../app/(public)/tools/base64-encoder-decoder/page"),
+  "url-encoder-decoder": () =>
+    import("../app/(public)/tools/url-encoder-decoder/page"),
+  "uuid-generator": () => import("../app/(public)/tools/uuid-generator/page"),
+  "hash-generator": () => import("../app/(public)/tools/hash-generator/page"),
+  "regex-tester": () => import("../app/(public)/tools/regex-tester/page"),
+  "word-counter": () => import("../app/(public)/tools/word-counter/page"),
+  "case-converter": () => import("../app/(public)/tools/case-converter/page"),
+  "image-to-text": () => import("../app/(public)/tools/image-to-text/page"),
 } as const;
 
 const ORIGIN = "https://quickkit.online";
@@ -221,15 +227,30 @@ describe("Phase 3 Batch C — 31 tool pages", () => {
     const renderedDescriptions = new Set<string>();
     for (const [slug, load] of Object.entries(ROUTES)) {
       vi.resetModules();
-      const { default: Page, metadata } = await load();
-      const rendered = render(<Page />);
+      const routeModule = (await load()) as {
+        default: () => ReactElement | Promise<ReactElement>;
+        metadata?: {
+          title?: unknown;
+          description?: unknown;
+          alternates?: { canonical?: string };
+        };
+        generateMetadata?: () => Promise<{
+          title?: unknown;
+          description?: unknown;
+          alternates?: { canonical?: string };
+        }>;
+      };
+      const metadata =
+        routeModule.metadata ?? (await routeModule.generateMetadata?.());
+      const Page = routeModule.default;
+      const rendered = render(await Page());
       const { container } = rendered;
 
-      const title = metadata.title as string;
-      const description = metadata.description as string;
+      const title = metadata?.title as string;
+      const description = metadata?.description as string;
       expect(title, `${slug} metadata title`).toBeTruthy();
       expect(description, `${slug} metadata description`).toBeTruthy();
-      expect(metadata.alternates?.canonical, `${slug} canonical`).toBe(
+      expect(metadata?.alternates?.canonical, `${slug} canonical`).toBe(
         `${ORIGIN}/tools/${slug}`,
       );
       const brandedTitle = `${title} | QUICKKIT`;

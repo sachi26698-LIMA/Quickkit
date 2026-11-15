@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
+import { getSupabaseCspOrigin } from "./lib/supabase/config";
 import { legacySecurityRedirects } from "./lib/tools/security/consolidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +69,9 @@ const FRAME_ANCESTORS = previewFraming
   ? "frame-ancestors 'self' https://*.e2b.app"
   : "frame-ancestors 'none'";
 
+// Add only the validated configured Supabase API origin to connect-src.
+const supabaseCspOrigin = getSupabaseCspOrigin();
+
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -79,7 +83,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' blob: data: ${ADSENSE_IMAGES.join(" ")}`,
   "font-src 'self'",
-  `connect-src 'self' ${ADSENSE_CONNECTIONS.join(" ")}`,
+  `connect-src 'self' ${ADSENSE_CONNECTIONS.join(" ")} ${supabaseCspOrigin ?? ""}`.trim(),
   `frame-src ${ADSENSE_FRAMES.join(" ")}`,
 ].join("; ");
 

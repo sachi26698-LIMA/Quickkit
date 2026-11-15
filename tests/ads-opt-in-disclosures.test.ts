@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest";
 
 /** User-facing pages that explain AdSense or its access to page/browser data. */
 const DISCLOSURE_PAGES = [
-  "app/about/page.tsx",
-  "app/cookies/page.tsx",
-  "app/faq/page.tsx",
-  "app/file-handling/page.tsx",
-  "app/privacy/page.tsx",
-  "app/security/page.tsx",
-  "app/terms/page.tsx",
-  "app/tools/qr-code-scanner/page.tsx",
+  "app/(public)/about/page.tsx",
+  "app/(public)/cookies/page.tsx",
+  "app/(public)/faq/page.tsx",
+  "app/(public)/file-handling/page.tsx",
+  "app/(public)/privacy/page.tsx",
+  "app/(public)/security/page.tsx",
+  "app/(public)/terms/page.tsx",
+  "app/(public)/tools/qr-code-scanner/page.tsx",
 ];
 
 const UNCONDITIONAL_LOAD_CLAIMS = [

@@ -13,9 +13,9 @@ export const toolCategories = [
   "Security & Privacy",
   "AI Tools",
 ] as const;
-export type ToolCategory = (typeof toolCategories)[number];
+export type ToolCategory = string;
 export const categories = ["All tools", ...toolCategories] as const;
-export type Category = (typeof categories)[number];
+export type Category = string;
 
 export type CategoryMeta = {
   name: ToolCategory;
@@ -105,7 +105,7 @@ export const categoryMeta: CategoryMeta[] = [
     seoTitle: "AI Tools (Coming Soon) — Roadmap Category",
     blurb: "Smart tools powered by artificial intelligence.",
     description:
-      "AI-assisted document and text utilities are on the QUICKKIT roadmap. Explore the live PDF, image, OCR, QR, developer, calculator and privacy tools today.",
+      "AI-assisted document and text utilities are on the QUICKKIT roadmap. Explore the published PDF, image, OCR, QR, developer, calculator and privacy tools today.",
     tint: "tint-ai",
     icon: "sparkles",
   },

@@ -13,9 +13,18 @@ import { BRANDS } from "@/lib/tools/batch-code/brands";
 const ORIGIN = "https://quickkit.online";
 
 const TOOL_ROUTES = [
-  ["barcode-generator", () => import("@/app/tools/barcode-generator/page")],
-  ["barcode-scanner", () => import("@/app/tools/barcode-scanner/page")],
-  ["batch-code-checker", () => import("@/app/tools/batch-code-checker/page")],
+  [
+    "barcode-generator",
+    () => import("@/app/(public)/tools/barcode-generator/page"),
+  ],
+  [
+    "barcode-scanner",
+    () => import("@/app/(public)/tools/barcode-scanner/page"),
+  ],
+  [
+    "batch-code-checker",
+    () => import("@/app/(public)/tools/batch-code-checker/page"),
+  ],
 ] as const;
 
 beforeEach(() => {
@@ -62,7 +71,8 @@ describe("barcode tool metadata", () => {
   });
 
   it("names the batch-code checker as a checker, never as a decoder of every brand", async () => {
-    const { metadata } = await import("@/app/tools/batch-code-checker/page");
+    const { metadata } =
+      await import("@/app/(public)/tools/batch-code-checker/page");
     expect(String(metadata.title)).toMatch(/batch code/i);
     expect(String(metadata.description)).toMatch(
       /documented|verified|estimated/i,
@@ -74,7 +84,7 @@ describe("barcode tool metadata", () => {
 describe("brand record metadata", () => {
   it("keeps all 59 brand descriptions inside the snippet window with a canonical", async () => {
     const { generateMetadata } =
-      await import("@/app/tools/batch-code-checker/brand/[slug]/page");
+      await import("@/app/(public)/tools/batch-code-checker/brand/[slug]/page");
     for (const brand of BRANDS) {
       const meta = await generateMetadata({
         params: Promise.resolve({ slug: brand.slug }),
@@ -99,7 +109,7 @@ describe("brand record metadata", () => {
 describe("sitemap and robots", () => {
   it("lists each of the three tools and every brand page exactly once", async () => {
     const { default: sitemap } = await import("@/app/sitemap");
-    const urls = sitemap().map((entry) => entry.url);
+    const urls = (await sitemap()).map((entry) => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
 
     for (const [slug] of TOOL_ROUTES)

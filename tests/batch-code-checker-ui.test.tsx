@@ -29,7 +29,7 @@ import BrandDirectory from "../components/tools/batch-code-checker/brand-directo
 import BrandPage, {
   generateMetadata,
   generateStaticParams,
-} from "../app/tools/batch-code-checker/brand/[slug]/page";
+} from "../app/(public)/tools/batch-code-checker/brand/[slug]/page";
 import { BRANDS } from "../lib/tools/batch-code/brands";
 
 beforeEach(() => {

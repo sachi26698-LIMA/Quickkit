@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { metadata } from "@/app/tools/barcode-generator/page";
+import { metadata } from "@/app/(public)/tools/barcode-generator/page";
 import { routeSourceFiles } from "@/app/sitemap";
 import {
   filterTools,
@@ -52,7 +52,7 @@ describe("barcode generator route metadata", () => {
 
   it("declares the canonical path and social cards through the shared helper", () => {
     const source = readFileSync(
-      join(ROOT, "app/tools/barcode-generator/page.tsx"),
+      join(ROOT, "app/(public)/tools/barcode-generator/page.tsx"),
       "utf8",
     );
     expect(source).toContain('"/tools/barcode-generator"');
@@ -67,7 +67,7 @@ describe("barcode generator route metadata", () => {
 
   it("mounts the studio through the shared tool shell", () => {
     const source = readFileSync(
-      join(ROOT, "app/tools/barcode-generator/page.tsx"),
+      join(ROOT, "app/(public)/tools/barcode-generator/page.tsx"),
       "utf8",
     );
     expect(source).toContain("<ToolShell");
@@ -134,7 +134,7 @@ describe("catalog integration", () => {
 
   it("is listed in the sitemap source map with its engine files", () => {
     const files = routeSourceFiles("/tools/barcode-generator");
-    expect(files).toContain("app/tools/barcode-generator/page.tsx");
+    expect(files).toContain("app/(public)/tools/barcode-generator/page.tsx");
     expect(files).toContain("lib/tools/barcode");
     expect(files).toContain("components/tools/barcode-studio");
     for (const file of files) expect(existsSync(join(ROOT, file))).toBe(true);

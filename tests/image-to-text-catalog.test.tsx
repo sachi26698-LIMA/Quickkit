@@ -18,7 +18,9 @@ import {
   tools,
   toolsByCategory,
 } from "@/lib/catalog";
-import Page, { metadata } from "../app/tools/image-to-text/page";
+import Page, {
+  generateMetadata,
+} from "../app/(public)/tools/image-to-text/page";
 
 const SLUG = "image-to-text";
 
@@ -112,7 +114,8 @@ describe("catalogue entry", () => {
 });
 
 describe("SEO", () => {
-  it("has an honest title, description and canonical path", () => {
+  it("has an honest title, description and canonical path", async () => {
+    const metadata = await generateMetadata();
     const title = String(metadata.title);
     expect(title).toMatch(/Image to Text \(OCR\)/);
     expect(title.length).toBeLessThanOrEqual(75);
@@ -124,8 +127,8 @@ describe("SEO", () => {
 });
 
 describe("page structure", () => {
-  it("renders the shared shell: breadcrumb, steps, FAQ and related tools", () => {
-    render(<Page />);
+  it("renders the shared shell: breadcrumb, steps, FAQ and related tools", async () => {
+    render(await Page());
     expect(
       screen.getByRole("heading", { level: 1, name: "Image to Text (OCR)" }),
     ).toBeTruthy();
@@ -153,8 +156,8 @@ describe("page structure", () => {
     ).toBeTruthy();
   });
 
-  it("ships structured data for the page without deprecated HowTo", () => {
-    const { container } = render(<Page />);
+  it("ships structured data for the page without deprecated HowTo", async () => {
+    const { container } = render(await Page());
     const script = container.querySelector(
       'script[type="application/ld+json"]',
     );

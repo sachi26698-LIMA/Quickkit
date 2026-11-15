@@ -4,13 +4,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Clock, Search, SlidersHorizontal, X } from "lucide-react";
 import {
-  categories,
-  filterTools,
-  metaByCategory,
+  categories as staticCategories,
   metaBySlug,
-  tools,
-  toolsByCategory,
   type Category,
+  type Tool,
 } from "@/lib/catalog";
 import ToolCard from "@/components/tool-card";
 import { operationForSearch } from "@/lib/tools/security/consolidation";
@@ -18,11 +15,22 @@ import { useHydrated } from "@/lib/use-hydrated";
 
 export function resolveExplorerCategory(
   value: string | null | undefined,
+  catalog: import("@/lib/catalog").CategoryMeta[] = staticCategories
+    .slice(1)
+    .flatMap((name) => {
+      const meta = metaBySlug(
+        String(name)
+          .toLowerCase()
+          .replaceAll(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+      );
+      return meta ? [meta] : [];
+    }),
 ): Category {
   if (!value) return "All tools";
-  const bySlug = metaBySlug(value);
+  const bySlug = catalog.find((category) => category.slug === value);
   if (bySlug) return bySlug.name;
-  return (categories as readonly string[]).includes(value)
+  return (staticCategories as readonly string[]).includes(value)
     ? (value as Category)
     : "All tools";
 }
@@ -30,17 +38,52 @@ export function resolveExplorerCategory(
 function ToolExplorerContent({
   initialQuery = "",
   initialCategory = "All tools",
+  tools,
+  categoryMeta,
 }: {
   initialQuery?: string;
   initialCategory?: Category;
+  tools: Tool[];
+  categoryMeta: import("@/lib/catalog").CategoryMeta[];
 }) {
   const ready = useHydrated();
   const [query, setQuery] = useState(initialQuery);
-  const [category, setCategory] = useState<Category>(initialCategory);
+  const [category, setCategory] = useState<string>(initialCategory);
   const inputRef = useRef<HTMLInputElement>(null);
-  const results = filterTools(query, category);
+  const availableCategories = [
+    "All tools",
+    ...categoryMeta.map((meta) => meta.name),
+  ];
+  const search = query.trim().toLocaleLowerCase();
+  const matches = tools.filter(
+    (tool) =>
+      (category === "All tools" ||
+        tool.category === category ||
+        ("categories" in tool &&
+          Array.isArray(tool.categories) &&
+          (tool.categories as readonly string[]).includes(category))) &&
+      `${tool.name} ${tool.description} ${tool.keywords}`
+        .toLocaleLowerCase()
+        .includes(search),
+  );
+  const namedMatches = search
+    ? matches.filter((tool) => tool.name.toLocaleLowerCase().includes(search))
+    : [];
+  const results = namedMatches.length
+    ? [
+        ...namedMatches,
+        ...matches.filter((tool) => !namedMatches.includes(tool)),
+      ]
+    : matches;
   const categoryEmpty =
-    category !== "All tools" && toolsByCategory(category).length === 0;
+    category !== "All tools" &&
+    !tools.some(
+      (tool) =>
+        tool.category === category ||
+        ("categories" in tool &&
+          Array.isArray(tool.categories) &&
+          (tool.categories as readonly string[]).includes(category)),
+    );
 
   useEffect(() => {
     if (!ready) return;
@@ -109,7 +152,7 @@ function ToolExplorerContent({
 
       <div className="filter-row">
         <div className="filters" aria-label="Filter tools by category">
-          {categories.map((item) => (
+          {availableCategories.map((item) => (
             <button
               key={item}
               aria-pressed={category === item}
@@ -169,7 +212,9 @@ function ToolExplorerContent({
           </button>
           <p className="empty-alt">
             or visit the{" "}
-            <Link href={`/category/${metaByCategory(category).slug}`}>
+            <Link
+              href={`/category/${categoryMeta.find((meta) => meta.name === category)?.slug ?? ""}`}
+            >
               {category} page
             </Link>
           </p>
@@ -197,9 +242,13 @@ function ToolExplorerContent({
 function ToolExplorerWithUrlParams({
   initialQuery,
   initialCategory,
+  tools,
+  categoryMeta,
 }: {
   initialQuery?: string;
   initialCategory?: Category;
+  tools: Tool[];
+  categoryMeta: import("@/lib/catalog").CategoryMeta[];
 }) {
   const searchParams = useSearchParams();
   const qParam = searchParams?.get("q");
@@ -208,7 +257,7 @@ function ToolExplorerWithUrlParams({
     qParam !== null && qParam !== undefined ? qParam : (initialQuery ?? "");
   const resolvedCategory =
     catParam !== null && catParam !== undefined
-      ? resolveExplorerCategory(catParam)
+      ? resolveExplorerCategory(catParam, categoryMeta)
       : (initialCategory ?? "All tools");
 
   return (
@@ -216,6 +265,8 @@ function ToolExplorerWithUrlParams({
       key={`${resolvedQuery}::${resolvedCategory}`}
       initialQuery={resolvedQuery}
       initialCategory={resolvedCategory}
+      tools={tools}
+      categoryMeta={categoryMeta}
     />
   );
 }
@@ -230,9 +281,13 @@ function ToolExplorerWithUrlParams({
 export default function ToolExplorer({
   initialQuery = "",
   initialCategory = "All tools",
+  tools,
+  categoryMeta,
 }: {
   initialQuery?: string;
   initialCategory?: Category;
+  tools: Tool[];
+  categoryMeta: import("@/lib/catalog").CategoryMeta[];
 }) {
   return (
     <Suspense
@@ -240,12 +295,16 @@ export default function ToolExplorer({
         <ToolExplorerContent
           initialQuery={initialQuery}
           initialCategory={initialCategory}
+          tools={tools}
+          categoryMeta={categoryMeta}
         />
       }
     >
       <ToolExplorerWithUrlParams
         initialQuery={initialQuery}
         initialCategory={initialCategory}
+        tools={tools}
+        categoryMeta={categoryMeta}
       />
     </Suspense>
   );

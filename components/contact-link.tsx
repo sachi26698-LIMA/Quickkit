@@ -29,20 +29,24 @@ export default function ContactLink({
   channel = "general",
   subject,
   children,
+  email,
 }: {
   channel?: ContactChannel;
   /** Optional subject line, appended as a mailto parameter when verified. */
   subject?: string;
+  /** Optional setting-provided address; omitted means use the source default. */
+  email?: string | null;
   /** Custom link text; defaults to the address itself. */
   children?: React.ReactNode;
 }) {
-  if (contactEmail) {
+  const publicEmail = email === undefined ? contactEmail : email;
+  if (publicEmail) {
     const href = subject
-      ? `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}`
-      : `mailto:${contactEmail}`;
+      ? `mailto:${publicEmail}?subject=${encodeURIComponent(subject)}`
+      : `mailto:${publicEmail}`;
     return (
       <a href={href} data-contact-channel={channel}>
-        {children ?? contactEmail}
+        {children ?? publicEmail}
       </a>
     );
   }

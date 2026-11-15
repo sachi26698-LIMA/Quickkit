@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import ToolShell, { type ToolContent } from "@/components/tool-shell";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
+import type { PublicToolShellData } from "@/lib/supabase/public-catalog";
 
 const pageContent: Record<string, ToolContent> = {
   "json-validator": {
@@ -295,9 +296,11 @@ const pageEnhancements: Record<
 export default function DeveloperToolPage({
   slug,
   children,
+  publicData,
 }: {
   slug: keyof typeof pageContent;
   children: ReactNode;
+  publicData: PublicToolShellData;
 }) {
   const entry = TOOL_SEO_CONTENT[slug];
   const metadata = TOOL_SEO_METADATA[slug];
@@ -306,6 +309,7 @@ export default function DeveloperToolPage({
   return (
     <ToolShell
       slug={slug}
+      publicData={publicData}
       content={{
         steps: [...content.steps, enhancement.step],
         faqs: [...content.faqs, enhancement.faq],

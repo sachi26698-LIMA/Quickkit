@@ -1870,6 +1870,20 @@ a.contact-card:hover {
   font-size: 13px;
   font-weight: 600;
 }
+.contact-consent label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.contact-consent input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  padding: 0;
+}
 .form-field input,
 .form-field textarea {
   border: 1px solid #ddd3f2;

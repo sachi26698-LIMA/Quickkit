@@ -9,28 +9,31 @@ export default function SavedList() {
   const { saved } = useFavorites();
   const savedTools = saved
     .map((slug) => toolBySlug(slug))
-    .filter((t) => t !== undefined);
-
-  if (!savedTools.length) {
+    .filter((tool) => tool !== undefined);
+  if (!savedTools.length)
     return (
       <div className="empty saved-empty">
         <Heart size={34} aria-hidden="true" />
         <h2>No saved tools yet</h2>
         <p>
           Tap the heart on any tool card and it will live here for quick access.
-          Your saved list is stored only in this browser.
+          This list is stored only in this browser.
         </p>
         <Link className="primary" href="/tools">
           Explore All Tools <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </div>
     );
-  }
   return (
-    <div className="tool-grid">
-      {savedTools.map((tool) => (
-        <ToolCard key={tool.slug} tool={tool} />
-      ))}
-    </div>
+    <>
+      <p className="favorite-sync-note">
+        Your saved tools are stored only in this browser. No account is needed.
+      </p>
+      <div className="tool-grid">
+        {savedTools.map((tool) => (
+          <ToolCard key={tool.slug} tool={tool} />
+        ))}
+      </div>
+    </>
   );
 }

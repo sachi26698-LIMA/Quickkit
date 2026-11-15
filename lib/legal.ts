@@ -13,8 +13,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** The date this shared set of legal page drafts was most recently revised. Not legal approval. */
-export const LEGAL_LAST_UPDATED = "7 November 2026";
-export const LEGAL_LAST_UPDATED_ISO = "2026-11-07";
+export const LEGAL_LAST_UPDATED = "10 November 2026";
+export const LEGAL_LAST_UPDATED_ISO = "2026-11-10";
 
 /** React uses dateTime; the HTML serializer emits the standard datetime attribute. */
 export const isoDatetime = (value: string) => ({ dateTime: value });
@@ -58,7 +58,7 @@ export const legalPages: LegalPage[] = [
     sections: [
       { id: "acceptance", label: "Acceptance of these terms" },
       { id: "the-service", label: "What QUICKKIT provides" },
-      { id: "accounts", label: "No accounts or registration" },
+      { id: "accounts", label: "Administrator access" },
       { id: "acceptable-use", label: "Acceptable use" },
       { id: "user-responsibilities", label: "Your responsibilities" },
       { id: "prohibited", label: "Prohibited activities" },
@@ -80,13 +80,13 @@ export const legalPages: LegalPage[] = [
     intro:
       "What QUICKKIT collects, what tool data stays in your browser, and where third-party services and hosting apply.",
     description:
-      "How QUICKKIT handles data: browser-local tool processing, the site-wide AdSense verification script, local storage and ordinary hosting requests.",
+      "How QUICKKIT handles browser-local tool processing, administrator authentication, consented messages, Supabase, AdSense and hosting data.",
     group: "legal",
     indexable: true,
     sections: [
       { id: "summary", label: "The short version" },
       { id: "what-we-collect", label: "Information we collect" },
-      { id: "accounts", label: "Accounts and registration" },
+      { id: "accounts", label: "Administrator access" },
       { id: "local-processing", label: "Browser-local processing" },
       { id: "uploads", label: "Do files leave my device?" },
       { id: "storage", label: "Cookies and browser storage" },
@@ -182,7 +182,7 @@ export const legalPages: LegalPage[] = [
     intro:
       "General questions, bug reports, privacy requests, copyright complaints and business enquiries — here is where each one goes.",
     description:
-      "Contact QUICKKIT for support, bug reports, privacy requests, security reports, copyright complaints or business enquiries, with verified channels pending.",
+      "Contact QUICKKIT for support, privacy, bug, security, copyright or business enquiries through its consent-based form or published email.",
     group: "company",
     indexable: true,
     sections: [
@@ -201,9 +201,9 @@ export const legalPages: LegalPage[] = [
     navLabel: "FAQ",
     title: "Frequently Asked Questions",
     intro:
-      "Direct answers about privacy, accounts, file handling, results and using QUICKKIT day to day.",
+      "Direct answers about privacy, favorites, file handling, results and using QUICKKIT day to day.",
     description:
-      "Answers to common QUICKKIT questions: whether files are uploaded, why there is no account, what the tools cannot do, and how to report a problem.",
+      "Answers about QUICKKIT privacy, browser-local favorites, local file processing, tool limits and support.",
     group: "company",
     indexable: true,
     sections: [

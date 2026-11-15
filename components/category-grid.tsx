@@ -1,25 +1,33 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
-import type { CategoryMeta } from "@/lib/catalog";
+import type { CategoryMeta, Tool } from "@/lib/catalog";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 import TiltGrid from "@/components/tilt-grid";
 
-/**
- * Homepage category cards.
- *
- * Server-rendered on purpose: the catalogue and the 3D icon set are large
- * modules, and shipping them to the browser only to attach a pointer handler
- * made the landing page's JavaScript several times bigger than the page itself.
- * The tilt is delegated by `<TiltGrid />`, the only client code here.
- */
+/** Server-rendered cards from the published catalog; TiltGrid owns pointer behavior. */
 export default function CategoryGrid({
+  categories,
+  tools,
   cards,
 }: {
-  cards: { meta: CategoryMeta; count: number }[];
+  categories?: CategoryMeta[];
+  tools?: Tool[];
+  cards?: { meta: CategoryMeta; count: number }[];
 }) {
+  const categoryCards =
+    cards ?? (categories ?? []).map((meta) => ({ meta, count: 0 }));
   return (
     <TiltGrid className="category-grid">
-      {cards.map(({ meta, count }) => {
+      {categoryCards.map(({ meta, count: cardCount }) => {
+        const count = tools
+          ? tools.filter(
+              (tool) =>
+                tool.category === meta.name ||
+                ("categories" in tool &&
+                  Array.isArray(tool.categories) &&
+                  (tool.categories as readonly string[]).includes(meta.name)),
+            ).length
+          : cardCount;
         const comingSoon = count === 0;
         return (
           <Link

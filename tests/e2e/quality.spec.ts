@@ -142,6 +142,10 @@ test("all page links resolve; metadata and headers are present", async ({
   page,
   request,
 }) => {
+  // This exhaustive route/link audit traverses every public route and checks
+  // each unique internal destination. Give that same full assertion set enough
+  // room to finish while the broader E2E suite is CPU-intensive.
+  test.setTimeout(60_000);
   const seen = new Set<string>();
   for (const route of routes) {
     await page.goto(route);

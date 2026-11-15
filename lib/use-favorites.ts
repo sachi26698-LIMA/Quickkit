@@ -3,13 +3,9 @@ import { useMemo, useSyncExternalStore } from "react";
 import { legacySecurityFavorites } from "@/lib/tools/security/consolidation";
 
 export const FAVORITES_KEY = "quickkit:saved-tools";
-const EVENT = "quickkit:saved-tools-changed";
+export const FAVORITES_EVENT = "quickkit:saved-tools-changed";
 
-/**
- * Slugs that were renamed when the combined converter was split into separate
- * tools. Applied on read so a card saved before the split still resolves, and
- * written back so storage converges on the current slug.
- */
+/** Slug kept in local storage for migration from an earlier catalog route. */
 export const SLUG_MIGRATIONS: Record<string, string> = {
   "image-converter": "image-to-image",
   ...legacySecurityFavorites,
@@ -24,49 +20,52 @@ function readRaw(): string {
 }
 
 function subscribe(onChange: () => void) {
-  window.addEventListener(EVENT, onChange);
+  window.addEventListener(FAVORITES_EVENT, onChange);
   window.addEventListener("storage", onChange);
   return () => {
-    window.removeEventListener(EVENT, onChange);
+    window.removeEventListener(FAVORITES_EVENT, onChange);
     window.removeEventListener("storage", onChange);
   };
 }
 
-function parse(raw: string): string[] {
+export function parseFavoriteSlugs(raw: string): string[] {
   try {
     const value: unknown = JSON.parse(raw);
     if (!Array.isArray(value)) return [];
     const migrated = value
-      .filter((v): v is string => typeof v === "string")
+      .filter((entry): entry is string => typeof entry === "string")
       .map((slug) => SLUG_MIGRATIONS[slug] ?? slug);
-    // De-duplicate: a user may have saved both the old and the new slug.
     return [...new Set(migrated)];
   } catch {
     return [];
   }
 }
 
-/** Saved-tool slugs, persisted in localStorage and synced across the UI. */
+/** Saved tools are deliberately account-free and remain in this browser. */
 export function useFavorites(): {
   saved: string[];
   isSaved: (slug: string) => boolean;
   toggle: (slug: string) => void;
 } {
   const raw = useSyncExternalStore(subscribe, readRaw, () => "[]");
-  const saved = useMemo(() => parse(raw), [raw]);
+  const saved = useMemo(() => parseFavoriteSlugs(raw), [raw]);
   return {
     saved,
     isSaved: (slug) => saved.includes(slug),
     toggle: (slug) => {
       const next = saved.includes(slug)
-        ? saved.filter((s) => s !== slug)
+        ? saved.filter((item) => item !== slug)
         : [...saved, slug];
       try {
         window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
       } catch {
-        // Storage full/blocked — saving is best-effort only.
+        /* Storage is best-effort. */
       }
-      window.dispatchEvent(new Event(EVENT));
+      window.dispatchEvent(
+        new CustomEvent(FAVORITES_EVENT, {
+          detail: { slug, action: saved.includes(slug) ? "remove" : "add" },
+        }),
+      );
     },
   };
 }

@@ -96,13 +96,8 @@ export const contactEmail: string | null =
  */
 export const contactEmailVerified = contactEmail !== null;
 
-/**
- * Optional contact-form endpoint (e.g. Formspree, Resend, or your own API).
- * Leave empty to use the built-in fallback, which opens the visitor's email
- * app with a pre-filled message (mailto:) — no data touches a server.
- * When set, the form POSTs JSON: { name, email, subject, message }.
- */
-export const contactFormEndpoint = "";
+/** QUICKKIT's first-party server route; it stores consented messages privately in Supabase when configured. */
+export const contactFormEndpoint = "/api/contact";
 
 /**
  * Whether the social row is shown at all.

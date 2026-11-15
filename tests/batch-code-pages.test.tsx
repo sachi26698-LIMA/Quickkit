@@ -17,11 +17,11 @@ vi.mock("next/navigation", () => ({
 
 import BatchCodeCheckerPage, {
   metadata as checkerMetadata,
-} from "../app/tools/batch-code-checker/page";
+} from "../app/(public)/tools/batch-code-checker/page";
 import BarcodeScannerPage, {
   metadata as scannerMetadata,
-} from "../app/tools/barcode-scanner/page";
-import { metadata as generatorMetadata } from "../app/tools/barcode-generator/page";
+} from "../app/(public)/tools/barcode-scanner/page";
+import { metadata as generatorMetadata } from "../app/(public)/tools/barcode-generator/page";
 
 afterEach(() => {
   cleanup();

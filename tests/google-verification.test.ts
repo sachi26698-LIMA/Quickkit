@@ -31,15 +31,15 @@ describe("Google Search Console verification", () => {
     const layout = readFileSync("app/layout.tsx", "utf8");
     expect(layout).toContain(`const GOOGLE_SITE_VERIFICATION = "${TOKEN}"`);
 
-    const home = readFileSync("app/page.tsx", "utf8");
+    const home = readFileSync("app/(public)/page.tsx", "utf8");
     expect(home).not.toContain(TOKEN);
   });
 
   it("leaves the AdSense code untouched", () => {
-    const layout = readFileSync("app/layout.tsx", "utf8");
+    const layout = readFileSync("app/(public)/layout.tsx", "utf8");
     // One loader, still keyed to the same publisher, still in the head.
     expect(layout.split("adsbygoogle.js?client=")).toHaveLength(2);
-    expect(layout).toContain("client=ca-pub-1478767466279341");
+    expect(layout).toContain('ADSENSE_CLIENT_ID = "ca-pub-1478767466279341"');
     // And the AdSense meta tag that was already being served.
     expect(metadata.other).toMatchObject({
       "google-adsense-account": "ca-pub-1478767466279341",

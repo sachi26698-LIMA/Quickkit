@@ -1,0 +1,27 @@
+/* Admin-only base reset: the public QUICKKIT shell and styles are untouched. */
+.admin-root * {
+  box-sizing: border-box;
+}
+.admin-root button,
+.admin-login-wrap button {
+  font: inherit;
+}
+.admin-root a:focus-visible,
+.admin-root button:focus-visible,
+.admin-root input:focus-visible,
+.admin-root select:focus-visible,
+.admin-root textarea:focus-visible,
+.admin-login-wrap a:focus-visible,
+.admin-login-wrap button:focus-visible,
+.admin-login-wrap input:focus-visible {
+  outline: 3px solid #ff6b6b;
+  outline-offset: 2px;
+}
+.admin-root h2,
+.admin-root h3,
+.admin-root p {
+  line-height: 1.45;
+}
+.admin-root :where(button, input, select, textarea) {
+  font-family: inherit;
+}

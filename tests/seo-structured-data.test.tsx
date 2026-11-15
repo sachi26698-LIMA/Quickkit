@@ -70,6 +70,8 @@ beforeAll(() => {
 
 beforeEach(() => {
   vi.stubEnv("SITE_URL", ORIGIN);
+  vi.stubEnv("ADS_ENABLED", "");
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "");
   vi.resetModules();
 });
 
@@ -234,12 +236,11 @@ describe("BreadcrumbList JSON-LD", () => {
     const { default: ToolShellShell } =
       await import("../components/tool-shell");
     const { container } = render(
-      <ToolShellShell
-        slug="word-counter"
-        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
-      >
-        <div />
-      </ToolShellShell>,
+      await ToolShellShell({
+        slug: "word-counter",
+        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
+        children: <div />,
+      }),
     );
 
     // What the reader sees…
@@ -264,13 +265,13 @@ describe("BreadcrumbList JSON-LD", () => {
   });
 
   it("is emitted on the pages that visibly show a trail, and not elsewhere", async () => {
-    const SitemapPage = (await import("../app/sitemap/page")).default;
-    const AboutPage = (await import("../app/about/page")).default;
-    const Home = (await import("../app/page")).default;
+    const SitemapPage = (await import("../app/(public)/sitemap/page")).default;
+    const AboutPage = (await import("../app/(public)/about/page")).default;
+    const Home = (await import("../app/(public)/page")).default;
 
-    const sitemap = render(createElement(SitemapPage)).container;
+    const sitemap = render(await SitemapPage()).container;
     const about = render(createElement(AboutPage)).container;
-    const home = render(createElement(Home)).container;
+    const home = render(await Home()).container;
 
     for (const container of [sitemap, about]) {
       expect(
@@ -292,9 +293,9 @@ describe("BreadcrumbList JSON-LD", () => {
   });
 
   it("is rendered once per page, not duplicated by the layout", async () => {
-    const { default: Layout } = await import("../app/layout");
+    const { default: Layout } = await import("../app/(public)/layout");
     const markup = renderToStaticMarkup(
-      createElement(Layout, null, createElement("main", null, "x")),
+      await Layout({ children: createElement("main", null, "x") }),
     );
     const holder = document.createElement("div");
     holder.innerHTML = markup;
@@ -318,10 +319,11 @@ describe("BreadcrumbList JSON-LD", () => {
 
     // Only an explicit opt-in adds the external advertising script.
     vi.stubEnv("ADS_ENABLED", "true");
+    vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "true");
     vi.resetModules();
-    const { default: EnabledLayout } = await import("../app/layout");
+    const { default: EnabledLayout } = await import("../app/(public)/layout");
     const enabledMarkup = renderToStaticMarkup(
-      createElement(EnabledLayout, null, createElement("main", null, "x")),
+      await EnabledLayout({ children: createElement("main", null, "x") }),
     );
     const enabledHolder = document.createElement("div");
     enabledHolder.innerHTML = enabledMarkup;
@@ -336,8 +338,8 @@ describe("BreadcrumbList JSON-LD", () => {
 // ── homepage headline and copy ──────────────────────────────────────────────
 describe("homepage H1 and original copy", () => {
   it("has one visible, descriptive H1 instead of a screen-reader label", async () => {
-    const Home = (await import("../app/page")).default;
-    const { container } = render(createElement(Home));
+    const Home = (await import("../app/(public)/page")).default;
+    const { container } = render(await Home());
 
     const headings = container.querySelectorAll("h1");
     expect(headings).toHaveLength(1);
@@ -350,8 +352,8 @@ describe("homepage H1 and original copy", () => {
   });
 
   it("explains the toolkit in 250–400 words of real text", async () => {
-    const Home = (await import("../app/page")).default;
-    const { container } = render(createElement(Home));
+    const Home = (await import("../app/(public)/page")).default;
+    const { container } = render(await Home());
     const copy = container.querySelector(".home-copy");
 
     expect(copy).not.toBeNull();
@@ -602,10 +604,11 @@ describe("Phase 2 technical SEO contracts", () => {
   });
 
   it("emits CollectionPage on /tools and active categories, but not on empty noindex categories", async () => {
-    const ToolsPage = (await import("../app/tools/page")).default;
-    const CategoryPage = (await import("../app/category/[slug]/page")).default;
+    const ToolsPage = (await import("../app/(public)/tools/page")).default;
+    const CategoryPage = (await import("../app/(public)/category/[slug]/page"))
+      .default;
 
-    const { container: toolsDom } = render(createElement(ToolsPage));
+    const { container: toolsDom } = render(await ToolsPage());
     const toolsSchemas = jsonLd(toolsDom);
     const toolsCollection = toolsSchemas.find(
       (b) => b["@type"] === "CollectionPage",
@@ -691,19 +694,21 @@ describe("Phase 2 technical SEO contracts", () => {
   });
 
   it("maintains strict H1->H2->H3 hierarchy without level skips across Batch A pages", async () => {
-    const HomePage = (await import("../app/page")).default;
-    const ToolsPage = (await import("../app/tools/page")).default;
-    const CategoryPage = (await import("../app/category/[slug]/page")).default;
-    const HelpPage = (await import("../app/help/page")).default;
-    const SitemapPage = (await import("../app/sitemap/page")).default;
-    const ContactPage = (await import("../app/contact/page")).default;
-    const FileHandlingPage = (await import("../app/file-handling/page"))
+    const HomePage = (await import("../app/(public)/page")).default;
+    const ToolsPage = (await import("../app/(public)/tools/page")).default;
+    const CategoryPage = (await import("../app/(public)/category/[slug]/page"))
       .default;
+    const HelpPage = (await import("../app/(public)/help/page")).default;
+    const SitemapPage = (await import("../app/(public)/sitemap/page")).default;
+    const ContactPage = (await import("../app/(public)/contact/page")).default;
+    const FileHandlingPage = (
+      await import("../app/(public)/file-handling/page")
+    ).default;
     const { legalPageByHref } = await import("../lib/legal");
 
     const samples: Array<[string, React.ReactElement]> = [
-      ["/", createElement(HomePage)],
-      ["/tools", createElement(ToolsPage)],
+      ["/", await HomePage()],
+      ["/tools", await ToolsPage()],
       [
         "/category/pdf-tools",
         await CategoryPage({ params: Promise.resolve({ slug: "pdf-tools" }) }),
@@ -713,8 +718,8 @@ describe("Phase 2 technical SEO contracts", () => {
         await CategoryPage({ params: Promise.resolve({ slug: "ai-tools" }) }),
       ],
       ["/help", createElement(HelpPage)],
-      ["/sitemap", createElement(SitemapPage)],
-      ["/contact", createElement(ContactPage)],
+      ["/sitemap", await SitemapPage()],
+      ["/contact", await ContactPage()],
       ["/file-handling", createElement(FileHandlingPage)],
     ];
 

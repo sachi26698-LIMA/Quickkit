@@ -1,23 +1,26 @@
 # QUICKKIT — Final Launch-Readiness Report
 
 **Verification date:** 10 November 2026 UTC
-**Branch:** `arena/ce249373-quickkit` (active; based on `16863986657f42583acfda216e228e8c2f5f8aa6`)
-**Verdict: NEEDS ATTENTION — local verification passes; launch gates remain open**
+**Current branch:** `arena/73c3e289-quickkit` (active; based on `2ea18259b1cccffb0f881b3a7be0c5d68826db14`)
+**Current verdict: NEEDS ATTENTION — owner configuration, live Admin/intake verification, SMTP incident closure and release approval remain open.**
 
-This is a local verification report, not a production sign-off. The requested Chromium, unit, build, route, axe and mobile checks pass. Firefox/WebKit, legal/licensing approval, public-production verification and Core Web Vitals remain outstanding. No deployment or production setting change was made.
+This is not production sign-off. The latest local QA and live read-only evidence is summarized in the authoritative continuation at the end of this report and in `QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md`. Older sections are retained as history; statements in them about migration 002 still being pending, SMTP credentials being absent, or Chromium being unavailable are superseded where explicitly corrected below. Migration 002 is present exactly once in the live ledger (version `20261114190425`); do not rerun it. Current Chromium run was **918 passed, 3 existing screenshot-only skips, 0 failed**. The owner-only checks and no-secret Vercel matrix are listed in the latest continuation below.
 
-## Final verification summary
+## Verification summary — latest evidence summarized below (historical rows superseded where noted)
 
-| Check | Latest verified result |
-|---|---|
-| Chromium E2E | **906 passed, 0 failed, 3 skipped, 0 flaky** (909 total; one worker, retries disabled, Node 26.13.0, Chromium 153.0.8010.0). Three skips are opt-in screenshot captures requiring `CAPTURE_SHOTS`. |
-| Four affected E2E groups | **64/64 passed** across Developer Tools, Home hero, Legal pages and Premium Tools. |
-| Original Chromium failure list | **83/83 pass** in the complete rerun. The former Developer Tools aggregate check is now eleven per-route checks, all passing. Exact original test names and outcomes are listed below. |
-| Vitest | **1,739/1,739 passed** across 105 files on Node 26.13.0. |
-| Production build | **Passed**, including TypeScript; 76 static pages generated. The Word-to-PDF API remains dynamic. |
-| Route, metadata and heading sweep | **68/68** routes returned HTTP 200; 68 unique titles and descriptions; exactly one visible H1 at desktop and mobile viewports. |
-| Automated accessibility | **0 axe WCAG 2.0/2.1/2.2 A/AA violations** across all 68 routes at desktop (1280×900) and mobile (320×800). This is automated evidence, not a human conformance claim. |
-| Mobile overflow | **42/42** tool routes have no horizontal overflow at 320 px. |
+| Check                       | Latest current-branch result                                                                                                                                                                                                                                                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chromium E2E | **918 passed, 3 existing screenshot-only skips, 0 failed.** Local production-build Chromium run; skips are gated by unset `CAPTURE_SHOTS`. Firefox/WebKit and hosted browser checks remain open. |
+| Vitest | **1,789/1,789 passed** across 117 files with two workers and one retry; latest prior completed run. |
+| TypeScript                  | **Passed** (`npm run typecheck`).                                                                                                                                                                                                                                                                                                                          |
+| ESLint                      | **Passed** (`npm run lint`).                                                                                                                                                                                                                                                                                                                               |
+| Prettier                    | **Passed** (`npm run format:check`).                                                                                                                                                                                                                                                                                                                       |
+| Production build            | **Passed** (`npm run build`); Next.js generated 81 static pages; dynamic API/account routes remained dynamic.                                                                                                                                                                                                                                              |
+| Live Supabase state | Latest safe health reports Auth/DB/REST `ACTIVE_HEALTHY`; migrations 001 and 002 are recorded once; nine RLS-enabled QUICKKIT tables were previously verified empty. SQL-role checks are not JWT/PostgREST tests. |
+| Auth policy / mail | **Owner verification required.** Keep public signup disabled; do not re-read unsafe Auth config. Owner-reported SMTP rotation is not independently verified; delivery/log review remain open. |
+| Vercel variables | Latest safely documented Production snapshot: public Supabase URL/key present, service-role/HMAC empty, Admin allowlist absent; not freshly checked. Preview/Development unknown. |
+
+Detailed Chromium/route/accessibility records later in this document include historical snapshots. The authoritative local results are summarized in the owner-readiness closeout at the end; none is a production-host sign-off.
 
 ### Four prior Chromium failure groups: cause and correction
 
@@ -46,93 +49,154 @@ These were test-scoping, interaction-stability or hydration-synchronization issu
 - Route/accessibility recheck used the local production preview at `http://127.0.0.1:3000`; all 68 direct routes, desktop/mobile axe scans and 320 px tool overflow checks passed.
 - `git diff --check` and Prettier checks on the corrected E2E tests passed.
 
-## Scope and approval
+## Historical scope and approval — prior branch
 
 Only E2E test synchronization/isolation was changed for these four failures; application features and design were left unchanged. There was no push, PR, merge, deployment or launch-setting change. This report is **not launch approval**. Stop here for owner review.
 
 ### Original 83 Chromium failure cases — exact names and final comparison
-| # | Original test (spec and exact test title) | Final result |
-|---:|---|---|
-| 1 | <code>tests/e2e/advanced-batch.spec.ts:40:1 › loan affordability and LTV</code> | PASS in final complete rerun |
-| 2 | <code>tests/e2e/batch1-calculators.spec.ts:21:1 › BMI comparison supports individual age groups and safe CSV</code> | PASS in final complete rerun |
-| 3 | <code>tests/e2e/batch3-calculators.spec.ts:38:3 › unit-converter comparison CSV and restorable precision</code> | PASS in final complete rerun |
-| 4 | <code>tests/e2e/batch3-calculators.spec.ts:38:3 › temperature-converter comparison CSV and restorable precision</code> | PASS in final complete rerun |
-| 5 | <code>tests/e2e/bmi-age-safety.spec.ts:3:1 › BMI shows adult categories only when age 20+ is confirmed</code> | PASS in final complete rerun |
-| 6 | <code>tests/e2e/calculators.spec.ts:15:3 › percentage-calculator responds and fits on desktop and mobile</code> | PASS in final complete rerun |
-| 7 | <code>tests/e2e/calculators.spec.ts:15:3 › bmi-calculator responds and fits on desktop and mobile</code> | PASS in final complete rerun |
-| 8 | <code>tests/e2e/calculators.spec.ts:15:3 › discount-calculator responds and fits on desktop and mobile</code> | PASS in final complete rerun |
-| 9 | <code>tests/e2e/calculators.spec.ts:15:3 › gst-calculator responds and fits on desktop and mobile</code> | PASS in final complete rerun |
-| 10 | <code>tests/e2e/developer-tools.spec.ts:74:3 › the eleven Developer Tools › routes render, pass accessibility checks and fit desktop and mobile</code> | PASS — replaced by 11 passing per-route tests |
-| 11 | <code>tests/e2e/discount-v2-verification.spec.ts:55:1 › discount populated responsive and keyboard accessibility</code> | PASS in final complete rerun |
-| 12 | <code>tests/e2e/home-hero.spec.ts:267:1 › feedback reports storage failure without pretending it was saved</code> | PASS in final complete rerun |
-| 13 | <code>tests/e2e/image-cropper-audit.spec.ts:348:3 › Image Cropper › empty state explains the tool and stays local</code> | PASS in final complete rerun |
-| 14 | <code>tests/e2e/image-resizer-audit.spec.ts:269:3 › image resizer audit › structured data and guidance are published for the route</code> | PASS in final complete rerun |
-| 15 | <code>tests/e2e/image-to-image.spec.ts:872:3 › Image to Image Converter — target file size › says so when the target is not reachable instead of faking it</code> | PASS in final complete rerun |
-| 16 | <code>tests/e2e/image-to-text.spec.ts:81:3 › Image to Text (OCR) › renders the tool shell, SEO copy and structured data</code> | PASS in final complete rerun |
-| 17 | <code>tests/e2e/image-to-text.spec.ts:377:3 › Image to Text (OCR) › stays usable on a phone viewport</code> | PASS in final complete rerun |
-| 18 | <code>tests/e2e/images-to-pdf.spec.ts:788:3 › Images to PDF Converter — access and evidence › stays accessible from a 375px phone to a desktop</code> | PASS in final complete rerun |
-| 19 | <code>tests/e2e/legal-pages.spec.ts:129:1 › legal pages pass axe and are keyboard navigable</code> | PASS in final complete rerun |
-| 20 | <code>tests/e2e/pdf-studio.spec.ts:166:3 › PDF Studio › reordering the grid changes the order in the written PDF</code> | PASS in final complete rerun |
-| 21 | <code>tests/e2e/pdf-studio.spec.ts:311:3 › PDF Studio › a plan with no kept pages cannot run and says why</code> | PASS in final complete rerun |
-| 22 | <code>tests/e2e/pdf-studio.spec.ts:325:3 › PDF Studio › an encrypted PDF is refused with a clear message</code> | PASS in final complete rerun |
-| 23 | <code>tests/e2e/pdf-to-image.spec.ts:138:3 › PDF to Image Converter › starts with an empty workspace and a disabled convert button</code> | PASS in final complete rerun |
-| 24 | <code>tests/e2e/pdf-to-image.spec.ts:227:3 › PDF to Image Converter › exports only the pages in the range</code> | PASS in final complete rerun |
-| 25 | <code>tests/e2e/pdf-to-image.spec.ts:368:3 › PDF to Image Converter — preview and access › after exporting, the preview shows the page that was produced</code> | PASS in final complete rerun |
-| 26 | <code>tests/e2e/pdf-to-image.spec.ts:384:3 › PDF to Image Converter — preview and access › stays accessible from a 375px phone to a desktop</code> | PASS in final complete rerun |
-| 27 | <code>tests/e2e/pdf-to-word.spec.ts:487:1 › mobile preview uses tabs instead of compare</code> | PASS in final complete rerun |
-| 28 | <code>tests/e2e/percentage-complete.spec.ts:173:1 › populated responsive layout, axe, console and screenshots</code> | PASS in final complete rerun |
-| 29 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › percentage-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 30 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › age-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 31 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › date-difference-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 32 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › bmi-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 33 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › gst-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 34 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › discount-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 35 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › emi-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 36 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › loan-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 37 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › scientific-calculator: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 38 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › unit-converter: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 39 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › temperature-converter: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 40 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › time-converter: populated desktop and mobile evidence</code> | PASS in final complete rerun |
-| 41 | <code>tests/e2e/phase9-populated-evidence.spec.ts:146:1 › restorable date, BMI, invoice and loan scenarios</code> | PASS in final complete rerun |
-| 42 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › age-calculator: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 43 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › date-difference-calculator: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 44 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › emi-calculator: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 45 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › loan-calculator: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 46 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › scientific-calculator: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 47 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › unit-converter: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 48 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › temperature-converter: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 49 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › time-converter: responsive calculation and accessibility</code> | PASS in final complete rerun |
-| 50 | <code>tests/e2e/phase9-timezones.spec.ts:3:1 › meeting planner rejects DST gaps and chooses repeated instant</code> | PASS in final complete rerun |
-| 51 | <code>tests/e2e/phase9-v2-finance.spec.ts:99:3 › percentage-calculator: populated advanced views responsive and axe</code> | PASS in final complete rerun |
-| 52 | <code>tests/e2e/phase9-v2-finance.spec.ts:99:3 › gst-calculator: populated advanced views responsive and axe</code> | PASS in final complete rerun |
-| 53 | <code>tests/e2e/phase9-v2-finance.spec.ts:99:3 › discount-calculator: populated advanced views responsive and axe</code> | PASS in final complete rerun |
-| 54 | <code>tests/e2e/phase9-v2-finance.spec.ts:123:1 › loan down payment and affordability workflow</code> | PASS in final complete rerun |
-| 55 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › discount-calculator populated scenario responsive and accessible</code> | PASS in final complete rerun |
-| 56 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › loan-calculator populated scenario responsive and accessible</code> | PASS in final complete rerun |
-| 57 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › emi-calculator populated scenario responsive and accessible</code> | PASS in final complete rerun |
-| 58 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › time-converter populated scenario responsive and accessible</code> | PASS in final complete rerun |
-| 59 | <code>tests/e2e/phase9-v2-working-time.spec.ts:23:1 › working-time populated responsive view and accessibility</code> | PASS in final complete rerun |
-| 60 | <code>tests/e2e/phase9-v2.spec.ts:4:1 › scientific functions, keyboard answer and restore</code> | PASS in final complete rerun |
-| 61 | <code>tests/e2e/phase9-v2.spec.ts:19:1 › date holiday and calendar shifts</code> | PASS in final complete rerun |
-| 62 | <code>tests/e2e/phase9-v2.spec.ts:30:1 › conversion comparison and session restore</code> | PASS in final complete rerun |
-| 63 | <code>tests/e2e/phase9-v2.spec.ts:48:1 › loan prepayment and CSV download</code> | PASS in final complete rerun |
-| 64 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › scientific-calculator V2 responsive and axe ──</code> | PASS in final complete rerun |
-| 65 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › unit-converter V2 responsive and axe</code> | PASS in final complete rerun |
-| 66 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › temperature-converter V2 responsive and axe ──</code> | PASS in final complete rerun |
-| 67 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › time-converter V2 responsive and axe</code> | PASS in final complete rerun |
-| 68 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › age-calculator V2 responsive and axe</code> | PASS in final complete rerun |
-| 69 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › date-difference-calculator V2 responsive and axe</code> | PASS in final complete rerun |
-| 70 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › emi-calculator V2 responsive and axe</code> | PASS in final complete rerun |
-| 71 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › loan-calculator V2 responsive and axe</code> | PASS in final complete rerun |
-| 72 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › bmi-calculator V2 responsive and axe</code> | PASS in final complete rerun |
-| 73 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › discount-calculator V2 responsive and axe</code> | PASS in final complete rerun |
-| 74 | <code>tests/e2e/premium-tools.spec.ts:44:1 › word counter premium: sample, goal, density and download</code> | PASS in final complete rerun |
-| 75 | <code>tests/e2e/premium-tools.spec.ts:119:1 › password premium: strength meter, history and hide toggle</code> | PASS in final complete rerun |
-| 76 | <code>tests/e2e/premium-tools.spec.ts:139:1 › QR premium: sizes decode, SVG downloads, styling and low contrast are checked</code> | PASS in final complete rerun |
-| 77 | <code>tests/e2e/qr-scanner-verification.spec.ts:305:3 › QR Scanner verification — security inspection › never labels an HTTPS link as safe</code> | PASS in final complete rerun |
-| 78 | <code>tests/e2e/qr-scanner-verification.spec.ts:319:3 › QR Scanner verification — security inspection › opens the redirect popup with clickable source link and never auto-navigates</code> | PASS in final complete rerun |
-| 79 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 320</code> | PASS in final complete rerun |
-| 80 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 360</code> | PASS in final complete rerun |
-| 81 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 375</code> | PASS in final complete rerun |
-| 82 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 390</code> | PASS in final complete rerun |
-| 83 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 768</code> | PASS in final complete rerun |
+
+|   # | Original test (spec and exact test title)                                                                                                                                                   | Final result                                  |
+| --: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+|   1 | <code>tests/e2e/advanced-batch.spec.ts:40:1 › loan affordability and LTV</code>                                                                                                             | PASS in final complete rerun                  |
+|   2 | <code>tests/e2e/batch1-calculators.spec.ts:21:1 › BMI comparison supports individual age groups and safe CSV</code>                                                                         | PASS in final complete rerun                  |
+|   3 | <code>tests/e2e/batch3-calculators.spec.ts:38:3 › unit-converter comparison CSV and restorable precision</code>                                                                             | PASS in final complete rerun                  |
+|   4 | <code>tests/e2e/batch3-calculators.spec.ts:38:3 › temperature-converter comparison CSV and restorable precision</code>                                                                      | PASS in final complete rerun                  |
+|   5 | <code>tests/e2e/bmi-age-safety.spec.ts:3:1 › BMI shows adult categories only when age 20+ is confirmed</code>                                                                               | PASS in final complete rerun                  |
+|   6 | <code>tests/e2e/calculators.spec.ts:15:3 › percentage-calculator responds and fits on desktop and mobile</code>                                                                             | PASS in final complete rerun                  |
+|   7 | <code>tests/e2e/calculators.spec.ts:15:3 › bmi-calculator responds and fits on desktop and mobile</code>                                                                                    | PASS in final complete rerun                  |
+|   8 | <code>tests/e2e/calculators.spec.ts:15:3 › discount-calculator responds and fits on desktop and mobile</code>                                                                               | PASS in final complete rerun                  |
+|   9 | <code>tests/e2e/calculators.spec.ts:15:3 › gst-calculator responds and fits on desktop and mobile</code>                                                                                    | PASS in final complete rerun                  |
+|  10 | <code>tests/e2e/developer-tools.spec.ts:74:3 › the eleven Developer Tools › routes render, pass accessibility checks and fit desktop and mobile</code>                                      | PASS — replaced by 11 passing per-route tests |
+|  11 | <code>tests/e2e/discount-v2-verification.spec.ts:55:1 › discount populated responsive and keyboard accessibility</code>                                                                     | PASS in final complete rerun                  |
+|  12 | <code>tests/e2e/home-hero.spec.ts:267:1 › feedback reports storage failure without pretending it was saved</code>                                                                           | PASS in final complete rerun                  |
+|  13 | <code>tests/e2e/image-cropper-audit.spec.ts:348:3 › Image Cropper › empty state explains the tool and stays local</code>                                                                    | PASS in final complete rerun                  |
+|  14 | <code>tests/e2e/image-resizer-audit.spec.ts:269:3 › image resizer audit › structured data and guidance are published for the route</code>                                                   | PASS in final complete rerun                  |
+|  15 | <code>tests/e2e/image-to-image.spec.ts:872:3 › Image to Image Converter — target file size › says so when the target is not reachable instead of faking it</code>                           | PASS in final complete rerun                  |
+|  16 | <code>tests/e2e/image-to-text.spec.ts:81:3 › Image to Text (OCR) › renders the tool shell, SEO copy and structured data</code>                                                              | PASS in final complete rerun                  |
+|  17 | <code>tests/e2e/image-to-text.spec.ts:377:3 › Image to Text (OCR) › stays usable on a phone viewport</code>                                                                                 | PASS in final complete rerun                  |
+|  18 | <code>tests/e2e/images-to-pdf.spec.ts:788:3 › Images to PDF Converter — access and evidence › stays accessible from a 375px phone to a desktop</code>                                       | PASS in final complete rerun                  |
+|  19 | <code>tests/e2e/legal-pages.spec.ts:129:1 › legal pages pass axe and are keyboard navigable</code>                                                                                          | PASS in final complete rerun                  |
+|  20 | <code>tests/e2e/pdf-studio.spec.ts:166:3 › PDF Studio › reordering the grid changes the order in the written PDF</code>                                                                     | PASS in final complete rerun                  |
+|  21 | <code>tests/e2e/pdf-studio.spec.ts:311:3 › PDF Studio › a plan with no kept pages cannot run and says why</code>                                                                            | PASS in final complete rerun                  |
+|  22 | <code>tests/e2e/pdf-studio.spec.ts:325:3 › PDF Studio › an encrypted PDF is refused with a clear message</code>                                                                             | PASS in final complete rerun                  |
+|  23 | <code>tests/e2e/pdf-to-image.spec.ts:138:3 › PDF to Image Converter › starts with an empty workspace and a disabled convert button</code>                                                   | PASS in final complete rerun                  |
+|  24 | <code>tests/e2e/pdf-to-image.spec.ts:227:3 › PDF to Image Converter › exports only the pages in the range</code>                                                                            | PASS in final complete rerun                  |
+|  25 | <code>tests/e2e/pdf-to-image.spec.ts:368:3 › PDF to Image Converter — preview and access › after exporting, the preview shows the page that was produced</code>                             | PASS in final complete rerun                  |
+|  26 | <code>tests/e2e/pdf-to-image.spec.ts:384:3 › PDF to Image Converter — preview and access › stays accessible from a 375px phone to a desktop</code>                                          | PASS in final complete rerun                  |
+|  27 | <code>tests/e2e/pdf-to-word.spec.ts:487:1 › mobile preview uses tabs instead of compare</code>                                                                                              | PASS in final complete rerun                  |
+|  28 | <code>tests/e2e/percentage-complete.spec.ts:173:1 › populated responsive layout, axe, console and screenshots</code>                                                                        | PASS in final complete rerun                  |
+|  29 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › percentage-calculator: populated desktop and mobile evidence</code>                                                               | PASS in final complete rerun                  |
+|  30 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › age-calculator: populated desktop and mobile evidence</code>                                                                      | PASS in final complete rerun                  |
+|  31 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › date-difference-calculator: populated desktop and mobile evidence</code>                                                          | PASS in final complete rerun                  |
+|  32 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › bmi-calculator: populated desktop and mobile evidence</code>                                                                      | PASS in final complete rerun                  |
+|  33 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › gst-calculator: populated desktop and mobile evidence</code>                                                                      | PASS in final complete rerun                  |
+|  34 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › discount-calculator: populated desktop and mobile evidence</code>                                                                 | PASS in final complete rerun                  |
+|  35 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › emi-calculator: populated desktop and mobile evidence</code>                                                                      | PASS in final complete rerun                  |
+|  36 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › loan-calculator: populated desktop and mobile evidence</code>                                                                     | PASS in final complete rerun                  |
+|  37 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › scientific-calculator: populated desktop and mobile evidence</code>                                                               | PASS in final complete rerun                  |
+|  38 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › unit-converter: populated desktop and mobile evidence</code>                                                                      | PASS in final complete rerun                  |
+|  39 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › temperature-converter: populated desktop and mobile evidence</code>                                                               | PASS in final complete rerun                  |
+|  40 | <code>tests/e2e/phase9-populated-evidence.spec.ts:112:3 › time-converter: populated desktop and mobile evidence</code>                                                                      | PASS in final complete rerun                  |
+|  41 | <code>tests/e2e/phase9-populated-evidence.spec.ts:146:1 › restorable date, BMI, invoice and loan scenarios</code>                                                                           | PASS in final complete rerun                  |
+|  42 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › age-calculator: responsive calculation and accessibility</code>                                                                             | PASS in final complete rerun                  |
+|  43 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › date-difference-calculator: responsive calculation and accessibility</code>                                                                 | PASS in final complete rerun                  |
+|  44 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › emi-calculator: responsive calculation and accessibility</code>                                                                             | PASS in final complete rerun                  |
+|  45 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › loan-calculator: responsive calculation and accessibility</code>                                                                            | PASS in final complete rerun                  |
+|  46 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › scientific-calculator: responsive calculation and accessibility</code>                                                                      | PASS in final complete rerun                  |
+|  47 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › unit-converter: responsive calculation and accessibility</code>                                                                             | PASS in final complete rerun                  |
+|  48 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › temperature-converter: responsive calculation and accessibility</code>                                                                      | PASS in final complete rerun                  |
+|  49 | <code>tests/e2e/phase9-remaining.spec.ts:63:3 › time-converter: responsive calculation and accessibility</code>                                                                             | PASS in final complete rerun                  |
+|  50 | <code>tests/e2e/phase9-timezones.spec.ts:3:1 › meeting planner rejects DST gaps and chooses repeated instant</code>                                                                         | PASS in final complete rerun                  |
+|  51 | <code>tests/e2e/phase9-v2-finance.spec.ts:99:3 › percentage-calculator: populated advanced views responsive and axe</code>                                                                  | PASS in final complete rerun                  |
+|  52 | <code>tests/e2e/phase9-v2-finance.spec.ts:99:3 › gst-calculator: populated advanced views responsive and axe</code>                                                                         | PASS in final complete rerun                  |
+|  53 | <code>tests/e2e/phase9-v2-finance.spec.ts:99:3 › discount-calculator: populated advanced views responsive and axe</code>                                                                    | PASS in final complete rerun                  |
+|  54 | <code>tests/e2e/phase9-v2-finance.spec.ts:123:1 › loan down payment and affordability workflow</code>                                                                                       | PASS in final complete rerun                  |
+|  55 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › discount-calculator populated scenario responsive and accessible</code>                                                                  | PASS in final complete rerun                  |
+|  56 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › loan-calculator populated scenario responsive and accessible</code>                                                                      | PASS in final complete rerun                  |
+|  57 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › emi-calculator populated scenario responsive and accessible</code>                                                                       | PASS in final complete rerun                  |
+|  58 | <code>tests/e2e/phase9-v2-scenarios.spec.ts:89:3 › time-converter populated scenario responsive and accessible</code>                                                                       | PASS in final complete rerun                  |
+|  59 | <code>tests/e2e/phase9-v2-working-time.spec.ts:23:1 › working-time populated responsive view and accessibility</code>                                                                       | PASS in final complete rerun                  |
+|  60 | <code>tests/e2e/phase9-v2.spec.ts:4:1 › scientific functions, keyboard answer and restore</code>                                                                                            | PASS in final complete rerun                  |
+|  61 | <code>tests/e2e/phase9-v2.spec.ts:19:1 › date holiday and calendar shifts</code>                                                                                                            | PASS in final complete rerun                  |
+|  62 | <code>tests/e2e/phase9-v2.spec.ts:30:1 › conversion comparison and session restore</code>                                                                                                   | PASS in final complete rerun                  |
+|  63 | <code>tests/e2e/phase9-v2.spec.ts:48:1 › loan prepayment and CSV download</code>                                                                                                            | PASS in final complete rerun                  |
+|  64 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › scientific-calculator V2 responsive and axe ──</code>                                                                                              | PASS in final complete rerun                  |
+|  65 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › unit-converter V2 responsive and axe</code>                                                                                                        | PASS in final complete rerun                  |
+|  66 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › temperature-converter V2 responsive and axe ──</code>                                                                                              | PASS in final complete rerun                  |
+|  67 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › time-converter V2 responsive and axe</code>                                                                                                        | PASS in final complete rerun                  |
+|  68 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › age-calculator V2 responsive and axe</code>                                                                                                        | PASS in final complete rerun                  |
+|  69 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › date-difference-calculator V2 responsive and axe</code>                                                                                            | PASS in final complete rerun                  |
+|  70 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › emi-calculator V2 responsive and axe</code>                                                                                                        | PASS in final complete rerun                  |
+|  71 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › loan-calculator V2 responsive and axe</code>                                                                                                       | PASS in final complete rerun                  |
+|  72 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › bmi-calculator V2 responsive and axe</code>                                                                                                        | PASS in final complete rerun                  |
+|  73 | <code>tests/e2e/phase9-v2.spec.ts:91:3 › discount-calculator V2 responsive and axe</code>                                                                                                   | PASS in final complete rerun                  |
+|  74 | <code>tests/e2e/premium-tools.spec.ts:44:1 › word counter premium: sample, goal, density and download</code>                                                                                | PASS in final complete rerun                  |
+|  75 | <code>tests/e2e/premium-tools.spec.ts:119:1 › password premium: strength meter, history and hide toggle</code>                                                                              | PASS in final complete rerun                  |
+|  76 | <code>tests/e2e/premium-tools.spec.ts:139:1 › QR premium: sizes decode, SVG downloads, styling and low contrast are checked</code>                                                          | PASS in final complete rerun                  |
+|  77 | <code>tests/e2e/qr-scanner-verification.spec.ts:305:3 › QR Scanner verification — security inspection › never labels an HTTPS link as safe</code>                                           | PASS in final complete rerun                  |
+|  78 | <code>tests/e2e/qr-scanner-verification.spec.ts:319:3 › QR Scanner verification — security inspection › opens the redirect popup with clickable source link and never auto-navigates</code> | PASS in final complete rerun                  |
+|  79 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 320</code>                                                                                                      | PASS in final complete rerun                  |
+|  80 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 360</code>                                                                                                      | PASS in final complete rerun                  |
+|  81 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 375</code>                                                                                                      | PASS in final complete rerun                  |
+|  82 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 390</code>                                                                                                      | PASS in final complete rerun                  |
+|  83 | <code>tests/e2e/quality.spec.ts:75:5 › no overflow /tools/json-formatter at 768</code>                                                                                                      | PASS in final complete rerun                  |
+
+## Supabase integration check — owner-reported resume
+
+**Checkpoint:** `arena/73c3e289-quickkit` at documentation commit `2a19c0e` (application implementation remains in `3b0e23a`); no application code or production deployment changed in this check.
+
+- Supabase project `Quick_kit` / `oevjmxcoyibkonousdoh` reports `COMING_UP`, not fully active. Health flags database and Postgres user healthy, but Auth and REST are unhealthy (pooler, realtime and storage are also unhealthy).
+- Direct read-only SQL schema audit and minimal `select 1` both failed with `Database is possibly not accessible at the moment`. The migration-list endpoint returned an empty `items` array, but SQL-level schema/history and RLS could not be verified.
+- Authorized key inventory reports legacy anon, legacy service-role, publishable, and secret key types. No key values are included here or in the repository. Existing Vercel Production settings still list only `SITE_URL` and `LAUNCH_APPROVED`; all four required Supabase variables remain unconfigured.
+- No Supabase migration, DDL, policy change, Vercel environment change, deployment, or key installation was performed. Do not treat Supabase features as live or RLS as verified.
+- **Launch verdict remains NEEDS ATTENTION.** Continue only after the existing project reaches healthy Auth/REST and a read-only SQL schema query succeeds. Inspect the existing schema/history before applying `supabase/migrations/202611100001_quickkit_account_data.sql`; then verify policies with disposable users. See `SUPABASE_SETUP.md` for the ordered owner checklist.
+- No production build or E2E run was performed for that historical checkpoint; it is superseded by the current execution update below.
+
+## Current Supabase execution checkpoint — 10 November 2026 UTC
+
+- **Database:** Existing project `oevjmxcoyibkonousdoh` was rechecked healthy and connected. Migration `202611100001_quickkit_account_data` applied once and recorded as version `20261113045854`. All five new tables, constraints/indexes, RLS, policies, triggers, grants, SECURITY DEFINER ownership/search paths and execute ACLs verified live. Synthetic rate-limit thresholds passed in a rolled-back service-role transaction; all five tables remain empty. No existing app tables/data were present pre-migration. Backup retention was not available through the connector, but this additive migration did not drop or overwrite data.
+- **Historical Auth snapshot (superseded for current launch readiness):** an earlier readback recorded signup disabled and email settings, but the connector response exposed SMTP credential material. Do not use that connector to recheck. Current public-signup state and email policy must be owner-verified in the dashboard; SMTP rotation, log review and delivery remain unverified.
+- **Vercel:** All four required Production variable names now exist; sensitive values are stored with sensitive visibility and not documented. No deploy was triggered; current production deployment remains unchanged.
+- **Current-branch code checks:** Vitest 108 files / 1,761 tests passed; TypeScript, ESLint, Prettier and local production build passed. Focused Supabase suite 21/21 passed. Earlier full-suite sitemap failures were due only to shallow Git history; after fetching full history, the complete suite passed.
+- **Not verified:** no two disposable accounts were available for authenticated cross-user RLS/Auth tests, no SMTP for live signup/reset, no production request/IP-header test, and no Chromium/mobile E2E because no browser binary/cache is installed and browser CDN downloads are unavailable. No push, merge, PR or deployment was performed.
+- **Verdict: NEEDS ATTENTION.** Owner actions: set password minimum ≥12, configure approved SMTP, arrange two-user live RLS/Auth checks, run Chromium/mobile tests, review backup retention, and separately approve deployment after those checks. Older launch evidence above remains historical and is not represented as a current-branch E2E run.
+
+## Final verification refresh — 10 November 2026 UTC
+
+- Installed locked dependencies with `npm ci`: 566 packages; npm reported 0 vulnerabilities.
+- `npm run typecheck`, `npm run lint`, and `npm run format:check`: **PASS**.
+- `npm run build`: **PASS**; 81 static pages generated. Auth/account and API paths remain dynamic where expected.
+- `npm test`: **108 files / 1,761 tests PASS** after the current shallow clone was deepened with `git fetch --unshallow origin`. The initial run failed two sitemap Git-date assertions solely because the clone lacked history; the exact same suite passed after fetching history, with no test or application change to address it.
+- `npm run test:e2e`: **BLOCKED before browser assertions**. Playwright enumerated 988 cases across configured browser projects. Error context identifies the missing Chromium executable at `/home/user/.cache/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell`; browser binaries/cache are absent. No E2E case is reported as an application pass/failure. Browser CDN downloads are outside this execution environment's allowed network hosts.
+- Latest read-only Supabase table counts: **0 rows** in each of `quickkit_profiles`, `quickkit_favorites`, `quickkit_contact_submissions`, `quickkit_feedback_submissions`, and `quickkit_submission_limits`. No disposable-user, PostgREST HTTP submission, or production rate-limit test was run in this refresh. Earlier catalog/ACL and rolled-back SQL RPC checks are not substitutes for real PostgREST requests.
+- Dashboard steps for password/SMTP and the controlled two-user test protocol are in `SUPABASE_SETUP.md`. No deployment, push, merge or PR was performed; stop for owner approval.
+
+### Latest continuation update (10 Nov 2026 UTC)
+
+See [QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md](./QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md) for the authoritative status. The proxy-aware same-origin helper is now integrated and focused tests pass (3 files / 27 tests). Latest Vitest passed 117 files / 1,789 tests with one retry; typecheck, lint, format, and build pass. Temporary external Chromium libraries enabled local production-server browser tests: 906/910 full-suite outcomes passed, three skipped, one legal-pages axe/keyboard timeout passed in isolated rerun; the 21-test home-hero suite passed. Live authenticated Admin, two-user isolation, configured intake, safe fresh Vercel scope metadata, and independently confirmed SMTP incident closure remain outstanding. Verdict stays **NEEDS ATTENTION**; no push, migration, deployment, or production change.
+
+### Final completion update (10 Nov 2026 UTC)
+
+The authoritative latest evidence and exact blockers are in [QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md](./QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md). Final local checks: Vitest **117 files / 1,789 tests PASS** (two workers, one retry), typecheck/lint/format/build PASS, `npm audit` 0 vulnerabilities; Chromium E2E **918 passed / 3 existing screenshot-only skips / 0 failed**. All 75 public routes smoke-checked (70×200, five expected redirects); all ten Admin pages redirect to login; sitemap/robots return 200 with indexing intentionally disabled locally. Production Admin/Auth/PostgREST/intake/propagation, safe fresh Vercel scopes and independent SMTP closure remain owner-gated. **NEEDS ATTENTION; no push/merge/deploy/migration.**
+
+## Authoritative owner-readiness closeout — 10 November 2026 UTC
+
+This section supersedes historical status statements above where they conflict. Current Supabase health is Auth/DB/REST `ACTIVE_HEALTHY`; migration 001 is recorded at `20261113045854` and migration 002 at `20261114190425`. Both are already applied as recorded: do not rerun them. Prior live SQL checks found all nine QUICKKIT tables RLS-enabled and empty. No HTTP/JWT two-user isolation or authenticated Admin CRUD is thereby established. No migration, database write, Vercel change, deployment, push or merge was performed in this pass.
+
+### Completed checks
+
+- **Local routes:** prior production-build smoke checked 75 public URLs (70×200; five expected redirects to 200 destinations). Ten protected Admin pages redirected to `/admin/login`; login page returned 200. Local API smoke: invalid consent 400, foreign Origin 403, otherwise valid contact/feedback 503 when Supabase/HMAC configuration is missing; Admin login 503 when Admin configuration is absent. These are local route/configuration results, not hosted tests or Supabase rejection codes.
+- **Local automated checks (prior completed run):** Vitest 117/117 files, 1,789/1,789 tests passed with one retry; typecheck, lint, format check, optimized build and npm audit (0 vulnerabilities) passed. Chromium E2E: 918 passed, 3 existing `CAPTURE_SHOTS`-gated screenshot skips, 0 failed. No behavioral test was skipped in that run. These checks were not repeated in this documentation pass.
+- **SEO implementation:** canonical and social metadata require an origin-only HTTPS `SITE_URL`; indexing additionally requires `LAUNCH_APPROVED=true` and Vercel Production. Production sitemap is derived from static/legal routes and published/indexable catalog records; previews return empty sitemap. Robots disallows crawling when not approved (except `/ads.txt`), and approved production allows public crawling except `/api/` and publishes the sitemap URL. Local robots/sitemap both returned 200, with empty local sitemap and crawl disallow expected because launch approval is off. Hosted indexing is not verified.
+- **Placeholders:** scoped code scan found no TODO/FIXME/TBD/XXX markers across app/components/lib/supabase/tests. This does not mean all work is launch-complete: coming-soon categories are intentional; `lib/legal.ts` explicitly lists eight legal pages for owner review; legal/operator particulars and specialist contact channels have marked owner input; Word-to-PDF worker/isolation/retention are deployment-operations checks. Social links remain hidden rather than publishing unverified profiles.
+- **Vercel:** no secret-capable variable listing/decryption was used. Latest safely documented Production snapshot (not fresh) has public Supabase URL/key present, service-role/HMAC empty, Admin allowlist absent; Preview and Development unknown. Exact names, intent and target-scope checklist are in the current authoritative section of `QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md`.
+
+### Owner-only launch sequence (secrets stay in dashboards)
+
+1. Keep Supabase public signup disabled and email confirmation enabled. Create/invite named Admin identities only through the owner-controlled dashboard, require strong unique passwords/MFA, and set exact emails in server-only `QUICKKIT_ADMIN_EMAILS`. No public signup or wildcard allowlist.
+2. In Vercel, check Production, Preview and Development scopes using the exact variable inventory in the master report. Required names are `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SUBMISSION_HMAC_SECRET`, `QUICKKIT_ADMIN_EMAILS`, `SITE_URL`, and `LAUNCH_APPROVED`. Keep service-role/HMAC/allowlist server-only; approve indexing (`LAUNCH_APPROVED=true`) only in Production after owner approval. Never report values.
+3. Use approved disposable identities to verify unauthenticated denial, allowlisted Admin sign-in/session/logout and harmless CRUD, signed-in non-Admin denial, two-user profile/favorite isolation through authenticated PostgREST, browser-role denial on private tables, consented synthetic intake/admin-only visibility, and rate limiting. Do not bypass RLS or use service-role credentials as user test clients. Remove only synthetic test records through approved application workflows.
+4. Close SMTP incident only after owner verifies old-credential revocation in the provider dashboard, reviews provider/Auth logs, and confirms controlled delivery to a test mailbox with confirmation enabled. Never retrieve or test credentials through this workspace/connector.
+5. Complete legal/security/privacy and domain review, then (only after separate owner authorization) deploy and check hosted public/Admin route behavior, exact canonical origin, production sitemap/robots, and search-console ownership/indexing. This pass did not deploy or index.
+
+**Verdict: NEEDS ATTENTION — not production-ready / no deploy approval.** Local code/QA and route checks pass per the recorded evidence; owner-only Vercel/Auth/SMTP/legal actions and authenticated live application tests remain open. No migrations were repeated, public signup was not enabled, RLS was not weakened, and no secrets were exposed.

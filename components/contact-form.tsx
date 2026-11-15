@@ -7,25 +7,22 @@ import { contactEmail, contactFormEndpoint } from "@/lib/site";
 type Fields = { name: string; email: string; subject: string; message: string };
 const initial: Fields = { name: "", email: "", subject: "", message: "" };
 
-/**
- * Contact form with inline validation.
- * - If CONTACT_FORM_ENDPOINT is configured (lib/site.ts), POSTs JSON there.
- * - Otherwise, *if and only if* a verified public address exists, opens the
- *   visitor's email app via mailto: with the message pre-filled — no data
- *   touches a server.
- * - With neither configured (the current state: the demo address was withdrawn)
- *   the form is disabled and explains why, rather than composing a mailto: to
- *   an address that may not exist. Losing a visitor's message silently is worse
- *   than telling them the channel is not open yet.
- */
-export default function ContactForm() {
+/** First-party contact submission with explicit consent and honest failure states. */
+export default function ContactForm({
+  fallbackEmail = contactEmail,
+}: {
+  fallbackEmail?: string | null;
+} = {}) {
   const [fields, setFields] = useState(initial);
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
+  const [consent, setConsent] = useState(false);
+  const [consentError, setConsentError] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const channelOpen = Boolean(contactFormEndpoint || contactEmail);
+  const channelOpen = Boolean(contactFormEndpoint || fallbackEmail);
 
   const set =
     (key: keyof Fields) =>
@@ -41,6 +38,7 @@ export default function ContactForm() {
     if (!fields.subject.trim()) next.subject = "Please add a subject.";
     if (fields.message.trim().length < 10)
       next.message = "Tell us a little more (at least 10 characters).";
+    setConsentError(!consent);
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -51,6 +49,7 @@ export default function ContactForm() {
     if (!validate()) return;
     if (contactFormEndpoint) {
       setStatus("sending");
+      setSubmitError("");
       try {
         const res = await fetch(contactFormEndpoint, {
           method: "POST",
@@ -58,13 +57,23 @@ export default function ContactForm() {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify(fields),
+          body: JSON.stringify({ ...fields, consent }),
         });
-        if (!res.ok) throw new Error("send failed");
+        const result = (await res.json()) as { ok?: boolean; error?: string };
+        if (!res.ok || !result.ok)
+          throw new Error(
+            result.error ?? "The contact service did not accept the message.",
+          );
         setStatus("sent");
         setFields(initial);
-      } catch {
+        setConsent(false);
+      } catch (error) {
         setStatus("error");
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "The contact service could not be reached.",
+        );
       }
       return;
     }
@@ -72,7 +81,8 @@ export default function ContactForm() {
     const body = encodeURIComponent(
       `${fields.message.trim()}\n\n— ${fields.name.trim()} (${fields.email.trim()})`,
     );
-    window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+    if (!fallbackEmail) return;
+    window.location.href = `mailto:${fallbackEmail}?subject=${subject}&body=${body}`;
     setStatus("sent");
   };
 
@@ -127,18 +137,28 @@ export default function ContactForm() {
       {field("name", "Your name", {
         autoComplete: "name",
         placeholder: "Ada Lovelace",
+        maxLength: 100,
+        required: true,
       })}
       {field("email", "Email address", {
         type: "email",
         autoComplete: "email",
         placeholder: "you@example.com",
+        maxLength: 254,
+        required: true,
       })}
-      {field("subject", "Subject", { placeholder: "How can we help?" })}
+      {field("subject", "Subject", {
+        placeholder: "How can we help?",
+        maxLength: 150,
+        required: true,
+      })}
       <div className="form-field">
         <label htmlFor="contact-message">Message</label>
         <textarea
           id="contact-message"
           rows={6}
+          required
+          maxLength={5000}
           value={fields.message}
           onChange={set("message")}
           placeholder="Write your message…"
@@ -150,6 +170,28 @@ export default function ContactForm() {
         {errors.message ? (
           <p className="field-error" id="contact-message-error">
             {errors.message}
+          </p>
+        ) : null}
+      </div>
+      <div className="form-field contact-consent">
+        <label htmlFor="contact-consent">
+          <input
+            id="contact-consent"
+            type="checkbox"
+            required
+            checked={consent}
+            onChange={(event) => setConsent(event.target.checked)}
+            aria-invalid={consentError}
+            aria-describedby={
+              consentError ? "contact-consent-error" : undefined
+            }
+          />
+          I agree QUICKKIT may store these details privately to respond to this
+          message.
+        </label>
+        {consentError ? (
+          <p className="field-error" id="contact-consent-error">
+            Please agree to the storage notice before sending.
           </p>
         ) : null}
       </div>
@@ -166,21 +208,24 @@ export default function ContactForm() {
           <p className="form-status success">
             <MailCheck size={17} aria-hidden="true" />{" "}
             {contactFormEndpoint
-              ? "Thanks — your message is on its way. We'll reply as soon as we can."
+              ? "Thanks — your message has been securely recorded for review. We’ll reply to the email address you provided."
               : "Your email app should open with the message ready to send. If nothing opened, write to us directly at " +
-                contactEmail +
+                fallbackEmail +
                 "."}
           </p>
         ) : status === "error" ? (
           <p className="form-status error">
-            <TriangleAlert size={17} aria-hidden="true" /> Something went wrong
-            sending that. Please email us directly at {contactEmail}.
+            <TriangleAlert size={17} aria-hidden="true" />{" "}
+            {submitError || "The message was not sent."} Please email us
+            directly at {fallbackEmail}.
           </p>
         ) : null}
       </div>
-      {!contactFormEndpoint ? (
+      {contactFormEndpoint ? (
         <p className="form-note">
-          This form opens your email app — nothing is sent to a server.
+          Your message is sent to QUICKKIT’s private submission service only
+          after you check the consent box and press Send. Do not include
+          passwords, private documents, or tool inputs.
         </p>
       ) : null}
     </form>

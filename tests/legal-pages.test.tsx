@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { createElement } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -261,22 +262,24 @@ describe("legal page content safeguards", () => {
       "HIPAA compliant",
     ];
     const modules = await Promise.all([
-      import("../app/terms/page"),
-      import("../app/privacy/page"),
-      import("../app/cookies/page"),
-      import("../app/disclaimer/page"),
-      import("../app/copyright/page"),
-      import("../app/security/page"),
-      import("../app/accessibility/page"),
-      import("../app/file-handling/page"),
-      import("../app/intellectual-property/page"),
-      import("../app/faq/page"),
-      import("../app/about/page"),
-      import("../app/contact/page"),
+      import("../app/(public)/terms/page"),
+      import("../app/(public)/privacy/page"),
+      import("../app/(public)/cookies/page"),
+      import("../app/(public)/disclaimer/page"),
+      import("../app/(public)/copyright/page"),
+      import("../app/(public)/security/page"),
+      import("../app/(public)/accessibility/page"),
+      import("../app/(public)/file-handling/page"),
+      import("../app/(public)/intellectual-property/page"),
+      import("../app/(public)/faq/page"),
+      import("../app/(public)/about/page"),
+      import("../app/(public)/contact/page"),
     ]);
-    for (const pageModule of modules) {
+    for (const [index, pageModule] of modules.entries()) {
       const Page = pageModule.default;
-      const { container, unmount } = render(<Page />);
+      const element =
+        index === modules.length - 1 ? await Page() : createElement(Page);
+      const { container, unmount } = render(element);
       const text = container.textContent ?? "";
       for (const phrase of banned)
         expect(text.toLowerCase()).not.toContain(phrase.toLowerCase());
@@ -290,11 +293,11 @@ describe("legal tables on a phone", () => {
   // every cell has to carry the name of its column. A cell without a label
   // would read as an unlabelled value on a phone.
   const TABLES = [
-    "../app/cookies/page",
-    "../app/copyright/page",
-    "../app/disclaimer/page",
-    "../app/file-handling/page",
-    "../app/intellectual-property/page",
+    "../app/(public)/cookies/page",
+    "../app/(public)/copyright/page",
+    "../app/(public)/disclaimer/page",
+    "../app/(public)/file-handling/page",
+    "../app/(public)/intellectual-property/page",
   ] as const;
 
   it.each(TABLES)("%s labels every cell with its column", async (path) => {
@@ -324,7 +327,7 @@ describe("legal tables on a phone", () => {
 
 describe("rendered legal page shell", () => {
   it("renders breadcrumbs, one h1, the date, a table of contents and related pages", async () => {
-    const { default: TermsPage } = await import("../app/terms/page");
+    const { default: TermsPage } = await import("../app/(public)/terms/page");
     const { container } = render(<TermsPage />);
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
@@ -377,7 +380,8 @@ describe("rendered legal page shell", () => {
       (!hasOwnerDetail("legalName") && !publishOperatorAsBrand) ||
       !hasOwnerDetail("jurisdiction") ||
       !hasOwnerDetail("publicEmail");
-    const { default: PrivacyPage } = await import("../app/privacy/page");
+    const { default: PrivacyPage } =
+      await import("../app/(public)/privacy/page");
     render(<PrivacyPage />);
     if (stillMissing) {
       expect(screen.getByText(/Owner input required/)).toBeTruthy();
@@ -393,13 +397,14 @@ describe("rendered legal page shell", () => {
     // Terms and About page must all reach it, as a real mailto link.
     expect(contactEmail).toBeTruthy();
     const pages = [
-      ["contact", (await import("../app/contact/page")).default],
-      ["privacy", (await import("../app/privacy/page")).default],
-      ["terms", (await import("../app/terms/page")).default],
-      ["about", (await import("../app/about/page")).default],
+      ["contact", (await import("../app/(public)/contact/page")).default],
+      ["privacy", (await import("../app/(public)/privacy/page")).default],
+      ["terms", (await import("../app/(public)/terms/page")).default],
+      ["about", (await import("../app/(public)/about/page")).default],
     ] as const;
     for (const [name, Page] of pages) {
-      const { container, unmount } = render(<Page />);
+      const element = name === "contact" ? await Page() : createElement(Page);
+      const { container, unmount } = render(element);
       const mailtos = Array.from(
         container.querySelectorAll('a[href^="mailto:"]'),
       );
@@ -415,7 +420,7 @@ describe("rendered legal page shell", () => {
   });
 
   it("renders the FAQ groups with unique question summaries", async () => {
-    const { default: FaqPage } = await import("../app/faq/page");
+    const { default: FaqPage } = await import("../app/(public)/faq/page");
     const { container } = render(<FaqPage />);
     const summaries = container.querySelectorAll(".faq-list summary");
     expect(summaries.length).toBeGreaterThan(15);

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Search, X } from "lucide-react";
-import { useToolSearch } from "@/lib/use-tool-search";
+import type { Tool } from "@/lib/catalog";
 import ToolIcon from "@/components/tool-icon";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -11,7 +11,7 @@ import { useHydrated } from "@/lib/use-hydrated";
  * Homepage hero search: live suggestions link straight to tools; submitting
  * opens the full toolkit at /tools with the query applied.
  */
-export default function HeroSearch() {
+export default function HeroSearch({ tools }: { tools: Tool[] }) {
   const ready = useHydrated();
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -24,9 +24,23 @@ export default function HeroSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const searching = query.trim().length > 0;
-  // The catalogue is fetched on first interaction, not with the page.
-  const { filter, load: loadCatalogue } = useToolSearch();
-  const results = searching && filter ? filter(query, "All tools") : [];
+  const search = query.trim().toLocaleLowerCase();
+  const matches = searching
+    ? tools.filter((tool) =>
+        `${tool.name} ${tool.description} ${tool.keywords}`
+          .toLocaleLowerCase()
+          .includes(search),
+      )
+    : [];
+  const namedMatches = matches.filter((tool) =>
+    tool.name.toLocaleLowerCase().includes(search),
+  );
+  const results = namedMatches.length
+    ? [
+        ...namedMatches,
+        ...matches.filter((tool) => !namedMatches.includes(tool)),
+      ]
+    : matches;
 
   useEffect(() => {
     if (!ready) return;
@@ -92,14 +106,10 @@ export default function HeroSearch() {
           placeholder="Search tools (e.g. PDF merge, QR code, JSON…)"
           value={query}
           aria-keyshortcuts="Control+K Meta+K"
-          onFocus={() => {
-            setPanelOpen(true);
-            loadCatalogue();
-          }}
+          onFocus={() => setPanelOpen(true)}
           onChange={(e) => {
             setQuery(e.target.value);
             setPanelOpen(true);
-            loadCatalogue();
           }}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
@@ -136,11 +146,7 @@ export default function HeroSearch() {
       </form>
       {panelOpen && searching ? (
         <div className="search-panel">
-          {!filter ? (
-            <p className="search-panel-empty" role="status">
-              Searching…
-            </p>
-          ) : results.length ? (
+          {results.length ? (
             <>
               <ul className="search-results">
                 {results.slice(0, 5).map((tool) => (

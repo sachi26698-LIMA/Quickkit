@@ -1778,7 +1778,8 @@ const fallbackArt: Record<string, GlyphName> = {
   calc: "calc",
 };
 
-export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
+export const categoryTone = (name: ToolCategory): Tone =>
+  categoryTones[name] ?? "violet";
 
 /** Base tone classes; explicit tool tokens take precedence over these defaults. */
 const toolAccentTones: Record<string, Tone> = {
