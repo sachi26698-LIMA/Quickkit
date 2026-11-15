@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 test("meeting planner rejects DST gaps and chooses repeated instant", async ({
   page,

@@ -82,67 +82,133 @@ export default function IntellectualPropertyPage() {
         licences and what they do:
       </p>
       <div className="legal-table-wrap">
-        <table className="legal-table">
+        <table role="table" className="legal-table">
           <caption className="sr-only">
             Open-source components used by QUICKKIT
           </caption>
-          <thead>
-            <tr>
-              <th scope="col">Component</th>
-              <th scope="col">Licence</th>
-              <th scope="col">Role</th>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader">
+                Component
+              </th>
+              <th scope="col" role="columnheader">
+                Licence
+              </th>
+              <th scope="col" role="columnheader">
+                Role
+              </th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>pdf.js (pdfjs-dist)</td>
-              <td>Apache-2.0</td>
-              <td>PDF parsing and page rendering</td>
+          <tbody role="rowgroup">
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                pdf.js (pdfjs-dist)
+              </td>
+              <td role="cell" data-label="Licence">
+                Apache-2.0
+              </td>
+              <td role="cell" data-label="Role">
+                PDF parsing and page rendering
+              </td>
             </tr>
-            <tr>
-              <td>@cantoo/pdf-lib</td>
-              <td>MIT</td>
-              <td>PDF writing, merging, splitting, rewriting</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                @cantoo/pdf-lib
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Role">
+                PDF writing, merging, splitting, rewriting
+              </td>
             </tr>
-            <tr>
-              <td>tesseract.js</td>
-              <td>Apache-2.0</td>
-              <td>On-device OCR engine</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                tesseract.js
+              </td>
+              <td role="cell" data-label="Licence">
+                Apache-2.0
+              </td>
+              <td role="cell" data-label="Role">
+                On-device OCR engine
+              </td>
             </tr>
-            <tr>
-              <td>@tesseract.js-data/eng, hin, guj</td>
-              <td>MIT</td>
-              <td>OCR language data (English, Hindi, Gujarati)</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                @tesseract.js-data/eng, hin, guj
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Role">
+                OCR language data (English, Hindi, Gujarati)
+              </td>
             </tr>
-            <tr>
-              <td>docx</td>
-              <td>MIT</td>
-              <td>Word (.docx) generation</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                docx
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Role">
+                Word (.docx) generation
+              </td>
             </tr>
-            <tr>
-              <td>docx-preview</td>
-              <td>Apache-2.0</td>
-              <td>In-browser Word preview</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                docx-preview
+              </td>
+              <td role="cell" data-label="Licence">
+                Apache-2.0
+              </td>
+              <td role="cell" data-label="Role">
+                In-browser Word preview
+              </td>
             </tr>
-            <tr>
-              <td>qrcode</td>
-              <td>MIT</td>
-              <td>QR matrix generation</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                qrcode
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Role">
+                QR matrix generation
+              </td>
             </tr>
-            <tr>
-              <td>fflate</td>
-              <td>MIT</td>
-              <td>ZIP packaging</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                fflate
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Role">
+                ZIP packaging
+              </td>
             </tr>
-            <tr>
-              <td>lucide-react</td>
-              <td>ISC</td>
-              <td>Icon set</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                lucide-react
+              </td>
+              <td role="cell" data-label="Licence">
+                ISC
+              </td>
+              <td role="cell" data-label="Role">
+                Icon set
+              </td>
             </tr>
-            <tr>
-              <td>Next.js, React</td>
-              <td>MIT</td>
-              <td>Framework and rendering</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                Next.js, React
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Role">
+                Framework and rendering
+              </td>
             </tr>
           </tbody>
         </table>

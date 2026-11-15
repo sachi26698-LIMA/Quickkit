@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
 import { getSupabaseCspOrigin } from "./lib/supabase/config";
+import { legacySecurityRedirects } from "./lib/tools/security/consolidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Content-Security-Policy.
@@ -57,8 +58,18 @@ const ADSENSE_CONNECTIONS = [
   "https://csi.gstatic.com",
 ];
 
-// Only the configured, validated Supabase API origin is added; no wildcard or
-// general-purpose external connection permission is introduced.
+// Framing this site stays forbidden: that is the clickjacking boundary. The one
+// exception is a local preview sandbox, where the app is deliberately served
+// inside an iframe on `https://<port>-<sandbox>.e2b.app`. It is opt-in with
+// `ALLOW_SANDBOX_PREVIEW=1` (never set in production, and never implied by the
+// E2B_SANDBOX environment alone, so a test run cannot inherit it), and it names
+// the preview origin rather than a bare wildcard.
+const previewFraming = process.env.ALLOW_SANDBOX_PREVIEW === "1";
+const FRAME_ANCESTORS = previewFraming
+  ? "frame-ancestors 'self' https://*.e2b.app"
+  : "frame-ancestors 'none'";
+
+// Add only the validated configured Supabase API origin to connect-src.
 const supabaseCspOrigin = getSupabaseCspOrigin();
 
 const CSP = [
@@ -66,7 +77,7 @@ const CSP = [
   "base-uri 'self'",
   "object-src 'none'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
+  FRAME_ANCESTORS,
   `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' ${ADSENSE_SCRIPTS.join(" ")}`,
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
@@ -115,6 +126,7 @@ const config: NextConfig = {
   ...(enforcing ? {} : { allowedDevOrigins: devAllowedOrigins }),
   async redirects() {
     return [
+      ...legacySecurityRedirects,
       {
         // The combined Image & PDF Converter was split into four separate
         // tools. Existing bookmarks, saved cards and inbound links keep
@@ -148,13 +160,66 @@ const config: NextConfig = {
           },
         ],
       },
+      // Only these explicit routes may contact the opt-in DNS/IP services.
+      ...[
+        {
+          source: "/tools/dns-email-security",
+          host: "https://cloudflare-dns.com",
+        },
+        {
+          source: "/tools/url-network-privacy",
+          host: "https://api.ipify.org https://api64.ipify.org",
+        },
+        { source: "/tools/dns-lookup", host: "https://cloudflare-dns.com" },
+        {
+          source: "/tools/dnssec-status-checker",
+          host: "https://cloudflare-dns.com",
+        },
+        {
+          source: "/tools/public-ip-information",
+          host: "https://api.ipify.org https://api64.ipify.org",
+        },
+      ].map(({ source, host }) => ({
+        source,
+        headers: [
+          {
+            key: enforcing
+              ? "Content-Security-Policy"
+              : "Content-Security-Policy-Report-Only",
+            value: CSP.replace(
+              "connect-src 'self'",
+              `connect-src 'self' ${host}`,
+            ),
+          },
+        ],
+      })),
+      // Three pages can use a camera — the QR Code Scanner, the Barcode
+      // Studio's scanner tab and the stand-alone Barcode Scanner. A
+      // Permissions-Policy on `/:path*` would otherwise
+      // be inherited by them and the browser would refuse getUserMedia even
+      // after the visitor granted permission, so these rules — which win for
+      // the exact paths — re-allow the camera for those pages only. Microphone
+      // and location stay off everywhere. Nothing else is widened.
       {
-        // The QR Code Scanner is the one page that needs a camera. A
-        // Permissions-Policy on `/:path*` would otherwise be inherited by it
-        // and the browser would refuse getUserMedia even after the visitor
-        // granted permission, so this rule — which wins for the exact path —
-        // re-allows the camera for this page only. Nothing else is widened.
         source: "/tools/qr-code-scanner",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        source: "/tools/barcode-generator",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        source: "/tools/barcode-scanner",
         headers: [
           {
             key: "Permissions-Policy",
@@ -189,6 +254,14 @@ const config: NextConfig = {
             {
               source: "/tools",
               has: [{ type: "query" as const, key: "category" }],
+              headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+            },
+            {
+              // The checker accepts a ?brand= preselection from a brand
+              // record. That view is a convenience, not a second page: keep the
+              // canonical on the clean tool URL.
+              source: "/tools/batch-code-checker",
+              has: [{ type: "query" as const, key: "brand" }],
               headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
             },
           ]

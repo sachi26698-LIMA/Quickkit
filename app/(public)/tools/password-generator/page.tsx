@@ -1,10 +1,11 @@
-import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
 import ToolShell from "@/components/tool-shell";
-import PasswordGenerator from "@/components/tools/password-generator";
+import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
-import ToolReferenceSection from "@/components/tool-reference-section";
-import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
+
 export async function generateMetadata() {
   return publicToolMetadata(
     "password-generator",
@@ -12,50 +13,42 @@ export async function generateMetadata() {
     TOOL_SEO_METADATA["password-generator"].description,
   );
 }
+
 export default async function Page() {
   const publicData = await getPublicToolShellData("password-generator");
   return (
     <ToolShell
       publicData={publicData}
       slug="password-generator"
-      headingDescription={TOOL_SEO_METADATA["password-generator"].description}
-      stepsHeading="How to generate a strong random password"
-      faqsHeading="Password generator questions, answered"
-      relatedHeading="More ways to protect accounts and files"
-      referenceSection={
-        <ToolReferenceSection
-          slug="password-generator"
-          entry={TOOL_SEO_CONTENT["password-generator"]}
-        />
-      }
+      privacyNotice="Password generation runs locally in your browser. Never share a generated password."
       content={{
         steps: [
-          "Choose a length from 8 to 64 characters.",
-          "Select at least one character set and optionally exclude look-alike characters.",
-          "Check the strength meter (100+ bits is excellent), generate, and copy your password into a password manager.",
-          "Save the copied password directly into a password manager and avoid reusing it across accounts.",
+          "Choose a password operation and length.",
+          "Choose which character sets to include and optionally exclude look-alike characters.",
+          "Generate one or more passwords using browser cryptography, then review them locally.",
+          "Copy only into a trusted password manager and avoid reusing passwords.",
         ],
         faqs: [
           {
+            q: "Are generated passwords sent to a server?",
+            a: "No. Generation runs in your browser; copying transfers it only to the clipboard you control.",
+          },
+          {
+            q: "Does a strong password guarantee account security?",
+            a: "No. Use unique passwords, a password manager and multi-factor authentication where available.",
+          },
+          {
             q: "How is randomness generated?",
-            a: "The tool uses crypto.getRandomValues, rejection sampling to avoid modulo bias, and a secure shuffle. Every selected character set contributes at least one character.",
+            a: "The generator uses the browser's cryptographic random number API with unbiased selection from the chosen character sets.",
           },
           {
-            q: "Are generated passwords saved?",
-            a: "No. Passwords stay in this page’s memory and are not sent to a server or analytics. Copying places the password on your device clipboard, which other applications may access.",
-          },
-          {
-            q: "Is a generated password enough to secure an account?",
-            a: "No password guarantees account security. Prefer longer unique passwords, use a password manager and enable multi-factor authentication where available.",
-          },
-          {
-            q: "What does the entropy number mean?",
-            a: "It estimates the number of random bits from the selected length and character pool. It does not account for how you store, reuse, or expose the password.",
+            q: "What does the entropy estimate mean?",
+            a: "It estimates the search space from the selected length and character pool; it cannot account for reuse, storage or later exposure.",
           },
         ],
       }}
     >
-      <PasswordGenerator />
+      <ConsolidatedWorkspace slug="password-generator" />
     </ToolShell>
   );
 }

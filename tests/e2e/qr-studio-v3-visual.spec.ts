@@ -16,7 +16,7 @@ import {
   openDesignTab,
 } from "./helpers/qr-studio";
 
-const SHOT_DIR = path.join(process.cwd(), "docs/qr-studio-v3/screenshots");
+const SHOT_DIR = path.join(process.cwd(), "test-results/evidence/qr-studio-v3");
 
 const WIDTHS = [
   { name: "desktop-1440", width: 1440, height: 900 },

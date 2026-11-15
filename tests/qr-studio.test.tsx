@@ -23,6 +23,9 @@ import { PRESET_SWATCHES } from "../lib/tools/qr/palette";
 
 const VERIFIED = "Verified by an independent decoder";
 const BLOCKED = "Not scannable — export is blocked";
+// Each test may await multiple independent renders. Keep each verification
+// bounded while allowing enough time for the complete multi-step journey.
+const VERIFY_TIMEOUT = 60_000;
 const TEST_TIMEOUT = 120_000;
 
 /** Scope a query to one workspace card so the mobile quick-save bar can't match. */
@@ -38,7 +41,11 @@ function useSmallSize() {
 
 async function settle() {
   await waitFor(() => expect(screen.getByText(VERIFIED)).toBeInTheDocument(), {
-    timeout: TEST_TIMEOUT,
+    timeout: VERIFY_TIMEOUT,
+    onTimeout: (error) =>
+      new Error(
+        `${error.message}\nQR verdict: ${document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ?? "missing"}`,
+      ),
   });
 }
 
@@ -51,7 +58,13 @@ async function settleOrWarn() {
           /Verified by an independent decoder|Decoded — with notes below/,
         ),
       ).toBeInTheDocument(),
-    { timeout: TEST_TIMEOUT },
+    {
+      timeout: VERIFY_TIMEOUT,
+      onTimeout: (error) =>
+        new Error(
+          `${error.message}\nQR verdict: ${document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ?? "missing"}`,
+        ),
+    },
   );
 }
 
@@ -239,7 +252,7 @@ describe("qr studio — styling can never pass silently", () => {
       await waitFor(
         () => expect(screen.getByText(BLOCKED)).toBeInTheDocument(),
         {
-          timeout: TEST_TIMEOUT,
+          timeout: VERIFY_TIMEOUT,
         },
       );
       expect(
@@ -330,7 +343,7 @@ describe("qr studio — styling can never pass silently", () => {
       expect(margin.value).toBe("0");
       await waitFor(
         () => expect(screen.getByText(BLOCKED)).toBeInTheDocument(),
-        { timeout: TEST_TIMEOUT },
+        { timeout: VERIFY_TIMEOUT },
       );
       // The preview already says the code is not scannable; the buttons cannot
       // disagree with it.
@@ -404,7 +417,7 @@ describe("qr studio — history, tabs and bulk", () => {
           expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
             /3 rendered/,
           ),
-        { timeout: TEST_TIMEOUT },
+        { timeout: VERIFY_TIMEOUT },
       );
       expect(
         within(document.getElementById("qr-bulk") as HTMLElement).getByRole(
@@ -739,14 +752,14 @@ describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => 
           expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
             /1 failed/,
           ),
-        { timeout: TEST_TIMEOUT },
+        { timeout: VERIFY_TIMEOUT },
       );
       await waitFor(
         () =>
           expect(
             bulkCard().getByRole("button", { name: /Retry failed \(1\)/ }),
           ).toBeEnabled(),
-        { timeout: TEST_TIMEOUT },
+        { timeout: VERIFY_TIMEOUT },
       );
       fireEvent.click(
         bulkCard().getByRole("button", { name: /Retry failed \(1\)/ }),
@@ -756,7 +769,7 @@ describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => 
           expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
             /1 rendered/,
           ),
-        { timeout: TEST_TIMEOUT },
+        { timeout: VERIFY_TIMEOUT },
       );
       // The good row is kept; the bad row still fails (data unchanged).
       expect(document.querySelector(".qr-bulk-summary")).toHaveTextContent(
@@ -768,31 +781,37 @@ describe("qr studio — V3 bulk upgrades (preview, per-row type, retry)", () => 
 });
 
 describe("qr studio — V3 history & preset management (Phase H)", () => {
-  it("renames and duplicates a preset from the Presets tab", () => {
-    render(<QrGenerator />);
-    fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
-    fireEvent.change(screen.getByLabelText("Save the design you have now"), {
-      target: { value: "Cafe look" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Save design/ }));
-    expect(screen.getByText("Cafe look")).toBeInTheDocument();
+  it(
+    "renames and duplicates a preset from the Presets tab",
+    () => {
+      render(<QrGenerator />);
+      fireEvent.click(screen.getByRole("tab", { name: /^Presets/ }));
+      fireEvent.change(screen.getByLabelText("Save the design you have now"), {
+        target: { value: "Cafe look" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: /Save design/ }));
+      expect(screen.getByText("Cafe look")).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Rename the Cafe look preset" }),
-    );
-    const input = screen.getByRole("textbox", {
-      name: "Rename the Cafe look preset",
-    });
-    fireEvent.change(input, { target: { value: "Menu look" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save the new name" }));
-    expect(screen.getByText("Menu look")).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole("button", { name: "Rename the Cafe look preset" }),
+      );
+      const input = screen.getByRole("textbox", {
+        name: "Rename the Cafe look preset",
+      });
+      fireEvent.change(input, { target: { value: "Menu look" } });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save the new name" }),
+      );
+      expect(screen.getByText("Menu look")).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Duplicate the Menu look preset" }),
-    );
-    expect(screen.getByText("Menu look copy")).toBeInTheDocument();
-    expect(screen.getByText("Menu look")).toBeInTheDocument();
-  });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Duplicate the Menu look preset" }),
+      );
+      expect(screen.getByText("Menu look copy")).toBeInTheDocument();
+      expect(screen.getByText("Menu look")).toBeInTheDocument();
+    },
+    TEST_TIMEOUT,
+  );
 
   it(
     "renames a history entry from the History tab",

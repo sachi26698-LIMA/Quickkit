@@ -19,6 +19,8 @@ import {
   getPublicCatalog,
   getPublicSiteSettings,
 } from "@/lib/supabase/public-catalog";
+import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
+import styles from "@/app/home-premium.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +50,7 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
   {
     Icon: ShieldCheck,
     title: "Privacy Focused",
-    text: "Most published tools run in your browser so files stay on your device. Any server-processing exception is identified on its tool page and asks for consent first.",
+    text: "Most published tools run in your browser so files stay on your device. Word to PDF and optional DNS or public IP lookups contact services only after your consent.",
   },
   {
     Icon: Sparkles,
@@ -79,7 +81,7 @@ export default async function Home() {
         .map((slug) => tools.find((tool) => tool.slug === slug))
         .filter((tool): tool is (typeof tools)[number] => Boolean(tool));
   return (
-    <div className="home">
+    <div className={`home home-landing ${styles.premiumHome}`}>
       <section className="hero" aria-label="QUICKKIT tools">
         {settings.announcement?.enabled ? (
           <p className="container" role="status">
@@ -90,8 +92,15 @@ export default async function Home() {
             names the four tool families the site actually ships, so the most
             linked-to URL on the domain says something concrete. */}
         <div className="hero-intro">
+          <span className={styles.heroBadge}>
+            <Sparkles size={14} aria-hidden="true" />
+            YOUR EVERYDAY DIGITAL TOOLKIT
+          </span>
           <h1 className="hero-headline">
-            Free online tools for PDFs, images, text and code
+            Free online tools for{" "}
+            <span className={styles.headlineAccent}>
+              PDFs, images, text and code
+            </span>
           </h1>
           <p className="hero-lede">
             {settings.tagline ??
@@ -101,7 +110,7 @@ export default async function Home() {
         <div className="hero-search-zone">
           <HeroSearch tools={tools} />
         </div>
-        <HeroArt tools={tools} />
+        <HeroArt />
         <div className="hero-copy">
           <div className="popular-row">
             <span className="popular-label">Popular:</span>
@@ -111,6 +120,7 @@ export default async function Home() {
                 <Link
                   key={slug}
                   className="popular-chip"
+                  style={toolSurfaceStyle(toolTheme(tool.slug, tool.category))}
                   href={`/tools/${tool.slug}`}
                   prefetch={false}
                 >

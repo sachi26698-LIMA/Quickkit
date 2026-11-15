@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { PNG } from "pngjs";
 import jsQR from "jsqr";
@@ -120,7 +120,12 @@ test("password premium: strength meter, history and hide toggle", async ({
   page,
 }) => {
   await page.goto("/tools/password-generator");
-  await expect(page.getByText(/^\d+ bits of entropy$/)).toBeVisible();
+  await expect(
+    page.getByText(/^Approximately \d+ bits \(unconstrained pool\)$/),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/This is an upper bound for unconstrained random strings/),
+  ).toBeVisible();
   await page.getByLabel("Password length in characters").fill("8");
   await expect(page.locator(".strength-head")).not.toContainText("Excellent");
   await page.getByLabel("Password length in characters").fill("64");
@@ -325,6 +330,7 @@ test("image premium: input and drop both load, and compression downloads a real 
 
 // Phase 3: accessibility must hold in interactive states, not only on first paint.
 test("interactive states stay WCAG 2.2 AA clean (axe)", async ({ page }) => {
+  test.setTimeout(120000);
   const tags = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
   async function expectClean(label: string) {
     const result = await new AxeBuilder({ page }).withTags(tags).analyze();

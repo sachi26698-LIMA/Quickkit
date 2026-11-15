@@ -1,0 +1,106 @@
+.trigger {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.trigger:focus-visible {
+  outline: 3px solid #8b5cf6;
+  outline-offset: 4px;
+}
+.runner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  transform-style: preserve-3d;
+}
+.shell {
+  position: absolute;
+  inset: calc((100% - var(--art-size)) / 2 - 2px);
+  border: 1px solid #ffffffdb;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 25% 18%,
+    #ffffffe0,
+    #ffffff12 24%,
+    transparent 48%,
+    #67e8f945 70%,
+    #f0abfc70 89%,
+    #fff9
+  );
+  box-shadow:
+    inset 3px 4px 9px #fff8,
+    inset -3px -4px 12px #a78bfa66,
+    0 0 12px #a78bfa40;
+  opacity: 0;
+  pointer-events: none;
+}
+.trigger[data-bubble-state="playing"] .runner {
+  animation: bubbleChase 2.4s ease-in-out both;
+}
+.trigger[data-bubble-state="playing"] .shell {
+  animation: bubbleGlow 2.4s ease-in-out both;
+}
+/* Small local bounds: +/- run-x and run-y, then exactly back to the origin.
+   The surrounding tile's ambient orbit is paused for the entire chase. */
+@keyframes bubbleChase {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  12% {
+    transform: translate(var(--run-x), calc(var(--run-y) * -0.5))
+      scale(1.04, 0.96);
+  }
+  28% {
+    transform: translate(calc(var(--run-x) * -1), calc(var(--run-y) * -1))
+      scale(0.96, 1.04);
+  }
+  45% {
+    transform: translate(calc(var(--run-x) * -0.7), var(--run-y))
+      scale(1.03, 0.97);
+  }
+  62% {
+    transform: translate(var(--run-x), calc(var(--run-y) * 0.5))
+      scale(0.97, 1.03);
+  }
+  80% {
+    transform: translate(calc(var(--run-x) * -0.5), calc(var(--run-y) * -0.5))
+      scale(1.02, 0.98);
+  }
+}
+@keyframes bubbleGlow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trigger[data-bubble-state="playing"] .runner {
+    animation: bubbleRest 0.3s linear both;
+  }
+  .trigger[data-bubble-state="playing"] .shell {
+    animation: bubbleGlow 0.3s linear both;
+  }
+  @keyframes bubbleRest {
+    0%,
+    100% {
+      transform: none;
+    }
+  }
+}

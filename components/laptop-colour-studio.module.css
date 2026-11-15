@@ -1,0 +1,192 @@
+.finish {
+  isolation: isolate;
+  width: 80%;
+  max-width: 1160px;
+  margin-inline: auto;
+}
+
+/* One atomic image/filter paint: no neutral laptop followed by a delayed
+   mask/tint fill on refresh. The inline filter is part of the server HTML. */
+.finish > img {
+  filter: url("#quickkit-laptop-metal");
+  transition: none;
+}
+
+.metalFilter {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.reflection {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Reference-image silhouette, simplified to within two source pixels.
+     A vector clip is ready with CSS; it never fetches a second image mask. */
+  clip-path: polygon(
+    95.2% 0.76%,
+    23.5% 7.17%,
+    22.46% 7.72%,
+    21.63% 9.35%,
+    21.35% 11.52%,
+    18.22% 75.11%,
+    1.95% 88.8%,
+    1.46% 89.24%,
+    0.83% 90.54%,
+    0.83% 92.5%,
+    1.04% 93.37%,
+    1.95% 94.35%,
+    2.85% 94.67%,
+    87.83% 98.48%,
+    89.29% 98.48%,
+    91.03% 97.5%,
+    91.93% 95.98%,
+    95.76% 79.02%,
+    95.62% 77.61%,
+    95.27% 76.96%,
+    95.76% 75.43%,
+    96.04% 72.28%,
+    98.75% 6.3%,
+    98.75% 4.13%,
+    98.47% 2.72%,
+    97.77% 1.52%,
+    96.38% 0.76%
+  );
+}
+
+/* Animate the filter paint, not a separately loaded overlay mask. */
+.tint {
+  flood-color: var(--finish-from);
+  background-color: var(--finish-from);
+  transition: none;
+  mix-blend-mode: color;
+  opacity: 0.46;
+}
+
+/* Static studio-light reflections follow the existing 3D laptop movement.
+   The screen sits above the metal image and reflection and is never recoloured. */
+.reflection {
+  background: linear-gradient(
+    116deg,
+    transparent 12%,
+    rgb(255 255 255 / 0.06) 24%,
+    rgb(255 255 255 / 0.5) 32%,
+    transparent 47%,
+    rgb(255 255 255 / 0.16) 68%,
+    transparent 80%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.3;
+}
+
+.finish[data-finish-phase="changing"] .tint {
+  animation: metal-fade var(--finish-fade-duration) cubic-bezier(0.4, 0, 0.2, 1)
+    forwards;
+  animation-play-state: var(--finish-play-state);
+}
+
+@keyframes metal-fade {
+  from {
+    flood-color: var(--finish-from);
+    background-color: var(--finish-from);
+  }
+  to {
+    flood-color: var(--finish-to);
+    background-color: var(--finish-to);
+  }
+}
+
+/* No visible colour-name/countdown pill. Keep pause/next available on
+   keyboard focus without leaving an always-on control under the artwork. */
+.controls {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.controls:focus-within {
+  clip-path: none;
+  overflow: visible;
+  height: auto;
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  max-width: min(430px, calc(100% - 32px));
+  min-height: 42px;
+  padding: 4px 5px 4px 13px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--finish-deep);
+  font-family: var(--font-geist), Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.3;
+  pointer-events: auto;
+}
+
+.controls > button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgb(var(--finish-rgb) / 0.2);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--finish-deep);
+}
+
+.controls > button:hover {
+  background: rgb(var(--finish-rgb) / 0.09);
+}
+
+.controls > button:focus-visible {
+  outline: 2px solid var(--finish-deep);
+  outline-offset: 3px;
+}
+
+@media (max-width: 430px) {
+  .controls:focus-within {
+    gap: 7px;
+    padding-left: 10px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finish[data-finish-phase="changing"] .tint {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .finish > img {
+    filter: none;
+  }
+  .controls {
+    border-color: ButtonText;
+  }
+  .controls > button {
+    border-color: ButtonText;
+  }
+  .tint,
+  .reflection {
+    display: none;
+  }
+}

@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./helpers/tool-test";
 import { PDFDocument, degrees } from "@cantoo/pdf-lib";
 import { readFile } from "node:fs/promises";
 
@@ -53,7 +53,7 @@ test.beforeAll(async () => {
   largeImagePdf = fixture(
     await createImageHeavyPdf({
       height: 900,
-      pages: 1,
+      pages: 3,
       seed: 424242,
       width: 1200,
     }),
@@ -394,36 +394,111 @@ test("complete mobile workflow uses the sticky action without horizontal overflo
   ).toBe(true);
 });
 
-test("cancels a large batch and leaves unfinished PDFs ready to retry", async ({
-  page,
-}) => {
-  test.setTimeout(120_000);
-  await page.goto("/tools/compress-pdf");
-  const copies = [1, 2, 3].map((index) => ({
-    ...largeImagePdf,
-    name: `Large scan ${index}.pdf`,
-  }));
-  await page.getByLabel("Choose PDFs", { exact: true }).setInputFiles(copies);
-  await expect(page.locator(".pdf-entry")).toHaveCount(3);
-  await expect(
-    page.getByRole("button", { name: "Compress 3 PDFs" }),
-  ).toBeEnabled({ timeout: 60_000 });
+for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
+  test(`cancels a large batch and leaves unfinished PDFs ready to retry (${mode})`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    await page.setViewportSize(
+      mode === "mobile pointer"
+        ? { width: 390, height: 844 }
+        : { width: 1280, height: 900 },
+    );
+    await page.goto("/tools/compress-pdf");
+    // Avoid smooth-scroll timing races when exercising the real controls.
+    await page.addStyleTag({
+      content: "*, html { scroll-behavior: auto !important; }",
+    });
+    const copies = Array.from({ length: 12 }, (_, i) => i + 1).map((index) => ({
+      ...largeImagePdf,
+      name: `Large scan ${index}.pdf`,
+    }));
+    await page.getByLabel("Choose PDFs", { exact: true }).setInputFiles(copies);
+    await expect(page.locator(".pdf-entry")).toHaveCount(12);
+    await expect(
+      page.getByRole("button", { name: "Compress 12 PDFs" }),
+    ).toBeEnabled({ timeout: 60_000 });
 
-  const targetToggle = page.getByLabel(/Target size per PDF/);
-  await targetToggle.focus();
-  await page.keyboard.press("Space");
-  await expect(targetToggle).toBeChecked();
-  await page.getByLabel("Target", { exact: true }).fill("1");
-  await page.getByLabel("Target unit").selectOption("KiB");
-  await page.getByRole("button", { name: "Compress 3 PDFs" }).click();
-  await expect(page.getByRole("progressbar")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Cancel compression" })
-    .click({ force: true });
+    const targetToggle = page.getByLabel(/Target size per PDF/);
+    await targetToggle.focus();
+    await page.keyboard.press("Space");
+    await expect(targetToggle).toBeChecked();
+    await page.getByLabel("Target", { exact: true }).fill("1");
+    await page.getByLabel("Target unit").selectOption("KiB");
+    if (mode === "mobile pointer") {
+      // The sticky mobile control stays in place while work is running.
+      const mobileAction = page.locator(".pdf-mobile-action .primary");
+      await mobileAction.click();
+      await expect(page.getByRole("progressbar")).toBeVisible();
+      await expect(mobileAction).toHaveText("Cancel");
+      // On WebKit the expanded progress panel can push the sticky bar below
+      // the viewport. Scroll it back before sending the real pointer event.
+      await mobileAction.evaluate((button) =>
+        button.scrollIntoView({ block: "center", behavior: "instant" }),
+      );
+      const bounds = await mobileAction.boundingBox();
+      expect(bounds).not.toBeNull();
+      const hit = await mobileAction.evaluate((button) => {
+        const rect = button.getBoundingClientRect();
+        const node = document.elementFromPoint(
+          rect.x + rect.width / 2,
+          rect.y + rect.height / 2,
+        );
+        return {
+          matches: node === button || (node !== null && button.contains(node)),
+          element: node?.outerHTML.slice(0, 500),
+          rectangle: [rect.x, rect.y, rect.width, rect.height],
+          viewport: [innerWidth, innerHeight],
+        };
+      });
+      expect(
+        hit,
+        `mobile cancel pointer target: ${JSON.stringify(hit)}`,
+      ).toMatchObject({ matches: true });
+      // A direct pointer action avoids waiting for animation stability after
+      // the fixed control changes label, while still exercising the real UI.
+      await page.mouse.click(
+        bounds!.x + bounds!.width / 2,
+        bounds!.y + bounds!.height / 2,
+      );
+    } else {
+      await page.getByRole("button", { name: "Compress 12 PDFs" }).click();
+      await expect(page.getByRole("progressbar")).toBeVisible();
+      // Keyboard activation tests the real desktop control without a forced
+      // pointer click that could land on an overlapping element after scrolling.
+      await page.getByRole("button", { name: "Cancel compression" }).focus();
+      await page.keyboard.press("Enter");
+    }
 
-  await expect(page.getByText(/Compression cancelled/)).toBeVisible();
-  await expect(page.locator(".pdf-entry")).toHaveCount(3);
-  await expect(
-    page.getByRole("button", { name: /Compress \d+ PDFs/ }),
-  ).toBeEnabled();
-});
+    try {
+      await expect(page.getByText(/Compression cancelled/)).toBeVisible();
+    } catch (error) {
+      const state = await page.evaluate(() => ({
+        notices: Array.from(
+          document.querySelectorAll('[role="status"], [role="alert"]'),
+        ).map((el) => el.textContent?.trim()),
+        actions: Array.from(
+          document.querySelectorAll(
+            ".pdf-mobile-action button, .pdf-merge-actions button",
+          ),
+        ).map((el) => ({
+          text: el.textContent?.trim(),
+          disabled: (el as HTMLButtonElement).disabled,
+        })),
+        progress: document
+          .querySelector('[role="progressbar"]')
+          ?.getAttribute("aria-valuenow"),
+      }));
+      throw new Error(
+        `Cancellation did not show its notice. State: ${JSON.stringify(state)}. Page errors: ${JSON.stringify(pageErrors)}`,
+        { cause: error },
+      );
+    }
+    await expect(page.locator(".pdf-entry")).toHaveCount(12);
+    await expect(
+      page.getByRole("button", { name: /Compress (?:[1-9]|1[0-2]) PDFs?/ }),
+    ).toBeEnabled();
+  });
+}

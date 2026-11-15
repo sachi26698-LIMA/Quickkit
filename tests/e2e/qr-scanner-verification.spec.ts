@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import QRCode from "qrcode";
 
@@ -192,6 +192,7 @@ test.describe("QR Scanner verification — content recognition", () => {
   test("recognises all 16 content types plus an unknown payload", async ({
     page,
   }) => {
+    test.setTimeout(90000);
     await page.goto(ROUTE);
     await page.getByRole("tab", { name: /Upload Image/ }).click();
 

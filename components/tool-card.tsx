@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { Tool } from "@/lib/catalog";
 import { ToolIcon3D, toolTone } from "@/components/icon-3d";
+import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
 import FavoriteButton from "@/components/favorite-button";
 
 /**
@@ -11,13 +12,19 @@ import FavoriteButton from "@/components/favorite-button";
 export default function ToolCard({
   tool,
   category,
+  href,
 }: {
   tool: Tool;
+  href?: string;
   /** Label for the listing the card appears in; defaults to the primary category. */
   category?: string;
 }) {
   return (
-    <article className={`tool-card cat-${toolTone(tool)}`}>
+    <article
+      className={`tool-card cat-${toolTone(tool)}`}
+      data-tool={tool.slug}
+      style={toolSurfaceStyle(toolTheme(tool.slug, tool.category))}
+    >
       <div className="card-top">
         <ToolIcon3D tool={tool} size={60} />
         <span className="card-top-right">
@@ -26,7 +33,7 @@ export default function ToolCard({
         </span>
       </div>
       <h3>
-        <Link className="card-link" href={`/tools/${tool.slug}`}>
+        <Link className="card-link" href={href ?? `/tools/${tool.slug}`}>
           {tool.name}
         </Link>
       </h3>

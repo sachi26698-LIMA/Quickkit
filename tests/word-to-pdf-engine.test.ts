@@ -139,44 +139,26 @@ describe("native-process adapter with a fake executable (not rendering QA)", () 
   it("cancels the active process and cleans its directory", async () => {
     const record = await executable(1, true);
     const controller = new AbortController();
-    let outcome: unknown;
-    let completed = false;
-    const running = convert(
+    // Wait for the fake converter to actually start before cancellation.
+    // A fixed 250ms also cancelled health-check/startup under a loaded suite,
+    // so it never exercised the active-process cleanup this test promises.
+    const conversion = convert(
       await source(),
       defaults,
       controller.signal,
       () => {},
-    ).then(
-      () => {
-        outcome = new Error("The fake process unexpectedly completed.");
-        completed = true;
-      },
-      (error: unknown) => {
-        outcome = error;
-        completed = true;
-      },
     );
-
-    // Wait for the child to write its argv record before aborting. A fixed
-    // short timer could fire while the test worker is descheduled, causing
-    // cleanup to remove the record before the fake process ever starts.
-    let started = false;
-    for (let attempt = 0; attempt < 100 && !started && !completed; attempt++) {
-      try {
-        await access(record);
-        started = true;
-      } catch {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+    const rejected = expect(conversion).rejects.toThrow(/cancelled/);
+    try {
+      await vi.waitFor(() => access(record), { timeout: 5000, interval: 20 });
+      controller.abort();
+      await rejected;
+    } finally {
+      controller.abort();
     }
-    controller.abort();
-    await running;
-
-    expect(started).toBe(true);
-    expect(String(outcome)).toMatch(/cancelled/i);
     const args = JSON.parse(await readFile(record, "utf8"));
     await expect(access(dirname(args.at(-1)))).rejects.toThrow();
-  }, 15_000);
+  });
   it("rejects corrupted packages before launching a native process", async () => {
     await executable();
     await expect(

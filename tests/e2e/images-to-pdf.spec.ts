@@ -1,4 +1,4 @@
-import { test, expect, type Locator, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "./helpers/tool-test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { inflateSync } from "node:zlib";
@@ -816,6 +816,7 @@ test.describe("Images to PDF Converter — access and evidence", () => {
       "Screenshot capture runs in the dedicated workflow.",
     );
     await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/tools/images-to-pdf");
     await upload(page, await twoPortraits(page));
     await page
       .getByRole("button", {

@@ -7,6 +7,7 @@ import {
   legalPageByHref,
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
+import AnalyticsConsent from "@/components/analytics-consent";
 
 export const metadata = pageMetadata(
   "Cookie Policy — what we store and what we don’t",
@@ -19,27 +20,29 @@ export default function CookiesPage() {
     <LegalPageShell
       href="/cookies"
       title="Cookie Policy"
-      intro="QUICKKIT has no visitor account sign-in. Browser-local preferences stay on this device; when advertising is enabled, Google AdSense may use cookies or similar identifiers."
+      intro="QUICKKIT application code does not intentionally set cookies. When advertising is enabled, Google AdSense may use cookies or similar identifiers; this page also documents the browser storage created by site features."
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
       <h2 id="summary">1. The short version</h2>
       <ul>
         <li>
-          <strong>Cookies:</strong> QUICKKIT does not set visitor authentication
-          cookies. The administrator area uses Supabase Auth session cookies;
-          AdSense may separately use advertising identifiers when enabled.
+          <strong>Cookies:</strong> QUICKKIT application code does not
+          intentionally set cookies. When advertising is enabled, the Google
+          AdSense script may load and use cookies or similar advertising
+          identifiers, depending on its settings and your browser.
         </li>
         <li>
           <strong>Local storage and IndexedDB:</strong> used only for
           preferences you create by using a feature — saved tools, QR presets,
-          optional conversion history.
+          optional conversion history, and opt-in visitor statistics.
         </li>
         <li>
-          <strong>Analytics:</strong> none. When advertising is enabled, the
-          AdSense verification script is an advertising-platform script; review
-          sections 6 and 8 for its potential cookie use and consent
-          considerations.
+          <strong>Analytics:</strong> optional first-party visitor counts, only
+          after you allow participation on this page (section 8). When
+          advertising is enabled, the AdSense verification script is an
+          advertising-platform script; review sections 6 and 8 for its potential
+          cookie use and consent considerations.
         </li>
       </ul>
 
@@ -53,130 +56,239 @@ export default function CookiesPage() {
         read it. IndexedDB is the same idea with room for larger binary data.
       </p>
       <p>
-        Visitor pages do not create Supabase Auth sessions. The private
-        administrator area uses first-party Supabase SSR cookies only for
-        authorized staff. When advertising is enabled, the AdSense script may
-        read or set cookies or similar identifiers, depending on Google&rsquo;s
-        configuration and browser settings. Browser-local storage entries are
-        documented below as well.
+        QUICKKIT&rsquo;s own application code does not intentionally set
+        cookies. When advertising is enabled, the AdSense script may read or set
+        cookies or similar identifiers, depending on Google&rsquo;s
+        configuration and browser settings. The distinction matters because
+        rules can apply to storing or reading information on a device, which is
+        why local-storage entries are documented below as well.
       </p>
 
       <h2 id="essential">3. Essential storage</h2>
       <p>
-        Only the administrator area uses Supabase SSR authentication cookies.
-        Public visitors are not offered sign-in or accounts, and public tools
-        work without an authentication cookie. Browser cookie controls can clear
-        site data; advertising cookies, if any, are governed by Google and your
-        browser settings.
+        There is none that persists. Serving a page requires an ordinary HTTP
+        request, but QUICKKIT stores nothing to make that work: no session
+        identifier, no CSRF token in a cookie, no load-balancer affinity cookie,
+        no authentication state — because there is no session, no form that
+        posts to a server, and no account.
       </p>
 
       <h2 id="functional">4. Functional storage</h2>
       <p>
-        Site storage is functional and remains in this browser. Saved-tool
-        slugs, QR presets, and optional conversion history are not synchronized
-        to an account. Public tools remain usable without registration.
+        Most site storage is functional: it exists to remember a choice you
+        made, and the tool keeps working without it. Every entry is first-party
+        and device-local.
       </p>
       <div className="legal-table-wrap">
-        <table className="legal-table">
+        <table role="table" className="legal-table">
           <caption className="sr-only">
             Functional browser storage created by QUICKKIT
           </caption>
-          <thead>
-            <tr>
-              <th scope="col">Key / database</th>
-              <th scope="col">Type</th>
-              <th scope="col">What it holds</th>
-              <th scope="col">Created when</th>
-              <th scope="col">Removed when</th>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader">
+                Key / database
+              </th>
+              <th scope="col" role="columnheader">
+                Type
+              </th>
+              <th scope="col" role="columnheader">
+                What it holds
+              </th>
+              <th scope="col" role="columnheader">
+                Created when
+              </th>
+              <th scope="col" role="columnheader">
+                Removed when
+              </th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>
+          <tbody role="rowgroup">
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
+                <code>quickkit-analytics-consent</code>,{" "}
+                <code>quickkit-visitor-id</code>
+              </td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
+                Consent choice and a random browser identifier. Opt-in only; no
+                files or URLs. Used for aggregate visitor counts, not
+                advertising.
+              </td>
+              <td role="cell" data-label="Created when">
+                You allow anonymous visitor statistics on this page
+              </td>
+              <td role="cell" data-label="Removed when">
+                Turning statistics off removes the ID; consent choice remains
+                until site data is cleared.
+              </td>
+            </tr>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
+                <code>quickkit-visit-id</code>, <code>quickkit-visit-ms</code>,{" "}
+                <code>quickkit-visit-start</code>
+              </td>
+              <td role="cell" data-label="Type">
+                sessionStorage
+              </td>
+              <td role="cell" data-label="What it holds">
+                Random visit ID, start time and visible-tab duration for the
+                same-origin counter. Visits rotate after 24 hours on the next
+                page load.
+              </td>
+              <td role="cell" data-label="Created when">
+                Only with analytics consent; Do Not Track is respected
+              </td>
+              <td role="cell" data-label="Removed when">
+                Tab close, turning statistics off, or clearing site data.
+              </td>
+            </tr>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
+                <code>quickkit-tool-feedback-v1</code>
+              </td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
+                Optional ratings, tool slugs, feedback options, comments (600
+                characters maximum) and timestamps. Shown in this browser’s
+                homepage laptop; not transmitted or published to other visitors.
+              </td>
+              <td role="cell" data-label="Created when">
+                You choose “Save my feedback” after a tool download
+              </td>
+              <td role="cell" data-label="Removed when">
+                Until browser site data is cleared. No in-app deletion or
+                automatic replacement of older reviews. Storage limits may
+                prevent saving further reviews.
+              </td>
+            </tr>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>quickkit:saved-tools</code>
               </td>
-              <td>localStorage</td>
-              <td>
-                Slugs of tools you hearted. No file content; the list stays only
-                in this browser.
+              <td role="cell" data-label="Type">
+                localStorage
               </td>
-              <td>You tap the heart on a tool card</td>
-              <td>You un-heart a tool or clear this browser’s site data</td>
+              <td role="cell" data-label="What it holds">
+                Slugs of tools you hearted. No file content, no personal data.
+              </td>
+              <td role="cell" data-label="Created when">
+                You tap the heart on a tool card
+              </td>
+              <td role="cell" data-label="Removed when">
+                You un-heart the last tool, or clear site data
+              </td>
             </tr>
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>qk:qr-presets:v1</code>
               </td>
-              <td>localStorage</td>
-              <td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
                 Up to 24 named QR design presets (colours, shapes, size, logo).
               </td>
-              <td>You save a preset in the QR Code Generator</td>
-              <td>You delete the preset, or clear site data</td>
+              <td role="cell" data-label="Created when">
+                You save a preset in the QR Code Generator
+              </td>
+              <td role="cell" data-label="Removed when">
+                You delete the preset, or clear site data
+              </td>
             </tr>
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>qk:qr-history:v1</code>
               </td>
-              <td>localStorage</td>
-              <td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
                 Up to 20 recent QR generations — content type, a short label,
                 design and non-sensitive field values. Wi-Fi passwords and other
                 sensitive fields are never written.
               </td>
-              <td>You generate a QR code (history panel)</td>
-              <td>You clear the history, or clear site data</td>
+              <td role="cell" data-label="Created when">
+                You generate a QR code (history panel)
+              </td>
+              <td role="cell" data-label="Removed when">
+                You clear the history, or clear site data
+              </td>
             </tr>
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>qk:qr-history-mode:v1</code>
               </td>
-              <td>localStorage</td>
-              <td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
                 Your history preference — &ldquo;designs only&rdquo; keeps all
                 content out of storage entirely.
               </td>
-              <td>You change the history setting</td>
-              <td>Clear site data</td>
+              <td role="cell" data-label="Created when">
+                You change the history setting
+              </td>
+              <td role="cell" data-label="Removed when">
+                Clear site data
+              </td>
             </tr>
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>qk:i2i-retention</code>, <code>qk:p2w-retention</code>
               </td>
-              <td>localStorage</td>
-              <td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
                 Retention window for the optional conversion histories (session
                 / 24 hours / 7 days).
               </td>
-              <td>You change the retention setting</td>
-              <td>Clear site data</td>
+              <td role="cell" data-label="Created when">
+                You change the retention setting
+              </td>
+              <td role="cell" data-label="Removed when">
+                Clear site data
+              </td>
             </tr>
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>quickkit-image-to-image</code> (IndexedDB)
               </td>
-              <td>IndexedDB</td>
-              <td>
+              <td role="cell" data-label="Type">
+                IndexedDB
+              </td>
+              <td role="cell" data-label="What it holds">
                 Up to 20 converted images so they can be re-downloaded after a
                 reload. Opt-in; off by default (&ldquo;session&rdquo;).
               </td>
-              <td>You enable history in the Image to Image Converter</td>
-              <td>
+              <td role="cell" data-label="Created when">
+                You enable history in the Image to Image Converter
+              </td>
+              <td role="cell" data-label="Removed when">
                 Retention window passes, you clear the history, or clear site
                 data
               </td>
             </tr>
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>quickkit-pdf-to-word</code> (IndexedDB)
               </td>
-              <td>IndexedDB</td>
-              <td>
+              <td role="cell" data-label="Type">
+                IndexedDB
+              </td>
+              <td role="cell" data-label="What it holds">
                 Converted DOCX outputs only — never the source PDF. Opt-in; off
                 by default.
               </td>
-              <td>You enable history in PDF to Word</td>
-              <td>
+              <td role="cell" data-label="Created when">
+                You enable history in PDF to Word
+              </td>
+              <td role="cell" data-label="Removed when">
                 Retention window passes, you clear the history, or clear site
                 data
               </td>
@@ -187,11 +299,13 @@ export default function CookiesPage() {
 
       <h2 id="analytics">5. Analytics cookies</h2>
       <p>
-        QUICKKIT does not implement a separate analytics product, first-party
-        analytics script or server-side visitor counter. When advertising is
-        enabled, Google may receive requests and advertising-related data
-        through the AdSense script; any publisher reporting depends on its
-        administrator settings. See section 6.
+        QUICKKIT offers an optional first-party visitor counter using the random
+        browser identifiers documented above, not cookies. Participation is off
+        until you allow it in the footer. The public graph shows aggregate
+        counts and average visible visit time. When advertising is enabled,
+        Google may receive requests and advertising-related data through the
+        AdSense script; any publisher reporting depends on its account settings.
+        See section 6.
       </p>
 
       <h2 id="advertising">6. Advertising cookies</h2>
@@ -216,6 +330,7 @@ export default function CookiesPage() {
       </p>
 
       <h2 id="consent">8. Consent</h2>
+      <AnalyticsConsent />
       <p>
         The local-storage entries above are functional preferences. When
         advertising is enabled, the AdSense script is a separate

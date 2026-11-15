@@ -1,61 +1,39 @@
-"use client";
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
 import type { CategoryMeta, Tool } from "@/lib/catalog";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
+import TiltGrid from "@/components/tilt-grid";
 
-/**
- * Homepage category cards with a subtle pointer-tracked 3D tilt and glow
- * (pointer-fine devices only; inert under reduced motion via CSS guard).
- */
+/** Server-rendered cards from the published catalog; TiltGrid owns pointer behavior. */
 export default function CategoryGrid({
   categories,
   tools,
+  cards,
 }: {
-  categories: CategoryMeta[];
-  tools: Tool[];
+  categories?: CategoryMeta[];
+  tools?: Tool[];
+  cards?: { meta: CategoryMeta; count: number }[];
 }) {
-  const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
-    if (e.pointerType !== "mouse") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const rx = ((e.clientY - rect.top) / rect.height - 0.5) * -7;
-    const ry = ((e.clientX - rect.left) / rect.width - 0.5) * 9;
-    el.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
-    el.style.setProperty("--ry", `${ry.toFixed(2)}deg`);
-    el.style.setProperty(
-      "--gx",
-      `${(((e.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`,
-    );
-    el.style.setProperty(
-      "--gy",
-      `${(((e.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`,
-    );
-  };
-  const onLeave = (e: React.PointerEvent<HTMLAnchorElement>) => {
-    e.currentTarget.style.setProperty("--rx", "0deg");
-    e.currentTarget.style.setProperty("--ry", "0deg");
-  };
-
+  const categoryCards =
+    cards ?? (categories ?? []).map((meta) => ({ meta, count: 0 }));
   return (
-    <div className="category-grid">
-      {categories.map((meta) => {
-        const count = tools.filter(
-          (tool) =>
-            tool.category === meta.name ||
-            ("categories" in tool &&
-              Array.isArray(tool.categories) &&
-              (tool.categories as readonly string[]).includes(meta.name)),
-        ).length;
+    <TiltGrid className="category-grid">
+      {categoryCards.map(({ meta, count: cardCount }) => {
+        const count = tools
+          ? tools.filter(
+              (tool) =>
+                tool.category === meta.name ||
+                ("categories" in tool &&
+                  Array.isArray(tool.categories) &&
+                  (tool.categories as readonly string[]).includes(meta.name)),
+            ).length
+          : cardCount;
         const comingSoon = count === 0;
         return (
           <Link
             key={meta.slug}
             href={`/category/${meta.slug}`}
             className={`category-card ${meta.tint} cat-${categoryTone(meta.name)}`}
-            onPointerMove={onMove}
-            onPointerLeave={onLeave}
           >
             <span className="category-glow" aria-hidden="true" />
             <span className="category-card-top">
@@ -80,6 +58,6 @@ export default function CategoryGrid({
           </Link>
         );
       })}
-    </div>
+    </TiltGrid>
   );
 }

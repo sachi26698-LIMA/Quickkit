@@ -153,7 +153,7 @@ describe("next.config header policy", () => {
     }
   });
 
-  it("allows the camera on the QR scanner page only", async () => {
+  it("allows the camera on the three scanner pages only", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
     try {
@@ -165,22 +165,59 @@ describe("next.config header policy", () => {
           .flatMap((rule) => rule.headers as HeaderEntry[])
           .find((header) => header.key === "Permissions-Policy")?.value ?? "";
 
-      // The scanner needs a camera for its live mode, and a scoped rule is the
-      // only way to say yes to one page without saying yes to the whole site.
-      expect(permissionRule("/tools/qr-code-scanner")).toContain(
-        "camera=(self)",
-      );
+      // Each scanner needs a camera for its live mode, and a scoped rule is the
+      // only way to say yes to three pages without saying yes to the whole
+      // site.
+      const cameraPages = [
+        "/tools/qr-code-scanner",
+        "/tools/barcode-generator",
+        "/tools/barcode-scanner",
+      ];
+      for (const source of cameraPages)
+        expect(permissionRule(source), source).toContain("camera=(self)");
       // Everything else keeps the camera off: no other tool asks for it.
       expect(permissionRule("/:path*")).toContain("camera=()");
       expect(permissionRule("/:path*")).not.toContain("camera=(self)");
-      // Microphone and location stay off everywhere, scanner included.
-      for (const source of ["/:path*", "/tools/qr-code-scanner"])
-        expect(permissionRule(source)).toContain(
+      // Microphone and location stay off everywhere, scanners included.
+      for (const source of ["/:path*", ...cameraPages])
+        expect(permissionRule(source), source).toContain(
           "microphone=(), geolocation=()",
         );
     } finally {
       vi.unstubAllEnvs();
     }
+  });
+
+  it("keeps framing closed unless a sandbox preview opts in", async () => {
+    const cspFor = async (env: Record<string, string> | null) => {
+      vi.stubEnv("NODE_ENV", "production");
+      if (env)
+        for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
+      vi.resetModules();
+      try {
+        const { default: config } = await import("../next.config");
+        const rules = (await config.headers?.()) ?? [];
+        const all = rules.flatMap((rule) => rule.headers as HeaderEntry[]);
+        return cspOf(all, "Content-Security-Policy");
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    };
+
+    // Default: no page may be framed at all.
+    for (const env of [null, { ALLOW_SANDBOX_PREVIEW: "0" }]) {
+      const value = await cspFor(env);
+      expect(value).toContain("frame-ancestors 'none'");
+      expect(value).not.toContain("e2b.app");
+    }
+
+    // The preview sandbox names the preview origin — not `*`, not a scheme.
+    const preview = await cspFor({ ALLOW_SANDBOX_PREVIEW: "1" });
+    expect(preview).toContain("frame-ancestors 'self' https://*.e2b.app");
+    expect(preview).not.toMatch(
+      /frame-ancestors[^;]*https:\/\/[^;\s]*\*\.[^;\s]*\.e2b\.app/,
+    );
+    expect(preview).not.toMatch(/frame-ancestors[^;]*(^|\s)\*(\s|;)/);
   });
 
   it("only widens the dev-origin guard while developing", async () => {

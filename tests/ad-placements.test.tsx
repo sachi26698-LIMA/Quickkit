@@ -44,6 +44,10 @@ import FaqPage from "../app/(public)/faq/page";
 import ToolsPage from "../app/(public)/tools/page";
 import CategoryPage from "../app/(public)/category/[slug]/page";
 
+beforeEach(() => {
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "true");
+});
+
 beforeAll(() => {
   if (!window.matchMedia) {
     Object.defineProperty(window, "matchMedia", {
@@ -74,13 +78,6 @@ beforeAll(() => {
       writable: true,
     });
   }
-});
-
-beforeEach(() => {
-  // Placement and route-coverage assertions exercise the explicitly enabled
-  // integration; default-off behavior is covered in tests/ad-unit.test.tsx.
-  vi.stubEnv("ADS_ENABLED", "true");
-  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "true");
 });
 
 afterEach(() => {
@@ -196,14 +193,19 @@ describe("ad unit registry", () => {
 describe("route coverage", () => {
   it("covers or explicitly excludes every sitemap route", async () => {
     const paths = await sitemapPaths();
-    expect(paths).toHaveLength(65);
+    const { tools } = await import("../lib/catalog");
+    const { legalPages } = await import("../lib/legal");
+    const { BRANDS } = await import("../lib/tools/batch-code/brands");
+    expect(paths).toHaveLength(
+      5 + legalPages.length + 7 + tools.length + BRANDS.length,
+    );
 
     const excluded = paths.filter((path) => !isAdEligible(path));
     const covered = paths.filter((path) => isAdEligible(path));
 
     // Two sitemap pages are deliberately ad-free, each for a stated reason.
     expect(excluded.sort()).toEqual(["/contact", "/sitemap"]);
-    expect(covered).toHaveLength(63);
+    expect(covered).toHaveLength(paths.length - 2);
 
     for (const path of excluded) {
       expect(AD_EXCLUDED_ROUTES[path]?.length ?? 0).toBeGreaterThan(20);
@@ -218,16 +220,18 @@ describe("route coverage", () => {
 
   it("renders ads on every eligible route family", async () => {
     const { container: toolish } = slotsOf(
-      await ToolShell({
-        slug: "merge-pdf",
-        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
-        children: <div />,
-      }),
+      <ToolShell
+        slug="merge-pdf"
+        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
+      >
+        <div />
+      </ToolShell>,
     );
     expect(toolish.querySelectorAll(".ad-slot")).toHaveLength(3);
 
+    const homeElement = await Home();
     for (const element of [
-      await Home(),
+      homeElement,
       <HelpPage key="help" />,
       <AboutPage key="about" />,
       <FaqPage key="faq" />,
@@ -261,9 +265,11 @@ describe("route coverage", () => {
 });
 
 describe("tool route coverage", () => {
-  it("routes every one of the 42 tools through the shared shell", async () => {
+  it("routes every one of the 49 tools through the shared shell", async () => {
     const { tools } = await import("../lib/catalog");
-    expect(tools).toHaveLength(42);
+    const { securityGroups } =
+      await import("../lib/tools/security/consolidation");
+    expect(tools).toHaveLength(49 + securityGroups.length - 2);
 
     const pageFiles = readdirSync("app/(public)/tools").filter(
       (entry) => !entry.includes("."),
@@ -276,7 +282,7 @@ describe("tool route coverage", () => {
       if (!existsSync(page)) continue;
       const source = readFileSync(page, "utf8");
       // Each tool page either mounts ToolShell or delegates to the developer
-      // tool wrapper, which does — so all 42 inherit the same three slots.
+      // tool wrapper, which does — so all 49 inherit the same three slots.
       expect(
         source.includes("ToolShell") ||
           source.includes("@/components/tools/devtools/page"),
@@ -287,9 +293,11 @@ describe("tool route coverage", () => {
     // dynamic route.
     for (const tool of tools) {
       const own = existsSync(join("app/(public)/tools", tool.slug, "page.tsx"));
-      const viaCalculator = existsSync(
-        "app/(public)/tools/[calculator]/page.tsx",
-      );
+      const { calculatorInfo } = await import("../lib/calculator-info");
+      const viaCalculator =
+        existsSync("app/(public)/tools/[calculator]/page.tsx") &&
+        (tool.slug in calculatorInfo ||
+          securityGroups.some((entry) => entry.slug === tool.slug));
       expect(own || viaCalculator).toBe(true);
     }
   });
@@ -327,14 +335,15 @@ describe("tool route coverage", () => {
     expect(source).toContain("{list.length ? (");
   });
 
-  it("gives the compact studio layout the same three slots", async () => {
+  it("gives the compact studio layout the same three slots", () => {
     const { slots } = slotsOf(
-      await ToolShell({
-        slug: "pdf-lock-unlock",
-        variant: "compact",
-        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
-        children: <div data-testid="studio" />,
-      }),
+      <ToolShell
+        slug="pdf-lock-unlock"
+        variant="compact"
+        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
+      >
+        <div data-testid="studio" />
+      </ToolShell>,
     );
     expect(slots).toHaveLength(3);
   });
@@ -347,11 +356,6 @@ describe("duplicate protection", () => {
     });
     const toolsElement = await ToolsPage();
     const homeElement = await Home();
-    const wordCounterElement = await ToolShell({
-      slug: "word-counter",
-      content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
-      children: <div />,
-    });
     // Elements are built lazily so a single page's slot list can be inspected
     // in isolation, and so no element sits in an array without a key.
     const pages: [string, () => ReactElement][] = [
@@ -361,7 +365,17 @@ describe("duplicate protection", () => {
       ["/help", () => <HelpPage />],
       ["/about", () => <AboutPage />],
       ["/faq", () => <FaqPage />],
-      ["/tools/word-counter", () => wordCounterElement],
+      [
+        "/tools/word-counter",
+        () => (
+          <ToolShell
+            slug="word-counter"
+            content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
+          >
+            <div />
+          </ToolShell>
+        ),
+      ],
       [
         "/privacy",
         () => (

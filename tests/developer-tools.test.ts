@@ -355,6 +355,8 @@ describe("Hash generator", () => {
     "SHA-1": "a9993e364706816aba3e25717850c26c9cd0d89d",
     "SHA-256":
       "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    "SHA-384":
+      "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7",
     "SHA-512":
       "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f",
   };
@@ -400,4 +402,69 @@ describe("JSON parser error locations", () => {
     const input = '{"items": [';
     expect(locateJsonError(input)?.position).toBe(input.length);
   });
+});
+
+describe("batch checksum reports", () => {
+  it("hashes files sequentially and quotes unsafe filenames", async () => {
+    const { hashFileBatch } = await import("../lib/tools/developer-data");
+    const files = [new File(["abc"], "a.txt"), new File([""], "line\nb.txt")];
+    const progress: number[] = [];
+    const report = await hashFileBatch(files, "SHA-256", (n) =>
+      progress.push(n),
+    );
+    expect(report).toContain(
+      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    );
+    expect(report).toContain(
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    );
+    expect(report).toContain('"line\\nb.txt"');
+    expect(progress.at(-1)).toBe(100);
+  });
+  it("rejects empty and oversized batches", async () => {
+    const { hashFileBatch } = await import("../lib/tools/developer-data");
+    await expect(hashFileBatch([], "SHA-256")).rejects.toThrow("1 and 50");
+    await expect(
+      hashFileBatch(
+        Array.from({ length: 51 }, () => new File([], "x")),
+        "SHA-256",
+      ),
+    ).rejects.toThrow("1 and 50");
+  });
+});
+
+it("compares a batch to a trusted manifest and reports possible duplicates and missing entries", async () => {
+  const { hashFileBatch } = await import("../lib/tools/developer-data");
+  const digest =
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+  const files = [
+    new File(["abc"], "a.txt"),
+    new File(["abc"], "b.txt"),
+    new File(["other"], "c.txt"),
+  ];
+  const manifest = JSON.stringify([
+    { name: "a.txt", digest },
+    { name: "b.txt", digest: "0".repeat(64) },
+    { name: "missing.txt", digest },
+  ]);
+  const result = await hashFileBatch(files, "SHA-256", undefined, manifest);
+  expect(result).toContain('"a.txt" [MATCH]');
+  expect(result).toContain('"b.txt" [MISMATCH]');
+  expect(result).toContain('"c.txt" [NO REFERENCE]');
+  expect(result).toContain("1 reference(s) without a selected file");
+  expect(result).toContain('"a.txt", "b.txt"');
+  await expect(
+    hashFileBatch(
+      files,
+      "SHA-256",
+      undefined,
+      '[{"name":"a.txt","digest":"abcd"}]',
+    ),
+  ).rejects.toThrow("valid digest");
+  await expect(
+    hashFileBatch([files[0], files[0]], "SHA-256", undefined, manifest),
+  ).rejects.toThrow("distinct");
+  await expect(
+    hashFileBatch(files, "SHA-256", undefined, "not json"),
+  ).rejects.toThrow("JSON array");
 });

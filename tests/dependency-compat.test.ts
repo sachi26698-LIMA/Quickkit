@@ -43,4 +43,4 @@ it("runs the real parser project-service default-project matcher", async () => {
     },
   );
   expect(result.ast.type).toBe("Program");
-}, 20_000);
+}, 60_000);

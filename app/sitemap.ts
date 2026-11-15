@@ -7,6 +7,32 @@ import { indexingEnabled } from "@/lib/launch";
 import { metaBySlug, toolsByCategory } from "@/lib/catalog";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 import { legalPages } from "@/lib/legal";
+import { securityGroupBySlug } from "@/lib/tools/security/consolidation";
+import { BRANDS } from "@/lib/tools/batch-code/brands";
+
+/**
+ * Tools whose engine lives outside `lib/tools/<slug>`.
+ *
+ * The default mapping assumes one folder per route; a multi-mode tool keeps its
+ * engine in a shared directory instead, and the sitemap's lastmod should still
+ * follow that code.
+ */
+const EXTRA_ROUTE_SOURCES: Readonly<Record<string, readonly string[]>> = {
+  "/tools/barcode-generator": [
+    "lib/tools/barcode",
+    "components/tools/barcode-studio",
+  ],
+  "/tools/gs1-intelligence": [
+    "lib/tools/gs1",
+    "components/tools/gs1-intelligence",
+  ],
+  "/tools/product-lookup": [
+    "lib/tools/barcode-scanner/product-lookup.ts",
+    "components/tools/product-lookup",
+  ],
+  "/tools/batch-studio": ["components/tools/batch-studio"],
+  "/tools/barcode-developer": ["components/tools/barcode-developer"],
+};
 
 export const dynamic = "force-dynamic";
 
@@ -174,6 +200,17 @@ export function routeSourceFiles(
   if (path === "/help") return ["app/(public)/help/page.tsx"];
   if (path === "/sitemap") return ["app/(public)/sitemap/page.tsx"];
 
+  if (path === "/guides/barcode") return ["app/guides/barcode/page.tsx"];
+
+  // Brand detail pages live one level below a tool route but are generated
+  // statically from the batch-code records, so they are mapped explicitly.
+  if (path.startsWith("/tools/batch-code-checker/brand/")) {
+    return [
+      "app/(public)/tools/batch-code-checker/brand/[slug]/page.tsx",
+      "lib/tools/batch-code",
+    ];
+  }
+
   if (path.startsWith("/tools/")) {
     const slug = path.slice("/tools/".length);
     const staticPage = `app/(public)/tools/${slug}/page.tsx`;
@@ -188,7 +225,32 @@ export function routeSourceFiles(
       }
       const libDir = `lib/tools/${slug}`;
       if (repoFileExists(repoPath(repoRoot, libDir))) found.push(libDir);
+      for (const extra of EXTRA_ROUTE_SOURCES[path] ?? [])
+        if (repoFileExists(repoPath(repoRoot, extra))) found.push(extra);
       return [...new Set(found)];
+    }
+
+    if (securityGroupBySlug(slug)) {
+      return [
+        "app/tools/[calculator]/page.tsx",
+        "lib/tools/security/catalog.ts",
+        "lib/tools/security/consolidation.ts",
+        "components/tools/security/consolidated-workspace.tsx",
+        "lib/tools/security/logic.ts",
+        "lib/tools/security/review.ts",
+        "lib/tools/security/email.ts",
+        "lib/tools/security/legal.ts",
+        "lib/tools/security/metadata.ts",
+        "lib/tools/security/certificate.ts",
+        "lib/tools/security/hmac.ts",
+        "lib/tools/security/rsa.ts",
+        "lib/tools/security/file-signature.ts",
+        "lib/tools/security/url-review.ts",
+        "components/tools/security/rsa-workspace.tsx",
+        "lib/tools/security/network.ts",
+        "components/tools/security/network-workspace.tsx",
+        "components/tools/security/workspace.tsx",
+      ];
     }
 
     const calcSpecific = CALCULATOR_SOURCE_FILES[slug];
@@ -231,7 +293,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // `/saved` and `/qr` are deliberately absent: they carry `noindex` directives
   // and render per-browser or user-encoded state rather than indexable content.
-  const staticRoutes = ["/", "/tools", "/help", "/sitemap"];
+  const staticRoutes = ["/", "/tools", "/help", "/sitemap", "/guides/barcode"];
   const legalRouteSet = new Set(
     legalPages.filter((page) => page.indexable).map((page) => page.href),
   );
@@ -264,6 +326,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
               tool.canonicalPath === `/tools/${tool.slug}`),
         )
         .map((tool) => `/tools/${tool.slug}`),
+      ...(catalog.tools.some(
+        (tool) => tool.slug === "batch-code-checker" && tool.isIndexable,
+      )
+        ? BRANDS.map((brand) => `/tools/batch-code-checker/brand/${brand.slug}`)
+        : []),
     ]),
   ];
 

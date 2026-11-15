@@ -14,3 +14,7 @@ test-results/
 *.pem
 *.key
 /public/ocr/
+# Runtime visitor analytics databases belong on an external persistent volume.
+*.db
+*.db-shm
+*.db-wal

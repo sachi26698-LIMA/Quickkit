@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./helpers/tool-test";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { open, readFile } from "node:fs/promises";
 

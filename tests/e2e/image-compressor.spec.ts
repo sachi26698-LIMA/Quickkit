@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./helpers/tool-test";
 import { PNG } from "pngjs";
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";

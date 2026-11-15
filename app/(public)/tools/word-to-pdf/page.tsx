@@ -13,7 +13,7 @@ import {
 } from "@/lib/supabase/public-catalog";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
-import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
+import { toolSurfaceStyle, toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import "@/app/tool-pages.generated.css";
 import "@/app/tool-pages.css";
 
@@ -146,6 +146,7 @@ export default async function Page() {
             {related.slice(0, 4).map((t) => (
               <Link
                 className={`related-card cat-${toolTone(t)}`}
+                style={toolSurfaceStyle(toolTheme(t.slug, t.category))}
                 key={t.slug}
                 href={`/tools/${t.slug}`}
               >

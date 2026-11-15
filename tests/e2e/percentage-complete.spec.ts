@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/tool-test";
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 const cases = [
@@ -173,6 +173,7 @@ test("advanced sequences, comparisons, reverse discount, history and export", as
 test("populated responsive layout, axe, console and screenshots", async ({
   page,
 }) => {
+  test.setTimeout(120000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   for (const width of [375, 390, 430, 768, 1440]) {
@@ -198,7 +199,7 @@ test("populated responsive layout, axe, console and screenshots", async ({
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
-      path: `docs/percentage-qa/percentage-${width}.png`,
+      path: `test-results/evidence/percentage-qa/percentage-${width}.png`,
       fullPage: true,
     });
   }

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./helpers/tool-test";
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 async function percentage(page: Page) {
@@ -112,7 +112,7 @@ for (const item of [
       ).toBe(true);
       if (width === 375 || width === 1440)
         await page.screenshot({
-          path: `docs/phase-9-v2-screenshots/${item.slug}-populated-${width}.png`,
+          path: `test-results/evidence/phase-9-v2-screenshots/${item.slug}-populated-${width}.png`,
           fullPage: true,
         });
     }

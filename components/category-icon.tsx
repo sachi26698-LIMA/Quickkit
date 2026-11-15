@@ -26,7 +26,8 @@ export default function CategoryIcon({
   meta,
   size = 26,
 }: {
-  meta: CategoryMeta;
+  /** Anything carrying the icon name — a full category record or a nav entry. */
+  meta: Pick<CategoryMeta, "icon">;
   size?: number;
 }) {
   const Icon = categoryIcons[meta.icon];

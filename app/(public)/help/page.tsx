@@ -15,26 +15,26 @@ import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata(
   "Help Center — Tool Guides, Privacy & Support",
-  "Get help with QUICKKIT's published tools, browser-local favorites, supported browsers and limits.",
+  "Get help using QUICKKIT's online tools: how browser-local processing works, the Word to PDF server exception, supported browsers, limits and saved tools.",
   "/help",
 );
 
 const faqs = [
   {
     q: "Is QUICKKIT really free?",
-    a: "Yes. Every tool currently on QUICKKIT is free to use — no subscriptions and no payment forms. QUICKKIT does not offer visitor accounts or paid tiers. If that changes, we will say so clearly before anything else changes.",
+    a: "Yes. Every tool currently on QUICKKIT is free to use — no accounts, no subscriptions and no payment forms. If that ever changes, we will say so clearly before anything else changes.",
   },
   {
     q: "Do I need to create an account or install anything?",
-    a: "No. Public tools work in your browser with no registration and nothing to install. Saved tools stay locally in this browser.",
+    a: "No. QUICKKIT works in your web browser with no account and nothing to install. Open a tool, run your task, and close the tab.",
   },
   {
     q: "Are my files and text uploaded to a server?",
-    a: "Most published tools process PDFs, images, OCR, text, JSON, hashes, passwords and QR content locally in your browser without uploading files. Word to PDF is an explicit-consent exception: it sends DOCX bytes to our server conversion engine only when you confirm conversion, using temporary job files that are deleted afterward. Check each tool page and the Privacy Policy and File Handling Policy for full details.",
+    a: "Many tools process PDFs, images, OCR, text, hashes, passwords and QR content locally without uploading files. Word to PDF sends DOCX bytes to our server conversion engine only with explicit consent, using temporary job files that are deleted afterward. Public DNS and IP tools contact external services only with your consent. See the Privacy Policy and File Handling Policy for full details.",
   },
   {
     q: "How do I save a tool for later?",
-    a: "Tap the heart icon on any tool card. The list is stored locally in this browser and is not synced across devices. Clearing browser data removes the local list; no tool inputs or results are sent.",
+    a: "Tap the heart icon on any tool card. Saved tools appear under the heart in the top navigation. The list is stored only in this browser (local storage) — it isn't synced or sent anywhere, and clearing your browser data clears it.",
   },
   {
     q: "Which devices and browsers work?",

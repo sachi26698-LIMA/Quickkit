@@ -7,7 +7,7 @@ import {
   tools as staticTools,
 } from "@/lib/catalog";
 import type { PublicToolShellData } from "@/lib/supabase/public-catalog";
-import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
+import { toolSurfaceStyle, toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import { breadcrumbStructuredData, toolStructuredData } from "@/lib/seo";
 import JsonLd from "./json-ld";
 import AdUnit from "./ad-unit";
@@ -29,6 +29,7 @@ export default function ToolShell({
   faqsHeading = "A few useful answers",
   relatedHeading = "Keep the good work going",
   referenceSection,
+  privacyNotice,
 }: {
   slug: string;
   children: React.ReactNode;
@@ -41,6 +42,7 @@ export default function ToolShell({
   faqsHeading?: string;
   relatedHeading?: string;
   referenceSection?: React.ReactNode;
+  privacyNotice?: string;
 }) {
   const compact = variant === "compact";
   const tool =
@@ -111,6 +113,7 @@ export default function ToolShell({
           category: tool.category,
           slug: tool.slug,
           faqs: content.faqs,
+          networkProcessing: Boolean(privacyNotice),
         })}
       />
       {compact ? (
@@ -154,8 +157,9 @@ export default function ToolShell({
       {children}
       {!compact ? (
         <p className="privacy-inline">
-          <ShieldCheck size={17} /> Processed on your device. Tool inputs are
-          not uploaded or saved by QUICKKIT.
+          <ShieldCheck size={17} />{" "}
+          {privacyNotice ??
+            "Processed on your device. Tool inputs are not uploaded or saved by QUICKKIT."}
         </p>
       ) : null}
       {referenceSection}
@@ -196,6 +200,7 @@ export default function ToolShell({
           {related.map((t) => (
             <Link
               className={`related-card cat-${toolTone(t)}`}
+              style={toolSurfaceStyle(toolTheme(t.slug, t.category))}
               key={t.slug}
               href={`/tools/${t.slug}`}
             >

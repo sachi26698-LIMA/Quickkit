@@ -6,23 +6,16 @@
  * symbol that passed verification, not a second rendering that might differ.
  */
 import { PDFDocument, StandardFonts, rgb } from "@cantoo/pdf-lib";
+import { safeFilenamePart } from "@/lib/tools/filename";
+export { csvCell, csvDocument, csvRow } from "@/lib/tools/csv";
 
 export type QrExportFormat = "png" | "png-hires" | "svg" | "pdf";
 
 const MM_TO_PT = 72 / 25.4;
 
-/** Keep a file name friendly but harmless: no paths, no control characters. */
-export function safeFilenamePart(input: string, limit = 42) {
-  const cleaned = input
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, limit)
-    .replace(/-+$/g, "");
-  return cleaned || "code";
-}
+// Shared with the barcode studio, and re-exported so existing imports keep
+// working without pulling the barcode bundle in either direction.
+export { safeFilenamePart };
 
 export function qrFilename(options: {
   label: string;
@@ -139,22 +132,4 @@ export async function createQrPdf(
 
 export function pdfBlob(bytes: Uint8Array) {
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
-}
-
-/** CSV result report for a bulk run. Quotes every field, CRLF line endings. */
-export function csvCell(value: string | number | boolean) {
-  let text = String(value);
-  // Same spreadsheet-injection guard the calculator exports use: a payload that
-  // starts with = + - @ (or whitespace/control characters before one) is marked
-  // as text so Excel and Sheets cannot evaluate it.
-  if (/^[\s\u0000-\u001f]*[=+\-@]/.test(text)) text = `'${text}`;
-  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-export function csvRow(values: (string | number | boolean)[]) {
-  return values.map(csvCell).join(",");
-}
-
-export function csvDocument(rows: (string | number | boolean)[][]) {
-  return `${rows.map((row) => csvRow(row)).join("\r\n")}\r\n`;
 }

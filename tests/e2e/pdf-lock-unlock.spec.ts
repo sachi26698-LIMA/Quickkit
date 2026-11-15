@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./helpers/tool-test";
 import { PDFDocument, StandardFonts, PDFName, PDFDict } from "@cantoo/pdf-lib";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import createModule from "@neslinesli93/qpdf-wasm";
@@ -14,7 +14,7 @@ const wasmPath = fileURLToPath(
   ),
 );
 const screenshotDir = fileURLToPath(
-  new URL("../../docs/pdf-lock-unlock", import.meta.url),
+  new URL("../../test-results/evidence/pdf-lock-unlock", import.meta.url),
 );
 
 let plainPdf: Buffer;

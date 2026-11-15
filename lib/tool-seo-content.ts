@@ -1005,13 +1005,89 @@ export const TOOL_SEO_CONTENT: Record<string, ToolSeoEntry> = {
       "Images are decoded locally and never uploaded for processing. History lives in your browser and can be cleared at any time.",
   },
 
+  "barcode-generator": {
+    stepsHeading: "How to create a barcode that scans the first time",
+    faqsHeading: "Barcode questions, answered",
+    relatedHeading: "More ways to create and read codes",
+    referenceHeading:
+      "Barcode Studio: symbologies, check digits, and print limits",
+    referenceIntro:
+      "Every symbol is built from the published module tables of its symbology, then validated against that symbology's own rules. Nothing is drawn until the data passes, and a check digit that is missing is calculated while one that is wrong is refused — the difference matters when a label has already been printed a thousand times.",
+    specsTitle: "Barcode Studio specifications",
+    specs: [
+      {
+        label: "Formats",
+        detail:
+          "Code 128, Code 39, EAN-13, EAN-8, UPC-A, UPC-E, ITF-14, Codabar, MSI, Pharmacode and GS1-128. Code 128 accepts printable ASCII up to 80 characters and switches to Code Set C for runs of six or more digits.",
+      },
+      {
+        label: "Check digits",
+        detail:
+          "EAN-13 (12 data digits), EAN-8 (7), UPC-A (11) and ITF-14 (13) calculate the GS1 mod-10 digit when it is missing and verify it when it is present. UPC-E derives its check digit from the expanded UPC-A. Code 39 offers mod-43, MSI offers mod-10 or mod-11. Pharmacode and Codabar have no check digit in the symbology.",
+      },
+      {
+        label: "GS1-128",
+        detail:
+          "Application identifiers are parsed from the bracketed form, checked against the AI table for length and character set, and separated with GS characters after every variable-length field. GTIN (01, 02) and SSCC (00) check digits must already be correct — the tool will not silently recalculate one.",
+      },
+      {
+        label: "Quiet zones and print size",
+        detail:
+          "Each format enforces its minimum quiet zone: 11 modules on the left and 7 on the right for EAN-13, 9/9 for UPC-A, 10 for ITF-14, Code 128 and Code 39, 12 for MSI, 6 for Pharmacode. A smaller setting is raised to the minimum. The preview reports the symbol size and the narrow-bar width in millimetres at 300 dpi.",
+      },
+      {
+        label: "Bulk limits",
+        detail:
+          "Up to 1,000 rows per CSV, 5 MB per file, 30 columns and 1,500 characters per cell. Rows are validated up front, thumbnails render in batches of two and ZIP entries in batches of fifty, so the tab stays responsive. Every row reports ready, duplicate or invalid with a reason, and the report CSV repeats all of it.",
+      },
+      {
+        label: "Exports",
+        detail:
+          "PNG at 1–6× the preview density, SVG that stays vector, a PDF label at a chosen millimetre size on A4, US Letter or a fitted page, a ZIP of SVG or PNG files, and a direct print dialog that sends the vector symbol. PDF and SVG bars are vector rectangles, so the printer's resolution decides the edge sharpness.",
+      },
+      {
+        label: "Scanner",
+        detail:
+          "Reads Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, UPC-E, ITF-14 and Codabar from a camera or an image. The camera opens only after a click and prefers the rear lens; images are capped at 25 MB and 40 megapixels and are swept in overlapping tiles so several symbols can be found in one picture. MSI and Pharmacode are generation-only.",
+      },
+      {
+        label: "Privacy",
+        detail:
+          "Encoding, layout, rasterising, PDF and ZIP building and decoding all run in the tab. No barcode, CSV row or camera frame is uploaded. The only thing stored is your own styling, in this browser's local storage.",
+      },
+    ],
+    examplesTitle: "Barcode Studio examples",
+    examples: [
+      {
+        scenario: "Retail EAN-13",
+        input: "590123412345",
+        output:
+          "The check digit 7 is calculated, the 95-module symbol is drawn with standard guard bars, and the preview reports a 76.2 × 40.6 mm label at 300 dpi with quiet zones intact",
+      },
+      {
+        scenario: "GS1-128 shipping label",
+        input: "(01)09501101530003(17)251231(10)LOT-42",
+        output:
+          "Three validated application identifiers, a GS separator after the variable-length batch field, and the human-readable line printed as (01)… (17)… (10)…",
+      },
+      {
+        scenario: "Bulk CSV with bad rows",
+        input: "250 rows of EAN-13 data, three of them 11 digits long",
+        output:
+          "247 labels ready, 3 rows marked invalid with the exact length problem, a ZIP of the valid symbols and a report CSV listing every row",
+      },
+    ],
+    privacyNote:
+      "Nothing you type, upload or scan leaves the browser. There is no account, no server-side render of your data, and no analytics on the values themselves.",
+  },
+
   "password-generator": {
     stepsHeading: "How to generate a strong random password",
     faqsHeading: "Password generator questions, answered",
     relatedHeading: "More ways to protect accounts and files",
     referenceHeading: "Password Generator: randomness, entropy, and limits",
     referenceIntro:
-      "Passwords are drawn with crypto.getRandomValues using rejection sampling (no modulo bias) and a secure Fisher–Yates shuffle, so every character is unbiased. Entropy is L × log₂(pool), shown live as you change settings.",
+      "Passwords are drawn with crypto.getRandomValues using rejection sampling (no modulo bias) and a secure Fisher–Yates shuffle, with unbiased selection from each pool. The displayed L × log₂(pool) is an approximate upper bound for unconstrained random strings, not actual entropy of the constrained generator.",
     specsTitle: "Password Generator specifications",
     specs: [
       {
@@ -1031,7 +1107,7 @@ export const TOOL_SEO_CONTENT: Record<string, ToolSeoEntry> = {
       {
         label: "Entropy examples",
         detail:
-          "20 characters from all four pools (85 symbols) score 128 bits; 16 alphanumeric characters without ambiguous ones (56 symbols) score 93 bits.",
+          "For unconstrained random strings, 20 characters from all four pools (85 symbols) have approximately 128 bits; 16 alphanumeric characters without ambiguous ones (56 symbols) have approximately 93 bits. The generator requires each chosen set, so its distribution differs.",
       },
       {
         label: "Randomness",
@@ -1049,23 +1125,24 @@ export const TOOL_SEO_CONTENT: Record<string, ToolSeoEntry> = {
       {
         scenario: "Maximum strength",
         input: "Length 20, all four pools, ambiguous allowed",
-        output: "A 20-character password scoring 128 bits of entropy",
+        output:
+          "A 20-character password; the unconstrained pool bound is approximately 128 bits",
       },
       {
         scenario: "Typed by hand",
         input: "Length 16, alphanumeric only, ambiguous excluded",
         output:
-          "A 16-character password scoring 93 bits, with no I/l/1/O/0/o/| to confuse",
+          "A 16-character password; unconstrained pool bound approximately 93 bits, with no I/l/1/O/0/o/| to confuse",
       },
       {
         scenario: "Minimum length",
         input: "Length 8, lowercase only",
         output:
-          "An 8-character password scoring about 38 bits — fine for a throwaway, not for a bank",
+          "An 8-character password; unconstrained pool bound approximately 38 bits — use a longer password",
       },
     ],
     privacyNote:
-      "Generated passwords are never sent to a server or saved. Store them in a password manager and enable multi-factor authentication where available.",
+      "The generator does not send passwords to a server. Copying places them on your clipboard and downloading saves a plaintext file. Store passwords in a password manager and enable multi-factor authentication where available.",
   },
 
   // ----------------------------------------------------------- Developer (11)
@@ -1641,7 +1718,8 @@ export const TOOL_SEO_CONTENT: Record<string, ToolSeoEntry> = {
     specs: [
       {
         label: "Algorithms",
-        detail: "MD5, SHA-1, SHA-256, and SHA-512, output as lowercase hex.",
+        detail:
+          "MD5, SHA-1, SHA-256, SHA-384, and SHA-512, output as lowercase hex.",
       },
       {
         label: "Text limit",
@@ -1953,7 +2031,7 @@ export const TOOL_SEO_METADATA: Record<
   "password-generator": {
     title: "Password Generator — Secure Random Passwords",
     description:
-      "Generate 8–64 character passwords with browser cryptography, balanced character sets, an ambiguity filter, and a live entropy meter. No password is saved.",
+      "Generate passwords and passphrases with secure randomness, check strength and entropy, and build a password policy locally without uploading secrets.",
   },
   "word-counter": {
     title: "Word Counter — Words, Characters & Reading Time",
@@ -2011,9 +2089,9 @@ export const TOOL_SEO_METADATA: Record<
       "Generate cryptographically random UUID v4 identifiers in duplicate-checked batches of 1–2,000. Copy or download locally; no identifiers are uploaded.",
   },
   "hash-generator": {
-    title: "Hash Generator — MD5, SHA-1, SHA-256 & SHA-512",
+    title: "Hash Generator — SHA-256, SHA-384, SHA-512 & MD5",
     description:
-      "Hash UTF-8 text or files up to 100 MiB with MD5, SHA-1, SHA-256, or SHA-512. Files run locally in 1 MiB chunks; no upload occurs in your browser.",
+      "Hash text or files locally with MD5 and SHA algorithms, verify batch checksums, compare digests and inspect file signature hints without uploading.",
   },
   "regex-tester": {
     title: "Regex Tester — Match, Capture & Replace Text",

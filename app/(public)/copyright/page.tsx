@@ -49,62 +49,122 @@ export default function CopyrightPage() {
         and their licences are:
       </p>
       <div className="legal-table-wrap">
-        <table className="legal-table">
+        <table role="table" className="legal-table">
           <caption className="sr-only">
             Third-party software and licences
           </caption>
-          <thead>
-            <tr>
-              <th scope="col">Component</th>
-              <th scope="col">Licence</th>
-              <th scope="col">Used for</th>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader">
+                Component
+              </th>
+              <th scope="col" role="columnheader">
+                Licence
+              </th>
+              <th scope="col" role="columnheader">
+                Used for
+              </th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>pdf.js (pdfjs-dist)</td>
-              <td>Apache-2.0</td>
-              <td>Parsing and rendering PDF pages</td>
+          <tbody role="rowgroup">
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                pdf.js (pdfjs-dist)
+              </td>
+              <td role="cell" data-label="Licence">
+                Apache-2.0
+              </td>
+              <td role="cell" data-label="Used for">
+                Parsing and rendering PDF pages
+              </td>
             </tr>
-            <tr>
-              <td>@cantoo/pdf-lib</td>
-              <td>MIT</td>
-              <td>Writing and restructuring PDF files</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                @cantoo/pdf-lib
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Used for">
+                Writing and restructuring PDF files
+              </td>
             </tr>
-            <tr>
-              <td>tesseract.js + eng/hin/guj data</td>
-              <td>Apache-2.0 / MIT</td>
-              <td>On-device optical character recognition</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                tesseract.js + eng/hin/guj data
+              </td>
+              <td role="cell" data-label="Licence">
+                Apache-2.0 / MIT
+              </td>
+              <td role="cell" data-label="Used for">
+                On-device optical character recognition
+              </td>
             </tr>
-            <tr>
-              <td>docx, docx-preview</td>
-              <td>MIT / Apache-2.0</td>
-              <td>Generating and previewing Word documents</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                docx, docx-preview
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT / Apache-2.0
+              </td>
+              <td role="cell" data-label="Used for">
+                Generating and previewing Word documents
+              </td>
             </tr>
-            <tr>
-              <td>qrcode</td>
-              <td>MIT</td>
-              <td>QR matrix generation</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                qrcode
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Used for">
+                QR matrix generation
+              </td>
             </tr>
-            <tr>
-              <td>fflate</td>
-              <td>MIT</td>
-              <td>ZIP archive creation</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                fflate
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Used for">
+                ZIP archive creation
+              </td>
             </tr>
-            <tr>
-              <td>Lucide</td>
-              <td>ISC</td>
-              <td>Interface icons</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                Lucide
+              </td>
+              <td role="cell" data-label="Licence">
+                ISC
+              </td>
+              <td role="cell" data-label="Used for">
+                Interface icons
+              </td>
             </tr>
-            <tr>
-              <td>Geist (variable font)</td>
-              <td>SIL Open Font License 1.1</td>
-              <td>Typography, self-hosted</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                Geist (variable font)
+              </td>
+              <td role="cell" data-label="Licence">
+                SIL Open Font License 1.1
+              </td>
+              <td role="cell" data-label="Used for">
+                Typography, self-hosted
+              </td>
             </tr>
-            <tr>
-              <td>Next.js, React</td>
-              <td>MIT</td>
-              <td>Application framework</td>
+            <tr role="row">
+              <td role="cell" data-label="Component">
+                Next.js, React
+              </td>
+              <td role="cell" data-label="Licence">
+                MIT
+              </td>
+              <td role="cell" data-label="Used for">
+                Application framework
+              </td>
             </tr>
           </tbody>
         </table>

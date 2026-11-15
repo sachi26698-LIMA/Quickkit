@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "../lib/tool-seo-content";
 import {
   formatXml,
@@ -37,6 +38,8 @@ const ROUTES = {
   "image-to-image": () => import("../app/(public)/tools/image-to-image/page"),
   "qr-generator": () => import("../app/(public)/tools/qr-generator/page"),
   "qr-code-scanner": () => import("../app/(public)/tools/qr-code-scanner/page"),
+  "barcode-generator": () =>
+    import("../app/(public)/tools/barcode-generator/page"),
   "password-generator": () =>
     import("../app/(public)/tools/password-generator/page"),
   "json-formatter": () => import("../app/(public)/tools/json-formatter/page"),
@@ -65,10 +68,10 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("Phase 3 Batch C — 30 tool pages", () => {
-  it("has unique, intent-focused metadata and verified reference content for every route", async () => {
+describe("Phase 3 Batch C — 31 tool pages", () => {
+  it("has unique, intent-focused metadata and verified reference content for every route", () => {
     const slugs = Object.keys(ROUTES) as (keyof typeof ROUTES)[];
-    expect(slugs).toHaveLength(30);
+    expect(slugs).toHaveLength(31);
     expect(Object.keys(TOOL_SEO_CONTENT).sort()).toEqual([...slugs].sort());
 
     const titles = new Set<string>();
@@ -203,7 +206,7 @@ describe("Phase 3 Batch C — 30 tool pages", () => {
     expect(passwordEntropy(noAmbiguous)).toBe(93);
   });
 
-  it("renders 30 routes with one H1, no skipped heading levels, 4+ steps and FAQs, and matching FAQ JSON-LD", async () => {
+  it("renders 31 routes with one H1, no skipped heading levels, 4+ steps and FAQs, and matching FAQ JSON-LD", async () => {
     vi.stubEnv("SITE_URL", ORIGIN);
     if (!window.matchMedia) {
       Object.defineProperty(window, "matchMedia", {
@@ -224,16 +227,29 @@ describe("Phase 3 Batch C — 30 tool pages", () => {
     const renderedDescriptions = new Set<string>();
     for (const [slug, load] of Object.entries(ROUTES)) {
       vi.resetModules();
-      const { default: Page, generateMetadata } = await load();
-      const [metadata, page] = await Promise.all([generateMetadata(), Page()]);
-      const rendered = render(page);
+      const module = (await load()) as {
+        default: () => ReactElement | Promise<ReactElement>;
+        metadata?: {
+          title?: unknown;
+          description?: unknown;
+          alternates?: { canonical?: string };
+        };
+        generateMetadata?: () => Promise<{
+          title?: unknown;
+          description?: unknown;
+          alternates?: { canonical?: string };
+        }>;
+      };
+      const metadata = module.metadata ?? (await module.generateMetadata?.());
+      const Page = module.default;
+      const rendered = render(await Page());
       const { container } = rendered;
 
-      const title = metadata.title as string;
-      const description = metadata.description as string;
+      const title = metadata?.title as string;
+      const description = metadata?.description as string;
       expect(title, `${slug} metadata title`).toBeTruthy();
       expect(description, `${slug} metadata description`).toBeTruthy();
-      expect(metadata.alternates?.canonical, `${slug} canonical`).toBe(
+      expect(metadata?.alternates?.canonical, `${slug} canonical`).toBe(
         `${ORIGIN}/tools/${slug}`,
       );
       const brandedTitle = `${title} | QUICKKIT`;
@@ -330,7 +346,7 @@ describe("Phase 3 Batch C — 30 tool pages", () => {
       }
       rendered.unmount();
     }
-    expect(renderedTitles.size).toBe(30);
-    expect(renderedDescriptions.size).toBe(30);
+    expect(renderedTitles.size).toBe(31);
+    expect(renderedDescriptions.size).toBe(31);
   }, 30_000);
 });

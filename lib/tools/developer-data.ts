@@ -1,4 +1,10 @@
-import { createMD5, createSHA1, createSHA256, createSHA512 } from "hash-wasm";
+import {
+  createMD5,
+  createSHA1,
+  createSHA256,
+  createSHA384,
+  createSHA512,
+} from "hash-wasm";
 
 export const MAX_BASE64_FILE_BYTES = 10_000_000;
 export const MAX_BASE64_TEXT_LENGTH = 14_000_000;
@@ -11,7 +17,7 @@ function yieldToBrowser(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-export type HashAlgorithm = "MD5" | "SHA-1" | "SHA-256" | "SHA-512";
+export type HashAlgorithm = "MD5" | "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
 
 export function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -139,6 +145,7 @@ const hashers: Record<
   MD5: createMD5,
   "SHA-1": createSHA1,
   "SHA-256": createSHA256,
+  "SHA-384": createSHA384,
   "SHA-512": createSHA512,
 };
 
@@ -214,4 +221,100 @@ export async function hashFile(
     await yieldToBrowser();
   }
   return hasher.digest("hex");
+}
+
+/** Hash files sequentially in bounded chunks; filenames in the report are JSON escaped. */
+export async function hashFileBatch(
+  files: File[],
+  algorithm: HashAlgorithm,
+  onProgress?: (percent: number) => void,
+  manifestText = "",
+): Promise<string> {
+  if (!files.length || files.length > 50)
+    throw new Error("Choose between 1 and 50 files.");
+  if (files.some((file) => file.size > MAX_HASH_FILE_BYTES))
+    throw new Error("Each file must be at most 100 MiB.");
+  if (files.reduce((total, file) => total + file.size, 0) > 500 * 1024 * 1024)
+    throw new Error("Combined file size must not exceed 500 MiB.");
+  const expected = new Map<string, string>();
+  if (manifestText.trim()) {
+    if (manifestText.length > 100_000)
+      throw new Error("Checksum manifest is too large.");
+    let entries: unknown;
+    try {
+      entries = JSON.parse(manifestText);
+    } catch {
+      throw new Error(
+        "Manifest must be a JSON array of name and digest objects.",
+      );
+    }
+    const lengths: Record<HashAlgorithm, number> = {
+      MD5: 32,
+      "SHA-1": 40,
+      "SHA-256": 64,
+      "SHA-384": 96,
+      "SHA-512": 128,
+    };
+    if (!Array.isArray(entries) || entries.length > 50 || !entries.length)
+      throw new Error("Manifest must contain 1–50 entries.");
+    for (const entry of entries) {
+      if (
+        !entry ||
+        typeof entry !== "object" ||
+        typeof entry.name !== "string" ||
+        !entry.name ||
+        typeof entry.digest !== "string" ||
+        !/^[a-f0-9]+$/i.test(entry.digest) ||
+        entry.digest.length !== lengths[algorithm] ||
+        expected.has(entry.name)
+      )
+        throw new Error(
+          "Each manifest entry needs a unique filename and a valid digest for the selected algorithm.",
+        );
+      expected.set(entry.name, entry.digest.toLowerCase());
+    }
+    if (new Set(files.map((file) => file.name)).size !== files.length)
+      throw new Error(
+        "Manifest verification requires distinct selected filenames.",
+      );
+  }
+  const lines: string[] = [];
+  const groups = new Map<string, string[]>();
+  let matches = 0,
+    mismatches = 0,
+    missing = 0;
+  for (let i = 0; i < files.length; i++) {
+    const digest = await hashFile(files[i], algorithm, (percent) =>
+      onProgress?.(Math.floor(((i + percent / 100) / files.length) * 100)),
+    );
+    const name = files[i].name;
+    let status = "";
+    if (manifestText.trim()) {
+      const reference = expected.get(name);
+      if (!reference) {
+        status = " [NO REFERENCE]";
+        missing++;
+      } else if (reference === digest) {
+        status = " [MATCH]";
+        matches++;
+      } else {
+        status = " [MISMATCH]";
+        mismatches++;
+      }
+    }
+    lines.push(`${digest}  ${JSON.stringify(name)}${status}`);
+    const group = `${files[i].size}:${digest}`;
+    groups.set(group, [...(groups.get(group) ?? []), name]);
+  }
+  const duplicates = [...groups.values()].filter((group) => group.length > 1);
+  const extras = [...expected.keys()].filter(
+    (name) => !files.some((file) => file.name === name),
+  );
+  const verify = manifestText.trim()
+    ? `\nVerification: ${matches} match, ${mismatches} mismatch, ${missing} without reference, ${extras.length} reference(s) without a selected file.`
+    : "";
+  const dupe = duplicates.length
+    ? `\nPossible duplicate groups (matching size and digest; confirm byte-for-byte):\n${duplicates.map((group) => group.map((name) => JSON.stringify(name)).join(", ")).join("\n")}`
+    : "";
+  return `${algorithm} checksums (filenames are JSON-quoted)\n${lines.join("\n")}${verify}${dupe}\n\nA matching checksum provides integrity only when the reference is trusted; it does not authenticate the source.`;
 }

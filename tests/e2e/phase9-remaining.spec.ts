@@ -77,7 +77,7 @@ for (const item of cases)
       ).toBe(true);
       if (width === 1440 || width === 375)
         await page.screenshot({
-          path: `docs/phase-9-screenshots/${item.slug}-${width}.png`,
+          path: `test-results/evidence/phase-9-screenshots/${item.slug}-${width}.png`,
           fullPage: true,
         });
     }

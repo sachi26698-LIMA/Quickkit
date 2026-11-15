@@ -1,4 +1,4 @@
-import { test, expect, type Locator, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "./helpers/tool-test";
 import { readFile } from "node:fs/promises";
 import { unzipSync } from "fflate";
 import { PDFDocument, StandardFonts, rgb } from "@cantoo/pdf-lib";

@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useSyncExternalStore } from "react";
+import { legacySecurityFavorites } from "@/lib/tools/security/consolidation";
 
 export const FAVORITES_KEY = "quickkit:saved-tools";
 export const FAVORITES_EVENT = "quickkit:saved-tools-changed";
@@ -7,6 +8,7 @@ export const FAVORITES_EVENT = "quickkit:saved-tools-changed";
 /** Slug kept in local storage for migration from an earlier catalog route. */
 export const SLUG_MIGRATIONS: Record<string, string> = {
   "image-converter": "image-to-image",
+  ...legacySecurityFavorites,
 };
 
 function readRaw(): string {

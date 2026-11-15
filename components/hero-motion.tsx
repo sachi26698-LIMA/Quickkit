@@ -22,7 +22,11 @@ export default function HeroMotion({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div ref={sceneRef} className={styles.scene}>
+    <div
+      ref={sceneRef}
+      className={styles.scene}
+      data-hero-style="glass-feedback-v7"
+    >
       {children}
     </div>
   );

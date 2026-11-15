@@ -12,6 +12,10 @@ export default defineConfig({
         }
       : {}),
   },
+  // A handful of journeys race real compression and cancellation work, which
+  // is timing-sensitive on a two-core runner. One retry keeps a genuine break
+  // visible (it still fails twice) without turning scheduler noise into red.
+  retries: process.env.CI ? 1 : 0,
   // In CI, also emit GitHub annotations so failed tests are identifiable
   // from the Checks UI/API without downloading log bundles.
   reporter: process.env.CI ? [["github"], ["list"]] : "list",

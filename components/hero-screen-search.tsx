@@ -3,31 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import type { Tool } from "@/lib/catalog";
+import { useToolSearch } from "@/lib/use-tool-search";
 import styles from "./hero-scene-orbit.module.css";
 
 /** Uses the same catalogue matching as the main hero search. */
-export default function HeroScreenSearch({ tools }: { tools: Tool[] }) {
+export default function HeroScreenSearch() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const searching = query.trim().length > 0;
-  const search = query.trim().toLocaleLowerCase();
-  const matches = searching
-    ? tools.filter((tool) =>
-        `${tool.name} ${tool.description} ${tool.keywords}`
-          .toLocaleLowerCase()
-          .includes(search),
-      )
-    : [];
-  const namedMatches = matches.filter((tool) =>
-    tool.name.toLocaleLowerCase().includes(search),
-  );
-  const results = namedMatches.length
-    ? [
-        ...namedMatches,
-        ...matches.filter((tool) => !namedMatches.includes(tool)),
-      ]
-    : matches;
+  const { filter, load: loadCatalogue } = useToolSearch();
+  const results = searching && filter ? filter(query, "All tools") : [];
 
   return (
     <div
@@ -50,10 +35,14 @@ export default function HeroScreenSearch({ tools }: { tools: Tool[] }) {
           placeholder="Search any tool..."
           aria-label="Search tools in laptop preview"
           value={query}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            setOpen(true);
+            loadCatalogue();
+          }}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
+            loadCatalogue();
           }}
           onKeyDown={(event) => {
             if (event.key === "Escape") setOpen(false);
@@ -62,7 +51,9 @@ export default function HeroScreenSearch({ tools }: { tools: Tool[] }) {
       </form>
       {open && searching && (
         <div className={styles.miniResults}>
-          {results.length ? (
+          {!filter ? (
+            <p>Searching…</p>
+          ) : results.length ? (
             <ul>
               {results.slice(0, 3).map((tool) => (
                 <li key={tool.slug}>
