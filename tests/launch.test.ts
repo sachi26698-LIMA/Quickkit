@@ -1,3 +1,14 @@
+import { execFileSync } from "node:child_process";
+import {
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, it, expect, vi } from "vitest";
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -37,6 +48,87 @@ it("keeps sitemap and robots blocked even with an origin but no approval", async
   ]);
   expect(await sitemap()).toEqual([]);
 });
+it("uses verified Git dates in full and shallow history without inventing dates", async () => {
+  const workspace = mkdtempSync(join(tmpdir(), "quickkit-sitemap-history-"));
+  const fullRoot = join(workspace, "full");
+  const depthTwoRoot = join(workspace, "depth-two");
+  const depthOneRoot = join(workspace, "depth-one");
+  mkdirSync(fullRoot);
+  const source = join(fullRoot, "app", "(public)", "page.tsx");
+  mkdirSync(join(fullRoot, "app", "(public)"), { recursive: true });
+
+  const git = (cwd: string, args: string[], env?: Record<string, string>) =>
+    execFileSync("git", args, {
+      cwd,
+      encoding: "utf8",
+      env: { ...process.env, ...env },
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+
+  try {
+    git(fullRoot, ["init", "--quiet", "--initial-branch=main"]);
+    git(fullRoot, ["config", "user.name", "Sitemap test"]);
+    git(fullRoot, ["config", "user.email", "sitemap-test@example.invalid"]);
+
+    const commitSource = (content: string, date: string) => {
+      writeFileSync(source, content);
+      git(fullRoot, ["add", "app/(public)/page.tsx"]);
+      git(fullRoot, ["commit", "--quiet", "-m", "Update route source"], {
+        GIT_AUTHOR_DATE: `${date}T12:00:00Z`,
+        GIT_COMMITTER_DATE: `${date}T12:00:00Z`,
+      });
+    };
+    commitSource(
+      "export default function Home() { return null; }\n",
+      "2024-01-02",
+    );
+    commitSource(
+      "export default function Home() { return <main />; }\n",
+      "2024-03-04",
+    );
+
+    const { gitLastModifiedForFiles } = await import("../app/sitemap");
+    // Checkout/extraction times are not content history. Even a future-dated
+    // filesystem mtime must not replace the source commit's recorded date.
+    const futureMtime = new Date("2031-07-08T12:00:00.000Z");
+    utimesSync(source, futureMtime, futureMtime);
+    expect(
+      gitLastModifiedForFiles(["app/(public)/page.tsx"], {
+        repoRoot: fullRoot,
+      }),
+    ).toBe("2024-03-04");
+
+    const localUrl = pathToFileURL(fullRoot).href;
+    git(workspace, ["clone", "--quiet", "--depth=2", localUrl, depthTwoRoot]);
+    git(workspace, ["clone", "--quiet", "--depth=1", localUrl, depthOneRoot]);
+    expect(
+      gitLastModifiedForFiles(["app/(public)/page.tsx"], {
+        repoRoot: depthTwoRoot,
+      }),
+    ).toBe("2024-03-04");
+    expect(
+      gitLastModifiedForFiles(["app/(public)/page.tsx"], {
+        repoRoot: depthOneRoot,
+      }),
+    ).toBeUndefined();
+
+    // A later source commit stays later than an audit reference. The sitemap
+    // must not silently clamp or backdate history to a wall-clock cap.
+    commitSource(
+      "export default function Home() { return <article />; }\n",
+      "2026-11-15",
+    );
+    vi.stubEnv("SITEMAP_LASTMOD_NOT_AFTER", "2026-11-10");
+    expect(
+      gitLastModifiedForFiles(["app/(public)/page.tsx"], {
+        repoRoot: fullRoot,
+      }),
+    ).toBe("2026-11-15");
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
 it("emits genuine Git dates without a wall-clock or operator cutoff", async () => {
   vi.stubEnv("SITE_URL", "https://test.example");
   vi.stubEnv("LAUNCH_APPROVED", "true");
@@ -52,9 +144,9 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   expect(routes).toHaveLength(
     5 + legalPages.length + 7 + tools.length + BRANDS.length,
   );
-  expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
     routes.every((route) => {
+      if (route.lastModified === undefined) return true;
       const date =
         route.lastModified instanceof Date
           ? route.lastModified.toISOString().slice(0, 10)
@@ -109,6 +201,13 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   );
   for (const entry of routes) {
     const path = entry.url.replace("https://test.example", "");
+    const canonical = new URL(entry.url);
+    expect(canonical.origin, `canonical origin for ${path}`).toBe(
+      "https://test.example",
+    );
+    expect(canonical.pathname, `canonical path for ${path}`).toBe(path);
+    expect(canonical.search, `canonical query for ${path}`).toBe("");
+    expect(canonical.hash, `canonical fragment for ${path}`).toBe("");
     const sourceFiles = routeSourceFiles(path);
     expect(sourceFiles.length, `mapped files for ${path}`).toBeGreaterThan(0);
     const sitemapDate =
@@ -122,15 +221,39 @@ it("emits all real sitemap routes only after explicit production approval", asyn
       expect(sitemapDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
   }
-  expect(routes.every((entry) => entry.lastModified !== undefined)).toBe(true);
-  // Missing route history remains omitted; no build/current date is substituted.
+  // A shallow checkout may omit dates whose only source commit is its boundary.
+  // The fixture above verifies that full and shallow history are handled exactly.
   expect(
     gitLastModifiedForFiles(["nonexistent/route-file.tsx"]),
   ).toBeUndefined();
-  expect(gitLastModifiedForFiles(["app/(public)/page.tsx"])).toMatch(
-    /^\d{4}-\d{2}-\d{2}$/,
+
+  // Every tool route must agree with the tool's actual indexability and canonical.
+  const { getPublicCatalog } = await import("@/lib/supabase/public-catalog");
+  const publicCatalog = await getPublicCatalog();
+  const sitemapPaths = new Set(
+    routes.map((route) => new URL(route.url).pathname),
   );
-  const { execFileSync } = await import("node:child_process");
+  for (const tool of publicCatalog.tools) {
+    const selfCanonical =
+      !tool.canonicalPath || tool.canonicalPath === `/tools/${tool.slug}`;
+    expect(sitemapPaths.has(`/tools/${tool.slug}`), tool.slug).toBe(
+      tool.isIndexable && selfCanonical,
+    );
+  }
+  for (const category of publicCatalog.categories) {
+    const hasIndexableCanonicalTool = publicCatalog.tools.some(
+      (tool) =>
+        tool.isIndexable &&
+        (!tool.canonicalPath || tool.canonicalPath === `/tools/${tool.slug}`) &&
+        (tool.category === category.name ||
+          ("categories" in tool &&
+            Array.isArray(tool.categories) &&
+            (tool.categories as readonly string[]).includes(category.name))),
+    );
+    expect(sitemapPaths.has(`/category/${category.slug}`), category.slug).toBe(
+      hasIndexableCanonicalTool,
+    );
+  }
   const disclaimerCommits = execFileSync(
     "git",
     [

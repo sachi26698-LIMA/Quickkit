@@ -224,6 +224,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
       setSelected(null);
       setNotice("Saved. The change was recorded in the admin activity log.");
       await load();
+      window.dispatchEvent(new Event("quickkit:admin-mutated"));
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -301,6 +302,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
           "Category order may be partially updated. The list was refreshed; review it before trying again.",
         );
       setNotice("Category order saved and confirmed by the Admin API.");
+      window.dispatchEvent(new Event("quickkit:admin-mutated"));
     } catch (cause) {
       setError(
         cause instanceof Error
