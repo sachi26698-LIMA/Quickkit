@@ -1,0 +1,32 @@
+{
+  "confirmation": {
+    "file": "templates/confirmation.html",
+    "subjectKey": "confirmation",
+    "supabaseRequiredVariables": [".ConfirmationURL"]
+  },
+  "invite": {
+    "file": "templates/invitation.html",
+    "subjectKey": "invite",
+    "supabaseRequiredVariables": [".ConfirmationURL"]
+  },
+  "magic_link": {
+    "file": "templates/magic-link.html",
+    "subjectKey": "magic_link",
+    "supabaseRequiredVariables": [".ConfirmationURL", ".Token"]
+  },
+  "email_change": {
+    "file": "templates/email-change.html",
+    "subjectKey": "email_change",
+    "supabaseRequiredVariables": [".ConfirmationURL", ".NewEmail"]
+  },
+  "recovery": {
+    "file": "templates/password-reset.html",
+    "subjectKey": "recovery",
+    "supabaseRequiredVariables": [".ConfirmationURL"]
+  },
+  "reauthentication": {
+    "file": "templates/reauthentication.html",
+    "subjectKey": "reauthentication",
+    "supabaseRequiredVariables": [".Token"]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "confirmation": "Confirm your QUICKKIT email address",
+  "invite": "You’re invited to QUICKKIT",
+  "magic_link": "Your secure QUICKKIT sign-in link",
+  "email_change": "Confirm your QUICKKIT email change",
+  "recovery": "Reset your QUICKKIT password",
+  "reauthentication": "{{ .Token }} is your QUICKKIT verification code"
+}
