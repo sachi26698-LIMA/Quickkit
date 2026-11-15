@@ -35,6 +35,7 @@ import {
   type AdminConfirmConfig,
 } from "./admin-confirm-dialog";
 import { useAdminLive } from "./admin-live-context";
+import { AdminModalLayer } from "./admin-modal-layer";
 
 export type ResourceKind =
   "tools" | "categories" | "submissions" | "feedback" | "seo" | "activity";
@@ -1965,61 +1966,68 @@ function Editor({
   }
 
   return (
-    <div
-      className={styles["admin-modal-backdrop"]}
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saving) close();
-      }}
-    >
-      <section
-        className={styles["admin-modal"]}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`${kind} details`}
+    <AdminModalLayer>
+      <div
+        className={styles["admin-modal-backdrop"]}
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !saving) close();
+        }}
       >
-        <div className={styles["admin-modal-head"]}>
-          <div>
-            <span className={styles["admin-kicker"]}>{kind.toUpperCase()}</span>
-            <h3>
-              {kind === "categories" && r.is_new
-                ? "Create custom category"
-                : kind === "tools" || kind === "categories"
-                  ? "Edit catalog metadata"
-                  : "Record details"}
-            </h3>
-          </div>
-          <button
-            type="button"
-            className={`${styles["admin-button"]} ${styles["admin-button--soft"]} ${styles["admin-button--sm"]}`}
-            onClick={close}
-            disabled={saving}
-          >
-            <X size={14} aria-hidden="true" />
-            Close
-          </button>
-        </div>
-        <form className={styles["admin-form"]} onSubmit={submit}>
-          {content}
-          <div className={styles["admin-modal-actions"]}>
+        <section
+          className={styles["admin-modal"]}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${kind} details`}
+        >
+          <div className={styles["admin-modal-head"]}>
+            <div>
+              <span className={styles["admin-kicker"]}>
+                {kind.toUpperCase()}
+              </span>
+              <h3>
+                {kind === "categories" && r.is_new
+                  ? "Create custom category"
+                  : kind === "tools" || kind === "categories"
+                    ? "Edit catalog metadata"
+                    : "Record details"}
+              </h3>
+            </div>
             <button
-              className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
               type="button"
+              className={`${styles["admin-button"]} ${styles["admin-button--soft"]} ${styles["admin-button--sm"]}`}
               onClick={close}
               disabled={saving}
             >
-              Cancel
-            </button>
-            <button
-              className={styles["admin-button"]}
-              disabled={saving}
-              type="submit"
-            >
-              {saving ? "Saving…" : "Save changes"}
+              <X size={14} aria-hidden="true" />
+              Close
             </button>
           </div>
-        </form>
-      </section>
-    </div>
+          <form
+            className={`${styles["admin-form"]} ${styles["admin-modal-form"]}`}
+            onSubmit={submit}
+          >
+            <div className={styles["admin-modal-body"]}>{content}</div>
+            <div className={styles["admin-modal-actions"]}>
+              <button
+                className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
+                type="button"
+                onClick={close}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles["admin-button"]}
+                disabled={saving}
+                type="submit"
+              >
+                {saving ? "Saving…" : "Save changes"}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </AdminModalLayer>
   );
 }

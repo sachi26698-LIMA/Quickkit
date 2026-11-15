@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Trash2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { AdminModalLayer } from "./admin-modal-layer";
 import styles from "./admin.module.css";
 
 export type AdminConfirmConfig = {
@@ -64,76 +65,82 @@ export function AdminConfirmDialog({
   const isDanger = config.tone !== "warning";
 
   return (
-    <div
-      className={styles["admin-modal-backdrop"]}
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !pending) onClose();
-      }}
-    >
-      <section
-        ref={dialogRef}
-        className={`${styles["admin-modal"]} ${styles["admin-confirm-dialog"]}`}
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="admin-confirm-title"
-        aria-describedby="admin-confirm-description"
+    <AdminModalLayer>
+      <div
+        className={styles["admin-modal-backdrop"]}
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !pending) onClose();
+        }}
       >
-        <div className={styles["admin-confirm-header"]}>
-          <span
-            className={`${styles["admin-confirm-icon"]} ${isDanger ? styles["admin-confirm-icon--danger"] : styles["admin-confirm-icon--warning"]}`}
-            aria-hidden="true"
-          >
-            {isDanger ? <Trash2 size={20} /> : <AlertTriangle size={20} />}
-          </span>
-          <div className={styles["admin-confirm-copy"]}>
-            <span className={styles["admin-kicker"]}>
-              {isDanger ? "DESTRUCTIVE ACTION" : "CONFIRM ACTION"}
-            </span>
-            <h3 id="admin-confirm-title">{config.title}</h3>
-          </div>
-          <button
-            type="button"
-            className={styles["admin-icon-button"]}
-            onClick={onClose}
-            disabled={pending}
-            aria-label="Close confirmation dialog"
-          >
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-        <p
-          id="admin-confirm-description"
-          className={styles["admin-confirm-description"]}
+        <section
+          ref={dialogRef}
+          className={`${styles["admin-modal"]} ${styles["admin-confirm-dialog"]}`}
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="admin-confirm-title"
+          aria-describedby="admin-confirm-description"
         >
-          {config.description}
-        </p>
-        {config.targetLabel ? (
-          <div className={styles["admin-confirm-target"]}>
-            <span>Target record</span>
-            <code className={styles["admin-code"]}>{config.targetLabel}</code>
+          <div className={styles["admin-confirm-header"]}>
+            <span
+              className={`${styles["admin-confirm-icon"]} ${isDanger ? styles["admin-confirm-icon--danger"] : styles["admin-confirm-icon--warning"]}`}
+              aria-hidden="true"
+            >
+              {isDanger ? <Trash2 size={20} /> : <AlertTriangle size={20} />}
+            </span>
+            <div className={styles["admin-confirm-copy"]}>
+              <span className={styles["admin-kicker"]}>
+                {isDanger ? "DESTRUCTIVE ACTION" : "CONFIRM ACTION"}
+              </span>
+              <h3 id="admin-confirm-title">{config.title}</h3>
+            </div>
+            <button
+              type="button"
+              className={styles["admin-icon-button"]}
+              onClick={onClose}
+              disabled={pending}
+              aria-label="Close confirmation dialog"
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
           </div>
-        ) : null}
-        <div className={styles["admin-modal-actions"]}>
-          <button
-            ref={cancelBtnRef}
-            type="button"
-            className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
-            onClick={onClose}
-            disabled={pending}
-          >
-            {config.cancelLabel ?? "Cancel"}
-          </button>
-          <button
-            type="button"
-            className={`${styles["admin-button"]} ${isDanger ? styles["admin-button--danger"] : styles["admin-button--warn"]}`}
-            onClick={() => void config.onConfirm()}
-            disabled={pending}
-          >
-            {pending ? "Processing…" : config.confirmLabel}
-          </button>
-        </div>
-      </section>
-    </div>
+          <div className={styles["admin-modal-body"]}>
+            <p
+              id="admin-confirm-description"
+              className={styles["admin-confirm-description"]}
+            >
+              {config.description}
+            </p>
+            {config.targetLabel ? (
+              <div className={styles["admin-confirm-target"]}>
+                <span>Target record</span>
+                <code className={styles["admin-code"]}>
+                  {config.targetLabel}
+                </code>
+              </div>
+            ) : null}
+          </div>
+          <div className={styles["admin-modal-actions"]}>
+            <button
+              ref={cancelBtnRef}
+              type="button"
+              className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
+              onClick={onClose}
+              disabled={pending}
+            >
+              {config.cancelLabel ?? "Cancel"}
+            </button>
+            <button
+              type="button"
+              className={`${styles["admin-button"]} ${isDanger ? styles["admin-button--danger"] : styles["admin-button--warn"]}`}
+              onClick={() => void config.onConfirm()}
+              disabled={pending}
+            >
+              {pending ? "Processing…" : config.confirmLabel}
+            </button>
+          </div>
+        </section>
+      </div>
+    </AdminModalLayer>
   );
 }

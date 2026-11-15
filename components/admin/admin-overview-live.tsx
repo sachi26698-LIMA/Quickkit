@@ -52,6 +52,7 @@ import {
   OperationalTrendChart,
 } from "./admin-charts";
 import { REFRESH_INTERVAL_OPTIONS, useAdminLive } from "./admin-live-context";
+import { AdminModalLayer } from "./admin-modal-layer";
 import { AdminIdentityContext } from "./admin-shell";
 import styles from "./admin.module.css";
 
@@ -1614,95 +1615,102 @@ export function AdminOverviewLive({
       </div>
 
       {preferencesOpen ? (
-        <div
-          className={styles["admin-modal-backdrop"]}
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setPreferencesOpen(false);
-          }}
-        >
-          <section
-            ref={preferencesDialog}
-            className={styles["admin-modal"]}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="dashboard-preferences-heading"
+        <AdminModalLayer>
+          <div
+            className={styles["admin-modal-backdrop"]}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget)
+                setPreferencesOpen(false);
+            }}
           >
-            <div className={styles["admin-modal-head"]}>
-              <div>
-                <span className={styles["admin-kicker"]}>PERSONALIZATION</span>
-                <h3 id="dashboard-preferences-heading">Dashboard layout</h3>
-              </div>
-              <button
-                type="button"
-                className={styles["admin-icon-button"]}
-                onClick={() => setPreferencesOpen(false)}
-                aria-label="Close dashboard preferences"
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            </div>
-            <p className={styles["admin-panel-footnote"]}>
-              Layout preferences are saved in this browser for {email}; no
-              server-side preference table is configured.
-            </p>
-            <div className={styles["admin-widget-preferences"]}>
-              {order.map((id, index) => (
-                <div className={styles["admin-widget-preference"]} key={id}>
-                  <strong>{widgetLabels[id]}</strong>
-                  <div>
-                    <button
-                      type="button"
-                      className={styles["admin-icon-button"]}
-                      onClick={() => moveWidget(id, -1)}
-                      disabled={index === 0}
-                      aria-label={`Move ${widgetLabels[id]} up`}
-                    >
-                      <ArrowUp size={15} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles["admin-icon-button"]}
-                      onClick={() => moveWidget(id, 1)}
-                      disabled={index === order.length - 1}
-                      aria-label={`Move ${widgetLabels[id]} down`}
-                    >
-                      <ArrowDown size={15} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles["admin-icon-button"]}
-                      onClick={() => toggleWidget(id)}
-                      aria-label={`${hidden.includes(id) ? "Show" : "Hide"} ${widgetLabels[id]}`}
-                    >
-                      {hidden.includes(id) ? (
-                        <Eye size={15} aria-hidden="true" />
-                      ) : (
-                        <EyeOff size={15} aria-hidden="true" />
-                      )}
-                    </button>
-                  </div>
+            <section
+              ref={preferencesDialog}
+              className={styles["admin-modal"]}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="dashboard-preferences-heading"
+            >
+              <div className={styles["admin-modal-head"]}>
+                <div>
+                  <span className={styles["admin-kicker"]}>
+                    PERSONALIZATION
+                  </span>
+                  <h3 id="dashboard-preferences-heading">Dashboard layout</h3>
                 </div>
-              ))}
-            </div>
-            <div className={styles["admin-modal-actions"]}>
-              <button
-                type="button"
-                className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
-                onClick={restoreDefaults}
-              >
-                <RotateCcw size={14} aria-hidden="true" />
-                Restore defaults
-              </button>
-              <button
-                type="button"
-                className={styles["admin-button"]}
-                onClick={() => setPreferencesOpen(false)}
-              >
-                Done
-              </button>
-            </div>
-          </section>
-        </div>
+                <button
+                  type="button"
+                  className={styles["admin-icon-button"]}
+                  onClick={() => setPreferencesOpen(false)}
+                  aria-label="Close dashboard preferences"
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              </div>
+              <div className={styles["admin-modal-body"]}>
+                <p className={styles["admin-panel-footnote"]}>
+                  Layout preferences are saved in this browser for {email}; no
+                  server-side preference table is configured.
+                </p>
+                <div className={styles["admin-widget-preferences"]}>
+                  {order.map((id, index) => (
+                    <div className={styles["admin-widget-preference"]} key={id}>
+                      <strong>{widgetLabels[id]}</strong>
+                      <div>
+                        <button
+                          type="button"
+                          className={styles["admin-icon-button"]}
+                          onClick={() => moveWidget(id, -1)}
+                          disabled={index === 0}
+                          aria-label={`Move ${widgetLabels[id]} up`}
+                        >
+                          <ArrowUp size={15} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles["admin-icon-button"]}
+                          onClick={() => moveWidget(id, 1)}
+                          disabled={index === order.length - 1}
+                          aria-label={`Move ${widgetLabels[id]} down`}
+                        >
+                          <ArrowDown size={15} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles["admin-icon-button"]}
+                          onClick={() => toggleWidget(id)}
+                          aria-label={`${hidden.includes(id) ? "Show" : "Hide"} ${widgetLabels[id]}`}
+                        >
+                          {hidden.includes(id) ? (
+                            <Eye size={15} aria-hidden="true" />
+                          ) : (
+                            <EyeOff size={15} aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className={styles["admin-modal-actions"]}>
+                <button
+                  type="button"
+                  className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
+                  onClick={restoreDefaults}
+                >
+                  <RotateCcw size={14} aria-hidden="true" />
+                  Restore defaults
+                </button>
+                <button
+                  type="button"
+                  className={styles["admin-button"]}
+                  onClick={() => setPreferencesOpen(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </section>
+          </div>
+        </AdminModalLayer>
       ) : null}
     </>
   );
