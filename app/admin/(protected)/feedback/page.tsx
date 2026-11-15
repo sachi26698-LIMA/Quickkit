@@ -4,6 +4,7 @@ export default function AdminFeedbackPage() {
   return (
     <>
       <PageHeading
+        kicker="Inbox"
         title="Feedback inbox"
         description="Review consented feedback, classify it, add private notes, and resolve items."
       />

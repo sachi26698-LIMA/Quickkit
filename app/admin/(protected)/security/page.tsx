@@ -4,6 +4,7 @@ export default function AdminSecurityPage() {
   return (
     <>
       <PageHeading
+        kicker="Governance"
         title="Security center"
         description="Current administrator session, service readiness and security boundaries. Sensitive values are never displayed."
       />

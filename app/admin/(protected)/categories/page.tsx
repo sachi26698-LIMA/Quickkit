@@ -7,6 +7,7 @@ export default async function AdminCategoriesPage() {
   return (
     <>
       <PageHeading
+        kicker="Catalog"
         title="Categories"
         description="Manage category metadata and public order. Drag rows or use the accessible move controls; tool totals are derived from the source catalog, and active tools must be reassigned before archive."
       />

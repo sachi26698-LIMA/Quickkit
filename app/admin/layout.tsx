@@ -5,7 +5,7 @@ import "./admin.css";
 export const metadata: Metadata = {
   robots: { index: false, follow: false, noarchive: true },
   title: {
-    default: "Master Admin | QUICKKIT",
+    default: "Master Admin",
     template: "%s | QUICKKIT Admin",
   },
 };

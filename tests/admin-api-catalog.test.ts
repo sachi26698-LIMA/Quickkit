@@ -5,12 +5,13 @@ const mocks = vi.hoisted(() => ({ verify: vi.fn(), client: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin-auth", () => ({
   verifyAdminSession: mocks.verify,
+  getAdminEmailAllowlist: () => ["owner@example.test"],
 }));
 vi.mock("@/lib/supabase/master-admin", () => ({
   getMasterAdminServiceClient: mocks.client,
 }));
 
-import { POST, DELETE } from "@/app/api/admin/[resource]/route";
+import { GET, POST, DELETE } from "@/app/api/admin/[resource]/route";
 
 afterEach(() => vi.clearAllMocks());
 
@@ -143,5 +144,77 @@ describe("Admin category persistence API", () => {
     );
     expect(response.status).toBe(409);
     expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("returns complete verified overview snapshot from GET /api/admin/overview with no-store header", async () => {
+    authorized();
+    const recentIso = new Date().toISOString();
+    const makeChain = (rows: unknown[], count = rows.length) => {
+      const result = { data: rows, count, error: null };
+      const chain: Record<string, unknown> = {
+        then: (resolve: (val: typeof result) => unknown) =>
+          Promise.resolve(resolve(result)),
+        eq: () => chain,
+        gte: () => chain,
+        order: () => chain,
+        limit: () => chain,
+      };
+      return chain;
+    };
+    const db = {
+      from(table: string) {
+        return {
+          select: () => {
+            if (table === "quickkit_contact_submissions") {
+              return makeChain([{ created_at: recentIso }], 2);
+            }
+            if (table === "quickkit_feedback_submissions") {
+              return makeChain([{ created_at: recentIso }], 1);
+            }
+            if (table === "quickkit_admin_activity") {
+              return makeChain(
+                [
+                  {
+                    id: "a-1",
+                    actor_email: "owner@example.test",
+                    action: "update_tool",
+                    entity_type: "tool",
+                    entity_id: "merge-pdf",
+                    created_at: recentIso,
+                  },
+                ],
+                1,
+              );
+            }
+            return makeChain([], 0);
+          },
+        };
+      },
+    };
+    mocks.client.mockReturnValue(db);
+
+    const response = await GET(
+      new NextRequest("https://quickkit.example/api/admin/overview", {
+        method: "GET",
+      }),
+      { params: Promise.resolve({ resource: "overview" }) },
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    const body = (await response.json()) as { data: Record<string, unknown> };
+    expect(body.data.connected).toBe(true);
+    expect(Array.isArray(body.data.category_distribution)).toBe(true);
+    expect(
+      (body.data.category_distribution as unknown[]).length,
+    ).toBeGreaterThan(0);
+    expect(body.data.period_comparison).toBeDefined();
+    expect(body.data.trends).toBeDefined();
+    expect(body.data.health).toBeDefined();
+    expect(
+      (body.data.health as Record<string, unknown>).rls_verified_by_app,
+    ).toBe(false);
+    expect(
+      (body.data.health as Record<string, unknown>).smtp_verified_by_app,
+    ).toBe(false);
   });
 });
