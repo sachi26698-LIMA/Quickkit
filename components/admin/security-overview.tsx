@@ -224,7 +224,7 @@ export default function SecurityOverview() {
         data.smtp_status ??
         "Managed externally in Supabase Auth · not verified by app",
       detail:
-        "No SMTP credentials are stored or inspected in this Next.js runtime.",
+        "No SMTP credentials are stored or inspected in this Next.js runtime. Any future test email requires an explicit owner trigger and typed recipient confirmation.",
       tone: "neutral",
       icon: Mail,
     },

@@ -460,6 +460,7 @@ function AdminShellFrame({
               className={`${styles["admin-icon-button"]} ${styles["admin-mobile-menu"]}`}
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation"
+              aria-expanded={mobileOpen}
             >
               <Menu size={18} aria-hidden="true" />
             </button>

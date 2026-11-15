@@ -12,12 +12,14 @@ import {
 import { CategoryDonutChart } from "@/components/admin/admin-charts";
 import { PageHeading } from "@/components/admin/admin-page";
 import styles from "@/components/admin/admin.module.css";
+import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
 import { getOverviewSnapshot } from "@/lib/supabase/admin-data";
 
 export default async function AdminAnalyticsPage() {
   const configured = Boolean(process.env.ANALYTICS_DATABASE_URL?.trim());
   const tokenConfigured = Boolean(process.env.ANALYTICS_DATABASE_TOKEN?.trim());
   const sourceReady = configured && tokenConfigured;
+  const errorMonitoring = getErrorMonitoringStatus();
   const snapshot = await getOverviewSnapshot();
 
   return (
@@ -171,10 +173,13 @@ export default async function AdminAnalyticsPage() {
               <div className={styles["admin-boundary-item"]}>
                 <Activity size={16} aria-hidden="true" />
                 <div>
-                  <strong>Application error monitoring</strong>
+                  <strong>
+                    Application error monitoring ({errorMonitoring.statusLabel})
+                  </strong>
                   <p>
-                    No third-party crash/error SDK is connected. Review server
-                    logs directly in your hosting dashboard.
+                    {errorMonitoring.configured
+                      ? "Opt-in sanitized error boundary hook is configured without logging tokens or visitor inputs."
+                      : "Safe opt-in error boundaries are prepared and remain disabled until ERROR_MONITORING_ENABLED=true and a valid HTTPS DSN are configured by the owner."}
                   </p>
                 </div>
               </div>

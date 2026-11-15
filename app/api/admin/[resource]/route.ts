@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { categoryMeta, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
+import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
 import { siteOrigin } from "@/lib/seo";
 import {
   authorizeAdminApi,
@@ -219,7 +220,7 @@ export async function GET(
           indexing_enabled: indexingEnabled,
           smtp_status:
             "Managed externally in Supabase Auth · not verified by app",
-          error_monitoring_status: "Not configured",
+          error_monitoring_status: getErrorMonitoringStatus().statusLabel,
         },
       });
     }

@@ -2,6 +2,7 @@ import "server-only";
 
 import { categoryMeta, toolCategoriesOf, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
+import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
 import { siteOrigin } from "@/lib/seo";
 import { getAdminEmailAllowlist } from "./admin-auth";
 import type {
@@ -219,7 +220,7 @@ export type OverviewHealthStatus = {
   indexing_enabled: boolean;
   rls_verified_by_app: false;
   smtp_verified_by_app: false;
-  error_monitoring_configured: false;
+  error_monitoring_configured: boolean;
 };
 
 export type OverviewConnectedSnapshot = {
@@ -512,7 +513,7 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       indexing_enabled: indexingEnabled,
       rls_verified_by_app: false,
       smtp_verified_by_app: false,
-      error_monitoring_configured: false,
+      error_monitoring_configured: getErrorMonitoringStatus().configured,
     },
   };
 }

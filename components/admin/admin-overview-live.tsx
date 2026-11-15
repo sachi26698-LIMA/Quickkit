@@ -471,7 +471,11 @@ export function AdminOverviewLive({
 
   const refresh = useCallback(
     async (manual = false) => {
-      if (inFlight.current || document.visibilityState === "hidden") return;
+      if (
+        inFlight.current ||
+        (!manual && document.visibilityState === "hidden")
+      )
+        return;
       inFlight.current = true;
       setRefreshing(true);
       if (snapshot) {
@@ -833,9 +837,13 @@ export function AdminOverviewLive({
     },
     {
       label: "Error monitoring",
-      value: "Not configured",
-      tone: "neutral",
-      detail: "No application error telemetry SDK is connected.",
+      value: healthMeta?.error_monitoring_configured
+        ? "Configured (opt-in)"
+        : "Not configured",
+      tone: healthMeta?.error_monitoring_configured ? "good" : "neutral",
+      detail: healthMeta?.error_monitoring_configured
+        ? "Sanitized error boundary hook is enabled."
+        : "Opt-in error boundary hook ready; no external provider connected.",
       href: "/admin/analytics",
       actionLabel: "Details",
     },
@@ -950,7 +958,9 @@ export function AdminOverviewLive({
     ) : (
       <div className={styles["admin-state"]} role="status">
         Verified metrics are unavailable while the Admin data service is
-        offline.
+        offline. Verify <code>SUPABASE_SERVICE_ROLE_KEY</code> and migration{" "}
+        <code>202611100002_quickkit_master_admin.sql</code>, then click{" "}
+        <strong>Try again</strong>.
       </div>
     ),
 

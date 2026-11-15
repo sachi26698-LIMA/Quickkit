@@ -3753,6 +3753,86 @@
   border-top: 1px solid #ebe4f5;
 }
 
+.admin-setup-checklist {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e3d5f7;
+  background: #faf7ff;
+  color: #241638;
+}
+
+.admin-setup-checklist h2 {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  font-weight: 780;
+  color: #241638;
+}
+
+.admin-setup-checklist p {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #564a6c;
+}
+
+.admin-setup-checklist code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.73rem;
+  font-weight: 650;
+  color: #4b1d8c;
+}
+
+.admin-setup-checklist ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.admin-setup-checklist li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #ebe4f5;
+}
+
+.admin-setup-checklist li > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-setup-checklist li span {
+  font-size: 0.7rem;
+  color: #65597a;
+}
+
+.admin-setup-present {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: #0e6f6c;
+}
+
+.admin-setup-missing {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: #b41e5b;
+}
+
+.admin-setup-note {
+  margin: 10px 0 0 !important;
+  font-size: 0.72rem !important;
+  color: #65597a !important;
+}
+
 /* ---------- Utilities & Motion ---------- */
 .admin-visually-hidden {
   position: absolute;

@@ -5,7 +5,21 @@ import { useRouter } from "next/navigation";
 import { Lock, Mail, ShieldCheck } from "lucide-react";
 import styles from "./admin.module.css";
 
-export default function AdminLoginForm({ message = "" }: { message?: string }) {
+export type AdminLoginSetupItem = {
+  name: string;
+  role: string;
+  present: boolean;
+};
+
+export default function AdminLoginForm({
+  message = "",
+  disabled = false,
+  setupItems = null,
+}: {
+  message?: string;
+  disabled?: boolean;
+  setupItems?: AdminLoginSetupItem[] | null;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,6 +28,7 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (disabled) return;
     setError("");
     setPending(true);
     try {
@@ -46,6 +61,42 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
           {message}
         </div>
       ) : null}
+      {setupItems && setupItems.length > 0 ? (
+        <section
+          className={styles["admin-setup-checklist"]}
+          aria-label="Administrator setup checklist"
+        >
+          <h2>Administrator setup required</h2>
+          <p>
+            Protected <code>/api/admin/*</code> routes intentionally fail closed
+            with HTTP 503 until required environment variables are configured
+            and the server restarts. Authentication is never bypassed.
+          </p>
+          <ul>
+            {setupItems.map((item) => (
+              <li key={item.name}>
+                <div>
+                  <code>{item.name}</code>
+                  <span>{item.role}</span>
+                </div>
+                <strong
+                  className={
+                    item.present
+                      ? styles["admin-setup-present"]
+                      : styles["admin-setup-missing"]
+                  }
+                >
+                  {item.present ? "Configured" : "Missing"}
+                </strong>
+              </li>
+            ))}
+          </ul>
+          <p className={styles["admin-setup-note"]}>
+            See <code>.env.example</code> for exact variable names. Secret
+            values are never rendered in the browser.
+          </p>
+        </section>
+      ) : null}
       {error ? (
         <div className={styles["admin-error"]} role="alert">
           {error}
@@ -60,6 +111,7 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
               type="email"
               autoComplete="username"
               required
+              disabled={disabled || pending}
               maxLength={254}
               placeholder="owner@domain.com"
               value={email}
@@ -75,6 +127,7 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
               type="password"
               autoComplete="current-password"
               required
+              disabled={disabled || pending}
               maxLength={1024}
               placeholder="Enter administrator password"
               value={password}
@@ -85,10 +138,14 @@ export default function AdminLoginForm({ message = "" }: { message?: string }) {
         <button
           className={`${styles["admin-button"]} ${styles["admin-login-submit"]}`}
           type="submit"
-          disabled={pending}
+          disabled={disabled || pending}
         >
           <ShieldCheck size={16} aria-hidden="true" />
-          {pending ? "Verifying…" : "Sign in to Control Center"}
+          {disabled
+            ? "Sign-in unavailable until configured"
+            : pending
+              ? "Verifying…"
+              : "Sign in to Control Center"}
         </button>
       </form>
       <p className={styles["admin-login-footnote"]}>

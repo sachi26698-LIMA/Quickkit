@@ -57,3 +57,44 @@ export async function verifyAdminSession(): Promise<AdminAuthResult> {
 export function isAllowedAdminEmail(email: string | undefined): boolean {
   return !!email && getAdminEmailAllowlist().has(email.trim().toLowerCase());
 }
+
+export type AdminSetupReadiness = {
+  allowlistConfigured: boolean;
+  supabaseUrlConfigured: boolean;
+  supabaseKeyConfigured: boolean;
+  serviceRoleConfigured: boolean;
+  submissionHmacConfigured: boolean;
+  ready: boolean;
+};
+
+/**
+ * Returns strictly boolean readiness flags for Admin environment setup.
+ * Never returns secret values, URLs, or allowlisted email addresses.
+ */
+export function getAdminSetupReadiness(): AdminSetupReadiness {
+  const allowlistConfigured = getAdminEmailAllowlist().size > 0;
+  const supabaseUrlConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(),
+  );
+  const supabaseKeyConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim(),
+  );
+  const serviceRoleConfigured = Boolean(
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+  const submissionHmacConfigured = Boolean(
+    process.env.SUPABASE_SUBMISSION_HMAC_SECRET?.trim(),
+  );
+  return {
+    allowlistConfigured,
+    supabaseUrlConfigured,
+    supabaseKeyConfigured,
+    serviceRoleConfigured,
+    submissionHmacConfigured,
+    ready:
+      allowlistConfigured &&
+      supabaseUrlConfigured &&
+      supabaseKeyConfigured &&
+      serviceRoleConfigured,
+  };
+}

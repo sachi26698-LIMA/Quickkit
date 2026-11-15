@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, Zap } from "lucide-react";
 import AdminLoginForm from "@/components/admin/admin-login-form";
 import styles from "@/components/admin/admin.module.css";
-import { verifyAdminSession } from "@/lib/supabase/admin-auth";
+import {
+  getAdminSetupReadiness,
+  verifyAdminSession,
+} from "@/lib/supabase/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +18,11 @@ export default async function AdminLoginPage({
   const auth = await verifyAdminSession();
   if (auth.status === "authorized") redirect("/admin");
   const params = await searchParams;
+  const unconfigured =
+    auth.status === "allowlist_not_configured" ||
+    auth.status === "supabase_not_configured";
+  const setup = unconfigured ? getAdminSetupReadiness() : null;
+
   const message =
     params.loggedOut === "1"
       ? "You have been securely signed out."
@@ -29,6 +37,31 @@ export default async function AdminLoginPage({
               : auth.status === "unavailable"
                 ? "Supabase authentication is temporarily unavailable."
                 : "Only explicitly approved QUICKKIT administrators can sign in here.";
+
+  const setupItems = setup
+    ? [
+        {
+          name: "QUICKKIT_ADMIN_EMAILS",
+          role: "Server-only owner email allowlist",
+          present: setup.allowlistConfigured,
+        },
+        {
+          name: "NEXT_PUBLIC_SUPABASE_URL",
+          role: "Supabase project URL",
+          present: setup.supabaseUrlConfigured,
+        },
+        {
+          name: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+          role: "Supabase publishable key",
+          present: setup.supabaseKeyConfigured,
+        },
+        {
+          name: "SUPABASE_SERVICE_ROLE_KEY",
+          role: "Server-only privileged database key",
+          present: setup.serviceRoleConfigured,
+        },
+      ]
+    : null;
 
   return (
     <div className={styles["admin-login-wrap"]}>
@@ -50,7 +83,11 @@ export default async function AdminLoginPage({
           registration is disabled and no visitor account is required to use
           QUICKKIT tools.
         </p>
-        <AdminLoginForm message={message} />
+        <AdminLoginForm
+          message={message}
+          disabled={unconfigured}
+          setupItems={setupItems}
+        />
         <p className={styles["admin-login-back"]}>
           <Link href="/" className={styles["admin-link"]}>
             <ArrowLeft size={14} aria-hidden="true" />
