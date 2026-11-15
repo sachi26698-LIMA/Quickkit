@@ -5,6 +5,7 @@ import { indexingEnabled } from "@/lib/launch";
 import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
 import { siteOrigin } from "@/lib/seo";
 import { getAdminEmailAllowlist } from "./admin-auth";
+import { processingFor, type ToolProcessing } from "@/lib/tool-processing";
 import type {
   AdminSubmissionStatus,
   CategoryOverrideRow,
@@ -27,6 +28,14 @@ export type AdminTool = {
   canonical_path: string;
   is_indexable: boolean;
   route: string;
+  /**
+   * Documented data-processing class, derived from `lib/tool-processing.ts`.
+   * The public privacy counts and this Admin column read the same table, so
+   * "N of M tools are local" cannot drift from what the tools actually do.
+   */
+  processing: ToolProcessing;
+  processing_summary: string;
+  processing_leaves: string;
 };
 
 export type AdminCategory = {
@@ -68,6 +77,9 @@ export async function readToolCatalog() {
       canonical_path: row?.canonical_path ?? `/tools/${tool.slug}`,
       is_indexable: row?.is_indexable ?? true,
       route: `/tools/${tool.slug}`,
+      processing: processingFor(tool.slug).kind,
+      processing_summary: processingFor(tool.slug).summary,
+      processing_leaves: processingFor(tool.slug).leaves,
     } satisfies AdminTool;
   });
   return { configured, tools: result };

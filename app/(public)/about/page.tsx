@@ -10,7 +10,8 @@ import {
 import AdUnit from "@/components/ad-unit";
 import CategoryIcon from "@/components/category-icon";
 import { OwnerPlaceholder } from "@/components/legal-page-shell";
-import { categoryMeta, tools, toolsByCategory } from "@/lib/catalog";
+import { categoryMeta, toolsByCategory } from "@/lib/catalog";
+import { totalTools } from "@/lib/catalog-counts";
 import JsonLd from "@/components/json-ld";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 import {
@@ -65,7 +66,7 @@ const sections = [
 
 export default function AboutPage() {
   const jurisdiction = ownerDetail("jurisdiction");
-  const liveTools = tools.length;
+  const liveTools = totalTools;
 
   return (
     <div className="home inner-page legal-page">

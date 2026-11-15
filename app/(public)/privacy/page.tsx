@@ -10,6 +10,11 @@ import {
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
+import {
+  localToolCount,
+  nonLocalToolCount,
+  totalTools,
+} from "@/lib/catalog-counts";
 
 export const metadata = pageMetadata(
   "Privacy Policy — how your data is handled",
@@ -25,7 +30,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       href="/privacy"
       title="Privacy Policy"
-      intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages may be stored privately for review."
+      intro={`${localToolCount} of the ${totalTools} published tools process everything in your browser and send nothing. The other ${nonLocalToolCount} are named in section 5, and each states on its own page exactly what leaves your device. Visitors have no accounts or cloud-synced favourites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages may be stored privately for review.`}
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
@@ -43,9 +48,14 @@ export default function PrivacyPage() {
           sections 7 and 8.
         </li>
         <li>
-          Most tools process files and text in your browser. Word to PDF is an
-          explicit-consent exception using operator-controlled LibreOffice
-          processing; selecting a file alone does not upload it.
+          <strong>
+            {localToolCount} of {totalTools} tools are fully local.
+          </strong>{" "}
+          Their files and text are processed in the tab and no request is made.
+          The remaining {nonLocalToolCount} are disclosed individually in{" "}
+          <a href="#uploads">section 5</a>: Word to PDF uploads only after an
+          explicit consent step, and four tools make optional, click-only
+          lookups that never carry file contents.
         </li>
         <li>
           Saved tools stay only in this browser. QR presets, QR history and
@@ -141,19 +151,29 @@ export default function PrivacyPage() {
 
       <h2 id="uploads">5. Do files leave my device?</h2>
       <p>
-        Most tools do not transmit selected files as part of processing. Word to
-        PDF is the exception: with explicit consent, Convert or Refresh sends
-        DOCX bytes to the operator-controlled native engine or private worker.
-        Automatic re-upload requires separate opt-in. No upload occurs on file
-        selection and no third-party conversion fallback is used. Native job
-        files are temporary and cleanup is required after processing; actual
-        host isolation, crash cleanup and logging/retention remain the
-        operator&rsquo;s responsibility and are verified against the running
-        deployment. Native conversion is disabled when its engine is
-        unavailable. The Content Security Policy allows application fetch and
-        XHR connections only to this site&rsquo;s own origin and the Google
-        AdSense hosts described in sections 7 and 8 — no wildcards and no other
-        third parties.
+        <strong>No file tool other than Word to PDF transmits a file.</strong>{" "}
+        {localToolCount} of {totalTools} published tools make no request at all
+        while processing. Word to PDF is the one upload: with explicit consent,
+        Convert or Refresh sends DOCX bytes to the operator-controlled native
+        engine or private worker. Automatic re-upload requires separate opt-in.
+        No upload occurs on file selection and no third-party conversion
+        fallback is used. Native job files are temporary and cleanup is required
+        after processing; actual host isolation, crash cleanup and
+        logging/retention remain the operator&rsquo;s responsibility and are
+        verified against the running deployment. Native conversion is disabled
+        when its engine is unavailable.
+      </p>
+      <p>
+        The Content Security Policy is the technical check on those claims.
+        Site- wide, fetch and XHR connections are allowed only to this
+        site&rsquo;s own origin, the named Google AdSense hosts and (when
+        configured) this project&rsquo;s Supabase origin — no wildcards. Three
+        routes widen
+        <code>connect-src</code> by exactly two hosts, and nothing else: the DNS
+        and email tool adds <code>cloudflare-dns.com</code>, while the URL/IP
+        privacy tool adds <code>api.ipify.org</code> and{" "}
+        <code>api64.ipify.org</code>. Every other tool page keeps the site-wide
+        policy.
       </p>
       <p>
         Two honest qualifications. First, the hosting provider still sees the
@@ -255,6 +275,38 @@ export default function PrivacyPage() {
         </Link>
         .
       </p>
+      <p>
+        <strong>Optional lookups you can decline.</strong> Four tools can
+        contact a named third party, and only after you press a button on that
+        page after reading what it does. None of them sends a file, a document
+        or the contents of a workspace:
+      </p>
+      <ul>
+        <li>
+          <strong>Ultimate DNS &amp; Email Security</strong> and the DNS
+          operations inside it query a public resolver —{" "}
+          <code>cloudflare-dns.com</code> over DNS-over-HTTPS — with the domain
+          name you type. Cloudflare sees that domain name and your IP address.
+          Records and headers you paste stay in the tab; no live website scan is
+          performed.
+        </li>
+        <li>
+          <strong>Ultimate URL, IP &amp; Browser Privacy</strong> can call{" "}
+          <code>api.ipify.org</code> (or <code>api64.ipify.org</code>) to show
+          the public address a service observes. ipify sees your IP address.
+          Everything else on that page is a local review of information you
+          paste.
+        </li>
+        <li>
+          <strong>GTIN Product Lookup</strong> and the scanner&rsquo;s optional
+          lookup send one 8–14 digit number to this site&rsquo;s own{" "}
+          <code>/api/product-lookup</code> endpoint, which reads Open Food Facts
+          (an ODbL-licensed, crowd-sourced database). Open Food Facts receives
+          the number and a request from our server, not from your browser; the
+          product image is proxied here so your browser makes no third-party
+          request at all. No batch code, image or scan history is sent.
+        </li>
+      </ul>
       <p>
         Supabase provides authentication for authorized administrators and
         database hosting for messages explicitly submitted with consent. The

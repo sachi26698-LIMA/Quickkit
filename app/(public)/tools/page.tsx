@@ -5,6 +5,7 @@ import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
 import ToolExplorer from "@/components/tool-explorer";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
+import { localToolCount } from "@/lib/catalog-counts";
 
 export const dynamic = "force-dynamic";
 import {
@@ -53,7 +54,7 @@ export default async function ToolsPage() {
           })}
         />
         <PageHero
-          eyebrow={`${tools.length} FREE TOOLS · LOCAL IN YOUR BROWSER`}
+          eyebrow={`${tools.length} FREE TOOLS · ${localToolCount} FULLY LOCAL IN YOUR BROWSER`}
           title="Every tool in"
           titleAccent="one calm place."
           lede="Search by task, filter by category, or tap the heart on any card to keep your favourites one click away."

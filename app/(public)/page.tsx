@@ -20,6 +20,11 @@ import {
   getPublicSiteSettings,
 } from "@/lib/supabase/public-catalog";
 import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
+import {
+  localToolCount,
+  nonLocalToolCount,
+  totalTools,
+} from "@/lib/catalog-counts";
 import styles from "@/app/home-premium.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +55,7 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
   {
     Icon: ShieldCheck,
     title: "Privacy Focused",
-    text: "Most published tools run in your browser so files stay on your device. Word to PDF and optional DNS or public IP lookups contact services only after your consent.",
+    text: `${localToolCount} of ${totalTools} published tools run entirely in your browser, so their files and text never leave your device. Word to PDF uploads only after an explicit consent step; the other ${nonLocalToolCount - 1} make optional, click-only lookups to a named service.`,
   },
   {
     Icon: Sparkles,
@@ -104,7 +109,7 @@ export default async function Home() {
           </h1>
           <p className="hero-lede">
             {settings.tagline ??
-              `${tools.length} browser tools for the jobs that interrupt a working day. No account needed, no install — and most files never leave your device.`}
+              `${tools.length} browser tools for the jobs that interrupt a working day. No account needed, no install — and ${localToolCount} of them never send a file anywhere.`}
           </p>
         </div>
         <div className="hero-search-zone">

@@ -530,7 +530,50 @@ export default function FileHandlingPage() {
         to read.
       </p>
 
-      <h2 id="external">24. Local and server processing engines</h2>
+      <h2 id="opt-in-lookups">24. Optional lookups that leave the device</h2>
+      <p>
+        Five published tools are not fully local. Each one says so on its own
+        page before you press anything, and each asks for consent first. No file
+        content is ever part of these requests.
+      </p>
+      <ul>
+        <li>
+          <strong>Word to PDF (section 10)</strong> uploads DOCX bytes to this
+          site&rsquo;s own conversion engine after an explicit consent step. It
+          is the only tool that transmits a file.
+        </li>
+        <li>
+          <strong>Ultimate DNS &amp; Email Security</strong> sends the domain
+          name you type to <code>cloudflare-dns.com</code> over DNS-over-HTTPS,
+          after consent. Pasted SPF, DKIM, DMARC records and email headers are
+          analysed locally and are never transmitted.
+        </li>
+        <li>
+          <strong>Ultimate URL, IP &amp; Browser Privacy</strong> sends a
+          request to <code>api.ipify.org</code> or <code>api64.ipify.org</code>,
+          after consent, to display the public address those services observe.
+          That request reveals your IP address to them. Pasted URLs, headers and
+          browser details stay in the tab.
+        </li>
+        <li>
+          <strong>GTIN Product Lookup</strong> and the{" "}
+          <strong>Barcode Scanner</strong>&rsquo;s optional lookup send one 8–14
+          digit GTIN, click-only, to this site&rsquo;s{" "}
+          <code>/api/product-lookup</code> endpoint, which reads Open Food
+          Facts. The browser never contacts Open Food Facts directly. Camera
+          frames, decoded batch codes and scan history never leave the tab.
+        </li>
+      </ul>
+      <p>
+        The Content Security Policy enforces this list rather than describing
+        it: site-wide <code>connect-src</code> allows only this origin, the
+        named Google AdSense hosts and the configured Supabase origin, and only
+        the DNS route and the URL/IP route widen it — by{" "}
+        <code>cloudflare-dns.com</code> and by <code>api.ipify.org</code> /{" "}
+        <code>api64.ipify.org</code> respectively.
+      </p>
+
+      <h2 id="external">25. Local and server processing engines</h2>
       <p>
         Browser-local engines are served from this origin and do not transmit
         your files externally:
@@ -567,7 +610,7 @@ export default function FileHandlingPage() {
         </li>
       </ul>
       <p>
-        For the single server-assisted workflow (
+        For the server-assisted workflow (
         <a href="#word-to-pdf">Word to PDF, section 10</a>), DOCX conversion
         runs through <code>/api/word-to-pdf</code> on an operator-controlled
         engine only after explicit on-screen consent. Any future remote
@@ -576,7 +619,7 @@ export default function FileHandlingPage() {
         release.
       </p>
 
-      <h2 id="downloads">25. Download handling</h2>
+      <h2 id="downloads">26. Download handling</h2>
       <p>
         Downloads are created with a temporary <code>blob:</code> URL and an
         anchor element with the <code>download</code> attribute. The browser
@@ -591,7 +634,7 @@ export default function FileHandlingPage() {
         and keeps no list of files you saved.
       </p>
 
-      <h2 id="retention">26. Retention and deletion</h2>
+      <h2 id="retention">27. Retention and deletion</h2>
       <div className="legal-table-wrap">
         <table role="table" className="legal-table">
           <caption className="sr-only">
@@ -712,7 +755,7 @@ export default function FileHandlingPage() {
         <Link href="/privacy#rights">Privacy Policy §13</Link>.
       </p>
 
-      <h2 id="limitations">27. Technical limitations</h2>
+      <h2 id="limitations">28. Technical limitations</h2>
       <ul>
         <li>
           Large files can fail on low-memory devices even below the published

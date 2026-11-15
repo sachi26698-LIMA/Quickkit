@@ -1,3 +1,4 @@
+import { localToolCount, totalTools } from "@/lib/catalog-counts";
 import VisitorTracking from "./visitor-tracking";
 import Link from "next/link";
 import { Heart, ShieldCheck } from "lucide-react";
@@ -75,7 +76,8 @@ export default function Footer({
             <span>
               <strong>Your work stays yours.</strong>
               <br />
-              Most tools run on your device. No sign-up, no accounts.
+              {localToolCount} of {totalTools} tools run entirely on your
+              device. No sign-up, no accounts.
             </span>
           </p>
         </div>

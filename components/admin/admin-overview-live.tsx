@@ -798,28 +798,37 @@ export function AdminOverviewLive({
     },
     {
       label: "RLS verification",
-      value: "Verification required",
+      value: "Owner action required",
       tone: "warn",
       detail:
-        "App does not introspect pg_policies; verify RLS policies in Supabase.",
+        "Every public table has RLS enabled with deny-browser policies. This app cannot introspect pg_policies from the service-role client, so re-verify in the Supabase SQL editor after any schema change.",
       href: "/admin/security",
       actionLabel: "Verify",
     },
     {
       label: "SMTP configuration",
-      value: "External · unverified",
+      value: "NOT CONFIGURED",
       tone: "neutral",
-      detail: "Managed externally in Supabase Auth; not probed by app.",
+      detail:
+        "Supabase Auth mail is configured outside this project; this app has no delivery probe and does not claim delivery works.",
       href: "/admin/security",
       actionLabel: "Review",
     },
     {
-      label: "Sitemap verification",
-      value: "Owner verification required",
-      tone: "warn",
+      label: "Sitemap and robots.txt",
+      value: healthMeta?.indexing_enabled
+        ? healthMeta.sitemap_origin_configured
+          ? "Indexing enabled"
+          : "WARNING · origin missing"
+        : "Indexing off (intentional)",
+      tone: healthMeta?.indexing_enabled
+        ? healthMeta.sitemap_origin_configured
+          ? "good"
+          : "warn"
+        : "neutral",
       detail: healthMeta?.sitemap_origin_configured
-        ? "Origin set; deployment crawl reachability requires owner check."
-        : "SITE_URL origin not configured in this environment.",
+        ? "Origin configured. robots.txt and sitemap.xml are served by this deployment; crawl reachability requires an owner check."
+        : "SITE_URL origin not configured in this environment, so robots.txt disallows crawling and the sitemap is empty by design.",
       href: "/admin/seo",
       actionLabel: "SEO",
     },
