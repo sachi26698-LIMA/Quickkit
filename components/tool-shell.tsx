@@ -4,8 +4,9 @@ import {
   categoryMeta,
   relatedTools,
   toolCategoriesOf,
-  tools,
+  tools as staticTools,
 } from "@/lib/catalog";
+import type { PublicToolShellData } from "@/lib/supabase/public-catalog";
 import { toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import { breadcrumbStructuredData, toolStructuredData } from "@/lib/seo";
 import JsonLd from "./json-ld";
@@ -21,6 +22,7 @@ export default function ToolShell({
   slug,
   children,
   content,
+  publicData,
   variant = "default",
   headingDescription,
   stepsHeading = "How to use it",
@@ -31,6 +33,7 @@ export default function ToolShell({
   slug: string;
   children: React.ReactNode;
   content: ToolContent;
+  publicData?: PublicToolShellData;
   /** Compact chrome for document-workspace tools. Default preserves existing pages. */
   variant?: "default" | "compact";
   headingDescription?: string;
@@ -40,15 +43,26 @@ export default function ToolShell({
   referenceSection?: React.ReactNode;
 }) {
   const compact = variant === "compact";
-  const tool = tools.find((t) => t.slug === slug)!;
+  const tool =
+    publicData?.tool ?? staticTools.find((item) => item.slug === slug)!;
   const toolCategories = toolCategoriesOf(tool);
-  const primaryCategory =
-    categoryMeta.find((c) => c.name === toolCategories[0]) ?? categoryMeta[0];
-  const categories = toolCategories
-    .map((name) => categoryMeta.find((c) => c.name === name))
-    .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta));
-  const related = relatedTools(tool);
+  const categories =
+    publicData?.categories ??
+    toolCategories
+      .map((name) => categoryMeta.find((item) => item.name === name))
+      .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const primaryCategory = categories[0];
+  const visibleTools = publicData?.tools ?? staticTools;
+  const related = relatedTools(tool)
+    .map((item) =>
+      visibleTools.find((publicTool) => publicTool.slug === item.slug),
+    )
+    .filter((item): item is (typeof visibleTools)[number] => Boolean(item));
   const theme = toolTheme(tool.slug, tool.category);
+  const publicDescription =
+    publicData?.tool.publicDescription ??
+    headingDescription ??
+    tool.description;
   return (
     <div
       className={`container tool-page${compact ? " tool-page-compact" : ""}`}
@@ -61,10 +75,14 @@ export default function ToolShell({
         </Link>
         <ChevronRight size={13} />
         <Link href="/tools">Tools</Link>
-        <ChevronRight size={13} />
-        <Link href={`/category/${primaryCategory.slug}`}>
-          {primaryCategory.name}
-        </Link>
+        {primaryCategory ? (
+          <>
+            <ChevronRight size={13} />
+            <Link href={`/category/${primaryCategory.slug}`}>
+              {primaryCategory.name}
+            </Link>
+          </>
+        ) : null}
         <ChevronRight size={13} />
         <span>{tool.name}</span>
       </nav>
@@ -74,17 +92,21 @@ export default function ToolShell({
         data={breadcrumbStructuredData([
           { name: "Home", path: "/" },
           { name: "Tools", path: "/tools" },
-          {
-            name: primaryCategory.name,
-            path: `/category/${primaryCategory.slug}`,
-          },
+          ...(primaryCategory
+            ? [
+                {
+                  name: primaryCategory.name,
+                  path: `/category/${primaryCategory.slug}`,
+                },
+              ]
+            : []),
           { name: tool.name, path: `/tools/${tool.slug}` },
         ])}
       />
       <JsonLd
         data={toolStructuredData({
           name: tool.name,
-          description: headingDescription ?? tool.description,
+          description: publicDescription,
           path: `/tools/${tool.slug}`,
           category: tool.category,
           slug: tool.slug,
@@ -96,7 +118,7 @@ export default function ToolShell({
           <ToolIcon3D tool={tool} size={64} />
           <div className="tool-title-copy">
             <h1>{tool.name}</h1>
-            <p>{headingDescription ?? tool.description}</p>
+            <p>{publicDescription}</p>
           </div>
           <span className="local-badge">Local processing</span>
         </header>
@@ -107,7 +129,7 @@ export default function ToolShell({
             {toolCategories.join(" · ")} · Free browser tool
           </span>
           <h1>{tool.name}</h1>
-          <p>{headingDescription ?? tool.description}</p>
+          <p>{publicDescription}</p>
         </header>
       )}
       {categories.length > 1 ? (

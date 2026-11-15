@@ -101,13 +101,14 @@ const NEVER_ADVERTISED_PREFIXES = ["/api/", "/_next/", "/_"];
 
 /**
  * Whether AdSense is enabled for this build/runtime.
- * Off by default; only an explicit ADS_ENABLED=true enables the site-wide loader.
- * NEXT_PUBLIC_ADS_ENABLED=false remains an unconditional opt-out.
+ * Fail closed unless both the private approval/enable switch and the public
+ * client-rendering switch are explicitly true. Either switch being absent or
+ * false keeps the loader and ad slots off.
  */
 export function isAdsEnabled(): boolean {
   return (
     process.env.ADS_ENABLED === "true" &&
-    process.env.NEXT_PUBLIC_ADS_ENABLED !== "false"
+    process.env.NEXT_PUBLIC_ADS_ENABLED === "true"
   );
 }
 

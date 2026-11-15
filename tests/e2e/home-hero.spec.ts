@@ -219,7 +219,7 @@ for (const width of [390, 1440]) {
 }
 
 for (const width of [390, 1440]) {
-  test(`feedback can be submitted and persists only in this browser at ${width}px`, async ({
+  test(`local feedback can be saved and persists only in this browser at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -230,10 +230,12 @@ for (const width of [390, 1440]) {
     await trigger.click();
     const dialog = page.getByRole("dialog", { name: "Share your experience" });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/saved only in this browser/)).toBeVisible();
+    await expect(
+      dialog.getByText(/stays in this browser unless you choose/),
+    ).toBeVisible();
     await dialog.getByLabel("Name (optional)").fill("Asha");
     await dialog.getByLabel("Your feedback").fill("Clear and easy to use.");
-    await dialog.getByRole("button", { name: "Add feedback" }).click();
+    await dialog.getByRole("button", { name: /Save on this device/ }).click();
     await expect(dialog).not.toBeVisible();
     await expect(screen.getByText("Asha")).toBeVisible();
     await expect(screen.getByText("Clear and easy to use.")).toBeVisible();
@@ -243,7 +245,7 @@ for (const width of [390, 1440]) {
     await trigger.hover({ force: true });
     await trigger.click();
     await dialog.getByLabel("Your feedback").fill("A second entry.");
-    await dialog.getByRole("button", { name: "Add feedback" }).click();
+    await dialog.getByRole("button", { name: /Save on this device/ }).click();
     await expect(screen.getByText("Anonymous")).toBeVisible();
     await expect(screen.getByText("A second entry.")).toBeVisible();
     await expect(screen.getByText("Asha")).toBeVisible();
@@ -284,7 +286,7 @@ test("feedback reports storage failure without pretending it was saved", async (
   await screen.getByRole("button", { name: "Share feedback" }).click();
   const dialog = page.getByRole("dialog", { name: "Share your experience" });
   await dialog.getByLabel("Your feedback").fill("Test feedback");
-  await dialog.getByRole("button", { name: "Add feedback" }).click();
+  await dialog.getByRole("button", { name: /Save on this device/ }).click();
   await expect(dialog.getByRole("alert")).toHaveText(/Could not save feedback/);
   await expect(screen.getByText("No feedback yet")).toBeVisible();
 });
@@ -483,4 +485,60 @@ test("seven colourful glass icons animate independently and pause offscreen", as
         .evaluate((element) => getComputedStyle(element).animationPlayState),
     )
     .toBe("paused");
+});
+
+test("sending feedback requires opt-in and never claims success after a server error", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 390, height: 900 });
+  let shouldSucceed = false;
+  await page.route("**/api/feedback", async (route) => {
+    if (shouldSucceed) {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    } else {
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ok: false,
+          error:
+            "The feedback service is temporarily unavailable. Your feedback was not sent.",
+        }),
+      });
+    }
+  });
+  await page.goto("/");
+  const screen = page.getByRole("group", { name: "QUICKKIT laptop preview" });
+  await screen.getByRole("button", { name: "Share feedback" }).click();
+  const dialog = page.getByRole("dialog", { name: "Share your experience" });
+  await dialog.getByLabel("Your feedback").fill("A useful suggestion.");
+  await dialog.getByRole("button", { name: /Save on this device/ }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(screen.getByText("A useful suggestion.")).toBeVisible();
+
+  await screen.getByRole("button", { name: "Share feedback" }).click();
+  await dialog
+    .getByLabel("Your feedback")
+    .fill("Please add a keyboard shortcut.");
+  await dialog.getByLabel(/Send this message privately/).check();
+  await dialog.getByRole("button", { name: /Send privately/ }).click();
+  await expect(dialog.getByRole("alert")).toContainText("was not sent");
+  await expect(screen.getByText("Please add a keyboard shortcut.")).toHaveCount(
+    0,
+  );
+
+  shouldSucceed = true;
+  await dialog.getByRole("button", { name: /Send privately/ }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(
+    screen.getByText("Please add a keyboard shortcut."),
+  ).toBeVisible();
+  await expect(
+    screen.getByText(/Feedback was sent privately to QUICKKIT/),
+  ).toBeVisible();
 });

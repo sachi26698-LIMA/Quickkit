@@ -55,9 +55,9 @@ export default function AdUnit({
 }) {
   const insRef = useRef<HTMLModElement | null>(null);
   const pushed = useRef(false);
-  const disabled =
-    process.env.ADS_ENABLED === "false" ||
-    process.env.NEXT_PUBLIC_ADS_ENABLED === "false";
+  // Client-side units stay off unless explicitly enabled. The private
+  // ADS_ENABLED switch independently gates the site-wide loader on the server.
+  const disabled = process.env.NEXT_PUBLIC_ADS_ENABLED !== "true";
 
   useEffect(() => {
     if (disabled) return;

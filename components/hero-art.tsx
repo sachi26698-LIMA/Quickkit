@@ -12,8 +12,9 @@ import {
 import styles from "./hero-scene-orbit.module.css";
 import HeroMotion from "./hero-motion";
 import HeroScreen from "./hero-screen";
+import type { Tool } from "@/lib/catalog";
 
-export default function HeroArt() {
+export default function HeroArt({ tools }: { tools: Tool[] }) {
   return (
     <HeroMotion>
       <div className={styles.halo} aria-hidden="true" />
@@ -77,7 +78,7 @@ export default function HeroArt() {
             objectFit: "contain",
           }}
         />
-        <HeroScreen />
+        <HeroScreen tools={tools} />
       </div>
     </HeroMotion>
   );

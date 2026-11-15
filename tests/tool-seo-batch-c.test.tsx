@@ -21,37 +21,41 @@ import {
 import { analyzeText, convertCase, countText } from "../lib/tools/text";
 
 const ROUTES = {
-  "merge-pdf": () => import("../app/tools/merge-pdf/page"),
-  "split-pdf": () => import("../app/tools/split-pdf/page"),
-  "compress-pdf": () => import("../app/tools/compress-pdf/page"),
-  "pdf-to-image": () => import("../app/tools/pdf-to-image/page"),
-  "images-to-pdf": () => import("../app/tools/images-to-pdf/page"),
-  "pdf-lock-unlock": () => import("../app/tools/pdf-lock-unlock/page"),
-  "pdf-studio": () => import("../app/tools/pdf-studio/page"),
-  "pdf-to-word": () => import("../app/tools/pdf-to-word/page"),
-  "word-to-pdf": () => import("../app/tools/word-to-pdf/page"),
-  "image-compressor": () => import("../app/tools/image-compressor/page"),
-  "image-resizer": () => import("../app/tools/image-resizer/page"),
-  "image-cropper": () => import("../app/tools/image-cropper/page"),
-  "image-to-image": () => import("../app/tools/image-to-image/page"),
-  "qr-generator": () => import("../app/tools/qr-generator/page"),
-  "qr-code-scanner": () => import("../app/tools/qr-code-scanner/page"),
-  "password-generator": () => import("../app/tools/password-generator/page"),
-  "json-formatter": () => import("../app/tools/json-formatter/page"),
-  "json-validator": () => import("../app/tools/json-validator/page"),
-  "xml-formatter": () => import("../app/tools/xml-formatter/page"),
-  "html-formatter": () => import("../app/tools/html-formatter/page"),
-  "css-minifier": () => import("../app/tools/css-minifier/page"),
-  "javascript-minifier": () => import("../app/tools/javascript-minifier/page"),
+  "merge-pdf": () => import("../app/(public)/tools/merge-pdf/page"),
+  "split-pdf": () => import("../app/(public)/tools/split-pdf/page"),
+  "compress-pdf": () => import("../app/(public)/tools/compress-pdf/page"),
+  "pdf-to-image": () => import("../app/(public)/tools/pdf-to-image/page"),
+  "images-to-pdf": () => import("../app/(public)/tools/images-to-pdf/page"),
+  "pdf-lock-unlock": () => import("../app/(public)/tools/pdf-lock-unlock/page"),
+  "pdf-studio": () => import("../app/(public)/tools/pdf-studio/page"),
+  "pdf-to-word": () => import("../app/(public)/tools/pdf-to-word/page"),
+  "word-to-pdf": () => import("../app/(public)/tools/word-to-pdf/page"),
+  "image-compressor": () =>
+    import("../app/(public)/tools/image-compressor/page"),
+  "image-resizer": () => import("../app/(public)/tools/image-resizer/page"),
+  "image-cropper": () => import("../app/(public)/tools/image-cropper/page"),
+  "image-to-image": () => import("../app/(public)/tools/image-to-image/page"),
+  "qr-generator": () => import("../app/(public)/tools/qr-generator/page"),
+  "qr-code-scanner": () => import("../app/(public)/tools/qr-code-scanner/page"),
+  "password-generator": () =>
+    import("../app/(public)/tools/password-generator/page"),
+  "json-formatter": () => import("../app/(public)/tools/json-formatter/page"),
+  "json-validator": () => import("../app/(public)/tools/json-validator/page"),
+  "xml-formatter": () => import("../app/(public)/tools/xml-formatter/page"),
+  "html-formatter": () => import("../app/(public)/tools/html-formatter/page"),
+  "css-minifier": () => import("../app/(public)/tools/css-minifier/page"),
+  "javascript-minifier": () =>
+    import("../app/(public)/tools/javascript-minifier/page"),
   "base64-encoder-decoder": () =>
-    import("../app/tools/base64-encoder-decoder/page"),
-  "url-encoder-decoder": () => import("../app/tools/url-encoder-decoder/page"),
-  "uuid-generator": () => import("../app/tools/uuid-generator/page"),
-  "hash-generator": () => import("../app/tools/hash-generator/page"),
-  "regex-tester": () => import("../app/tools/regex-tester/page"),
-  "word-counter": () => import("../app/tools/word-counter/page"),
-  "case-converter": () => import("../app/tools/case-converter/page"),
-  "image-to-text": () => import("../app/tools/image-to-text/page"),
+    import("../app/(public)/tools/base64-encoder-decoder/page"),
+  "url-encoder-decoder": () =>
+    import("../app/(public)/tools/url-encoder-decoder/page"),
+  "uuid-generator": () => import("../app/(public)/tools/uuid-generator/page"),
+  "hash-generator": () => import("../app/(public)/tools/hash-generator/page"),
+  "regex-tester": () => import("../app/(public)/tools/regex-tester/page"),
+  "word-counter": () => import("../app/(public)/tools/word-counter/page"),
+  "case-converter": () => import("../app/(public)/tools/case-converter/page"),
+  "image-to-text": () => import("../app/(public)/tools/image-to-text/page"),
 } as const;
 
 const ORIGIN = "https://quickkit.online";
@@ -62,7 +66,7 @@ afterEach(() => {
 });
 
 describe("Phase 3 Batch C — 30 tool pages", () => {
-  it("has unique, intent-focused metadata and verified reference content for every route", () => {
+  it("has unique, intent-focused metadata and verified reference content for every route", async () => {
     const slugs = Object.keys(ROUTES) as (keyof typeof ROUTES)[];
     expect(slugs).toHaveLength(30);
     expect(Object.keys(TOOL_SEO_CONTENT).sort()).toEqual([...slugs].sort());
@@ -220,8 +224,9 @@ describe("Phase 3 Batch C — 30 tool pages", () => {
     const renderedDescriptions = new Set<string>();
     for (const [slug, load] of Object.entries(ROUTES)) {
       vi.resetModules();
-      const { default: Page, metadata } = await load();
-      const rendered = render(<Page />);
+      const { default: Page, generateMetadata } = await load();
+      const [metadata, page] = await Promise.all([generateMetadata(), Page()]);
+      const rendered = render(page);
       const { container } = rendered;
 
       const title = metadata.title as string;

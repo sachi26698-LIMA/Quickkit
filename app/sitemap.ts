@@ -4,13 +4,11 @@ import { join } from "node:path";
 import type { MetadataRoute } from "next";
 import { siteOrigin } from "@/lib/seo";
 import { indexingEnabled } from "@/lib/launch";
-import {
-  categoryMeta,
-  metaBySlug,
-  tools,
-  toolsByCategory,
-} from "@/lib/catalog";
+import { metaBySlug, toolsByCategory } from "@/lib/catalog";
+import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 import { legalPages } from "@/lib/legal";
+
+export const dynamic = "force-dynamic";
 
 const CALCULATOR_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
   "age-calculator": ["components/tools/phase9-dates.tsx"],
@@ -112,12 +110,23 @@ export function gitLastModifiedForFiles(
     repoFileExists(repoPath(repoRoot, rel)),
   );
   if (existing.length === 0) return undefined;
+  // Route-group moves retain the source page history under its previous path.
+  const historyPaths = [
+    ...new Set([
+      ...existing,
+      ...files.map((rel) =>
+        rel.startsWith("app/(public)/")
+          ? rel.replace("app/(public)/", "app/")
+          : rel,
+      ),
+    ]),
+  ];
 
   const shallow = options?.shallowCommits ?? readShallowCommits(repoRoot);
   try {
     const output = execFileSync(
       "git",
-      ["log", "--no-merges", "--format=%H %cs", "--", ...existing],
+      ["log", "--no-merges", "--format=%H %cs", "--", ...historyPaths],
       {
         cwd: repoRoot,
         encoding: "utf8",
@@ -157,16 +166,17 @@ export function routeSourceFiles(
   path: string,
   repoRoot = process.cwd(),
 ): string[] {
-  if (path === "/") return ["app/page.tsx", "components/hero-search.tsx"];
+  if (path === "/")
+    return ["app/(public)/page.tsx", "components/hero-search.tsx"];
   if (path === "/tools") {
-    return ["app/tools/page.tsx", "components/tool-explorer.tsx"];
+    return ["app/(public)/tools/page.tsx", "components/tool-explorer.tsx"];
   }
-  if (path === "/help") return ["app/help/page.tsx"];
-  if (path === "/sitemap") return ["app/sitemap/page.tsx"];
+  if (path === "/help") return ["app/(public)/help/page.tsx"];
+  if (path === "/sitemap") return ["app/(public)/sitemap/page.tsx"];
 
   if (path.startsWith("/tools/")) {
     const slug = path.slice("/tools/".length);
-    const staticPage = `app/tools/${slug}/page.tsx`;
+    const staticPage = `app/(public)/tools/${slug}/page.tsx`;
     const staticPageFull = repoPath(repoRoot, staticPage);
     if (repoFileExists(staticPageFull)) {
       const found = [staticPage];
@@ -199,7 +209,7 @@ export function routeSourceFiles(
     return ["lib/category-content.ts", ...categoryTools];
   }
 
-  const topLevelPage = `app${path}/page.tsx`;
+  const topLevelPage = `app/(public)${path}/page.tsx`;
   if (repoFileExists(repoPath(repoRoot, topLevelPage))) {
     return [topLevelPage];
   }
@@ -215,8 +225,9 @@ export function routeSourceFiles(
  * While `indexingEnabled` is false the sitemap is empty and `robots.txt`
  * disallows everything — a preview build must never leak draft pages.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!indexingEnabled || !siteOrigin) return [];
+  const catalog = await getPublicCatalog();
 
   // `/saved` and `/qr` are deliberately absent: they carry `noindex` directives
   // and render per-browser or user-encoded state rather than indexable content.
@@ -229,20 +240,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...new Set([
       ...staticRoutes,
       ...legalRouteSet,
-      ...categoryMeta
-        // A category with no published tools is an empty page; keep it out
-        // until it actually ships.
+      ...catalog.categories
         .filter((category) =>
-          tools.some(
+          catalog.tools.some(
             (tool) =>
-              tool.category === category.name ||
-              ("categories" in tool &&
-                Array.isArray(tool.categories) &&
-                (tool.categories as readonly string[]).includes(category.name)),
+              tool.isIndexable &&
+              (!tool.canonicalPath ||
+                tool.canonicalPath === `/tools/${tool.slug}`) &&
+              (tool.category === category.name ||
+                ("categories" in tool &&
+                  Array.isArray(tool.categories) &&
+                  (tool.categories as readonly string[]).includes(
+                    category.name,
+                  ))),
           ),
         )
         .map((category) => `/category/${category.slug}`),
-      ...tools.map((tool) => `/tools/${tool.slug}`),
+      ...catalog.tools
+        .filter(
+          (tool) =>
+            tool.isIndexable &&
+            (!tool.canonicalPath ||
+              tool.canonicalPath === `/tools/${tool.slug}`),
+        )
+        .map((tool) => `/tools/${tool.slug}`),
     ]),
   ];
 

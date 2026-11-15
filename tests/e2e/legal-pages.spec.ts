@@ -126,8 +126,12 @@ test("footer exposes all four groups and every link works", async ({
   }
 });
 
-test("legal pages pass axe and are keyboard navigable", async ({ page }) => {
-  for (const route of REQUIRED) {
+for (const route of REQUIRED) {
+  // Keep each full axe + keyboard audit in its own test so a busy full-suite
+  // run cannot consume one 30-second timeout across all twelve page scans.
+  test(`legal page ${route} passes axe and is keyboard navigable`, async ({
+    page,
+  }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
@@ -151,8 +155,8 @@ test("legal pages pass axe and are keyboard navigable", async ({ page }) => {
     // Back-to-top returns to the main landmark rather than a bare '#top'.
     const backToTop = page.locator('.legal-backtotop a[href="#main"]');
     await expect(backToTop).toHaveCount(1);
-  }
-});
+  });
+}
 
 test("active navigation state is set for legal routes", async ({ page }) => {
   await page.goto("/privacy");

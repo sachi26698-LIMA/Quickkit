@@ -3,15 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { filterTools } from "@/lib/catalog";
+import type { Tool } from "@/lib/catalog";
 import styles from "./hero-scene-orbit.module.css";
 
 /** Uses the same catalogue matching as the main hero search. */
-export default function HeroScreenSearch() {
+export default function HeroScreenSearch({ tools }: { tools: Tool[] }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const searching = query.trim().length > 0;
-  const results = searching ? filterTools(query, "All tools") : [];
+  const search = query.trim().toLocaleLowerCase();
+  const matches = searching
+    ? tools.filter((tool) =>
+        `${tool.name} ${tool.description} ${tool.keywords}`
+          .toLocaleLowerCase()
+          .includes(search),
+      )
+    : [];
+  const namedMatches = matches.filter((tool) =>
+    tool.name.toLocaleLowerCase().includes(search),
+  );
+  const results = namedMatches.length
+    ? [
+        ...namedMatches,
+        ...matches.filter((tool) => !namedMatches.includes(tool)),
+      ]
+    : matches;
 
   return (
     <div

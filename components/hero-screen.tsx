@@ -1,5 +1,5 @@
 import { Zap } from "lucide-react";
-import { tools } from "@/lib/catalog";
+import type { Tool } from "@/lib/catalog";
 import HeroFeedback from "./hero-feedback";
 import HeroScreenSearch from "./hero-screen-search";
 import styles from "./hero-scene-orbit.module.css";
@@ -9,14 +9,20 @@ const chartCategories = [
   { label: "Image", category: "Image Tools" },
   { label: "QR", category: "QR & Barcode" },
 ] as const;
-const catalogReport = chartCategories.map((item) => ({
-  ...item,
-  count: tools.filter((tool) => tool.category === item.category).length,
-}));
-const largestCategory = Math.max(...catalogReport.map((item) => item.count), 1);
+function catalogReportFor(tools: Tool[]) {
+  return chartCategories.map((item) => ({
+    ...item,
+    count: tools.filter((tool) => tool.category === item.category).length,
+  }));
+}
 
 /** Real controls and a decorative 3D chart, clipped to the laptop screen. */
-export default function HeroScreen() {
+export default function HeroScreen({ tools }: { tools: Tool[] }) {
+  const catalogReport = catalogReportFor(tools);
+  const largestCategory = Math.max(
+    ...catalogReport.map((item) => item.count),
+    1,
+  );
   return (
     <div
       className={styles.screenLayer}
@@ -54,7 +60,7 @@ export default function HeroScreen() {
               </span>
               <strong className={styles.miniBrand}>QUICKKIT</strong>
             </div>
-            <HeroScreenSearch />
+            <HeroScreenSearch tools={tools} />
             <div className={styles.catalogReport} aria-hidden="true">
               <div className={styles.chart}>
                 <div className={styles.chartGrid} />

@@ -68,14 +68,18 @@ function FeedbackDialog({
   onSave,
   entries,
   onRemove,
+  onCloudSuccess,
 }: {
   onClose: () => void;
   onSave: (entry: Feedback) => boolean;
   entries: Feedback[];
   onRemove: (index: number) => boolean;
+  onCloudSuccess: (message: string) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
+  const [sendPrivately, setSendPrivately] = useState(false);
+  const [sending, setSending] = useState(false);
   useEffect(() => {
     dialog.current?.showModal();
   }, []);
@@ -101,17 +105,51 @@ function FeedbackDialog({
         </button>
       </div>
       <p className={dialogStyles.intro}>
-        Your feedback appears in the laptop template and is saved only in this
-        browser. It is not sent to QUICKKIT or shared with other visitors.
+        Feedback stays in this browser unless you choose to send it privately to
+        QUICKKIT for review. It is never displayed to other visitors. Do not
+        include passwords, private documents, or tool inputs.
       </p>
       <form
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
           const name = String(data.get("name") ?? "").trim();
           const message = String(data.get("message") ?? "").trim();
           if (!message) {
             setError("Please enter your feedback.");
+            return;
+          }
+          if (sendPrivately) {
+            setSending(true);
+            setError("");
+            try {
+              const response = await fetch("/api/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, message, consent: true }),
+              });
+              const result = (await response.json()) as {
+                ok?: boolean;
+                error?: string;
+              };
+              if (!response.ok || !result.ok)
+                throw new Error(result.error ?? "Submission failed.");
+              const savedLocally = onSave({ name, message });
+              onCloudSuccess(
+                savedLocally
+                  ? "Feedback was sent privately to QUICKKIT and saved in this browser."
+                  : "Feedback was sent privately to QUICKKIT; the local copy could not be saved.",
+              );
+              dialog.current?.close();
+            } catch (submitError) {
+              setError(
+                submitError instanceof Error
+                  ? submitError.message
+                  : "Feedback could not be sent. It was not saved to QUICKKIT.",
+              );
+            } finally {
+              setSending(false);
+            }
             return;
           }
           if (!onSave({ name, message })) {
@@ -142,13 +180,35 @@ function FeedbackDialog({
           required
           placeholder="Tell us about your experience"
         />
+        <label
+          className={dialogStyles.consent}
+          htmlFor="feedback-send-privately"
+        >
+          <input
+            id="feedback-send-privately"
+            type="checkbox"
+            checked={sendPrivately}
+            onChange={(event) => setSendPrivately(event.target.checked)}
+          />
+          Send this message privately to QUICKKIT for review. The submission is
+          retained according to the Privacy Policy.
+        </label>
         {error && (
           <p role="alert" className={dialogStyles.error}>
             {error}
           </p>
         )}
-        <button type="submit" className={dialogStyles.submit}>
-          Add feedback <span aria-hidden="true">→</span>
+        <button
+          type="submit"
+          className={dialogStyles.submit}
+          disabled={sending}
+        >
+          {sending
+            ? "Sending…"
+            : sendPrivately
+              ? "Send privately"
+              : "Save on this device"}{" "}
+          <span aria-hidden="true">→</span>
         </button>
       </form>
       {entries.length > 0 && (
@@ -187,6 +247,7 @@ export default function HeroFeedback() {
   const raw = useSyncExternalStore(subscribe, readFeedback, () => "[]");
   const entries = useMemo(() => parseFeedback(raw), [raw]);
   const [open, setOpen] = useState(false);
+  const [notice, setNotice] = useState("");
   useEffect(() => {
     const show = () => setOpen(true);
     window.addEventListener(OPEN_EVENT, show);
@@ -242,10 +303,18 @@ export default function HeroFeedback() {
         <button
           type="button"
           className={styles.feedbackButton}
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setNotice("");
+            setOpen(true);
+          }}
         >
           Share feedback <span aria-hidden="true">↗</span>
         </button>
+        {notice ? (
+          <p className={dialogStyles.success} role="status">
+            {notice}
+          </p>
+        ) : null}
       </section>
       {open && (
         <FeedbackDialog
@@ -253,6 +322,7 @@ export default function HeroFeedback() {
           onSave={save}
           entries={entries}
           onRemove={remove}
+          onCloudSuccess={setNotice}
         />
       )}
     </>

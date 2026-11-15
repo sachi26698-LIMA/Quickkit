@@ -1,0 +1,50 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import AdminLoginForm from "@/components/admin/admin-login-form";
+import styles from "@/components/admin/admin.module.css";
+import { verifyAdminSession } from "@/lib/supabase/admin-auth";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ loggedOut?: string; reason?: string }>;
+}) {
+  const auth = await verifyAdminSession();
+  if (auth.status === "authorized") redirect("/admin");
+  const params = await searchParams;
+  const message =
+    params.loggedOut === "1"
+      ? "You have been securely signed out."
+      : params.reason === "forbidden"
+        ? "This account is not authorized for administrator access."
+        : auth.status === "allowlist_not_configured"
+          ? "Admin sign-in is unavailable until the owner configures the server-only QUICKKIT_ADMIN_EMAILS allowlist."
+          : auth.status === "supabase_not_configured"
+            ? "Admin sign-in is unavailable until the Supabase URL and publishable key are configured."
+            : auth.status === "unavailable"
+              ? "Supabase authentication is temporarily unavailable."
+              : "Only explicitly approved QUICKKIT administrators can sign in here.";
+  return (
+    <div className={styles["admin-login-wrap"]}>
+      <section className={styles["admin-login"]}>
+        <Link href="/" className={styles["admin-brand"]}>
+          QUICKKIT
+        </Link>
+        <span className={styles["admin-kicker"]}>PRIVATE CONTROL ROOM</span>
+        <h1>Administrator sign in</h1>
+        <p>
+          This area is private. Public registration is disabled and no visitor
+          account is required to use QUICKKIT tools.
+        </p>
+        <AdminLoginForm message={message} />
+        <p>
+          <Link href="/" className={styles["admin-link"]}>
+            Return to public tools
+          </Link>
+        </p>
+      </section>
+    </div>
+  );
+}

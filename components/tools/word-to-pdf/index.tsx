@@ -57,7 +57,17 @@ const subscribeMobile = (notify: () => void) => {
   media.addEventListener("change", notify);
   return () => media.removeEventListener("change", notify);
 };
-export default function WordToPdf() {
+export default function WordToPdf({
+  title = "Word to PDF Converter",
+  description,
+  categoryName = "PDF Tools",
+  categorySlug = "pdf-tools",
+}: {
+  title?: string;
+  description?: string;
+  categoryName?: string;
+  categorySlug?: string;
+}) {
   const mobile = useSyncExternalStore(
     subscribeMobile,
     mobileSnapshot,
@@ -260,11 +270,12 @@ export default function WordToPdf() {
               <ChevronRight size={11} aria-hidden="true" />
               <Link href="/tools">Tools</Link>
               <ChevronRight size={11} aria-hidden="true" />
-              <Link href="/category/pdf-tools">PDF Tools</Link>
+              <Link href={`/category/${categorySlug}`}>{categoryName}</Link>
               <ChevronRight size={11} aria-hidden="true" />
-              <span aria-current="page">Word to PDF Converter</span>
+              <span aria-current="page">{title}</span>
             </nav>
-            <h1>Word to PDF Converter</h1>
+            <h1>{title}</h1>
+            {description ? <p>{description}</p> : null}
           </div>
           <span className={styles.version}>STUDIO V5</span>
         </div>

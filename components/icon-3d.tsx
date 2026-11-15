@@ -1488,7 +1488,8 @@ const fallbackArt: Record<string, GlyphName> = {
   calc: "calc",
 };
 
-export const categoryTone = (name: ToolCategory): Tone => categoryTones[name];
+export const categoryTone = (name: ToolCategory): Tone =>
+  categoryTones[name] ?? "violet";
 
 /** Tool cards share the 3D system while each Developer Tool has its own accent. */
 const toolAccentTones: Record<string, Tone> = {

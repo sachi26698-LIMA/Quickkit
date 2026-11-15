@@ -30,7 +30,7 @@ vi.mock("next/navigation", () => ({
 import AdUnit, { AD_CLIENT, AD_SLOT } from "../components/ad-unit";
 import { AD_SLOTS, ADSENSE_CLIENT, MAX_ADS_PER_PAGE } from "../lib/ads";
 import ToolShell from "../components/tool-shell";
-import Home from "../app/page";
+import Home from "../app/(public)/page";
 
 beforeAll(() => {
   // jsdom implements neither matchMedia nor IntersectionObserver; the hero and
@@ -67,11 +67,18 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  // Unit-rendering cases explicitly opt in; a separate regression test clears
+  // these flags to prove the default stays completely off.
+  vi.stubEnv("ADS_ENABLED", "true");
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "true");
   // A fresh queue per test so "one push per unit" is measurable.
   (window as unknown as { adsbygoogle: unknown }).adsbygoogle = [];
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
 /**
  * The ad integration is small, so every part of it is pinned: the ids, the fact
@@ -106,15 +113,15 @@ describe("AdSense loader", () => {
     );
     // One file, and that file is the layout: no page or component may add a
     // second copy of the script.
-    expect(withLoader).toEqual(["app/layout.tsx"]);
+    expect(withLoader).toEqual(["app/(public)/layout.tsx"]);
 
-    const layout = readFileSync("app/layout.tsx", "utf8");
+    const layout = readFileSync("app/(public)/layout.tsx", "utf8");
     expect(layout.split(AD_SCRIPT)).toHaveLength(2); // one occurrence
     expect(layout).not.toMatch(/data-ad-slot/); // loader only, no unit
   });
 
   it("publishes the same publisher id everywhere it appears", () => {
-    const layout = readFileSync("app/layout.tsx", "utf8");
+    const layout = readFileSync("app/(public)/layout.tsx", "utf8");
     expect(layout).toContain(AD_CLIENT);
     expect(ADSENSE_CLIENT).toBe("ca-pub-1478767466279341");
     // The single unit that actually exists in the AdSense account.
@@ -136,7 +143,16 @@ describe("AdSense loader", () => {
 });
 
 describe("AdUnit", () => {
-  it("renders one responsive slot with the configured ids", () => {
+  it("renders no slot and sends no queue request when ads are off by default", () => {
+    vi.stubEnv("ADS_ENABLED", "");
+    vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "");
+    const { container } = render(<AdUnit placement="home-after-hero" />);
+
+    expect(container.querySelector(".ad-slot, ins.adsbygoogle")).toBeNull();
+    expect(window.adsbygoogle).toEqual([]);
+  });
+
+  it("renders one responsive slot with the configured ids when explicitly enabled", () => {
     const { container } = render(<AdUnit placement="home-after-hero" />);
     const slots = container.querySelectorAll("ins.adsbygoogle");
     expect(slots).toHaveLength(1);
@@ -243,8 +259,8 @@ describe("AdUnit", () => {
 });
 
 describe("ad placement", () => {
-  it("puts three slots on the homepage, each in its own content gap", () => {
-    const { container } = render(<Home />);
+  it("puts three slots on the homepage, each in its own content gap", async () => {
+    const { container } = render(await Home());
     const slots = [...container.querySelectorAll(".ad-slot")];
     expect(slots).toHaveLength(3);
     expect(
@@ -286,16 +302,17 @@ describe("ad placement", () => {
     ).toBeTruthy();
   });
 
-  it("puts three slots on a tool page, all outside the workspace", () => {
+  it("puts three slots on a tool page, all outside the workspace", async () => {
     const { container } = render(
-      <ToolShell
-        slug="word-counter"
-        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
-      >
-        <div data-testid="workspace">
-          <button type="button">Convert</button>
-        </div>
-      </ToolShell>,
+      await ToolShell({
+        slug: "word-counter",
+        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
+        children: (
+          <div data-testid="workspace">
+            <button type="button">Convert</button>
+          </div>
+        ),
+      }),
     );
 
     const slots = [...container.querySelectorAll(".ad-slot")];
@@ -347,14 +364,13 @@ describe("ad placement", () => {
     expect(slots[2].querySelector("a")).toBeNull();
   });
 
-  it("never exceeds the per-page ceiling", () => {
+  it("never exceeds the per-page ceiling", async () => {
     const { container } = render(
-      <ToolShell
-        slug="word-counter"
-        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
-      >
-        <div />
-      </ToolShell>,
+      await ToolShell({
+        slug: "word-counter",
+        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
+        children: <div />,
+      }),
     );
     expect(container.querySelectorAll(".ad-slot").length).toBeLessThanOrEqual(
       MAX_ADS_PER_PAGE,

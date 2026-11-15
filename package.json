@@ -27,6 +27,8 @@
     "@cantoo/fontkit": "^2.0.12",
     "@cantoo/pdf-lib": "2.11.1",
     "@neslinesli93/qpdf-wasm": "0.3.1",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "@tesseract.js-data/ben": "1.0.0",
     "@tesseract.js-data/eng": "^1.0.0",
     "@tesseract.js-data/guj": "^1.0.0",

@@ -2,9 +2,16 @@ import { readFile } from "node:fs/promises";
 import { expect, it, vi } from "vitest";
 import { isAdsEnabled } from "../lib/ads";
 
-it("keeps the AdSense loader off unless explicitly enabled", () => {
+it("keeps AdSense off unless both approval switches are explicitly enabled", () => {
   vi.stubEnv("ADS_ENABLED", "");
   vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "");
+  expect(isAdsEnabled()).toBe(false);
+
+  vi.stubEnv("ADS_ENABLED", "true");
+  expect(isAdsEnabled()).toBe(false);
+
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "true");
+  vi.stubEnv("ADS_ENABLED", "");
   expect(isAdsEnabled()).toBe(false);
 
   vi.stubEnv("ADS_ENABLED", "true");

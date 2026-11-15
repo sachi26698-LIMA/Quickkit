@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
+import { getSupabaseCspOrigin } from "./lib/supabase/config";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Content-Security-Policy.
@@ -56,6 +57,10 @@ const ADSENSE_CONNECTIONS = [
   "https://csi.gstatic.com",
 ];
 
+// Only the configured, validated Supabase API origin is added; no wildcard or
+// general-purpose external connection permission is introduced.
+const supabaseCspOrigin = getSupabaseCspOrigin();
+
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -67,7 +72,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' blob: data: ${ADSENSE_IMAGES.join(" ")}`,
   "font-src 'self'",
-  `connect-src 'self' ${ADSENSE_CONNECTIONS.join(" ")}`,
+  `connect-src 'self' ${ADSENSE_CONNECTIONS.join(" ")} ${supabaseCspOrigin ?? ""}`.trim(),
   `frame-src ${ADSENSE_FRAMES.join(" ")}`,
 ].join("; ");
 

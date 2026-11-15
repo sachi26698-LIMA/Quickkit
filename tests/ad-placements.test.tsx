@@ -2,7 +2,15 @@
 import type { ReactElement } from "react";
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
@@ -29,12 +37,12 @@ import {
 } from "../lib/ads";
 import LegalPageShell from "../components/legal-page-shell";
 import ToolShell from "../components/tool-shell";
-import Home from "../app/page";
-import HelpPage from "../app/help/page";
-import AboutPage from "../app/about/page";
-import FaqPage from "../app/faq/page";
-import ToolsPage from "../app/tools/page";
-import CategoryPage from "../app/category/[slug]/page";
+import Home from "../app/(public)/page";
+import HelpPage from "../app/(public)/help/page";
+import AboutPage from "../app/(public)/about/page";
+import FaqPage from "../app/(public)/faq/page";
+import ToolsPage from "../app/(public)/tools/page";
+import CategoryPage from "../app/(public)/category/[slug]/page";
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -66,6 +74,13 @@ beforeAll(() => {
       writable: true,
     });
   }
+});
+
+beforeEach(() => {
+  // Placement and route-coverage assertions exercise the explicitly enabled
+  // integration; default-off behavior is covered in tests/ad-unit.test.tsx.
+  vi.stubEnv("ADS_ENABLED", "true");
+  vi.stubEnv("NEXT_PUBLIC_ADS_ENABLED", "true");
 });
 
 afterEach(() => {
@@ -115,7 +130,7 @@ async function sitemapPaths(): Promise<string[]> {
   vi.stubEnv("VERCEL_ENV", "production");
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
-  return sitemap().map((entry) =>
+  return (await sitemap()).map((entry) =>
     entry.url.replace("https://test.example", ""),
   );
 }
@@ -164,13 +179,13 @@ describe("ad unit registry", () => {
     // shell (all 42 tools), the two listing pages, the help centre, the shared
     // legal shell (9 policy pages) and the two bespoke editorial pages.
     expect(filesRenderingAds().sort()).toEqual([
-      "app/about/page.tsx",
-      "app/category/[slug]/page.tsx",
-      "app/faq/page.tsx",
-      "app/help/page.tsx",
-      "app/page.tsx",
-      "app/tools/page.tsx",
-      "app/tools/word-to-pdf/page.tsx",
+      "app/(public)/about/page.tsx",
+      "app/(public)/category/[slug]/page.tsx",
+      "app/(public)/faq/page.tsx",
+      "app/(public)/help/page.tsx",
+      "app/(public)/page.tsx",
+      "app/(public)/tools/page.tsx",
+      "app/(public)/tools/word-to-pdf/page.tsx",
       "components/legal-page-shell.tsx",
       "components/tool-shell.tsx",
       "components/tools/word-to-pdf/index.tsx",
@@ -203,17 +218,16 @@ describe("route coverage", () => {
 
   it("renders ads on every eligible route family", async () => {
     const { container: toolish } = slotsOf(
-      <ToolShell
-        slug="merge-pdf"
-        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
-      >
-        <div />
-      </ToolShell>,
+      await ToolShell({
+        slug: "merge-pdf",
+        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
+        children: <div />,
+      }),
     );
     expect(toolish.querySelectorAll(".ad-slot")).toHaveLength(3);
 
     for (const element of [
-      <Home key="home" />,
+      await Home(),
       <HelpPage key="help" />,
       <AboutPage key="about" />,
       <FaqPage key="faq" />,
@@ -235,7 +249,10 @@ describe("route coverage", () => {
   });
 
   it("keeps the excluded pages free of any ad code", () => {
-    for (const file of ["app/contact/page.tsx", "app/sitemap/page.tsx"]) {
+    for (const file of [
+      "app/(public)/contact/page.tsx",
+      "app/(public)/sitemap/page.tsx",
+    ]) {
       const source = readFileSync(file, "utf8");
       expect(source).not.toContain("AdUnit");
       expect(source).not.toContain("adsbygoogle");
@@ -248,14 +265,14 @@ describe("tool route coverage", () => {
     const { tools } = await import("../lib/catalog");
     expect(tools).toHaveLength(42);
 
-    const pageFiles = readdirSync("app/tools").filter(
+    const pageFiles = readdirSync("app/(public)/tools").filter(
       (entry) => !entry.includes("."),
     );
 
     // 29 concrete tool folders + the [calculator] dynamic route + /tools itself.
     const toolDirs = pageFiles.filter((entry) => entry !== "page.tsx");
     for (const dir of toolDirs) {
-      const page = join("app/tools", dir, "page.tsx");
+      const page = join("app/(public)/tools", dir, "page.tsx");
       if (!existsSync(page)) continue;
       const source = readFileSync(page, "utf8");
       // Each tool page either mounts ToolShell or delegates to the developer
@@ -269,8 +286,10 @@ describe("tool route coverage", () => {
     // Every catalogue slug has a page: either its own folder or the calculator
     // dynamic route.
     for (const tool of tools) {
-      const own = existsSync(join("app/tools", tool.slug, "page.tsx"));
-      const viaCalculator = existsSync("app/tools/[calculator]/page.tsx");
+      const own = existsSync(join("app/(public)/tools", tool.slug, "page.tsx"));
+      const viaCalculator = existsSync(
+        "app/(public)/tools/[calculator]/page.tsx",
+      );
       expect(own || viaCalculator).toBe(true);
     }
   });
@@ -279,7 +298,10 @@ describe("tool route coverage", () => {
     // This page is one continuous control surface rather than a shell page, so
     // it carries two units: one under its intro band, one after the studio.
     // Nothing is mounted between its panes, next to Convert, Download or upload.
-    const page = readFileSync("app/tools/word-to-pdf/page.tsx", "utf8");
+    const page = readFileSync(
+      "app/(public)/tools/word-to-pdf/page.tsx",
+      "utf8",
+    );
     const studio = readFileSync(
       "components/tools/word-to-pdf/index.tsx",
       "utf8",
@@ -298,19 +320,21 @@ describe("tool route coverage", () => {
   it("gives a category with no published tools no advertising", () => {
     // An empty category renders a "coming soon" placeholder — there is no
     // content to support a unit, so the slot is conditional on the listing.
-    const source = readFileSync("app/category/[slug]/page.tsx", "utf8");
+    const source = readFileSync(
+      "app/(public)/category/[slug]/page.tsx",
+      "utf8",
+    );
     expect(source).toContain("{list.length ? (");
   });
 
-  it("gives the compact studio layout the same three slots", () => {
+  it("gives the compact studio layout the same three slots", async () => {
     const { slots } = slotsOf(
-      <ToolShell
-        slug="pdf-lock-unlock"
-        variant="compact"
-        content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
-      >
-        <div data-testid="studio" />
-      </ToolShell>,
+      await ToolShell({
+        slug: "pdf-lock-unlock",
+        variant: "compact",
+        content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
+        children: <div data-testid="studio" />,
+      }),
     );
     expect(slots).toHaveLength(3);
   });
@@ -321,27 +345,23 @@ describe("duplicate protection", () => {
     const categoryElement = await CategoryPage({
       params: Promise.resolve({ slug: "pdf-tools" }),
     });
-    const toolsElement = ToolsPage();
+    const toolsElement = await ToolsPage();
+    const homeElement = await Home();
+    const wordCounterElement = await ToolShell({
+      slug: "word-counter",
+      content: { steps: ["One."], faqs: [{ q: "Q?", a: "A." }] },
+      children: <div />,
+    });
     // Elements are built lazily so a single page's slot list can be inspected
     // in isolation, and so no element sits in an array without a key.
     const pages: [string, () => ReactElement][] = [
-      ["/", () => <Home />],
+      ["/", () => homeElement],
       ["/tools", () => toolsElement],
       ["/category/pdf-tools", () => categoryElement],
       ["/help", () => <HelpPage />],
       ["/about", () => <AboutPage />],
       ["/faq", () => <FaqPage />],
-      [
-        "/tools/word-counter",
-        () => (
-          <ToolShell
-            slug="word-counter"
-            content={{ steps: ["One."], faqs: [{ q: "Q?", a: "A." }] }}
-          >
-            <div />
-          </ToolShell>
-        ),
-      ],
+      ["/tools/word-counter", () => wordCounterElement],
       [
         "/privacy",
         () => (
@@ -379,7 +399,7 @@ describe("duplicate protection", () => {
   });
 
   it("keeps a single loader no matter how many units a page mounts", () => {
-    const layout = readFileSync("app/layout.tsx", "utf8");
+    const layout = readFileSync("app/(public)/layout.tsx", "utf8");
     expect(layout.split("adsbygoogle.js").length - 1).toBe(1);
     for (const file of filesRenderingAds()) {
       expect(readFileSync(file, "utf8")).not.toContain("adsbygoogle.js");

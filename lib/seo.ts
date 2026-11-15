@@ -22,10 +22,13 @@ export function pageMetadata(
   title: string,
   description: string,
   path: string,
+  brand = "QUICKKIT",
 ): Metadata {
-  const brandedTitle = /\bQUICKKIT\b/i.test(title)
+  const brandedTitle = title
+    .toLocaleLowerCase()
+    .includes(brand.toLocaleLowerCase())
     ? title
-    : `${title} | QUICKKIT`;
+    : `${title} | ${brand}`;
   return {
     // Next.js only applies `app/layout.tsx` `title.template` to child route
     // segments, never to `app/page.tsx` (`path === "/"`), so `/` needs an
@@ -37,7 +40,7 @@ export function pageMetadata(
       title: brandedTitle,
       description,
       type: "website",
-      siteName: "QUICKKIT",
+      siteName: brand,
       ...(siteOrigin
         ? {
             url: siteOrigin + path,
@@ -96,7 +99,10 @@ export function breadcrumbStructuredData(items: Crumb[]) {
  * configured a real inbox, there is no address, no founding date, no rating and
  * no `sameAs` list — the social accounts are deliberately not published.
  */
-export function siteStructuredData() {
+export function siteStructuredData(
+  siteName = "QUICKKIT",
+  publicContactEmail: string | null = contactEmail,
+) {
   if (!siteOrigin) return undefined;
   const origin = siteOrigin;
   const organizationId = `${origin}/#organization`;
@@ -106,7 +112,7 @@ export function siteStructuredData() {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: "QUICKKIT",
+        name: siteName,
         url: origin,
         logo: {
           "@type": "ImageObject",
@@ -114,12 +120,12 @@ export function siteStructuredData() {
           width: 180,
           height: 180,
         },
-        ...(contactEmail ? { email: contactEmail } : {}),
+        ...(publicContactEmail ? { email: publicContactEmail } : {}),
       },
       {
         "@type": "WebSite",
         "@id": `${origin}/#website`,
-        name: "QUICKKIT",
+        name: siteName,
         url: origin,
         inLanguage: "en",
         publisher: { "@id": organizationId },

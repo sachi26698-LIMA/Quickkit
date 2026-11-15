@@ -76,6 +76,27 @@
   font-weight: 400;
   color: #63748b;
 }
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #4b5d76;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.45;
+}
+.consent input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 1px 0 0;
+}
+.success {
+  margin: 8px 0 0;
+  color: #17633a;
+  font-size: 13px;
+  line-height: 1.45;
+}
 .dialog input,
 .dialog textarea {
   width: 100%;

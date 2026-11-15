@@ -15,10 +15,10 @@
  */
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import ImageToImagePage from "../app/tools/image-to-image/page";
-import ImagesToPdfPage from "../app/tools/images-to-pdf/page";
-import PdfToImagePage from "../app/tools/pdf-to-image/page";
-import PdfStudioPage from "../app/tools/pdf-studio/page";
+import ImageToImagePage from "../app/(public)/tools/image-to-image/page";
+import ImagesToPdfPage from "../app/(public)/tools/images-to-pdf/page";
+import PdfToImagePage from "../app/(public)/tools/pdf-to-image/page";
+import PdfStudioPage from "../app/(public)/tools/pdf-studio/page";
 
 const PAGES = [
   { slug: "image-to-image", Page: ImageToImagePage },
@@ -32,8 +32,8 @@ describe("every converter workspace exposes the required controls", () => {
 
   for (const { slug, Page } of PAGES) {
     describe(slug, () => {
-      it("offers a labelled upload control in the empty state", () => {
-        const { container } = render(<Page />);
+      it("offers a labelled upload control in the empty state", async () => {
+        const { container } = render(await Page());
 
         // Every tool names its dropzone with an aria-label beginning "Choose",
         // and it must sit on a real control rather than a decorative element.
@@ -71,8 +71,8 @@ describe("every converter workspace exposes the required controls", () => {
         ).toBe(false);
       });
 
-      it("exposes an accessible settings landmark", () => {
-        const { container } = render(<Page />);
+      it("exposes an accessible settings landmark", async () => {
+        const { container } = render(await Page());
 
         // The three converters use aria-label; pdf-studio names the same
         // landmark by reference via aria-labelledby. Both are valid accessible
@@ -94,8 +94,8 @@ describe("every converter workspace exposes the required controls", () => {
         ).toBe(true);
       });
 
-      it("states the supported formats and limits before the user commits a file", () => {
-        render(<Page />);
+      it("states the supported formats and limits before the user commits a file", async () => {
+        render(await Page());
         // Telling the user the ceilings up front is what keeps a 30 MB PDF or a
         // HEIC photo from failing only after they have uploaded it.
         expect(

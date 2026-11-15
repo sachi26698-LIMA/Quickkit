@@ -27,11 +27,16 @@ test("search, category filters, clear and empty state", async ({ page }) => {
   await page.getByRole("button", { name: "Clear search", exact: true }).click();
   await expect(page.locator(".tool-card")).toHaveCount(tools.length);
 });
-test("AdSense verification script stays absent by default on public routes", async ({
+test("AdSense scripts, slots and network requests stay absent by default", async ({
   page,
 }) => {
-  await page.route("https://pagead2.googlesyndication.com/**", (route) =>
-    route.abort(),
+  const adNetworkRequests: string[] = [];
+  await page.route(
+    /^https:\/\/(?:[^/]+\.)?(?:googlesyndication\.com|googleadservices\.com|doubleclick\.net)(?:\/|$)/i,
+    async (route) => {
+      adNetworkRequests.push(route.request().url());
+      await route.abort();
+    },
   );
   const routes = ["/", "/tools", "/tools/json-formatter", "/privacy"];
   for (const route of routes) {
@@ -43,6 +48,8 @@ test("AdSense verification script stays absent by default on public routes", asy
       'head script[src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1478767466279341"]',
     );
     await expect(script).toHaveCount(0);
+    await expect(page.locator("ins.adsbygoogle, .ad-slot")).toHaveCount(0);
+    expect(adNetworkRequests).toEqual([]);
   }
 });
 test("hero search suggests tools and opens results in All Tools", async ({

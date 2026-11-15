@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Search, X } from "lucide-react";
-import { filterTools } from "@/lib/catalog";
+import type { Tool } from "@/lib/catalog";
 import ToolIcon from "@/components/tool-icon";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -11,7 +11,7 @@ import { useHydrated } from "@/lib/use-hydrated";
  * Homepage hero search: live suggestions link straight to tools; submitting
  * opens the full toolkit at /tools with the query applied.
  */
-export default function HeroSearch() {
+export default function HeroSearch({ tools }: { tools: Tool[] }) {
   const ready = useHydrated();
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -24,7 +24,23 @@ export default function HeroSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const searching = query.trim().length > 0;
-  const results = searching ? filterTools(query, "All tools") : [];
+  const search = query.trim().toLocaleLowerCase();
+  const matches = searching
+    ? tools.filter((tool) =>
+        `${tool.name} ${tool.description} ${tool.keywords}`
+          .toLocaleLowerCase()
+          .includes(search),
+      )
+    : [];
+  const namedMatches = matches.filter((tool) =>
+    tool.name.toLocaleLowerCase().includes(search),
+  );
+  const results = namedMatches.length
+    ? [
+        ...namedMatches,
+        ...matches.filter((tool) => !namedMatches.includes(tool)),
+      ]
+    : matches;
 
   useEffect(() => {
     if (!ready) return;

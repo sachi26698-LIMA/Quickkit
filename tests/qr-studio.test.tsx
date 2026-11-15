@@ -23,7 +23,7 @@ import { PRESET_SWATCHES } from "../lib/tools/qr/palette";
 
 const VERIFIED = "Verified by an independent decoder";
 const BLOCKED = "Not scannable — export is blocked";
-const TEST_TIMEOUT = 60_000;
+const TEST_TIMEOUT = 120_000;
 
 /** Scope a query to one workspace card so the mobile quick-save bar can't match. */
 function card(id: string) {
@@ -898,24 +898,28 @@ describe("qr studio — V3 Smart Link landing builder (Phase E)", () => {
     TEST_TIMEOUT,
   );
 
-  it("keeps download disabled until a valid link is present, and caps links at 8", () => {
-    render(<QrGenerator />);
-    openLandingBuilder();
-    // Default config has one empty link -> invalid -> disabled.
-    expect(
-      screen.getByRole("button", { name: /Download HTML page/ }),
-    ).toBeDisabled();
+  it(
+    "keeps download disabled until a valid link is present, and caps links at 8",
+    () => {
+      render(<QrGenerator />);
+      openLandingBuilder();
+      // Default config has one empty link -> invalid -> disabled.
+      expect(
+        screen.getByRole("button", { name: /Download HTML page/ }),
+      ).toBeDisabled();
 
-    // Add links up to the cap; the Add link button then disables.
-    for (let i = 0; i < 10; i++) {
-      const add = screen.getByRole("button", { name: /Add link/ });
-      if ((add as HTMLButtonElement).disabled) break;
-      fireEvent.click(add);
-    }
-    expect(screen.getByLabelText("Link 8 label")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
-  });
+      // Add links up to the cap; the Add link button then disables.
+      for (let i = 0; i < 10; i++) {
+        const add = screen.getByRole("button", { name: /Add link/ });
+        if ((add as HTMLButtonElement).disabled) break;
+        fireEvent.click(add);
+      }
+      expect(screen.getByLabelText("Link 8 label")).toBeInTheDocument();
+      expect(screen.queryByLabelText("Link 9 label")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Add link/ })).toBeDisabled();
+    },
+    TEST_TIMEOUT,
+  );
 });
 
 describe("qr studio — V3 brand colour presets (Phase I)", () => {

@@ -54,7 +54,8 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
   it("defines unique, intent-focused metadata and 4 specific FAQs for all 12 calculators", async () => {
     vi.stubEnv("SITE_URL", "https://quickkit.online");
     vi.resetModules();
-    const { generateMetadata } = await import("../app/tools/[calculator]/page");
+    const { generateMetadata } =
+      await import("../app/(public)/tools/[calculator]/page");
 
     expect(Object.keys(calculatorInfo).sort()).toEqual(
       [...CALCULATOR_SLUGS].sort(),
@@ -117,8 +118,9 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
   it("renders valid H1/H2/H3 hierarchy, formulas, worked examples, disclaimers, related calculators, and matching JSON-LD on all 12 pages", async () => {
     vi.stubEnv("SITE_URL", "https://quickkit.online");
     vi.resetModules();
-    const CalculatorPage = (await import("../app/tools/[calculator]/page"))
-      .default;
+    const CalculatorPage = (
+      await import("../app/(public)/tools/[calculator]/page")
+    ).default;
 
     const financeSlugs = new Set([
       "emi-calculator",
@@ -381,8 +383,9 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
   });
 
   it("preserves interactive UI calculation behaviour across calculator workspaces", async () => {
-    const CalculatorPage = (await import("../app/tools/[calculator]/page"))
-      .default;
+    const CalculatorPage = (
+      await import("../app/(public)/tools/[calculator]/page")
+    ).default;
 
     // Interactive check 1: GST Calculator workspace
     const gstEl = await CalculatorPage({

@@ -165,7 +165,7 @@ describe("cross-tool regression: the four split tools", () => {
     vi.resetModules();
     const { default: approvedSitemap } = await import("@/app/sitemap");
 
-    const routes = approvedSitemap().map((entry) => entry.url);
+    const routes = (await approvedSitemap()).map((entry) => entry.url);
     // Count is derived, not hard-coded: every published tool plus the static
     // and legal pages, so adding a page cannot silently leave it unlisted.
     // 4 static routes (/saved is personal and stays out), plus legal pages,

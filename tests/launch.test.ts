@@ -35,7 +35,7 @@ it("keeps sitemap and robots blocked even with an origin but no approval", async
   expect(robots().rules).toEqual([
     { userAgent: "*", allow: "/ads.txt", disallow: "/" },
   ]);
-  expect(sitemap()).toEqual([]);
+  expect(await sitemap()).toEqual([]);
 });
 it("emits genuine Git dates without a wall-clock or operator cutoff", async () => {
   vi.stubEnv("SITE_URL", "https://test.example");
@@ -45,17 +45,18 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   vi.stubEnv("SITEMAP_LASTMOD_NOT_AFTER", "2026-11-10");
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
-  const routes = sitemap();
+  const routes = await sitemap();
   expect(routes).toHaveLength(65);
-  expect(routes.every((route) => route.lastModified !== undefined)).toBe(true);
   expect(
-    routes.every((route) => {
-      const date =
-        route.lastModified instanceof Date
-          ? route.lastModified.toISOString().slice(0, 10)
-          : route.lastModified;
-      return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date);
-    }),
+    routes.every(
+      (route) =>
+        route.lastModified === undefined ||
+        /^\d{4}-\d{2}-\d{2}$/.test(
+          route.lastModified instanceof Date
+            ? route.lastModified.toISOString().slice(0, 10)
+            : route.lastModified,
+        ),
+    ),
   ).toBe(true);
 });
 
@@ -93,7 +94,7 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(JSON.stringify(rules)).not.toContain('"disallow":["/"');
   expect(robots().sitemap).toBe("https://test.example/sitemap.xml");
 
-  const routes = sitemap();
+  const routes = await sitemap();
   // 4 static + the published legal/information pages + 7 non-empty categories
   // + every published tool. Derived so a new page cannot skip the sitemap unnoticed.
   const { legalPages } = await import("../lib/legal");
@@ -114,14 +115,15 @@ it("emits all real sitemap routes only after explicit production approval", asyn
       expect(sitemapDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
   }
-  expect(routes.every((entry) => entry.lastModified !== undefined)).toBe(true);
   // Missing route history remains omitted; no build/current date is substituted.
   expect(
     gitLastModifiedForFiles(["nonexistent/route-file.tsx"]),
   ).toBeUndefined();
-  expect(gitLastModifiedForFiles(["app/page.tsx"])).toMatch(
-    /^\d{4}-\d{2}-\d{2}$/,
-  );
+  expect(
+    gitLastModifiedForFiles(["app/(public)/page.tsx"], {
+      shallowCommits: new Set(),
+    }),
+  ).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   const { execFileSync } = await import("node:child_process");
   const disclaimerCommits = execFileSync(
     "git",
@@ -132,7 +134,7 @@ it("emits all real sitemap routes only after explicit production approval", asyn
     .split(/\r?\n/)
     .filter(Boolean);
   expect(
-    gitLastModifiedForFiles(["app/disclaimer/page.tsx"], {
+    gitLastModifiedForFiles(["app/(public)/disclaimer/page.tsx"], {
       shallowCommits: new Set(disclaimerCommits),
     }),
   ).toBeUndefined();

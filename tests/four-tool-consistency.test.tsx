@@ -16,10 +16,10 @@
  */
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import ImageToImagePage from "../app/tools/image-to-image/page";
-import ImagesToPdfPage from "../app/tools/images-to-pdf/page";
-import PdfToImagePage from "../app/tools/pdf-to-image/page";
-import PdfStudioPage from "../app/tools/pdf-studio/page";
+import ImageToImagePage from "../app/(public)/tools/image-to-image/page";
+import ImagesToPdfPage from "../app/(public)/tools/images-to-pdf/page";
+import PdfToImagePage from "../app/(public)/tools/pdf-to-image/page";
+import PdfStudioPage from "../app/(public)/tools/pdf-studio/page";
 
 const PAGES = [
   {
@@ -71,8 +71,8 @@ describe("the four converter tools share one structure", () => {
 
   for (const { Page, name, sections } of PAGES) {
     describe(name, () => {
-      it("renders the shared header, breadcrumb and instructions", () => {
-        render(<Page />);
+      it("renders the shared header, breadcrumb and instructions", async () => {
+        render(await Page());
 
         // Header and breadcrumb come from ToolShell, so every page gets them by
         // construction — but assert them, because a page could stop using
@@ -95,15 +95,15 @@ describe("the four converter tools share one structure", () => {
           ).toBe(section);
       });
 
-      it("keeps exactly one h1 so no page renders competing titles", () => {
-        const { container } = render(<Page />);
+      it("keeps exactly one h1 so no page renders competing titles", async () => {
+        const { container } = render(await Page());
         // Assert on the element, not on matching text: the tool component also
         // repeats its name as an h2, so counting text would be a false failure.
         expect(container.querySelectorAll("h1").length).toBe(1);
       });
 
-      it("carries non-empty instructions and FAQs rather than placeholders", () => {
-        render(<Page />);
+      it("carries non-empty instructions and FAQs rather than placeholders", async () => {
+        render(await Page());
 
         const steps = within(
           screen.getByRole("heading", { level: 2, name: sections[0] })
@@ -131,8 +131,8 @@ describe("the four converter tools share one structure", () => {
           expect(a.textContent!.trim().length).toBeGreaterThan(40);
       });
 
-      it("offers the related tools so no tool is a dead end", () => {
-        render(<Page />);
+      it("offers the related tools so no tool is a dead end", async () => {
+        render(await Page());
         const related = within(
           screen.getByRole("heading", {
             level: 2,
@@ -147,14 +147,16 @@ describe("the four converter tools share one structure", () => {
     });
   }
 
-  it("gives every tool the same shell sections in the same order", () => {
-    const shapes = PAGES.map(({ slug, Page, sections }) => {
-      const { container } = render(<Page />);
-      const headings = [...container.querySelectorAll("h1, h2")].map((h) =>
-        h.textContent!.trim(),
-      );
-      return { slug, headings, sections };
-    });
+  it("gives every tool the same shell sections in the same order", async () => {
+    const shapes = await Promise.all(
+      PAGES.map(async ({ slug, Page, sections }) => {
+        const { container } = render(await Page());
+        const headings = [...container.querySelectorAll("h1, h2")].map((h) =>
+          h.textContent!.trim(),
+        );
+        return { slug, headings, sections };
+      }),
+    );
 
     for (const { slug, headings, sections } of shapes) {
       const order = sections.filter((h) => headings.includes(h));

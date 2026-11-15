@@ -5,10 +5,23 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Heart, Menu, Search, X } from "lucide-react";
 import Brand from "@/components/brand";
 import CategoryIcon from "@/components/category-icon";
-import { categoryMeta, toolsByCategory } from "@/lib/catalog";
+import {
+  categoryMeta as defaultCategories,
+  tools as defaultTools,
+  type CategoryMeta,
+  type Tool,
+} from "@/lib/catalog";
 import { useFavorites } from "@/lib/use-favorites";
 
-export default function Header() {
+export default function Header({
+  categories = defaultCategories,
+  tools = [...defaultTools],
+  siteName = "QUICKKIT",
+}: {
+  categories?: CategoryMeta[];
+  tools?: Tool[];
+  siteName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const pathname = usePathname();
@@ -75,7 +88,7 @@ export default function Header() {
       }}
     >
       <div className="container header-inner">
-        <Brand />
+        <Brand name={siteName} />
         <nav
           id="main-navigation"
           className={open ? "navigation open" : "navigation"}
@@ -118,8 +131,16 @@ export default function Header() {
               hidden={!catOpen}
             >
               <ul>
-                {categoryMeta.map((meta) => {
-                  const empty = toolsByCategory(meta.name).length === 0;
+                {categories.map((meta) => {
+                  const empty = !tools.some(
+                    (tool) =>
+                      tool.category === meta.name ||
+                      ("categories" in tool &&
+                        Array.isArray(tool.categories) &&
+                        (tool.categories as readonly string[]).includes(
+                          meta.name,
+                        )),
+                  );
                   return (
                     <li key={meta.slug}>
                       <Link
