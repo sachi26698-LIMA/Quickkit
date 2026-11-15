@@ -5,11 +5,15 @@
 **Branch base:** `2ea18259b1cccffb0f881b3a7be0c5d68826db14`
 **Scope:** the prior implementation snapshot was read-only. This continuation made a local commit only; no push, PR, merge, deployment, production setting change, database write, migration, or rollback was performed. The report's older details below are historical where they conflict with the latest continuation reconciliation.
 
-## Latest continuation reconciliation — 10 November 2026 UTC
+## Latest authoritative continuation reconciliation — 10 November 2026 UTC
 
-The authoritative current verdict and evidence are in [QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md](./QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md). This report contains older snapshots below; their former claims that migration 002/admin tables were absent and that remote Admin schema was pending are superseded. Fresh checks now confirm both migrations applied once, all nine QUICKKIT tables have RLS enabled, and all nine tables contain zero rows. Auth/DB/REST are healthy. Vercel project metadata contains production entries for public Supabase settings plus sensitive service-role/HMAC entries (their values were not decrypted); `QUICKKIT_ADMIN_EMAILS` is absent. Production still serves a revision without Admin routes; the staged preview is Vercel-SSO protected.
+The current verdict and exact evidence are in [QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md](./QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md); older snapshots below are retained only as history and are superseded where they conflict. Current branch HEAD is merge `be65906` with preserved work and `origin/main` integrated. Both existing migrations are recorded once; all nine QUICKKIT tables have RLS enabled. Read-only row counts are zero in eight tables and one existing profile row (no content was queried). Auth/DB/REST are healthy.
 
-The current local check suite passed: Vitest **120 files / 1,802 tests**, TypeScript, ESLint, Prettier and production build. Chromium remains unavailable before E2E assertions. SMTP rotation/delivery and live authenticated CRUD remain unverified; no external setting or data was changed.
+Vercel project metadata currently has the admin allowlist in Production/Preview/Development, public Supabase settings only in Production, and empty Production service-role/HMAC values. Local dotenv configuration is absent. The approved Auth account is unverified. The current Production deployment is from `main`, not this branch. No live Admin authentication, CRUD, private-data access, or public save/reload propagation was executed.
+
+Fresh local QA: Vitest **169 files / 2,413 tests**, TypeScript, ESLint, Prettier format check and production build passed. Playwright lists **1,157 tests / 71 files**, but Chromium could not launch because the pinned browser is absent and the available `/tmp/chromium` lacks shared libraries. No browser assertion ran. Node package/CI/Vercel settings are 26.x; this sandbox is Node 22.22.3. No external setting or data was changed.
+
+Implementation limits found: tools are code-defined; the Admin does not create new executable tools. Existing tools can be archived from public listings with a non-destructive disable/unpublish action; reset overrides is separate. Category create/edit/order/visibility/archive and settings/inbox/activity/security routes exist in local code; live persistence remains unverified.
 
 ## Executive summary (historical implementation snapshot; current status is above)
 

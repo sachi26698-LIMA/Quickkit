@@ -1,63 +1,54 @@
-# QUICKKIT Master Admin setup
+# QUICKKIT Master Admin — current setup and verification guide
 
-This guide configures the private admin panel in the existing QUICKKIT deployment. It does not authorize a deployment, change production environment variables, or apply a database migration. Public tools remain anonymous; there is no visitor registration, login, profile, or cloud-favorites feature.
+**Current disposition: NEEDS ATTENTION.** The Admin routes, server-side Auth gates, and database operations are implemented locally, but no real Admin login or CRUD was run. This is not production enablement. Do not change production configuration, apply migrations, or deploy without separate owner approval.
 
-**Current live-state correction (10 November 2026 UTC):** migrations `202611100001_quickkit_account_data` (`20261113045854`) and `quickkit_master_admin` (`20261114190425`) are already present in the existing project. Do not run either migration again. Migration 002 has already created the Admin tables; this guide is for owner-controlled configuration and verification, not migration application. Keep public signup disabled. The SMTP exposure remains owner-reported mitigation with independent revocation/log review/delivery pending.
+## Current verified state
 
-## Routes
+- Use the existing Supabase project `Quick_kit` (`oevjmxcoyibkonousdoh`) and existing Vercel project `quickkit`. Both expected Supabase migrations are already recorded as applied once: `202611100001_quickkit_account_data` / `20261113045854`, and `quickkit_master_admin` / `20261114190425`. **Do not replay, duplicate, reset, or create migrations/projects.**
+- Auth, database and REST health are `ACTIVE_HEALTHY`. All nine `quickkit_*` tables exist with RLS enabled. Browser-deny policies are present on private submissions, submission limits and Admin tables; profile/favorites tables retain self-scoped policies. This is catalog evidence, not live JWT/PostgREST isolation testing.
+- The live data check read counts only: eight tables are empty; `quickkit_profiles` has one existing row. No row content was inspected or changed.
+- Current local checkout has no dotenv files. Its Admin endpoints fail closed because `QUICKKIT_ADMIN_EMAILS` is absent locally. No local Auth login or real database save was attempted.
+- Vercel project metadata shows the allowlist configured for Production/Preview/Development; its value is not included here. Supabase public URL/publishable-key entries exist for Production only. Production service-role and HMAC entries have empty values; matching Preview/Development Supabase/server entries are absent. The exact matching Auth identity and password were not verified.
+- Production still deploys `main` commit `2aeea2bc9af633cbf4108cd5b560945d36fb2e0f`; the current local integration is not deployed. Node is aligned at 26.x in package, CI and Vercel project settings. This sandbox uses Node 22.22.3.
+- The full current report is [QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md](./QUICKKIT_FINAL_MASTER_COMPLETION_REPORT.md). Older report snapshots are historical and may conflict with the verified state above.
 
-- `/admin/login` — administrator password sign-in.
-- `/admin` — dashboard with tool/category counts, private submission totals, and latest audit events.
-- `/admin/tools`, `/admin/categories` — edit allowlisted catalog metadata and visibility state.
-- `/admin/submissions`, `/admin/feedback` — read/manage private records, status, feedback classification, private notes, and individually confirmed deletion.
-- `/admin/seo`, `/admin/site-settings`, `/admin/security`, `/admin/activity`, `/admin/profile` — SEO inventory, supported persisted settings, configuration status, audit history, and current admin identity.
-- `/api/admin/*` — private data API. Each request checks the Supabase Auth user and the server-side email allowlist. A client-only role/visibility check is not an authorization boundary.
+## Admin routes and implemented operations
 
-No admin link is included in public navigation. Legacy visitor account paths redirect to public tools.
+- `/admin/login` — Supabase Auth password sign-in for an allowlisted administrator; `/api/admin/auth/logout` clears the local session.
+- `/admin` — dashboard counts and recent activity from database queries when configured; unavailable state is used when services are missing.
+- `/admin/tools` — edit existing code-defined tool metadata, visibility/publication, category, icon, feature flag and SEO fields. Existing tools have a separately confirmed Archive action that disables/unpublishes without deleting the catalogue definition; Reset overrides restores shipped defaults and is not archive. There is **no tool creation API/UI**.
+- `/admin/categories` — create custom category, edit name/description/icon/SEO, order and publication; soft-archive an empty category. Categories with assigned tools cannot be archived until reassigned/unpublished.
+- `/admin/site-settings` — supported validated site name/tagline/contact/links/announcement/maintenance/homepage fields.
+- `/admin/submissions` and `/admin/feedback` — private inbox, filtering, status/notes; feedback classification; individually confirmed deletion.
+- `/admin/activity`, `/admin/security`, `/admin/seo`, `/admin/profile` — audit activity, configuration/system state, public SEO projection and current administrator profile.
 
-## Required server environment variable names
+The custom tool limitation is architectural: executable tool definitions, routes and processing components are code-defined; the current sparse override table can edit the shipped catalogue but does not create a new tool implementation. Do not represent new-tool creation or archive as supported until a separately designed and tested feature is added.
 
-Set names in the hosting environment's server runtime only; do not copy values into docs, source, screenshots, or chat.
+## Required environment variable names
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` — secret; server-only; never add a `NEXT_PUBLIC_` prefix.
-- `QUICKKIT_ADMIN_EMAILS` — server-only comma- or semicolon-separated allowlist. Use the exact verified administrator email addresses; do not add a broad domain wildcard.
-- `SUPABASE_SUBMISSION_HMAC_SECRET` — server-only; required for existing public submission throttling.
+Use the approved environment's secret manager. Never copy values into this document, source code, screenshots, terminal transcripts, or chat.
 
-`SITE_URL`, `LAUNCH_APPROVED`, and the existing ad controls continue to govern public SEO/ad behavior and are not admin credentials. Do not place live values in `.env.example`.
+- `QUICKKIT_ADMIN_EMAILS` — server-only exact email allowlist; use only the existing owner-approved identity.
+- `NEXT_PUBLIC_SUPABASE_URL` — existing project URL.
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — public anon/publishable key; still subject to RLS.
+- `SUPABASE_SERVICE_ROLE_KEY` — highly privileged, server-only; never prefix with `NEXT_PUBLIC_`.
+- `SUPABASE_SUBMISSION_HMAC_SECRET` — server-only key for form submission rate limiting.
 
-## Owner-controlled setup sequence
+Do not configure the Production service-role key in this shared workspace. Do not create a new Auth user, reset a password, enable public signup, alter SMTP/Auth settings, or change Vercel variables on behalf of the owner.
 
-1. Confirm the target is the existing Supabase project and existing Vercel project; do not create a duplicate project.
-2. Do not apply migration `202611100002_quickkit_master_admin.sql` again: it is already recorded as applied once. If the migration ledger disagrees, stop and have the database owner reconcile it; do not rerun or repair by guessing. Before any future schema change or rollback, require an owner-reviewed backup/recovery point and explicit approval.
-3. Configure server environment variable names above in an owner-authorized environment. Keep the service-role key and HMAC secret in secret storage. Do not print or retrieve their values into a build log.
-4. Configure Supabase Auth only for the administrator workflow. Disable public signups in the Supabase Auth dashboard; create/invite administrator identities through the owner-controlled Supabase dashboard. Add only those exact addresses to `QUICKKIT_ADMIN_EMAILS`. The application itself rejects all non-allowlisted sign-ins and all protected requests, but dashboard signup settings must also be verified by the owner.
-5. Use a strong unique password and enable supported MFA from the Supabase Auth configuration/identity provider where available. Ensure the Supabase Site URL and redirect allow-list include only the actual deployment callback and required local development callback; do not add wildcard redirect domains.
-6. After a separately approved migration, sign in at `/admin/login`. Verify security status and read/write a non-sensitive catalog override. Confirm protected API requests return an authentication error when logged out and a forbidden response for a signed-in, non-allowlisted user.
-7. Verify dashboard counts and private inbox queries against real database records. If the migration or server service is unavailable, the admin UI should show a safe unavailable state rather than fabricated values.
-8. Confirm public tools, public URLs, robots/sitemap settings, anonymous favorites, and public feedback/contact forms continue to work without a visitor Auth session.
+## Owner-only verification sequence
 
-### Local development
+1. Confirm the exact existing project and the approved non-production target. Supabase currently exposes only its default `main` branch; no isolated branch or staging target was found. Do not create a project/branch or point Preview to Production without explicit approval.
+2. In the owner-controlled Supabase dashboard, verify that the existing approved administrator account is active and its email matches the existing Vercel allowlist. Sign in yourself with that existing account; do not send the password to the agent/chat. No user list or password was accessed here.
+3. Securely provision missing nonempty service-role/HMAC values in the approved runtime. Confirm Production/Preview/Development scopes intentionally; ensure service credentials remain server-side.
+4. Keep public signup disabled as owner policy. Auth configuration was not reread here because the available connector can return sensitive Auth configuration material. Verify signup, callbacks and MFA directly in the dashboard without copying any secret values.
+5. After owner-approved test target/configuration exists, use disposable synthetic data to verify login/logout/session refresh, authorized and non-allowlisted responses, data CRUD/reload, public propagation, inbox privacy, audit logs, RLS/PostgREST denial, validation and error/empty states. Do not write to Production without explicit approval.
+6. Run responsive and accessibility checks in supported Chromium after obtaining the pinned Playwright browser in a standard Linux runner with CDN access: `npx playwright install --with-deps chromium`; then `npx playwright test --project=chromium` under Node 26.x.
 
-The public site and browser-local tools can run with no Supabase environment configured. Admin sign-in/data endpoints intentionally fail closed until the server variables, administrator allowlist, and migration are set. Never commit `.env.local` or paste secrets into a terminal transcript. `npm run dev` binds on all interfaces for the Arena preview.
+## Database safety boundary
 
-## Migration and rollback
+No migration needs to be applied for the current Admin schema; both existing migrations are already present. No migration was replayed. Never change/drop/seed tables or inspect private submission/profile content for routine verification. The live count of one profile row is not permission to inspect/delete it. Service-role access bypasses RLS and must remain behind the server-only module and verified Admin authorization. Catalog checks do not prove real HTTP/Auth behavior.
 
-The migration adds workflow columns to existing private contact/feedback tables and creates sparse tool/category overrides, supported site settings, and admin activity tables. It enables RLS, revokes browser-role access, and grants only server `service_role` access needed by the API. It does not seed data or replace/drop application tables. It must not be applied until approved.
+## Visitor statistics are separate
 
-Rollback is a data-destructive operational change because it removes audit events, saved admin overrides/settings, and the contact/feedback status/notes added by this migration. If the migration has been applied and rollback is approved:
-
-1. Stop or disable the new admin application/API first; confirm no process is writing to these tables.
-2. Take and verify a current backup/export. Preserve audit and override data separately if required.
-3. Obtain explicit database-owner approval and review exact target project/ref plus migration version. Do not run this rollback against a guessed or different project.
-4. In a transaction, revoke any temporary grants; drop only the three browser-deny policies this migration adds to the pre-existing `quickkit_contact_submissions` (`Deny browser access to contact submissions`), `quickkit_feedback_submissions` (`Deny browser access to feedback submissions`), and `quickkit_submission_limits` (`Deny browser access to submission limits`); drop only the four `quickkit_admin_*` tables created by this migration (their policies and the activity identity sequence are table-owned); then remove only the three indexes and status/notes/feedback-type columns introduced on the existing contact/feedback tables. Never drop the pre-existing submission tables or `quickkit_profiles`/`quickkit_favorites` from migration 001.
-5. Verify schema and data restoration from the backup, then record the rollback version in the migration ledger. A rollback SQL is intentionally not auto-applied or run by the application.
-
-Both migrations are already present in the existing project; this guide does not authorize a repeat migration or rollback.
-
-## Current public propagation and live preflight (10 November 2026 UTC)
-
-Public server rendering now projects catalog overrides into the home/search/listing/category views, public header and HTML/XML sitemap. Text settings and validated HTTPS links are rendered using normal escaped React text/attributes; no arbitrary HTML rendering is used. Public pages are dynamic so a refresh reads current database rows. Individual tool-page metadata/content and direct-route hiding for unpublished tools remain incomplete. Do not assume every SEO field in the admin form changes the detail page.
-
-Read-only Supabase inspection of the existing project found only migration `202611100001_quickkit_account_data` (version `20261113045854`); do not rerun it. `202611100002_quickkit_master_admin.sql` remains unapplied, and its override/settings/activity tables are absent. The existing contact/feedback tables have RLS enabled, no policies, and no `anon`/`authenticated` table privileges in the inspected catalog. Live session-based RLS and PostgREST behavior have not been exercised. Apply migration 002 only after the owner explicitly approves the exact SQL, backup/recovery point, and target. Auth config readback showed signup disabled, email enabled, auto-confirm disabled, and password minimum 12; the exact deployed allowlist remains unverified.
+The visitor chart is implemented using libSQL/Turso (`ANALYTICS_DATABASE_URL`, optional `ANALYTICS_DATABASE_TOKEN`), not Supabase. These variables were not present in local configuration or Vercel project metadata. Without an approved persistent DB, the endpoint intentionally reports unavailable rather than demo data. No live analytics database operation was run.

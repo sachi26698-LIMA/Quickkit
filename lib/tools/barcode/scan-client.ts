@@ -34,7 +34,7 @@ function getWorker(): Worker | null {
   if (worker) return worker;
   try {
     worker = new Worker(
-      new URL("../../workers/barcode-scan.worker.ts", import.meta.url),
+      new URL("../../../workers/barcode-scan.worker.ts", import.meta.url),
       {
         type: "module",
       },

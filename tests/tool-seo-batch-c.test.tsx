@@ -227,7 +227,7 @@ describe("Phase 3 Batch C — 31 tool pages", () => {
     const renderedDescriptions = new Set<string>();
     for (const [slug, load] of Object.entries(ROUTES)) {
       vi.resetModules();
-      const module = (await load()) as {
+      const routeModule = (await load()) as {
         default: () => ReactElement | Promise<ReactElement>;
         metadata?: {
           title?: unknown;
@@ -240,8 +240,9 @@ describe("Phase 3 Batch C — 31 tool pages", () => {
           alternates?: { canonical?: string };
         }>;
       };
-      const metadata = module.metadata ?? (await module.generateMetadata?.());
-      const Page = module.default;
+      const metadata =
+        routeModule.metadata ?? (await routeModule.generateMetadata?.());
+      const Page = routeModule.default;
       const rendered = render(await Page());
       const { container } = rendered;
 

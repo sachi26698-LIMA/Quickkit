@@ -139,6 +139,7 @@ it("emits all real sitemap routes only after explicit production approval", asyn
       "--format=%H",
       "--",
       "app/(public)/disclaimer/page.tsx",
+      "app/disclaimer/page.tsx",
     ],
     { encoding: "utf8" },
   )

@@ -122,6 +122,18 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
     }
   }
 
+  async function archiveTool(row: Row) {
+    const slug = "slug" in row ? String(row.slug) : "";
+    if (!slug) return;
+    if (
+      !window.confirm(
+        "Archive this tool from the public website? It will remain in the catalogue and can be restored by republishing it.",
+      )
+    )
+      return;
+    await save({ slug, is_enabled: false, is_published: false });
+  }
+
   async function remove(row: Row) {
     if (kind === "tools" || kind === "categories") {
       const slug = "slug" in row ? String(row.slug) : "";
@@ -295,12 +307,31 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
                         </button>
                       ) : null}
                       {kind === "tools" ? (
-                        <button
-                          className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
-                          onClick={() => void remove(row)}
-                        >
-                          Reset overrides
-                        </button>
+                        <>
+                          <button
+                            className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
+                            onClick={() => void remove(row)}
+                          >
+                            Reset overrides
+                          </button>
+                          <button
+                            className={`${styles["admin-button"]} ${styles["admin-button--danger"]}`}
+                            disabled={Boolean(
+                              "is_enabled" in row &&
+                              "is_published" in row &&
+                              !row.is_enabled &&
+                              !row.is_published,
+                            )}
+                            onClick={() => void archiveTool(row)}
+                          >
+                            {"is_enabled" in row &&
+                            "is_published" in row &&
+                            !row.is_enabled &&
+                            !row.is_published
+                              ? "Archived"
+                              : "Archive"}
+                          </button>
+                        </>
                       ) : null}
                       {kind === "categories" ? (
                         <button
