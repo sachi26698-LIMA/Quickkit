@@ -3,6 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AdminResourceTable from "@/components/admin/admin-resource-table";
 
+vi.mock("next/navigation", () => {
+  const router = { replace: () => {}, push: () => {} };
+  return { usePathname: () => "/admin/feedback", useRouter: () => router };
+});
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });

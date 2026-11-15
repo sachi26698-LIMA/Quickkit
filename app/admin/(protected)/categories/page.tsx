@@ -8,7 +8,7 @@ export default async function AdminCategoriesPage() {
     <>
       <PageHeading
         title="Categories"
-        description="Manage existing category records and ordering. Tool totals are derived from the current source catalog; categories cannot be duplicated here."
+        description="Manage category metadata and public order. Drag rows or use the accessible move controls; tool totals are derived from the source catalog, and active tools must be reassigned before archive."
       />
       {!catalog.configured ? (
         <AdminNotice warning>

@@ -19,13 +19,15 @@ export default async function AdminLoginPage({
       ? "You have been securely signed out."
       : params.reason === "forbidden"
         ? "This account is not authorized for administrator access."
-        : auth.status === "allowlist_not_configured"
-          ? "Admin sign-in is unavailable until the owner configures the server-only QUICKKIT_ADMIN_EMAILS allowlist."
-          : auth.status === "supabase_not_configured"
-            ? "Admin sign-in is unavailable until the Supabase URL and publishable key are configured."
-            : auth.status === "unavailable"
-              ? "Supabase authentication is temporarily unavailable."
-              : "Only explicitly approved QUICKKIT administrators can sign in here.";
+        : params.reason === "expired"
+          ? "Your administrator session expired. Sign in again to continue."
+          : auth.status === "allowlist_not_configured"
+            ? "Admin sign-in is unavailable until the owner configures the server-only QUICKKIT_ADMIN_EMAILS allowlist."
+            : auth.status === "supabase_not_configured"
+              ? "Admin sign-in is unavailable until the Supabase URL and publishable key are configured."
+              : auth.status === "unavailable"
+                ? "Supabase authentication is temporarily unavailable."
+                : "Only explicitly approved QUICKKIT administrators can sign in here.";
   return (
     <div className={styles["admin-login-wrap"]}>
       <section className={styles["admin-login"]}>

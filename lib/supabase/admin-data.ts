@@ -210,6 +210,13 @@ export async function getOverviewSnapshot() {
     ).length,
     contact_count: contacts.count ?? 0,
     feedback_count: feedback.count ?? 0,
+    category_distribution: categoryData.categories
+      .map((category) => ({
+        slug: category.slug,
+        name: category.name,
+        count: category.tool_count,
+      }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
     activity: activity.data ?? [],
   };
 }
