@@ -17,24 +17,34 @@ import styles from "./tool-download-feedback.module.css";
 import {
   TOOL_FEEDBACK_KEY as STORAGE_KEY,
   TOOL_FEEDBACK_EVENT,
+  TOOL_FEEDBACK_IMPROVE_TAGS as improve,
+  TOOL_FEEDBACK_POSITIVE_TAGS as positive,
+  TOOL_FEEDBACK_RATING_LABELS as labels,
+  markToolFeedbackPrompted,
   parseToolFeedback,
   readToolFeedback,
+  shouldPromptToolFeedback,
 } from "@/lib/tool-feedback";
 
-const labels = [
-  "Disappointing",
-  "Could be better",
-  "It was okay",
-  "Really good",
-  "Loved it!",
-];
-const positive = [
-  "Easy to use",
-  "Great result",
-  "Fast & smooth",
-  "Beautiful design",
-];
-const improve = ["Result quality", "Speed", "Hard to use", "Something else"];
+/** Sends the rating to QUICKKIT. Resolves to whether the server stored it. */
+async function sendToolFeedback(entry: {
+  tool: string;
+  rating: number;
+  tags: string[];
+  comment: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch("/api/tool-feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // Pressing Send is the visitor's consent to transmit these four fields.
+      body: JSON.stringify({ ...entry, consent: true }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
 
 export default function ToolDownloadFeedback() {
   const pathname = usePathname();
@@ -66,6 +76,7 @@ function Feedback({
   const [tags, setTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
   const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const shownRating = hover || rating;
   const reaction = ["idle", "sad", "unsure", "okay", "happy", "love"][
@@ -94,17 +105,27 @@ function Feedback({
         !anchor.href ||
         anchor.getAttribute("aria-disabled") === "true" ||
         modal?.open ||
-        timer
+        timer ||
+        // One invitation per tool per 24 hours, however many files are saved.
+        !shouldPromptToolFeedback(slug)
       )
         return;
       timer = setTimeout(() => {
         timer = undefined;
-        if (event.defaultPrevented || modal?.open) return;
+        if (
+          event.defaultPrevented ||
+          modal?.open ||
+          !shouldPromptToolFeedback(slug)
+        )
+          return;
+        // Showing it counts, whether or not the visitor answers.
+        markToolFeedbackPrompted(slug);
         setRating(0);
         setHover(0);
         setTags([]);
         setComment("");
         setDone(false);
+        setSending(false);
         setError("");
         // Browsers expose download initiation, not when a file finishes saving.
         // Leave the browser's download action untouched, then invite feedback.
@@ -118,7 +139,7 @@ function Feedback({
       clearTimeout(timer);
       modal?.close();
     };
-  }, []);
+  }, [slug]);
 
   useEffect(() => {
     if (!open) return;
@@ -134,32 +155,42 @@ function Feedback({
     setOpen(false);
   }
 
-  function submit(event: React.FormEvent) {
+  async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!rating || done) return;
+    if (!rating || done || sending) return;
+    const entry = {
+      tool: slug,
+      rating,
+      tags,
+      comment: comment.trim().slice(0, 600),
+    };
+    setSending(true);
+    setError("");
+    const sent = await sendToolFeedback(entry);
+    setSending(false);
+    if (!sent) {
+      // Never claim a rating was received when it was not.
+      setError(
+        "We couldn’t send your feedback just now. Please check your connection and try again, or close this window.",
+      );
+      return;
+    }
     try {
+      // This browser's own record of what it sent. Optional: a blocked or
+      // full store must not turn a delivered rating into an error.
       const entries = parseToolFeedback(readToolFeedback());
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify([
           ...entries,
-          {
-            tool: slug,
-            rating,
-            tags,
-            comment: comment.trim().slice(0, 600),
-            createdAt: new Date().toISOString(),
-          },
+          { ...entry, createdAt: new Date().toISOString() },
         ]),
       );
       window.dispatchEvent(new Event(TOOL_FEEDBACK_EVENT));
-      setError("");
-      setDone(true);
     } catch {
-      setError(
-        "Your browser couldn’t save this feedback. Please allow local storage and try again, or close this window.",
-      );
+      // Ignored: the rating itself is already with QUICKKIT.
     }
+    setDone(true);
   }
 
   return (
@@ -317,10 +348,10 @@ function Feedback({
               ))}
               <span>{rating}/5</span>
             </div>
-            <p>
-              Feedback added to your laptop screen.
+            <p data-feedback-sent="true">
+              Your rating was sent to the QUICKKIT team.
               <br />
-              <small>Visible on the homepage in this browser only.</small>
+              <small>It is private and never shown to other visitors.</small>
             </p>
             <button className={styles.primary} type="button" onClick={dismiss}>
               Keep creating <Heart size={17} />
@@ -428,8 +459,12 @@ function Feedback({
                     {error}
                   </p>
                 )}
-                <button className={styles.primary} type="submit">
-                  Save my feedback <Send size={16} />
+                <button
+                  className={styles.primary}
+                  type="submit"
+                  disabled={sending}
+                >
+                  {sending ? "Sending…" : "Send my feedback"} <Send size={16} />
                 </button>
               </div>
             )}
@@ -439,7 +474,8 @@ function Feedback({
           </form>
         )}
         <p className={styles.privacy}>
-          <LockKeyhole size={12} /> Only on this device. No account. No uploads.
+          <LockKeyhole size={12} /> Your rating goes to QUICKKIT only when you
+          press Send. No account. Your files are never uploaded.
         </p>
       </div>
     </dialog>

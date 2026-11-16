@@ -25,7 +25,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       href="/privacy"
       title="Privacy Policy"
-      intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages may be stored privately for review."
+      intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages, and tool ratings you choose to send, may be stored privately for review."
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
@@ -64,9 +64,9 @@ export default function PrivacyPage() {
         Public tools require no registration. Supabase Auth handles sign-in only
         for administrator identities maintained by the operator; visitors cannot
         register or use a QUICKKIT account. If you explicitly submit the contact
-        form or opt in to send feedback, the submitted fields are stored
-        privately for response/review. Word to PDF remains the separately
-        disclosed explicit-consent upload exception.
+        form, opt in to send feedback, or send a tool rating, the submitted
+        fields are stored privately for response/review. Word to PDF remains the
+        separately disclosed explicit-consent upload exception.
       </p>
       <p>What exists, in total, is:</p>
       <ul>
@@ -96,9 +96,20 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Messages you choose to send</strong> through the contact form
-          or, after separately opting in, the feedback form. Submitted messages
-          are private to QUICKKIT and are not displayed to other visitors. See{" "}
+          or, after separately opting in, the homepage feedback form. The
+          feedback form can carry an optional name, a message of up to 180
+          characters, an optional 1–5 star rating, the options you tick and the
+          tool you choose under “About”. Submitted messages and ratings are
+          private to QUICKKIT and are not displayed to other visitors. See{" "}
           <a href="#retention">section 10</a>.
+        </li>
+        <li>
+          <strong>Tool ratings you choose to send</strong> from the optional
+          invitation shown after a download: the tool’s name, your 1–5 star
+          rating, the options you tick and an optional comment of up to 600
+          characters. No name, email address, account or file is attached. The
+          rating is transmitted only when you press “Send my feedback”;
+          dismissing the invitation sends nothing.
         </li>
       </ul>
 
@@ -163,10 +174,11 @@ export default function PrivacyPage() {
         running in the page; the application does not deliberately send tool
         inputs to it, but it may be able to read page content. Do not enter
         sensitive material if you are not comfortable with that access. The
-        contact and feedback submission forms transmit only the fields you
-        explicitly submit after consent. They never upload tool inputs or files;
-        if the private submission service is unavailable, the form reports an
-        error and does not claim the message was delivered.
+        contact and feedback submission forms and the optional tool rating
+        transmit only the fields you explicitly submit after consent. They never
+        upload tool inputs or files; if the private submission service is
+        unavailable, the form reports an error and does not claim the message
+        was delivered.
       </p>
       <p>
         A full tool-by-tool account of what happens to each file type is in the{" "}
@@ -185,11 +197,27 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li>
-          <code>quickkit-tool-feedback-v1</code> — optional local tool ratings,
-          selected feedback options, comments (up to 600 characters) and
-          timestamps. Saved only when you choose to save feedback; not
-          published. Please do not include personal information or file
-          contents. Browser site-data controls can erase it.
+          <code>quickkit-hero-feedback-v1</code> — feedback you save in the
+          homepage “Share your experience” form: optional name, message (up to
+          180 characters), optional star rating, the options you ticked and the
+          tool you chose under “About”. It is shown back to you on the homepage,
+          stays in this browser and is transmitted only if you tick “Send this
+          feedback privately to QUICKKIT”. You can delete each entry in the
+          form.
+        </li>
+        <li>
+          <code>quickkit-tool-feedback-v1</code> — this browser’s copy of the
+          tool ratings you sent: the rating, selected feedback options, comment
+          (up to 600 characters) and timestamp. Saved only when you choose to
+          send feedback; the same rating is transmitted to QUICKKIT for private
+          review and is not published. Please do not include personal
+          information or file contents. Browser site-data controls can erase the
+          local copy.
+        </li>
+        <li>
+          <code>quickkit-tool-feedback-prompted-v1</code> — tool slugs and the
+          time the rating invitation was last shown, so the same tool asks at
+          most once in 24 hours. Never transmitted.
         </li>
         <li>
           <code>quickkit:saved-tools</code> — tool slugs shown by Saved. This
@@ -276,12 +304,13 @@ export default function PrivacyPage() {
         provider.
       </p>
       <p>
-        The QUICKKIT application offers an opt-in first-party visitor counter,
-        described below. It does not implement application-level request logging
-        or session recording. Provider-side logging, retention periods,
-        subprocessors and hosting region depend on the deployment configuration
-        and are set by the operator&rsquo;s hosting account, so we are not going
-        to state a retention period we cannot verify.
+        The QUICKKIT application offers an opt-in first-party visitor counter
+        and can keep short error reports, both described below. It does not
+        implement application-level request logging or session recording.
+        Provider-side logging, retention periods, subprocessors and hosting
+        region depend on the deployment configuration and are set by the
+        operator&rsquo;s hosting account, so we are not going to state a
+        retention period we cannot verify.
       </p>
       <p className="legal-owner-line">
         Hosting provider: <strong>Vercel Inc.</strong> (vercel.com), which
@@ -332,6 +361,22 @@ export default function PrivacyPage() {
         enabling production.
       </p>
 
+      <h3>Error reports</h3>
+      <p>
+        If a page fails and shows an error screen, the page tells our own server
+        that it happened; the same is noted when our server fails while building
+        a page. While the operator has error reporting switched on, the server
+        stores the type of error, a reference code, the page path without its
+        query string and, except on tool pages, a short error message from which
+        email addresses, tokens and query strings are removed first. On tool
+        pages the message is never kept, because it could quote what you typed.
+        Files, tool input, cookies, your IP address and your user agent are not
+        stored with these reports. They are kept for 30 days in the same
+        Supabase database as contact messages, are visible only to the
+        administrator, and are not shared with an error-tracking company. While
+        error reporting is off, the report is discarded on arrival.
+      </p>
+
       <h2 id="retention">10. Data retention and deletion</h2>
       <ul>
         <li>
@@ -359,16 +404,20 @@ export default function PrivacyPage() {
           security needs. Visitors cannot create QUICKKIT accounts.
         </li>
         <li>
-          <strong>Contact and opted-in feedback submissions:</strong> held in
-          the private Supabase project so the operator can review and respond.
-          They are deleted when no longer needed or on a verified deletion
-          request. This release does not set an automated fixed retention term.
+          <strong>
+            Contact and opted-in feedback submissions, and tool ratings:
+          </strong>{" "}
+          held in the private Supabase project so the operator can review and
+          respond. They are deleted when no longer needed or on a verified
+          deletion request. This release does not set an automated fixed
+          retention term.
         </li>
         <li>
           <strong>Submission abuse controls:</strong> a keyed, non-reversible
-          HMAC of the request address and its 15-minute rate-limit counter are
-          stored server-side; the raw address is not written to the rate-limit
-          table. Old buckets are pruned when later submissions arrive.
+          HMAC of the request address and its rate-limit counter (15 minutes for
+          messages, one hour for tool ratings) are stored server-side; the raw
+          address is not written to the rate-limit table. Old buckets are pruned
+          when later submissions arrive.
         </li>
         <li>
           <strong>Hosting logs:</strong> see section 9 — governed by the

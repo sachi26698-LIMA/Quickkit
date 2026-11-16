@@ -2,7 +2,6 @@ import "server-only";
 
 import { categoryMeta, toolCategoriesOf, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
-import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
 import { siteOrigin } from "@/lib/seo";
 import { getAdminEmailAllowlist } from "./admin-auth";
 import type {
@@ -12,6 +11,8 @@ import type {
   ToolOverrideRow,
 } from "./database.types";
 import { getMasterAdminServiceClient } from "./master-admin";
+import { getSystemHealth, type SystemHealthReport } from "@/lib/system-health";
+import { readStoredToolMaintenance } from "@/lib/tool-maintenance";
 
 export type AdminTool = {
   slug: string;
@@ -27,6 +28,11 @@ export type AdminTool = {
   canonical_path: string;
   is_indexable: boolean;
   route: string;
+  /** True while the tool is switched off for maintenance. */
+  maintenance_enabled: boolean;
+  /** Note shown to visitors while the tool is off (kept for reuse when on). */
+  maintenance_reason: string;
+  maintenance_since: string | null;
 };
 
 export type AdminCategory = {
@@ -54,6 +60,7 @@ export async function readToolCatalog() {
   const result = tools.map((tool) => {
     const row = overrides.get(tool.slug);
     const category = row?.category_override ?? tool.category;
+    const maintenance = readStoredToolMaintenance(row?.metadata_override);
     return {
       slug: tool.slug,
       name: row?.name_override ?? tool.name,
@@ -68,6 +75,9 @@ export async function readToolCatalog() {
       canonical_path: row?.canonical_path ?? `/tools/${tool.slug}`,
       is_indexable: row?.is_indexable ?? true,
       route: `/tools/${tool.slug}`,
+      maintenance_enabled: maintenance.enabled,
+      maintenance_reason: maintenance.reason,
+      maintenance_since: maintenance.since,
     } satisfies AdminTool;
   });
   return { configured, tools: result };
@@ -170,6 +180,12 @@ export type SubmissionRow = {
   email?: string;
   subject?: string;
   feedback_type?: FeedbackType;
+  /** Feedback inbox only: a written message or a tool star rating. */
+  source?: "message" | "rating";
+  tool_slug?: string;
+  tool_name?: string;
+  rating?: number;
+  tags?: string[];
 };
 
 export type AdminActivityItem = {
@@ -218,9 +234,13 @@ export type OverviewHealthStatus = {
   analytics_token_present: boolean;
   sitemap_origin_configured: boolean;
   indexing_enabled: boolean;
-  rls_verified_by_app: false;
-  smtp_verified_by_app: false;
+  /** True only when the live database report found every table protected. */
+  rls_verified_by_app: boolean;
+  /** True only when the owner's SMTP confirmation date is on record. */
+  smtp_verified_by_app: boolean;
   error_monitoring_configured: boolean;
+  /** Live probe results behind the System health panel. */
+  system?: SystemHealthReport;
 };
 
 export type OverviewConnectedSnapshot = {
@@ -329,26 +349,34 @@ export async function getAdminInboxBadges(): Promise<{
   const db = getMasterAdminServiceClient();
   if (!db) return { submissions: 0, feedback: 0, recentActivity: [] };
   try {
-    const [newContacts, newFeedback, recentActivity] = await Promise.all([
-      db
-        .from("quickkit_contact_submissions")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "new"),
-      db
-        .from("quickkit_feedback_submissions")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "new"),
-      db
-        .from("quickkit_admin_activity")
-        .select(
-          "id,actor_email,action,entity_type,entity_id,created_at,details",
-        )
-        .order("created_at", { ascending: false })
-        .limit(6),
-    ]);
+    const [newContacts, newFeedback, newRatings, recentActivity] =
+      await Promise.all([
+        db
+          .from("quickkit_contact_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "new"),
+        db
+          .from("quickkit_feedback_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "new"),
+        db
+          .from("quickkit_tool_feedback")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "new"),
+        db
+          .from("quickkit_admin_activity")
+          .select(
+            "id,actor_email,action,entity_type,entity_id,created_at,details",
+          )
+          .order("created_at", { ascending: false })
+          .limit(6),
+      ]);
     return {
       submissions: !newContacts.error ? (newContacts.count ?? 0) : 0,
-      feedback: !newFeedback.error ? (newFeedback.count ?? 0) : 0,
+      // Tool star ratings share the Feedback inbox with written messages.
+      feedback:
+        (!newFeedback.error ? (newFeedback.count ?? 0) : 0) +
+        (!newRatings.error ? (newRatings.count ?? 0) : 0),
       recentActivity: !recentActivity.error
         ? ((recentActivity.data ?? []) as AdminActivityItem[])
         : [],
@@ -376,6 +404,10 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
     recentContacts,
     recentFeedback,
     activity,
+    ratings,
+    newRatings,
+    recentRatings,
+    system,
   ] = await Promise.all([
     readToolCatalog(),
     readCategoryCatalog(),
@@ -410,7 +442,25 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       .select("id,actor_email,action,entity_type,entity_id,created_at,details")
       .order("created_at", { ascending: false })
       .limit(60),
+    // Tool star ratings. These reads fail until their migration is applied;
+    // the overview then simply counts written feedback only.
+    db
+      .from("quickkit_tool_feedback")
+      .select("id", { count: "exact", head: true }),
+    db
+      .from("quickkit_tool_feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new"),
+    db
+      .from("quickkit_tool_feedback")
+      .select("created_at")
+      .gte("created_at", fourteenDaysAgoIso)
+      .order("created_at", { ascending: false })
+      .limit(500),
+    getSystemHealth(db),
   ]);
+  const ratingCount = !ratings.error ? (ratings.count ?? 0) : 0;
+  const newRatingCount = !newRatings.error ? (newRatings.count ?? 0) : 0;
   const connected =
     toolData.configured &&
     categoryData.configured &&
@@ -425,11 +475,14 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
         (row) => row.created_at,
       )
     : [];
-  const feedbackDates = !recentFeedback.error
-    ? ((recentFeedback.data ?? []) as { created_at: string }[]).map(
-        (row) => row.created_at,
-      )
-    : [];
+  const feedbackDates = [
+    ...(!recentFeedback.error
+      ? ((recentFeedback.data ?? []) as { created_at: string }[])
+      : []),
+    ...(!recentRatings.error
+      ? ((recentRatings.data ?? []) as { created_at: string }[])
+      : []),
+  ].map((row) => row.created_at);
   const activityDates = activityRows.map((row) => row.created_at);
 
   const contacts7d = countWindow(contactDates, sevenDaysAgoMs, nowMs + 1000);
@@ -465,9 +518,10 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       (category) => category.is_published,
     ).length,
     contact_count: contacts.count ?? 0,
-    feedback_count: feedback.count ?? 0,
+    feedback_count: (feedback.count ?? 0) + ratingCount,
     new_contact_count: !newContacts.error ? (newContacts.count ?? 0) : 0,
-    new_feedback_count: !newFeedback.error ? (newFeedback.count ?? 0) : 0,
+    new_feedback_count:
+      (!newFeedback.error ? (newFeedback.count ?? 0) : 0) + newRatingCount,
     category_distribution: categoryData.categories
       .map((category) => ({
         slug: category.slug,
@@ -485,7 +539,7 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       activity_7d: activity7d,
       activity_prev_7d: activityPrev7d,
       has_contact_history: (contacts.count ?? 0) > 0,
-      has_feedback_history: (feedback.count ?? 0) > 0,
+      has_feedback_history: (feedback.count ?? 0) + ratingCount > 0,
       has_activity_history: activityRows.length > 0,
     },
     trends: {
@@ -511,9 +565,10 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       ),
       sitemap_origin_configured: Boolean(siteOrigin),
       indexing_enabled: indexingEnabled,
-      rls_verified_by_app: false,
-      smtp_verified_by_app: false,
-      error_monitoring_configured: getErrorMonitoringStatus().configured,
+      rls_verified_by_app: system.rls.status === "verified",
+      smtp_verified_by_app: system.smtp.verified_on !== null,
+      error_monitoring_configured: system.error_monitoring.configured,
+      system,
     },
   };
 }

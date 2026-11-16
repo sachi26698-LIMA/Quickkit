@@ -1,0 +1,309 @@
+/* Blocking "this tool is switched off" notice. Colours follow the tool's own
+   palette (--t-rgb / --t2-rgb / --t-deep set inline), with safe fallbacks. */
+.dialog {
+  --m-rgb: var(--t-rgb, 124 58 237);
+  --m2-rgb: var(--t2-rgb, 236 72 153);
+  --m-deep: var(--t-deep, #4c1d95);
+  --ink: color-mix(in srgb, var(--m-deep) 68%, #17202d);
+  --muted: color-mix(in srgb, var(--m-deep) 42%, #5f6672);
+  width: min(460px, calc(100vw - 28px));
+  max-width: none;
+  max-height: min(92dvh, 760px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #fff;
+  border-radius: 28px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--ink);
+  background: #fff;
+  box-shadow:
+    0 35px 100px rgb(var(--m-rgb) / 0.24),
+    0 8px 24px rgb(var(--m-rgb) / 0.16);
+  font-family: var(--font-geist), Arial, sans-serif;
+}
+
+.dialog::backdrop {
+  background: rgb(15 23 42 / 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.dialog[open] {
+  animation: maintenance-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+.card {
+  padding: 30px 28px 24px;
+  text-align: center;
+  background:
+    radial-gradient(
+      ellipse at 8% 0%,
+      rgb(var(--m-rgb) / 0.16) 0,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 100% 18%,
+      rgb(var(--m2-rgb) / 0.16) 0,
+      transparent 48%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, rgb(var(--m-rgb)) 7%, #fff),
+      #fff 62%
+    );
+}
+
+.badge {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 14px;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--m-deep),
+    color-mix(in srgb, var(--m-deep) 45%, rgb(var(--m-rgb)))
+  );
+  box-shadow:
+    inset 0 2px 1px rgb(255 255 255 / 0.35),
+    0 12px 26px rgb(var(--m-rgb) / 0.3);
+}
+
+.badge::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 30px;
+  border: 2px solid rgb(var(--m-rgb) / 0.35);
+  animation: maintenance-pulse 2.2s ease-out infinite;
+}
+
+.badge svg {
+  animation: maintenance-wrench 2.8s ease-in-out infinite;
+  transform-origin: 60% 40%;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--m-deep);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.card h2 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: clamp(1.3rem, 5vw, 1.6rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  margin: 0 auto 18px;
+  max-width: 36ch;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.reason {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid rgb(var(--m-rgb) / 0.22);
+  border-left: 4px solid var(--m-deep);
+  border-radius: 14px;
+  background: color-mix(in srgb, rgb(var(--m-rgb)) 6%, #fff);
+  text-align: left;
+}
+
+.reason span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--m-deep);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reason p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.since {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primary,
+.secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primary {
+  color: #fff;
+  border: 1px solid color-mix(in srgb, rgb(var(--m-rgb)) 40%, #fff);
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--m-deep) 78%, rgb(var(--m-rgb))),
+    var(--m-deep) 60%
+  );
+  box-shadow:
+    inset 0 2px 1px rgb(255 255 255 / 0.3),
+    0 4px 0 color-mix(in srgb, var(--m-deep) 85%, #000),
+    0 9px 16px rgb(var(--m-rgb) / 0.18);
+}
+
+.secondary {
+  color: var(--m-deep);
+  border: 1px solid rgb(var(--m-rgb) / 0.28);
+  background: #fff;
+}
+
+.primary:hover {
+  filter: brightness(1.06);
+}
+
+.secondary:hover {
+  background: color-mix(in srgb, rgb(var(--m-rgb)) 7%, #fff);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.preview:focus-visible,
+.banner button:focus-visible {
+  outline: 3px solid rgb(var(--m-rgb) / 0.5);
+  outline-offset: 3px;
+}
+
+.preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 16px auto 0;
+  padding: 8px 12px;
+  border: 1px dashed rgb(var(--m-rgb) / 0.45);
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+/* Slim reminder shown to an administrator who dismissed the notice. */
+.banner {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 60;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 10px 12px 10px 14px;
+  border-radius: 14px;
+  color: #fff;
+  background: #1f1633;
+  box-shadow: 0 14px 34px rgb(15 23 42 / 0.35);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.banner svg {
+  flex: 0 0 auto;
+}
+
+.banner button {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes maintenance-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+
+@keyframes maintenance-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes maintenance-wrench {
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 24px 18px 20px;
+  }
+
+  .banner {
+    flex-wrap: wrap;
+    width: calc(100vw - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open],
+  .badge::after,
+  .badge svg {
+    animation: none;
+  }
+}

@@ -11,6 +11,7 @@
 
 .admin-root {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #f7f5fc;
   color: #241638;
 }
@@ -57,6 +58,7 @@
   display: grid;
   grid-template-columns: 262px minmax(0, 1fr);
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--qk-bg);
   color: var(--qk-ink);
   transition: grid-template-columns 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -100,6 +102,7 @@
   top: 0;
   z-index: 40;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -221,8 +224,22 @@
   justify-content: center;
 }
 
+.admin-sidebar-search > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-sidebar-search > svg {
+  flex: 0 0 auto;
+}
+
 .admin-sidebar-search kbd,
 .admin-palette kbd {
+  flex: 0 0 auto;
+  white-space: nowrap;
   margin-left: auto;
   padding: 2px 6px;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -487,15 +504,28 @@
   min-width: 0;
 }
 
+/* The breadcrumb side absorbs every squeeze; the action cluster keeps its
+   natural width so no control can be pushed outside the viewport. */
+.admin-topbar-start {
+  flex: 1 1 auto;
+}
+
+.admin-topbar-actions {
+  flex: 0 0 auto;
+}
+
 .admin-breadcrumbs {
   display: flex;
   align-items: center;
+  flex: 1 1 auto;
   gap: 8px;
   font-size: 0.84rem;
   min-width: 0;
 }
 
 .admin-breadcrumb-root {
+  flex: 0 0 auto;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -523,6 +553,7 @@
 }
 
 .admin-breadcrumbs strong {
+  min-width: 0;
   color: var(--qk-ink);
   font-weight: 700;
   white-space: nowrap;
@@ -757,6 +788,7 @@
 }
 
 .admin-avatar-sm {
+  flex: 0 0 28px;
   width: 28px;
   height: 28px;
   display: grid;
@@ -908,6 +940,7 @@
 
 .admin-notification-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 
@@ -975,6 +1008,7 @@
 .admin-content {
   position: relative;
   z-index: 1;
+  min-width: 0;
   width: min(100%, 1520px);
   margin: 0 auto;
   padding: clamp(18px, 2.5vw, 30px) clamp(16px, 2.8vw, 34px) 44px;
@@ -999,7 +1033,13 @@
   margin-bottom: 22px;
 }
 
+.admin-page-head > div:first-child {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
 .admin-page-head h2 {
+  overflow-wrap: anywhere;
   margin: 4px 0 0;
   color: var(--qk-ink);
   font-size: clamp(1.45rem, 2.2vw, 1.9rem);
@@ -1056,6 +1096,7 @@
   font-size: 0.83rem;
   font-weight: 680;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(120, 40, 216, 0.24);
   transition:
@@ -1283,6 +1324,7 @@
 /* ---------- Dashboard Bands ---------- */
 .admin-dashboard-stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 }
 
@@ -1552,17 +1594,30 @@
 
 .admin-panel-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px 12px;
   margin-bottom: 16px;
 }
 
+/* Title keeps a readable measure; tabs/links wrap underneath instead of
+   crushing the heading into a one-word-per-line column. */
 .admin-panel-title-group {
   display: flex;
   align-items: center;
+  flex: 1 1 190px;
   gap: 10px;
   min-width: 0;
+}
+
+.admin-panel-title-group > div {
+  min-width: 0;
+}
+
+.admin-panel-heading > .admin-link {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .admin-panel-heading h3 {
@@ -1622,15 +1677,21 @@
 }
 
 /* Donut Chart */
+/* Intrinsically responsive: the legend sits beside the donut only while it
+   has ~230px to itself; in a narrow panel it drops underneath, so category
+   names are never squeezed into "Develop…" regardless of screen or sidebar
+   state. */
 .admin-donut-layout {
-  display: grid;
-  grid-template-columns: 152px minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 16px;
 }
 
 .admin-donut-visual {
   position: relative;
+  flex: 0 0 152px;
   width: 152px;
   height: 152px;
   margin: 0 auto;
@@ -1696,10 +1757,13 @@
 }
 
 .admin-donut-legend {
+  flex: 1 1 230px;
+  min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px;
 }
 
@@ -1803,6 +1867,7 @@
   padding: 0;
   list-style: none;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 
@@ -1908,6 +1973,7 @@
   padding: 0;
   list-style: none;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .admin-health-row {
@@ -1982,14 +2048,18 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   text-align: right;
+}
+
+.admin-health-meta {
+  max-width: 48%;
 }
 
 .admin-health-meta strong {
   font-size: 0.72rem;
   font-weight: 720;
-  white-space: nowrap;
 }
 
 .admin-health-val--good {
@@ -2176,6 +2246,9 @@
 }
 
 .admin-segmented-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -2214,6 +2287,7 @@
 /* SVG Trend Chart */
 .admin-trend-wrap {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 
@@ -2288,6 +2362,7 @@
 /* Entity Horizontal Bars */
 .admin-bar-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 13px;
 }
 
@@ -2668,6 +2743,15 @@
   width: 44px;
 }
 
+/* Long names, emails and URLs wrap inside their own column instead of
+   starving the neighbouring columns of width. */
+.admin-cell-primary,
+.admin-cell-seo {
+  min-width: 170px;
+  max-width: 380px;
+  overflow-wrap: anywhere;
+}
+
 .admin-cell-primary strong,
 .admin-cell-seo strong {
   display: block;
@@ -2833,6 +2917,325 @@
   font: inherit;
 }
 
+/* ---------- Feedback Ratings & Tool Maintenance ---------- */
+.admin-summary-strip--five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.admin-summary-pill--amber {
+  border-left: 3px solid var(--qk-warn);
+}
+
+.admin-summary-pill strong small {
+  color: var(--qk-muted);
+  font-size: 0.72rem;
+  font-weight: 640;
+}
+
+.admin-badge--warn {
+  background: var(--qk-warn-bg);
+  color: var(--qk-warn-ink);
+  text-transform: none;
+}
+
+.admin-cell-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  flex: 0 0 auto;
+  color: var(--qk-border-strong);
+  line-height: 0;
+}
+
+.admin-stars svg[data-filled="true"] {
+  color: var(--qk-warn);
+}
+
+.admin-rating-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--qk-muted);
+}
+
+.admin-rating-line strong {
+  color: var(--qk-ink);
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-cell-feedback {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 5px;
+  min-width: 200px;
+  max-width: 420px;
+  overflow-wrap: anywhere;
+}
+
+.admin-cell-feedback small {
+  color: var(--qk-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.admin-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.admin-tag-list > span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--qk-border);
+  background: var(--qk-surface-subtle);
+  color: var(--qk-ink);
+  font-size: 0.7rem;
+  font-weight: 620;
+}
+
+.admin-feedback-insights {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-feedback-card {
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--qk-border);
+  background: var(--qk-surface);
+  box-shadow: var(--qk-shadow-sm);
+}
+
+.admin-feedback-card > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+
+.admin-feedback-card h3 {
+  margin: 0;
+  color: var(--qk-ink);
+  font-size: 0.9rem;
+  font-weight: 760;
+}
+
+.admin-feedback-card > header p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--qk-muted);
+  font-size: 0.76rem;
+}
+
+.admin-feedback-card > header p strong {
+  color: var(--qk-ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-rating-bars,
+.admin-tool-ratings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-rating-bars button,
+.admin-tool-ratings button {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--qk-ink);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-rating-bars button {
+  grid-template-columns: 34px minmax(0, 1fr) 74px;
+}
+
+.admin-tool-ratings button {
+  grid-template-columns: minmax(0, 1fr) auto 30px 76px;
+}
+
+.admin-rating-bars button:hover,
+.admin-tool-ratings button:hover,
+.admin-rating-bars button[data-active="true"],
+.admin-tool-ratings button[data-active="true"] {
+  background: var(--qk-surface-subtle);
+}
+
+.admin-rating-bars button[data-active="true"],
+.admin-tool-ratings button[data-active="true"] {
+  box-shadow: inset 0 0 0 1px var(--qk-border-strong);
+}
+
+.admin-rating-bars button:focus-visible,
+.admin-tool-ratings button:focus-visible {
+  outline: 2px solid var(--qk-violet);
+  outline-offset: 1px;
+}
+
+.admin-rating-bars-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-rating-bars-label svg {
+  color: var(--qk-warn);
+}
+
+.admin-rating-bars-track {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--qk-surface-subtle);
+  box-shadow: inset 0 0 0 1px var(--qk-border);
+  overflow: hidden;
+}
+
+.admin-rating-bars-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #159d9a;
+}
+
+.admin-rating-bars-track > span[data-tone="mid"] {
+  background: var(--qk-warn);
+}
+
+.admin-rating-bars-track > span[data-tone="low"] {
+  background: #d8456b;
+}
+
+.admin-rating-bars-count {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-rating-bars-count small,
+.admin-tool-ratings small {
+  color: var(--qk-muted);
+  font-size: 0.72rem;
+  font-weight: 560;
+}
+
+.admin-tool-ratings small {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.admin-tool-ratings-name {
+  overflow: hidden;
+  font-weight: 640;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-tool-ratings strong {
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.admin-tool-ratings strong[data-tone="low"] {
+  color: var(--qk-warn-ink);
+}
+
+.admin-modal.admin-modal--narrow {
+  width: min(580px, 100%);
+}
+
+.admin-modal--narrow .admin-modal-body > .admin-field-hint:first-child {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.admin-maintenance-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--qk-border);
+  border-left: 3px solid var(--qk-warn);
+  background: var(--qk-surface-subtle);
+}
+
+.admin-maintenance-fields .admin-field-hint {
+  margin: 0;
+}
+
+.admin-maintenance-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: var(--qk-warn-bg);
+  color: var(--qk-warn-ink);
+  overflow-wrap: anywhere;
+}
+
+.admin-maintenance-preview > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-maintenance-preview > p {
+  margin: 0;
+  color: var(--qk-ink);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
 /* ---------- Skeleton Loader ---------- */
 .admin-skeleton-panel {
   display: grid;
@@ -2913,16 +3316,24 @@
 }
 
 /* ---------- Modals, Editor & Confirm Dialog ---------- */
+/* Dialogs are portalled to the layout root (see admin-modal-layer.tsx), so the
+   backdrop always covers the sidebar and the sticky top bar. */
 .admin-modal-backdrop,
 .admin-palette-backdrop {
   position: fixed;
   inset: 0;
   z-index: 90;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
-  padding: 16px;
+  padding: max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
   background: rgba(24, 10, 41, 0.56);
   backdrop-filter: blur(6px);
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .admin-palette-backdrop {
@@ -2930,11 +3341,15 @@
   padding-top: min(14vh, 120px);
 }
 
+/* Fixed header + scrolling body + fixed action bar. The dialog itself never
+   scrolls, so Close / Save stay reachable on every screen height. */
 .admin-modal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   width: min(740px, 100%);
-  max-height: 90vh;
-  overflow: auto;
-  padding: 24px;
+  max-height: min(100%, 880px);
+  overflow: hidden;
   border-radius: 20px;
   border: 1px solid var(--qk-border);
   background: var(--qk-surface);
@@ -2946,10 +3361,85 @@
   width: min(490px, 100%);
 }
 
+.admin-modal-head,
+.admin-confirm-header {
+  flex: 0 0 auto;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--qk-border);
+}
+
+.admin-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-modal-head > div:first-child {
+  min-width: 0;
+}
+
+.admin-modal-head > button {
+  flex: 0 0 auto;
+}
+
+.admin-modal-head h3 {
+  margin: 3px 0 0;
+  font-size: 1.12rem;
+  color: var(--qk-ink);
+  overflow-wrap: anywhere;
+}
+
+.admin-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0;
+  margin-top: 0;
+}
+
+.admin-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 15px;
+  padding: 18px 22px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-modal-body > .admin-confirm-description,
+.admin-modal-body > .admin-confirm-target,
+.admin-modal-body > .admin-widget-preferences,
+.admin-modal-body > .admin-panel-footnote {
+  margin: 0;
+}
+
+.admin-modal-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--qk-border);
+  background: var(--qk-surface);
+}
+
 .admin-confirm-header {
   display: flex;
   align-items: flex-start;
   gap: 13px;
+}
+
+.admin-confirm-header > button {
+  flex: 0 0 auto;
 }
 
 .admin-confirm-icon {
@@ -2980,6 +3470,7 @@
   margin: 3px 0 0;
   font-size: 1.08rem;
   color: var(--qk-ink);
+  overflow-wrap: anywhere;
 }
 
 .admin-confirm-description {
@@ -2991,9 +3482,10 @@
 
 .admin-confirm-target {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px 10px;
   margin-top: 14px;
   padding: 10px 12px;
   border-radius: 11px;
@@ -3003,35 +3495,10 @@
   color: var(--qk-muted);
 }
 
-.admin-modal-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--qk-border);
-}
-
-.admin-modal-head h3 {
-  margin: 3px 0 0;
-  font-size: 1.12rem;
-  color: var(--qk-ink);
-}
-
-.admin-modal-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--qk-border);
-}
-
 /* Forms */
 .admin-form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 15px;
   margin-top: 18px;
 }
@@ -3090,6 +3557,7 @@
 
 .admin-meta-box {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   padding: 12px 14px;
   border-radius: 12px;
@@ -3099,12 +3567,15 @@
 }
 
 .admin-meta-box p {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
 }
 
 /* Widget Personalization */
 .admin-widget-preferences {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin: 16px 0;
 }
@@ -3132,8 +3603,11 @@
 
 /* ---------- Command Palette ---------- */
 .admin-palette {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   width: min(560px, 100%);
-  max-height: min(72vh, 620px);
+  max-height: min(100%, 620px);
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid var(--qk-border-strong);
@@ -3176,6 +3650,8 @@
 }
 
 .admin-palette-results {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 370px;
   overflow: auto;
   padding: 0 8px 8px;
@@ -3314,6 +3790,7 @@
 /* ---------- Settings, Security, SEO, Analytics & Profile Modules ---------- */
 .admin-settings-stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
@@ -3338,11 +3815,13 @@
 
 .admin-links-groups {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
 .admin-link-fieldset {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   padding: 16px;
   margin: 0;
@@ -3414,6 +3893,32 @@
   color: var(--qk-muted);
   font-size: 0.76rem;
   line-height: 1.5;
+}
+
+.admin-error-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-error-list li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--qk-border);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.admin-error-list span {
+  overflow-wrap: anywhere;
+}
+.admin-error-list small {
+  color: var(--qk-muted);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
 }
 
 /* SEO Cards & Diagnostics */
@@ -3547,6 +4052,7 @@
 
 .admin-boundary-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -3563,6 +4069,15 @@
 
 .admin-layout[data-theme="dark"] .admin-boundary-item {
   color: #d7b7ff;
+}
+
+.admin-boundary-item > svg {
+  flex: 0 0 auto;
+}
+
+.admin-boundary-item > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .admin-boundary-item strong {
@@ -3635,9 +4150,52 @@
 }
 
 /* ---------- Owner Login Page ---------- */
+/* The login screen renders outside .admin-layout, so it needs its own copy of
+   the light design tokens — without them the form fields lose their borders
+   and backgrounds. */
+.admin-login-wrap {
+  --qk-plum-deep: #27103f;
+  --qk-plum-grad: #54205f;
+  --qk-violet: #7828d8;
+  --qk-violet-dark: #5e1cb2;
+  --qk-rose: #f04f9b;
+  --qk-rose-text: #b81d6b;
+  --qk-coral: #ff6b6b;
+  --qk-cyan: #35c6d0;
+  --qk-teal: #159d9a;
+  --qk-teal-text: #0f7674;
+
+  --qk-bg: #f7f5fc;
+  --qk-surface: #ffffff;
+  --qk-surface-glass: rgba(255, 255, 255, 0.84);
+  --qk-surface-subtle: #faf8fe;
+  --qk-border: #ebe4f5;
+  --qk-border-strong: #d9cdf0;
+  --qk-ink: #241638;
+  --qk-ink-soft: #4c3f63;
+  --qk-muted: #685f7a;
+  --qk-muted-decor: #827a91;
+
+  --qk-shadow-sm: 0 2px 10px rgba(39, 16, 63, 0.045);
+  --qk-shadow-md:
+    0 10px 30px rgba(39, 16, 63, 0.065), 0 2px 6px rgba(39, 16, 63, 0.035);
+  --qk-shadow-lg: 0 24px 64px rgba(39, 16, 63, 0.14);
+
+  --qk-good: #159d9a;
+  --qk-good-bg: #e7f8f6;
+  --qk-good-ink: #0f6f6d;
+  --qk-warn: #d9822b;
+  --qk-warn-bg: #fff5e8;
+  --qk-warn-ink: #8a4b0f;
+  --qk-danger: #c82854;
+  --qk-danger-bg: #fff0f4;
+  --qk-danger-ink: #96193c;
+}
+
 .admin-login-wrap {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -3880,14 +4438,30 @@
   .admin-kpi-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  /* Five cards never divide evenly: let the last row stretch to fill. */
+  .admin-seo-cards {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .admin-seo-cards > * {
+    flex: 1 1 230px;
+  }
   .admin-ops-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .admin-ops-grid > :last-child {
     grid-column: 1 / -1;
   }
-  .admin-seo-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Laptops and phones in "Desktop site" mode (~980px layout viewport): the
+   signed-in email no longer fits beside the sync controls. */
+@media (max-width: 1280px) {
+  .admin-profile-email {
+    display: none;
+  }
+  .admin-session-chip {
+    padding: 4px 9px 4px 4px;
   }
 }
 
@@ -3908,6 +4482,9 @@
   .admin-summary-strip,
   .admin-seo-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-feedback-insights {
+    grid-template-columns: minmax(0, 1fr);
   }
   .admin-header-sync {
     display: none;
@@ -3980,10 +4557,6 @@
     justify-content: flex-start;
   }
 
-  .admin-donut-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .admin-activity-filters {
     grid-template-columns: 1fr 1fr;
   }
@@ -4048,40 +4621,115 @@
 
   .admin-table tbody {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 11px;
   }
 
   .admin-table tr {
-    padding: 12px 14px;
+    padding: 6px 14px;
     border-radius: 14px;
     border: 1px solid var(--qk-border);
     background: var(--qk-surface);
     box-shadow: var(--qk-shadow-sm);
   }
 
+  /* Fixed label column + flexible value column keeps every card aligned and
+     lets long emails, URLs and names wrap inside the card. */
   .admin-table td {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    align-items: start;
     gap: 12px;
-    padding: 7px 0;
+    padding: 9px 0;
     border-bottom: 1px solid var(--qk-border);
+    overflow-wrap: anywhere;
   }
 
+  /* Badges and chips keep their natural size instead of stretching. */
+  .admin-table td {
+    justify-items: start;
+  }
+
+  .admin-table td > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .admin-table
+    td
+    > :is(.admin-cell-primary, .admin-cell-seo, .admin-cell-drag) {
+    justify-self: stretch;
+  }
+
+  /* Actions close the card as one full-width button row. */
   .admin-table td:last-child {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 11px 0 8px;
     border-bottom: 0;
-    padding-bottom: 2px;
+  }
+
+  .admin-table td:last-child::before {
+    display: none;
+  }
+
+  .admin-table td:last-child > .admin-row-actions {
+    justify-self: stretch;
+  }
+
+  /* Read-only modules (activity log) have no row actions: drop the empty row. */
+  .admin-table td:last-child:has(> .admin-row-actions:empty) {
+    display: none;
   }
 
   .admin-table td::before {
     content: attr(data-label);
-    flex: 0 0 auto;
     color: var(--qk-muted);
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding-top: 2px;
+    padding-top: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  /* The row checkbox sits in the card corner instead of using a whole row. */
+  .admin-table tr {
+    position: relative;
+  }
+
+  .admin-table .admin-td-check {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: block;
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+
+  .admin-table .admin-td-check::before {
+    display: none;
+  }
+
+  .admin-table .admin-td-check input[type="checkbox"] {
+    display: block;
+    width: 22px;
+    height: 22px;
+  }
+
+  .admin-table .admin-td-check + td {
+    padding-right: 34px;
+  }
+
+  .admin-table td .admin-row-actions > .admin-button {
+    flex: 1 1 auto;
+    min-height: 38px;
+    padding-inline: 9px;
+  }
+
+  .admin-table td .admin-row-actions > .admin-icon-button {
+    width: 38px;
+    height: 38px;
   }
 
   .admin-skeleton-row {
@@ -4101,10 +4749,430 @@
   }
 }
 
+/* ---------- Tablet portrait & large phones ---------- */
+@media (max-width: 820px) {
+  .admin-root,
+  .admin-layout {
+    /* Stop iOS/Android from inflating text when the phone rotates. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* 16px form text prevents mobile Safari from zooming the whole page in
+     (and leaving it zoomed) every time a field is focused. */
+  .admin-layout :is(input, select, textarea),
+  .admin-login :is(input, select, textarea) {
+    font-size: 16px;
+  }
+
+  .admin-topbar-start,
+  .admin-topbar-actions {
+    gap: 8px;
+  }
+
+  .admin-breadcrumbs strong {
+    font-size: 0.92rem;
+  }
+
+  .admin-page-head {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .admin-page-head-action {
+    flex-wrap: wrap;
+  }
+
+  .admin-stat-card {
+    min-height: 118px;
+    padding: 13px 14px;
+    border-radius: 16px;
+  }
+
+  .admin-panel,
+  .admin-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .admin-summary-strip {
+    gap: 10px;
+  }
+
+  .admin-summary-pill {
+    padding: 11px 13px;
+  }
+
+  .admin-summary-pill span {
+    min-width: 0;
+  }
+
+  .admin-search-field {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .admin-sort-control .admin-select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .admin-bulk-bar > * {
+    flex: 1 1 150px;
+    min-width: 0;
+  }
+
+  .admin-bulk-bar > strong {
+    flex: 1 1 100%;
+  }
+
+  .admin-pagination {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .admin-pagination-controls {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  .admin-health-row {
+    align-items: flex-start;
+  }
+
+  .admin-cms-toolbar p {
+    flex: 1 1 100%;
+  }
+
+  .admin-save-footer .admin-button {
+    flex: 1 1 auto;
+  }
+
+  .admin-profile-hero {
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .admin-profile-hero .admin-row-actions {
+    width: 100%;
+  }
+
+  .admin-profile-hero .admin-row-actions > * {
+    flex: 1 1 140px;
+  }
+
+  .admin-toast-stack {
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: auto;
+  }
+
+  .admin-profile-menu,
+  .admin-notification-popover {
+    max-height: calc(100dvh - 84px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ---------- Tablets (portrait): keep two/three-up grids, not phone stacks ---------- */
+@media (min-width: 600px) and (max-width: 820px) {
+  .admin-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-quick-grid,
+  .admin-seo-cards,
+  .admin-detail-grid,
+  .admin-settings-grid,
+  .admin-toggle-group,
+  .admin-security-grid,
+  .admin-profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-span-2 {
+    grid-column: span 2;
+  }
+
+  .admin-search-field {
+    flex: 1 1 220px;
+  }
+
+  .admin-toolbar .admin-select,
+  .admin-toolbar input[type="date"] {
+    flex: 1 1 160px;
+    width: auto;
+  }
+
+  .admin-sort-control {
+    flex: 1 1 200px;
+    width: auto;
+  }
+
+  .admin-toolbar-right {
+    width: auto;
+    margin-left: auto;
+  }
+
+  /* Record cards flow two-up so a tablet does not show one very wide card. */
+  .admin-table tbody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+/* ---------- Phones: dialogs become bottom sheets ---------- */
+@media (max-width: 640px) {
+  .admin-modal-backdrop {
+    place-items: end center;
+    padding: max(20px, env(safe-area-inset-top)) 0 0;
+  }
+
+  .admin-modal,
+  .admin-confirm-dialog {
+    width: 100%;
+    max-height: 100%;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .admin-modal-head,
+  .admin-confirm-header {
+    padding: 16px 16px 12px;
+  }
+
+  .admin-modal-body {
+    padding: 16px;
+  }
+
+  .admin-modal-actions {
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .admin-modal-actions > * {
+    flex: 1 1 130px;
+    min-height: 44px;
+  }
+
+  .admin-palette-backdrop {
+    padding: max(12px, env(safe-area-inset-top)) 12px 12px;
+  }
+
+  .admin-palette > footer span:nth-child(n + 2) {
+    display: none;
+  }
+
+  .admin-widget-preference {
+    flex-wrap: wrap;
+  }
+
+  /* The notification / profile popovers pin to the viewport edges instead of
+     hanging off their (now very narrow) trigger button. */
+  .admin-popover-control,
+  .admin-profile-control {
+    position: static;
+  }
+
+  .admin-profile-menu,
+  .admin-notification-popover,
+  .admin-interval-menu {
+    top: calc(100% + 6px);
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+}
+
+/* ---------- Compact phones: the top bar keeps only what fits ---------- */
+@media (max-width: 520px) {
+  .admin-breadcrumb-root,
+  .admin-breadcrumb-sep,
+  .admin-session-chip > svg {
+    display: none;
+  }
+
+  .admin-session-chip {
+    padding: 4px;
+  }
+
+  .admin-topbar {
+    padding-inline: max(12px, env(safe-area-inset-left))
+      max(12px, env(safe-area-inset-right));
+    gap: 10px;
+  }
+
+  .admin-content {
+    padding-inline: 12px;
+  }
+
+  .admin-overview-controls {
+    width: 100%;
+  }
+
+  .admin-overview-controls > :is(.admin-button, button) {
+    flex: 1 1 130px;
+  }
+
+  .admin-notification-inbox-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-table td:not(:last-child) {
+    grid-template-columns: 94px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .admin-table td::before {
+    font-size: 0.64rem;
+    letter-spacing: 0.02em;
+  }
+
+  .admin-activity-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .admin-compact-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .admin-donut-legend-row {
+    padding-inline: 4px;
+  }
+}
+
 @media (max-width: 440px) {
-  .admin-kpi-grid,
-  .admin-summary-strip,
   .admin-seo-summary {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-kpi-grid,
+  .admin-summary-strip {
+    gap: 9px;
+  }
+
+  .admin-stat {
+    font-size: 1.65rem;
+  }
+
+  .admin-summary-pill {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .admin-activity-time {
+    font-size: 0.66rem;
+  }
+
+  .admin-link-fieldset {
+    padding: 12px;
+  }
+
+  .admin-login {
+    padding: 22px 16px;
+  }
+}
+
+/* ---------- Smallest supported phones (320–359px) ---------- */
+@media (max-width: 359px) {
+  .admin-topbar-start,
+  .admin-topbar-actions {
+    gap: 5px;
+  }
+
+  .admin-topbar .admin-icon-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .admin-kpi-grid,
+  .admin-summary-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-summary-pill {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .admin-table td:not(:last-child) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+}
+
+/* ---------- Short landscape phones ---------- */
+@media (max-height: 480px) and (orientation: landscape) {
+  .admin-modal-backdrop {
+    place-items: end center;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: 0;
+  }
+
+  .admin-modal {
+    max-height: 100%;
+    border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .admin-modal-head,
+  .admin-confirm-header {
+    padding-block: 10px 8px;
+  }
+
+  .admin-modal-actions {
+    padding-block: 8px;
+  }
+
+  .admin-palette-backdrop {
+    padding-top: 8px;
+  }
+
+  .admin-sidebar {
+    gap: 8px;
+    padding-block: 10px;
+    overflow-y: auto;
+  }
+}
+
+/* ---------- Feedback ratings: responsive ---------- */
+/* Keep "View / edit" and "Delete" side by side next to the wide feedback cell. */
+@media (min-width: 821px) {
+  .admin-table td:has(> .admin-cell-feedback) ~ td > .admin-row-actions {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 1360px) and (min-width: 1081px) {
+  .admin-summary-strip--five {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .admin-table td > .admin-cell-feedback,
+  .admin-table td > .admin-cell-status {
+    justify-self: stretch;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 440px) {
+  .admin-tool-ratings button {
+    grid-template-columns: minmax(0, 1fr) 30px 70px;
+  }
+
+  .admin-tool-ratings button > .admin-stars {
+    display: none;
+  }
+
+  .admin-rating-bars button {
+    grid-template-columns: 30px minmax(0, 1fr) 66px;
+    gap: 8px;
   }
 }

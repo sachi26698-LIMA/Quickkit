@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
+  BarChart3,
   Database,
+  Globe,
   KeyRound,
   Lock,
   Mail,
@@ -15,6 +17,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import type { SystemHealthReport } from "@/lib/system-health";
+import {
+  describeSystemHealth,
+  type HealthTone,
+} from "@/lib/system-health-labels";
 import { useAdminLive } from "./admin-live-context";
 import styles from "./admin.module.css";
 
@@ -35,13 +42,21 @@ type SecurityData = {
   indexing_enabled?: boolean;
   smtp_status?: string;
   error_monitoring_status?: string;
+  system?: SystemHealthReport;
+  recent_errors?: {
+    id: string;
+    created_at: string;
+    scope: string;
+    name: string;
+    message: string;
+  }[];
 };
 
 type SecurityCheckItem = {
   label: string;
   value: string;
   detail: string;
-  tone: "good" | "warn" | "neutral";
+  tone: HealthTone;
   icon: LucideIcon;
   href?: string;
   actionLabel?: string;
@@ -167,9 +182,15 @@ export default function SecurityOverview() {
       value:
         data.signup_disabled === true
           ? "Disabled in Supabase Auth"
-          : "Verify in Supabase dashboard",
+          : data.signup_disabled === false
+            ? "Open in Supabase Auth"
+            : "Verify in Supabase dashboard",
       detail:
-        "App exposes no admin signup flow; confirm Auth signups remain disabled in Supabase.",
+        data.signup_disabled === true
+          ? "Supabase Auth reports that new signups are closed; the app exposes no admin signup flow."
+          : data.signup_disabled === false
+            ? "Supabase Auth reports that new signups are open. Turn off “Allow new users to sign up” in Supabase."
+            : "App exposes no admin signup flow; confirm Auth signups remain disabled in Supabase.",
       tone: data.signup_disabled === true ? "good" : "warn",
       icon: Lock,
     },
@@ -209,36 +230,73 @@ export default function SecurityOverview() {
     },
   ];
 
+  const labels = describeSystemHealth(data.system, {
+    sitemapOriginConfigured: data.sitemap_origin_configured,
+    analyticsCredentialsPresent: Boolean(
+      data.analytics_url_present && data.analytics_token_present,
+    ),
+  });
+  const live = Boolean(data.system);
   const boundaryItems: SecurityCheckItem[] = [
     {
       label: "Row Level Security (RLS)",
-      value: data.rls_status,
-      detail:
-        "Migration 202611100002 enables RLS and denies anon/authenticated roles; verify live catalog in Supabase.",
-      tone: "warn",
+      value: live ? labels.rls.value : data.rls_status,
+      detail: live
+        ? labels.rls.detail
+        : "Migration 202611100002 enables RLS and denies anon/authenticated roles; verify live catalog in Supabase.",
+      tone: labels.rls.tone,
       icon: ShieldAlert,
     },
     {
       label: "Email delivery (SMTP)",
-      value:
-        data.smtp_status ??
-        "Managed externally in Supabase Auth · not verified by app",
-      detail:
-        "No SMTP credentials are stored or inspected in this Next.js runtime. Any future test email requires an explicit owner trigger and typed recipient confirmation.",
-      tone: "neutral",
+      value: live
+        ? labels.smtp.value
+        : (data.smtp_status ??
+          "Managed externally in Supabase Auth · not verified by app"),
+      detail: live
+        ? labels.smtp.detail
+        : "No SMTP credentials are stored or inspected in this Next.js runtime. Any future test email requires an explicit owner trigger and typed recipient confirmation.",
+      tone: labels.smtp.tone,
       icon: Mail,
     },
+    ...(live
+      ? [
+          {
+            label: "Sitemap & robots.txt",
+            value: labels.sitemap.value,
+            detail: labels.sitemap.detail,
+            tone: labels.sitemap.tone,
+            icon: Globe,
+            href: "/admin/seo",
+            actionLabel: "SEO",
+          },
+          {
+            label: "Visitor statistics",
+            value: labels.analytics.value,
+            detail: labels.analytics.detail,
+            tone: labels.analytics.tone,
+            icon: BarChart3,
+            href: "/admin/analytics",
+            actionLabel: "Analytics status",
+          },
+        ]
+      : []),
     {
-      label: "Error monitoring & analytics",
-      value: data.error_monitoring_status ?? "Not configured",
-      detail:
-        "Analytics and error telemetry remain explicitly off until separately configured.",
-      tone: "neutral",
+      label: live ? "Error monitoring" : "Error monitoring & analytics",
+      value: live
+        ? labels.errorMonitoring.value
+        : (data.error_monitoring_status ?? "Not configured"),
+      detail: live
+        ? labels.errorMonitoring.detail
+        : "Analytics and error telemetry remain explicitly off until separately configured.",
+      tone: live ? labels.errorMonitoring.tone : "neutral",
       icon: ShieldAlert,
-      href: "/admin/analytics",
-      actionLabel: "Analytics status",
+      ...(live
+        ? {}
+        : { href: "/admin/analytics", actionLabel: "Analytics status" }),
     },
   ];
+  const recentErrors = data.recent_errors ?? [];
 
   return (
     <div className={styles["admin-settings-stack"]}>
@@ -271,9 +329,41 @@ export default function SecurityOverview() {
         items={infrastructureItems}
       />
       <SecurityGroup
-        title="External verifications required"
+        title={live ? "Service checks" : "External verifications required"}
         items={boundaryItems}
       />
+      {data.system?.error_monitoring.configured ? (
+        <section
+          className={styles["admin-panel"]}
+          aria-labelledby="recent-errors-heading"
+        >
+          <div className={styles["admin-panel-heading"]}>
+            <h3 id="recent-errors-heading">Recent application errors</h3>
+          </div>
+          {recentErrors.length ? (
+            <ul className={styles["admin-error-list"]}>
+              {recentErrors.map((item) => (
+                <li key={item.id}>
+                  <strong>{item.name}</strong>
+                  <span>{item.message}</span>
+                  <small>
+                    {item.scope} ·{" "}
+                    <time dateTime={item.created_at}>
+                      {new Date(item.created_at).toLocaleString()}
+                    </time>
+                  </small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles["admin-security-detail"]}>
+              No errors recorded in the last 30 days. Events are scrubbed of
+              emails, tokens and query strings before they are stored, and are
+              removed after 30 days.
+            </p>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -298,7 +388,7 @@ function SecurityGroup({
                 className={`${styles["admin-panel-badge"]} ${
                   item.tone === "good"
                     ? styles["admin-panel-badge--teal"]
-                    : item.tone === "warn"
+                    : item.tone === "warn" || item.tone === "error"
                       ? styles["admin-panel-badge--rose"]
                       : styles["admin-panel-badge--violet"]
                 }`}

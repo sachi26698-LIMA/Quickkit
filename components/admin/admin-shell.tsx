@@ -39,6 +39,7 @@ import {
   useAdminLive,
   type AdminInboxBadges,
 } from "./admin-live-context";
+import { AdminLayerHostContext } from "./admin-modal-layer";
 import styles from "./admin.module.css";
 
 export const AdminIdentityContext = createContext("");
@@ -147,6 +148,7 @@ function AdminShellFrame({
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [intervalOpen, setIntervalOpen] = useState(false);
+  const [layerHost, setLayerHost] = useState<HTMLDivElement | null>(null);
 
   const paletteInput = useRef<HTMLInputElement>(null);
   const profileMenu = useRef<HTMLDivElement>(null);
@@ -348,6 +350,7 @@ function AdminShellFrame({
 
   return (
     <div
+      ref={setLayerHost}
       className={styles["admin-layout"]}
       data-theme={dark ? "dark" : "light"}
       data-collapsed={collapsed ? "true" : "false"}
@@ -769,7 +772,11 @@ function AdminShellFrame({
           </div>
         </header>
 
-        <main className={styles["admin-content"]}>{children}</main>
+        <main className={styles["admin-content"]}>
+          <AdminLayerHostContext.Provider value={layerHost}>
+            {children}
+          </AdminLayerHostContext.Provider>
+        </main>
       </div>
 
       {paletteOpen ? (
