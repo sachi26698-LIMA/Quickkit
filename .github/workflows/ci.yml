@@ -13,11 +13,11 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Sitemap lastmod checks need genuine file history, not a shallow boundary.
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "26"
           cache: npm
@@ -37,7 +37,7 @@ jobs:
         env:
           # Exercise the real visitor API without production credentials or data.
           ANALYTICS_DATABASE_URL: file:${{ runner.temp }}/quickkit-visitor-stats.db
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: browser-failure-traces
@@ -45,7 +45,7 @@ jobs:
           retention-days: 7
       # The converter spec writes real desktop/mobile screenshots; keep them
       # available even on a green run so the owner can review the result.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: browser-screenshots

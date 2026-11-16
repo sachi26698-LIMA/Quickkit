@@ -40,9 +40,9 @@ display this checklist to unauthenticated visitors.
 
 ### Verified via Read-Only Catalog Inspection (Production Supabase Project)
 
-- Both migrations are applied (`202611100001_quickkit_account_data` and `quickkit_master_admin`).
+- Six migrations are applied; `SUPABASE_SETUP.md` lists each with its recorded version.
 - Row Level Security (RLS) is enabled on every `public.quickkit_*` table; the Admin System health panel re-checks this against the live catalog on every refresh.
-- All 7 private/admin/submission tables have explicit `FOR ALL TO anon, authenticated USING (false) WITH CHECK (false)` deny policies and zero `anon`/`authenticated` table or column grants.
+- All private/admin/submission tables (13 of the 15) have explicit `FOR ALL TO anon, authenticated USING (false) WITH CHECK (false)` deny policies and zero `anon`/`authenticated` table or column grants.
 - `quickkit_profiles` and `quickkit_favorites` allow `authenticated` access strictly to `(SELECT auth.uid()) = id / user_id` with column-scoped grants and zero `anon` privileges.
 - `service_role` has least-privilege grants:
   - `quickkit_admin_activity`: `SELECT, INSERT` only (append-only audit trail).
@@ -94,13 +94,13 @@ Migration `202611160003_quickkit_system_health.sql` connects the Admin "System h
 | Analytics integration | A real read of the opt-in visitor counter, now stored in Supabase (or libSQL when `ANALYTICS_DATABASE_URL` is set). See `docs/VISITOR_STATISTICS.md`.                                                                                                                                                   | Migration `202611160003`                                  |
 | Error monitoring      | Counts stored error events in the last 24 hours and 7 days.                                                                                                                                                                                                                                             | Migration `202611160003`, `ERROR_MONITORING_ENABLED=true` |
 
-Before enabling the visitor counter in production, configure hosting WAF/rate limits on `POST /api/visitor-stats` and complete the legal/privacy review of the opt-in copy, retention window and hosting region.
+The visitor counter is on in production. `quickkit_record_visit()` accepts at most 120 new visits per minute site-wide (migration `202611160004`), which bounds stored rows and automated inflation; a hosting WAF/rate limit on `POST /api/visitor-stats` remains a useful second layer. Legal/privacy review of the opt-in copy, retention window and hosting region is the operator's responsibility.
 
 ---
 
 ## 5. Opt-In Error Monitoring
 
-Error monitoring stays **`Not configured`** and stores nothing until `ERROR_MONITORING_ENABLED=true` is set on the server. When it is on:
+Error monitoring stores nothing until `ERROR_MONITORING_ENABLED=true` is set on the server (it is set in Vercel Production). When it is on:
 
 - Error screens (`app/admin/error.tsx`, `app/global-error.tsx`, `app/(public)/tools/error.tsx`) post a summary to the same-origin `POST /api/error-report`; server render and route-handler failures are captured by `instrumentation.ts` (`onRequestError`).
 - Each event holds the error type, a message scrubbed by `sanitizeErrorForMonitoring()` (bearer tokens, JWTs, API key prefixes, email addresses, URL credentials and sensitive query parameters removed), Next.js's digest and the route. Tool pages never store a message, because it could quote tool input. IP addresses, cookies, user agents, files and stacks are never stored.

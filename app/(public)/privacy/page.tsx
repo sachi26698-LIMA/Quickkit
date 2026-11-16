@@ -341,14 +341,14 @@ export default function PrivacyPage() {
         again.
       </p>
       <p>
-        The public laptop graph shows participating browsers seen in the last 45
-        seconds, distinct participating browser identifiers since tracking
-        began, and average visible time across participating visits (including
-        ongoing visits). These are estimates, not verified people: other
-        devices, cleared storage and automated requests can affect counts. No
-        historical traffic before installation can be recovered. The three bars
-        use a logarithmic scale; duration is in seconds, the other bars are
-        counts.
+        The “Live audience” graph on the home page shows participating browsers
+        seen in the last 45 seconds, distinct participating browser identifiers
+        since tracking began, and average visible time across participating
+        visits (including ongoing visits). These are estimates, not verified
+        people: other devices, cleared storage and automated requests can affect
+        counts. No historical traffic before installation can be recovered. The
+        three bars use a logarithmic scale; duration is in seconds, the other
+        bars are counts.
       </p>
       <p>
         Server-side visit records are pruned after 24 hours without a heartbeat
@@ -356,9 +356,9 @@ export default function PrivacyPage() {
         retained for cumulative deduplication, together with aggregate totals.
         They are not linked to names or accounts. Turning participation off
         stops future reporting and removes the local identifiers, but does not
-        subtract past contributions. The operator can reset the database and
-        must verify hosting location, retention and any required consent before
-        enabling production.
+        subtract past contributions. These records are kept in the same Supabase
+        database as contact messages, can be read and written only by our
+        server, and can be reset by the operator.
       </p>
 
       <h3>Error reports</h3>

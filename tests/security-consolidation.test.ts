@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { securityToolDefinitions } from "../lib/tools/security/catalog";
 import {
@@ -51,6 +52,25 @@ describe("security consolidation registry", () => {
         filterTools(tool.name, "Security & Privacy").map((item) => item.slug),
         tool.name,
       ).toContain(destination);
+    }
+  });
+  it("serves every unified tool from a page that renders its operation tabs", () => {
+    // A redirect such as /tools/hash-comparison → /tools/hash-generator?operation=…
+    // only works when the destination page mounts the tabbed workspace. A page
+    // that mounts one operation directly leaves the others unreachable.
+    for (const group of securityGroups) {
+      const dedicated = `app/(public)/tools/${group.slug}/page.tsx`;
+      const source = readFileSync(
+        existsSync(dedicated)
+          ? dedicated
+          : "app/(public)/tools/[calculator]/page.tsx",
+        "utf8",
+      );
+      expect(source, group.slug).toMatch(
+        existsSync(dedicated)
+          ? new RegExp(`<ConsolidatedWorkspace\\s+slug="${group.slug}"`)
+          : /<ConsolidatedWorkspace\s+slug=\{security\.slug\}/,
+      );
     }
   });
   it("scopes fixed network endpoints to the consolidated network pages", async () => {
