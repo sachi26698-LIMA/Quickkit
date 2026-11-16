@@ -7,6 +7,7 @@ import {
   BRANDS,
   brandBySlug,
   brandCoverage,
+  isBrandRecordIndexable,
 } from "@/lib/tools/batch-code/brands";
 import { decoderDoc } from "@/lib/tools/batch-code/decoders";
 import { CATEGORY_LABELS, PAO_SOURCE } from "@/lib/tools/batch-code/shelf-life";
@@ -30,11 +31,18 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       "No such brand record.",
       `/tools/batch-code-checker/brand/${slug}`,
     );
-  return pageMetadata(
+  const meta = pageMetadata(
     `${brand.name} batch code: decoder and coverage`,
     `${brand.name} batch code: decoder status, code pattern, shelf-life guidance and the limitation, with no invented date logic or guessed shelf life.`,
     `/tools/batch-code-checker/brand/${brand.slug}`,
   );
+  if (!isBrandRecordIndexable(brand)) {
+    return {
+      ...meta,
+      robots: { index: false, follow: true },
+    };
+  }
+  return meta;
 }
 
 export default async function BrandPage({ params }: Params) {
@@ -153,6 +161,7 @@ export default async function BrandPage({ params }: Params) {
           <Link
             className={styles.button}
             href={`/tools/batch-code-checker?brand=${brand.slug}`}
+            rel="nofollow"
           >
             Check a {brand.name} code
           </Link>
@@ -292,7 +301,12 @@ export default async function BrandPage({ params }: Params) {
           <ul className={styles.siblings}>
             {siblings.map((sibling) => (
               <li key={sibling.slug}>
-                <Link href={`/tools/batch-code-checker/brand/${sibling.slug}`}>
+                <Link
+                  href={`/tools/batch-code-checker/brand/${sibling.slug}`}
+                  rel={
+                    sibling.decoderStatus === "none" ? "nofollow" : undefined
+                  }
+                >
                   {sibling.name}
                 </Link>
               </li>

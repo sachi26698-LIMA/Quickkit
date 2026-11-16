@@ -1,18 +1,30 @@
+import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import BatchChecker from "@/components/tools/batch-code-checker";
 import BrandDirectory from "@/components/tools/batch-code-checker/brand-directory";
 import BatchCodeReference from "@/components/tools/batch-code-checker/reference";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "Batch Code Checker — Lot Codes, Decoded Honestly",
-  "Check a cosmetics lot code against documented decoders: verified, estimated from cited guidance, or not decodable — never an invented date.",
-  "/tools/batch-code-checker",
-);
+const DEFAULT_TITLE = "Batch Code Checker — Lot Codes, Decoded Honestly";
+const DEFAULT_DESCRIPTION =
+  "Check a cosmetics lot code against documented decoders: verified, estimated from cited guidance, or not decodable — never an invented date.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata(
+    "batch-code-checker",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("batch-code-checker");
   return (
     <ToolShell
+      publicData={publicData}
       slug="batch-code-checker"
       headingDescription="Enter a lot code, the brand and any dates printed on the pack. The checker separates what it can verify from what it can only estimate, and says NOT DECODABLE when a brand's format has no public key — with the official route to ask instead."
       stepsHeading="How to check a batch code without guessing"
@@ -64,6 +76,11 @@ export default function Page() {
       }}
     >
       <BatchChecker />
+      <p className="calculator-disclaimer">
+        Not sure how a product GTIN barcode differs from a printed batch or GS1
+        lot identifier? Read the{" "}
+        <Link href="/guides/barcode">barcode guide</Link>.
+      </p>
     </ToolShell>
   );
 }

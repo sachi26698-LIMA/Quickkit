@@ -267,13 +267,17 @@ describe("BreadcrumbList JSON-LD", () => {
   it("is emitted on the pages that visibly show a trail, and not elsewhere", async () => {
     const SitemapPage = (await import("../app/(public)/sitemap/page")).default;
     const AboutPage = (await import("../app/(public)/about/page")).default;
+    const BarcodeGuidePage = (
+      await import("../app/(public)/guides/barcode/page")
+    ).default;
     const Home = (await import("../app/(public)/page")).default;
 
     const sitemap = render(await SitemapPage()).container;
     const about = render(createElement(AboutPage)).container;
+    const guide = render(createElement(BarcodeGuidePage)).container;
     const home = render(await Home()).container;
 
-    for (const container of [sitemap, about]) {
+    for (const container of [sitemap, about, guide]) {
       expect(
         container.querySelector('nav[aria-label="Breadcrumb"]'),
       ).not.toBeNull();
@@ -699,6 +703,9 @@ describe("Phase 2 technical SEO contracts", () => {
     const CategoryPage = (await import("../app/(public)/category/[slug]/page"))
       .default;
     const HelpPage = (await import("../app/(public)/help/page")).default;
+    const BarcodeGuidePage = (
+      await import("../app/(public)/guides/barcode/page")
+    ).default;
     const SitemapPage = (await import("../app/(public)/sitemap/page")).default;
     const ContactPage = (await import("../app/(public)/contact/page")).default;
     const FileHandlingPage = (
@@ -718,6 +725,7 @@ describe("Phase 2 technical SEO contracts", () => {
         await CategoryPage({ params: Promise.resolve({ slug: "ai-tools" }) }),
       ],
       ["/help", createElement(HelpPage)],
+      ["/guides/barcode", createElement(BarcodeGuidePage)],
       ["/sitemap", await SitemapPage()],
       ["/contact", await ContactPage()],
       ["/file-handling", createElement(FileHandlingPage)],
@@ -755,5 +763,36 @@ describe("Phase 2 technical SEO contracts", () => {
       }
       unmount();
     }
+  });
+
+  it("keeps ToolDownloadFeedback copy out of server-rendered tool HTML while hydrating cleanly on the client", async () => {
+    vi.resetModules();
+    vi.doMock("next/navigation", () => ({
+      useRouter: () => ({
+        push: vi.fn(),
+        replace: vi.fn(),
+        prefetch: vi.fn(),
+        back: vi.fn(),
+      }),
+      usePathname: () => "/tools/word-counter",
+      useSearchParams: () => new URLSearchParams(),
+    }));
+    const { default: ToolDownloadFeedback } =
+      await import("../components/tool-download-feedback");
+    const ssrHtml = renderToStaticMarkup(createElement(ToolDownloadFeedback));
+    expect(ssrHtml).toBe("");
+    expect(ssrHtml).not.toContain("A LITTLE MOMENT FOR YOU");
+    expect(ssrHtml).not.toContain("YOUR DOWNLOAD IS ON ITS WAY");
+    expect(ssrHtml).not.toContain("How did it feel?");
+    expect(ssrHtml).not.toContain("<dialog");
+
+    // On client mount, the dialog shell attaches with data-feedback-ready so
+    // download-triggered feedback invitations work identically.
+    const { container } = render(createElement(ToolDownloadFeedback));
+    const dialog = container.querySelector(
+      'dialog[data-feedback-tool="word-counter"]',
+    );
+    expect(dialog).not.toBeNull();
+    expect(dialog?.getAttribute("data-feedback-ready")).toBe("true");
   });
 });

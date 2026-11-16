@@ -1,3 +1,8 @@
+import {
+  brandBySlug,
+  isBrandRecordIndexable,
+} from "@/lib/tools/batch-code/brands";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AdSense configuration: the one place ad ids and placement names are defined.
 //
@@ -71,6 +76,7 @@ export const AD_PLACEMENTS = [
   // Editorial pages.
   "help-after-guides",
   "help-bottom",
+  "guide-bottom",
   "legal-article-end",
   "about-end",
   "faq-end",
@@ -122,6 +128,11 @@ export function isAdEligible(path: string): boolean {
     path === "/" ? "/" : path.split("?")[0].split("#")[0].replace(/\/+$/, "");
   if (NEVER_ADVERTISED_PREFIXES.some((prefix) => clean.startsWith(prefix))) {
     return false;
+  }
+  if (clean.startsWith("/tools/batch-code-checker/brand/")) {
+    const slug = clean.slice("/tools/batch-code-checker/brand/".length);
+    const brand = brandBySlug(slug);
+    return Boolean(brand && isBrandRecordIndexable(brand));
   }
   return !(clean in AD_EXCLUDED_ROUTES);
 }

@@ -40,7 +40,7 @@ export const TWO_D_FORMATS: TwoDFormatMeta[] = [
     name: "QR Code",
     blurb:
       "The general-purpose square code. It is not a GS1 code unless the data is a GS1 element string — this studio keeps the two apart.",
-    example: "https://quickkit.online",
+    example: "https://quickkit-rosy.vercel.app",
     placeholder: "Text or URL, e.g. https://example.com",
     rules: [
       "Up to 2,953 bytes at error correction L (fewer at M, Q and H)",

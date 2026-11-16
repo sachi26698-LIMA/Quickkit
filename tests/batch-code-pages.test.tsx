@@ -16,20 +16,20 @@ vi.mock("next/navigation", () => ({
 }));
 
 import BatchCodeCheckerPage, {
-  metadata as checkerMetadata,
+  generateMetadata as generateCheckerMetadata,
 } from "../app/(public)/tools/batch-code-checker/page";
 import BarcodeScannerPage, {
-  metadata as scannerMetadata,
+  generateMetadata as generateScannerMetadata,
 } from "../app/(public)/tools/barcode-scanner/page";
-import { metadata as generatorMetadata } from "../app/(public)/tools/barcode-generator/page";
+import { generateMetadata as generateGeneratorMetadata } from "../app/(public)/tools/barcode-generator/page";
 
 afterEach(() => {
   cleanup();
 });
 
 describe("batch code checker route", () => {
-  it("renders the checker, the brand directory and the method notes", () => {
-    render(<BatchCodeCheckerPage />);
+  it("renders the checker, the brand directory and the method notes", async () => {
+    render(await BatchCodeCheckerPage());
     expect(
       screen.getByRole("heading", { level: 1, name: "Batch Code Checker" }),
     ).toBeInTheDocument();
@@ -54,8 +54,8 @@ describe("batch code checker route", () => {
     ).toBeInTheDocument();
   });
 
-  it("carries FAQ structured data and a canonical URL", () => {
-    const { container } = render(<BatchCodeCheckerPage />);
+  it("carries FAQ structured data and a canonical URL", async () => {
+    const { container } = render(await BatchCodeCheckerPage());
     const schemas = Array.from(
       container.querySelectorAll("script[type='application/ld+json']"),
     ).map((script) => script.textContent ?? "");
@@ -66,8 +66,8 @@ describe("batch code checker route", () => {
 });
 
 describe("barcode scanner route", () => {
-  it("renders the scanner with its honesty panel first", () => {
-    render(<BarcodeScannerPage />);
+  it("renders the scanner with its honesty panel first", async () => {
+    render(await BarcodeScannerPage());
     expect(
       screen.getByRole("heading", { level: 1, name: "Barcode Scanner" }),
     ).toBeInTheDocument();
@@ -81,7 +81,13 @@ describe("barcode scanner route", () => {
 });
 
 describe("SEO distinctness", () => {
-  it("gives each barcode page its own title and description", () => {
+  it("gives each barcode page its own title and description", async () => {
+    const [generatorMetadata, checkerMetadata, scannerMetadata] =
+      await Promise.all([
+        generateGeneratorMetadata(),
+        generateCheckerMetadata(),
+        generateScannerMetadata(),
+      ]);
     const titles = [
       String(generatorMetadata.title),
       String(checkerMetadata.title),
@@ -101,7 +107,11 @@ describe("SEO distinctness", () => {
     }
   });
 
-  it("points each canonical at its own path", () => {
+  it("points each canonical at its own path", async () => {
+    const [checkerMetadata, scannerMetadata] = await Promise.all([
+      generateCheckerMetadata(),
+      generateScannerMetadata(),
+    ]);
     expect(checkerMetadata.alternates?.canonical).toBeUndefined(); // no SITE_URL in tests
     expect(String(checkerMetadata.title)).toContain("Batch Code");
     expect(String(scannerMetadata.title)).toContain("Barcode Scanner");

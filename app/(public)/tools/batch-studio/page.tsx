@@ -1,16 +1,24 @@
+import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import BatchStudio from "@/components/tools/batch-studio";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "Batch Barcode Studio — Mixed CSV to SVG and PNG",
-  "Turn a CSV into a ZIP of barcode symbols, one symbology per row if you need it: every row validated on its own, formats grouped into separate archives.",
-  "/tools/batch-studio",
-);
+const DEFAULT_TITLE = "Batch Barcode Studio — Mixed CSV to SVG and PNG";
+const DEFAULT_DESCRIPTION =
+  "Turn a CSV into a ZIP of barcode symbols, one symbology per row if you need it: every row validated on its own, formats grouped into separate archives.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata("batch-studio", DEFAULT_TITLE, DEFAULT_DESCRIPTION);
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("batch-studio");
   return (
     <ToolShell
+      publicData={publicData}
       slug="batch-studio"
       headingDescription="Paste a CSV and download an archive of symbols plus a report that names every row. A format column makes the sheet mixed-symbology, and each format is exported in its own folder — because a Code 128 label and a QR code cannot share a print run without per-row layout decisions."
       stepsHeading="How a batch run works"
@@ -52,6 +60,11 @@ export default function Page() {
       }}
     >
       <BatchStudio />
+      <p className="calculator-disclaimer">
+        Planning a mixed print run? Check module widths, quiet-zone minimums and
+        symbology rules in the <Link href="/guides/barcode">barcode guide</Link>
+        .
+      </p>
     </ToolShell>
   );
 }

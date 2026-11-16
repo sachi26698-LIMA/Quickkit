@@ -526,6 +526,28 @@ describe("qr studio — reference layout (tabs, cards, folds, sample)", () => {
     expect(advanced.open).toBe(true);
   });
 
+  /**
+   * Decision (2026-11-16): the long-payload limits are documented in the UI
+   * rather than changed under the visitor. This asserts the honest limits are
+   * visible in Advanced Settings — and that nothing about encoding changed.
+   */
+  it("documents the long-payload limits in Advanced Settings", () => {
+    render(<QrGenerator />);
+    const advanced = document.getElementById(
+      "qr-advanced",
+    ) as HTMLDetailsElement;
+    fireEvent.click(advanced.querySelector("summary") as HTMLElement);
+    const text = (advanced.textContent ?? "").replace(/\s+/g, " ");
+    // The two behaviours a very long payload can trigger, named plainly.
+    expect(text).toMatch(/drop to a lower one \(never below L\)/);
+    expect(text).toMatch(/every module lands on a whole pixel/);
+    // And the promise that neither is applied behind the visitor's back.
+    expect(text).toMatch(/never applied silently/);
+    expect(text).toMatch(/Growing is reported too/);
+    // The existing format limits are still stated alongside them.
+    expect(text).toMatch(/Micro QR, RM-QR, GS1, HANUKIN/);
+  });
+
   it("shows one design tab at a time", () => {
     render(<QrGenerator />);
     expect(

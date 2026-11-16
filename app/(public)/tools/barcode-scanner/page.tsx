@@ -2,17 +2,28 @@ import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import BarcodeScanner from "@/components/tools/barcode-scanner";
 import BarcodeScannerReference from "@/components/tools/barcode-scanner/reference";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "Barcode Scanner — EAN, UPC & Code 128 on Device",
-  "Scan EAN-13, UPC-A, UPC-E, Code 128, Code 39 and ITF-14 from a camera or image, with copy, local history and an optional GTIN lookup.",
-  "/tools/barcode-scanner",
-);
+const DEFAULT_TITLE = "Barcode Scanner — EAN, UPC & Code 128 on Device";
+const DEFAULT_DESCRIPTION =
+  "Scan EAN-13, UPC-A, UPC-E, Code 128, Code 39 and ITF-14 from a camera or image, with copy, local history and an optional GTIN lookup.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata(
+    "barcode-scanner",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("barcode-scanner");
   return (
     <ToolShell
+      publicData={publicData}
       slug="barcode-scanner"
       headingDescription="Read a printed barcode with your camera or from an image, entirely in this tab. Copy the value, keep a local history, and look up a GTIN in a community product database — clearly labelled as such, because a barcode never carries a batch, a date or proof of authenticity."
       stepsHeading="How to scan a barcode without a second app"
@@ -60,7 +71,9 @@ export default function Page() {
         the <Link href="/tools/batch-code-checker">batch code checker</Link>.
         Building a label instead? The{" "}
         <Link href="/tools/barcode-generator">barcode generator</Link> encodes
-        eleven symbologies with real check digits.
+        eleven symbologies with real check digits, and the{" "}
+        <Link href="/guides/barcode">barcode guide</Link> explains what each
+        symbology and check digit can and cannot prove.
       </p>
     </ToolShell>
   );

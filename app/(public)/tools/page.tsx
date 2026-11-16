@@ -7,7 +7,7 @@ import ToolExplorer from "@/components/tool-explorer";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 import { localToolCount } from "@/lib/catalog-counts";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 import {
   breadcrumbStructuredData,
   collectionPageStructuredData,

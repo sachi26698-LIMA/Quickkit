@@ -135,6 +135,13 @@ export default function HelpPage() {
 
         {/* 2 of 2 — after the FAQ, the end of the page's content. The
             "still stuck?" contact band below it stays untouched. */}
+        <p className="calculator-disclaimer">
+          Working with EAN, UPC, Code 128 or GS1 symbols? Read the{" "}
+          <Link href="/guides/barcode">Barcode Guide</Link> for format rules,
+          check digits and print sizing, or browse every page in the{" "}
+          <Link href="/sitemap">HTML Sitemap</Link>.
+        </p>
+
         <AdUnit placement="help-bottom" format="auto" />
 
         <div className="privacy-band help-cta">

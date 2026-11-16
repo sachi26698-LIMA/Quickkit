@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { tools } from "@/lib/catalog";
 import { toolTheme, toolThemeStyle, type ToolTheme } from "@/lib/tool-theme";
+import { useHydrated } from "@/lib/use-hydrated";
 import styles from "./tool-download-feedback.module.css";
 import {
   TOOL_FEEDBACK_KEY as STORAGE_KEY,
@@ -21,6 +22,8 @@ import {
   TOOL_FEEDBACK_POSITIVE_TAGS as positive,
   TOOL_FEEDBACK_RATING_LABELS as labels,
   markToolFeedbackPrompted,
+  markToolFeedbackReviewed,
+  needsToolFeedbackReview,
   parseToolFeedback,
   readToolFeedback,
   shouldPromptToolFeedback,
@@ -47,7 +50,9 @@ async function sendToolFeedback(entry: {
 }
 
 export default function ToolDownloadFeedback() {
+  const hydrated = useHydrated();
   const pathname = usePathname();
+  if (!hydrated) return null;
   const slug = pathname.startsWith("/tools/") ? pathname.slice(7) : "";
   const tool = tools.find((item) => item.slug === slug);
   return tool ? (
@@ -106,7 +111,9 @@ function Feedback({
         anchor.getAttribute("aria-disabled") === "true" ||
         modal?.open ||
         timer ||
-        // One invitation per tool per 24 hours, however many files are saved.
+        // One invitation per tool per 24 hours, however many files are saved —
+        // and none at all once this browser has already rated the tool.
+        !needsToolFeedbackReview(slug) ||
         !shouldPromptToolFeedback(slug)
       )
         return;
@@ -115,6 +122,8 @@ function Feedback({
         if (
           event.defaultPrevented ||
           modal?.open ||
+          // Re-checked: a rating sent while the timer was pending wins.
+          !needsToolFeedbackReview(slug) ||
           !shouldPromptToolFeedback(slug)
         )
           return;
@@ -129,7 +138,7 @@ function Feedback({
         setError("");
         // Browsers expose download initiation, not when a file finishes saving.
         // Leave the browser's download action untouched, then invite feedback.
-        modal?.showModal();
+        modal?.showModal?.();
         setOpen(true);
       }, 650);
     };
@@ -137,7 +146,7 @@ function Feedback({
     return () => {
       document.removeEventListener("click", onDownload, true);
       clearTimeout(timer);
-      modal?.close();
+      if (typeof modal?.close === "function" && modal.open) modal.close();
     };
   }, [slug]);
 
@@ -151,7 +160,9 @@ function Feedback({
   }, [open]);
 
   function dismiss() {
-    dialog.current?.close();
+    if (typeof dialog.current?.close === "function" && dialog.current.open) {
+      dialog.current.close();
+    }
     setOpen(false);
   }
 
@@ -175,6 +186,10 @@ function Feedback({
       );
       return;
     }
+    // The rating is with QUICKKIT, so this tool stops inviting one. Recorded
+    // separately from the copy below: a blocked store must not re-prompt
+    // someone whose rating was already delivered.
+    markToolFeedbackReviewed(slug);
     try {
       // This browser's own record of what it sent. Optional: a blocked or
       // full store must not turn a delivered rating into an error.

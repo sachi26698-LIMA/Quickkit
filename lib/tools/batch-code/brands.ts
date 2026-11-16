@@ -11,12 +11,8 @@
  * `lastVerified: null` everywhere is the honest value: these records have not
  * been reviewed against a manufacturer document, because none was reachable.
  */
-import type {
-  BrandRecord,
-  ProductCategory,
-  ShelfLife,
-} from "@/lib/tools/batch-code/types";
-import { CATEGORY_SHELF_LIFE } from "@/lib/tools/batch-code/shelf-life";
+import type { BrandRecord, ProductCategory, ShelfLife } from "./types";
+import { CATEGORY_SHELF_LIFE } from "./shelf-life";
 
 type Seed = {
   slug: string;
@@ -611,6 +607,21 @@ export const BRAND_BY_SLUG = new Map(
 export function brandBySlug(slug: string) {
   return BRAND_BY_SLUG.get(slug);
 }
+
+/**
+ * Only brand records with a documented decoder (`decoderStatus !== "none"`)
+ * provide brand-specific decoding utility and are eligible for search indexing.
+ * Records with `decoderStatus === "none"` remain accessible via direct links
+ * from the Brand Directory so nothing 404s, while staying out of search results
+ * and XML sitemaps until a citable manufacturer decoder exists.
+ */
+export function isBrandRecordIndexable(brand: BrandRecord): boolean {
+  return brand.decoderStatus !== "none";
+}
+
+export const INDEXABLE_BRANDS: BrandRecord[] = BRANDS.filter(
+  isBrandRecordIndexable,
+);
 
 /** Coverage, computed from the records rather than promised in copy. */
 export function brandCoverage() {

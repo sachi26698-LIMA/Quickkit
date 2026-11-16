@@ -1,10 +1,13 @@
 import ToolShell from "@/components/tool-shell";
+import ToolReferenceSection from "@/components/tool-reference-section";
 import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
 import {
   getPublicToolShellData,
   publicToolMetadata,
 } from "@/lib/supabase/public-catalog";
-import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
+import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
+
+const entry = TOOL_SEO_CONTENT["password-generator"];
 
 export async function generateMetadata() {
   return publicToolMetadata(
@@ -20,6 +23,12 @@ export default async function Page() {
     <ToolShell
       publicData={publicData}
       slug="password-generator"
+      stepsHeading={entry.stepsHeading}
+      faqsHeading={entry.faqsHeading}
+      relatedHeading={entry.relatedHeading}
+      referenceSection={
+        <ToolReferenceSection slug="password-generator" entry={entry} />
+      }
       privacyNotice="Password generation runs locally in your browser. Never share a generated password."
       content={{
         steps: [

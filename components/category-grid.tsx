@@ -33,6 +33,7 @@ export default function CategoryGrid({
           <Link
             key={meta.slug}
             href={`/category/${meta.slug}`}
+            rel={comingSoon ? "nofollow" : undefined}
             className={`category-card ${meta.tint} cat-${categoryTone(meta.name)}`}
           >
             <span className="category-glow" aria-hidden="true" />

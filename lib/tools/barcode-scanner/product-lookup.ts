@@ -21,6 +21,7 @@
  *   - data is ODbL 1.0, images are CC-BY-SA, and records are volunteer-entered.
  */
 import { gtinCheckOk } from "@/lib/tools/barcode/checksums";
+import { siteOrigin } from "@/lib/seo";
 import { contactEmail } from "@/lib/site";
 
 export const PRODUCT_DATABASE = {
@@ -376,13 +377,9 @@ const FIELDS = [
 
 /** `AppName/Version (contact)` — the shape Open Food Facts asks for. */
 export function userAgent(): string {
-  // The comment identifies us by a monitored inbox only. It previously
-  // advertised `quickkit.online`, a domain this project neither owns nor
-  // serves, so a third party was told to find us somewhere we do not control.
-  // Claiming no origin is correct until one is verified; the contact address
-  // is enough for the abuse desk to reach a human.
-  const contact = contactEmail?.trim();
-  return `QUICKKIT-BarcodeScanner/1.2 (${contact || "no contact"})`;
+  const origin = siteOrigin ?? "https://quickkit-rosy.vercel.app";
+  const contact = contactEmail ? `; ${contactEmail}` : "";
+  return `QUICKKIT-BarcodeScanner/1.2 (${origin}${contact})`;
 }
 
 export function productUrl(gtin: string): string {

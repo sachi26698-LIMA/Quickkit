@@ -138,11 +138,11 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
   const routes = await sitemap();
-  const { BRANDS } = await import("../lib/tools/batch-code/brands");
+  const { INDEXABLE_BRANDS } = await import("../lib/tools/batch-code/brands");
   const { tools } = await import("../lib/catalog");
   const { legalPages } = await import("../lib/legal");
   expect(routes).toHaveLength(
-    5 + legalPages.length + 7 + tools.length + BRANDS.length,
+    5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
   );
   expect(
     routes.every((route) => {
@@ -195,9 +195,9 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   // + every published tool. Derived so a new page cannot skip the sitemap unnoticed.
   const { legalPages } = await import("../lib/legal");
   const { tools } = await import("../lib/catalog");
-  const { BRANDS } = await import("../lib/tools/batch-code/brands");
+  const { INDEXABLE_BRANDS } = await import("../lib/tools/batch-code/brands");
   expect(routes).toHaveLength(
-    5 + legalPages.length + 7 + tools.length + BRANDS.length,
+    5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
   );
   for (const entry of routes) {
     const path = entry.url.replace("https://test.example", "");

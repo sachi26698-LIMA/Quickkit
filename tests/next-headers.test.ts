@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { buildCustomRoute } from "next/dist/lib/build-custom-route";
+import { tools } from "../lib/catalog";
 
 /**
  * The header policy is a security boundary in production and a debugging
@@ -153,36 +155,64 @@ describe("next.config header policy", () => {
     }
   });
 
-  it("allows the camera on the three scanner pages only", async () => {
+  it("allows the camera on the three scanner pages only, with one non-overlapping Permissions-Policy rule per route", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
     try {
       const { default: config } = await import("../next.config");
       const rules = (await config.headers?.()) ?? [];
-      const permissionRule = (source: string) =>
-        rules
-          .filter((rule) => rule.source === source)
-          .flatMap((rule) => rule.headers as HeaderEntry[])
-          .find((header) => header.key === "Permissions-Policy")?.value ?? "";
+      const compiled = rules.map((rule) => buildCustomRoute("header", rule));
 
-      // Each scanner needs a camera for its live mode, and a scoped rule is the
-      // only way to say yes to three pages without saying yes to the whole
-      // site.
+      const permissionsPoliciesFor = (pathname: string) =>
+        compiled
+          .filter((rule) => new RegExp(rule.regex).test(pathname))
+          .flatMap((rule) => rule.headers as HeaderEntry[])
+          .filter((header) => header.key === "Permissions-Policy")
+          .map((header) => header.value);
+
+      // Each scanner needs a camera for its live mode, and must match exactly
+      // ONE Permissions-Policy rule so CDNs/edges never emit duplicate headers
+      // whose browser intersection (`camera=()`) blocks getUserMedia.
       const cameraPages = [
         "/tools/qr-code-scanner",
         "/tools/barcode-generator",
         "/tools/barcode-scanner",
       ];
-      for (const source of cameraPages)
-        expect(permissionRule(source), source).toContain("camera=(self)");
-      // Everything else keeps the camera off: no other tool asks for it.
-      expect(permissionRule("/:path*")).toContain("camera=()");
-      expect(permissionRule("/:path*")).not.toContain("camera=(self)");
-      // Microphone and location stay off everywhere, scanners included.
-      for (const source of ["/:path*", ...cameraPages])
-        expect(permissionRule(source), source).toContain(
-          "microphone=(), geolocation=()",
-        );
+      for (const path of cameraPages) {
+        expect(permissionsPoliciesFor(path), path).toEqual([
+          "camera=(self), microphone=(), geolocation=()",
+        ]);
+        expect(permissionsPoliciesFor(`${path}/`), `${path}/`).toEqual([
+          "camera=(self), microphone=(), geolocation=()",
+        ]);
+        // Subpaths under scanner routes must not inherit camera access.
+        expect(
+          permissionsPoliciesFor(`${path}/extra`),
+          `${path}/extra`,
+        ).toEqual(["camera=(), microphone=(), geolocation=()"]);
+      }
+
+      // Every other tool in the 56-tool catalog and every core/guide/API route
+      // keeps camera, microphone, and geolocation disabled.
+      const cameraSet = new Set(cameraPages);
+      const restrictedPaths = [
+        "/",
+        "/about",
+        "/privacy",
+        "/security",
+        "/tools",
+        "/guides/barcode",
+        "/tools/batch-code-checker/brand/nivea",
+        "/api/visitor-stats",
+        ...tools
+          .map((tool) => `/tools/${tool.slug}`)
+          .filter((path) => !cameraSet.has(path)),
+      ];
+      for (const path of restrictedPaths) {
+        expect(permissionsPoliciesFor(path), path).toEqual([
+          "camera=(), microphone=(), geolocation=()",
+        ]);
+      }
     } finally {
       vi.unstubAllEnvs();
     }

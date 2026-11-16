@@ -12,7 +12,7 @@ import {
   getPublicSiteSettings,
 } from "@/lib/supabase/public-catalog";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSiteSettings();

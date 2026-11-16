@@ -19,7 +19,7 @@ import {
   toolsByCategory,
 } from "@/lib/catalog";
 import { legalPages } from "@/lib/legal";
-import { BRANDS } from "@/lib/tools/batch-code/brands";
+import { INDEXABLE_BRANDS } from "@/lib/tools/batch-code/brands";
 import {
   FAVORITES_KEY,
   SLUG_MIGRATIONS,
@@ -175,7 +175,7 @@ describe("cross-tool regression: the four split tools", () => {
     // 4 static routes (/saved is personal and stays out), plus legal pages,
     // non-empty categories and every published tool.
     expect(routes.length, "sitemap is actually populated").toBe(
-      5 + legalPages.length + 7 + tools.length + BRANDS.length,
+      5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
     );
     expect(routes.some((url) => url.includes(RETIRED))).toBe(false);
     for (const slug of SPLIT_TOOLS) {

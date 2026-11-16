@@ -10,7 +10,7 @@
  * PAO (the open-jar symbol) is the one figure here with a legal definition: EU
  * Cosmetics Regulation 1223/2009, Annex VIII.
  */
-import type { ProductCategory, ShelfLife } from "@/lib/tools/batch-code/types";
+import type { ProductCategory, ShelfLife } from "./types";
 
 const GUIDANCE_SOURCE =
   "General category guidance (unopened) — not a manufacturer statement; the printed date always wins";

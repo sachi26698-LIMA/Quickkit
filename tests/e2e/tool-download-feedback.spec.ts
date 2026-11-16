@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 const key = "quickkit-tool-feedback-v1";
 const promptKey = "quickkit-tool-feedback-prompted-v1";
+const reviewedKey = "quickkit-tool-feedback-reviewed-v1";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 type SentRating = {
@@ -163,13 +164,23 @@ for (const width of [320, 390, 1440]) {
     await ageInvitations(page, DAY_MS - 60_000);
     await download(page);
     await expectNoInvitation(page);
-    // …until 24 hours have passed, when it starts from a clean form.
+    // …and a day later, nor a year later: a tool that has been rated never
+    // invites the same browser again, however long ago the rating was sent.
     await ageInvitations(page, 2 * 60_000);
     await download(page);
-    await expect(modal).toBeVisible();
-    await expect(modal.getByRole("radio", { checked: true })).toHaveCount(0);
-    await expect(modal.getByRole("checkbox")).toHaveCount(0);
+    await expectNoInvitation(page);
+    await ageInvitations(page, 365 * DAY_MS);
+    await download(page);
+    await expectNoInvitation(page);
+    // Exactly one rating was sent; the suppression never re-sends or duplicates.
     expect(sent).toHaveLength(1);
+    // Only the slug is remembered as reviewed — never the words or the stars.
+    const reviewed = await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!),
+      reviewedKey,
+    );
+    expect(Object.keys(reviewed)).toEqual(["case-converter"]);
+    expect(typeof reviewed["case-converter"]).toBe("number");
   });
 }
 
@@ -254,11 +265,24 @@ test("cancelled downloads never prompt or use up the day's invitation; each tool
   await download(page);
   await expectNoInvitation(page);
 
-  // A day later the first tool may ask again.
+  // A day later the first tool may ask again — because it was dismissed, not
+  // rated. A rated tool never asks again (asserted above).
   await page.goto("/tools/word-counter");
   await ageInvitations(page, DAY_MS + 1_000);
   await download(page);
-  await expect(page.getByRole("dialog")).toBeVisible();
+  const again = page.getByRole("dialog");
+  await expect(again).toBeVisible();
+  // It starts from a clean form, not the previous visit's answer.
+  const card = again.locator("[data-tool-feedback]");
+  await expect(card).toHaveAttribute("data-step", "rating");
+  await expect(again.getByRole("radio", { checked: true })).toHaveCount(0);
+  await expect(again.getByRole("checkbox")).toHaveCount(0);
+  await expect(again.getByLabel("Anything else?")).toHaveCount(0);
+  // Still nothing rated, so still nothing reviewed: one entry, submitted only.
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), reviewedKey),
+  ).toBeNull();
+  expect(sent).toEqual([]);
 });
 
 test("an unreachable server never pretends the rating was sent, and a retry delivers it once", async ({

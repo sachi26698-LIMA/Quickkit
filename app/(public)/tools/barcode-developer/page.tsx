@@ -1,16 +1,28 @@
+import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import BarcodeDeveloper from "@/components/tools/barcode-developer";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "Barcode Developer Tools — Compare, Analyse, Debug",
-  "Compare barcode values character by character, screen a photographed symbol for resolution, contrast and quiet-zone faults, and read the lookup endpoint.",
-  "/tools/barcode-developer",
-);
+const DEFAULT_TITLE = "Barcode Developer Tools — Compare, Analyse, Debug";
+const DEFAULT_DESCRIPTION =
+  "Compare barcode values character by character, screen a photographed symbol for resolution, contrast and quiet-zone faults, and read the lookup endpoint.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata(
+    "barcode-developer",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("barcode-developer");
   return (
     <ToolShell
+      publicData={publicData}
       slug="barcode-developer"
       headingDescription="Three debugging jobs that come up whenever barcodes meet code: are these two values the same product number, why will this photo not decode, and what exactly does the lookup endpoint return?"
       stepsHeading="Debug a barcode problem in three steps"
@@ -48,6 +60,11 @@ export default function Page() {
       }}
     >
       <BarcodeDeveloper />
+      <p className="calculator-disclaimer">
+        Review symbology normalisation, quiet-zone rules and why screen analysis
+        differs from ISO/IEC 15416 verification in the{" "}
+        <Link href="/guides/barcode">barcode guide</Link>.
+      </p>
     </ToolShell>
   );
 }

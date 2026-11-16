@@ -1,16 +1,28 @@
+import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import ProductLookup from "@/components/tools/product-lookup";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "GTIN Product Lookup — Open Food Facts, Labelled",
-  "Look up a GTIN in Open Food Facts: ingredients, allergens and nutrition as recorded, missing fields shown as missing, ODbL attribution, no manufacturer claim.",
-  "/tools/product-lookup",
-);
+const DEFAULT_TITLE = "GTIN Product Lookup — Open Food Facts, Labelled";
+const DEFAULT_DESCRIPTION =
+  "Look up a GTIN in Open Food Facts: ingredients, allergens and nutrition as recorded, missing fields shown as missing, ODbL attribution, no manufacturer claim.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata(
+    "product-lookup",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("product-lookup");
   return (
     <ToolShell
+      publicData={publicData}
       slug="product-lookup"
       headingDescription="Enter the number under a barcode to see the community record for that product. Missing fields stay missing, a failed lookup is reported with its real reason, and the page never implies the manufacturer confirmed anything."
       stepsHeading="How to read a lookup result"
@@ -52,6 +64,11 @@ export default function Page() {
       }}
     >
       <ProductLookup />
+      <p className="calculator-disclaimer">
+        Want to understand how GTIN check digits, company prefixes and community
+        records differ from manufacturer verification? Read the{" "}
+        <Link href="/guides/barcode">barcode guide</Link>.
+      </p>
     </ToolShell>
   );
 }

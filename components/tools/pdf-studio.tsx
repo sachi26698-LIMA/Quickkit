@@ -37,17 +37,13 @@ import {
 import { useHydrated } from "@/lib/use-hydrated";
 import { downloadBlob, formatBytes } from "@/lib/tools/download";
 import {
-  CONVERT_FORMATS,
   CONVERT_LIMITS,
   INPUT_ACCEPT_PDF,
-  describePageRange,
   defaultSettings,
+  describePageRange,
   formatById,
   inputFormatFromName,
   keepsAlpha,
-  mmToPt,
-  placeImage,
-  resolvePage,
   type ConvertFormat,
   type ConvertMode,
   type ConvertSettings,
@@ -135,7 +131,7 @@ export default function PdfStudio() {
   const hydrated = useHydrated();
   const [mode] = useState<ConvertMode>("pdf-studio");
   const [settings, setSettings] = useState<ConvertSettings>(() =>
-    defaultSettings("image"),
+    defaultSettings("pdf-studio"),
   );
   const [items, setItems] = useState<QueueItem[]>([]);
   const [results, setResults] = useState<ConversionResult[]>([]);
@@ -315,7 +311,7 @@ export default function PdfStudio() {
         }
         if ((wantsPdf || wantsStudio) && format !== "pdf") {
           problems.push(
-            `"${file.name}" is an image. Switch to Image to image or Images to PDF.`,
+            `"${file.name}" is an image. Choose a PDF file, or use Images to PDF to turn images into a PDF.`,
           );
           continue;
         }
@@ -695,11 +691,8 @@ export default function PdfStudio() {
       >
         <Upload size={26} aria-hidden="true" />
         <p>
-          {mode === "pdf-to-image"
-            ? "Drop one PDF here to export its pages, or choose a file."
-            : mode === "images-to-pdf"
-              ? "Drop images here — each one becomes a PDF page."
-              : "Drop images here to convert between JPG, PNG, WEBP, AVIF, GIF, BMP and TIFF."}
+          Drop one or more PDFs here to merge, split, extract, rotate, reorder
+          or compress pages, or choose files.
         </p>
         <button
           type="button"
@@ -726,21 +719,13 @@ export default function PdfStudio() {
           className="converter-supported"
           aria-label="Supported formats and limits"
         >
-          {(mode === "pdf-to-image"
-            ? ["PDF up to 25 MB", "100 pages", "JPG · PNG · WEBP output"]
-            : [
-                "JPG",
-                "PNG",
-                "WEBP",
-                "AVIF",
-                "GIF",
-                "BMP",
-                "TIFF",
-                "Up to 20 files",
-                "15 MB each",
-                "150 MB per batch",
-              ]
-          ).map((label) => (
+          {[
+            "PDF",
+            "Up to 20 files",
+            "25 MB each",
+            "150 MB per batch",
+            "Up to 100 pages per PDF",
+          ].map((label) => (
             <span key={label} className="chip converter-chip">
               {label}
             </span>
@@ -750,18 +735,19 @@ export default function PdfStudio() {
           <summary>Format &amp; limitation notes</summary>
           <ul>
             <li>
-              Image inputs: JPG, PNG, WEBP, AVIF, GIF, BMP, TIFF. Outputs add
-              every format the browser can actually encode; AVIF and WEBP are
-              probed and disabled instead of writing a broken file.
+              PDF inputs only: up to 20 files, 25 MB and 100 pages per document,
+              and 150 MB per batch. Password-protected PDFs are refused with a
+              clear message.
             </li>
             <li>
-              GIF is exported as a single still frame — animation is not
-              preserved. TIFF is read and written locally by QUICKKIT because
-              browsers cannot open it.
+              Pages are copied with their original dimensions and selectable
+              text layer preserved. Page ranges apply to each queued file
+              separately, and invalid ranges block the run instead of guessing.
             </li>
             <li>
-              PDF → image exports JPG, PNG or WEBP only. PDFs built from images
-              contain raster pages with no editable or selectable text layer.
+              Compress recompresses embedded image streams at the chosen quality
+              preset while keeping text and vector content crisp; text-heavy
+              documents shrink less than scan-heavy ones.
             </li>
             <li>
               Everything runs in this tab. Files are never uploaded, and
@@ -1043,13 +1029,7 @@ export default function PdfStudio() {
             <h3 id="settings-heading">
               <Settings2 size={16} aria-hidden="true" /> Conversion settings
             </h3>
-            <span className="chip converter-chip">
-              {mode === "image"
-                ? "Image → image"
-                : mode === "images-to-pdf"
-                  ? "Images → PDF"
-                  : "PDF → image"}
-            </span>
+            <span className="chip converter-chip">PDF output</span>
           </div>
           <PdfStudioSettings
             settings={settings}
@@ -1439,7 +1419,7 @@ export default function PdfStudio() {
             <h3 id="preview-heading">
               <Eye size={16} aria-hidden="true" /> {previewTitle}
             </h3>
-            {canCompare && (mode !== "pdf-to-image" || results.length > 0) ? (
+            {canCompare ? (
               <div
                 className="converter-tabs"
                 role="group"
@@ -1462,16 +1442,6 @@ export default function PdfStudio() {
                 >
                   Converted
                 </button>
-                <button
-                  type="button"
-                  aria-pressed={compare === "slider"}
-                  className={compare === "slider" ? "active" : ""}
-                  onClick={() => setCompare("slider")}
-                  disabled={!results.length || mode === "pdf-to-image"}
-                  title="Drag to compare the original with the output"
-                >
-                  Slider
-                </button>
               </div>
             ) : null}
           </div>
@@ -1481,29 +1451,25 @@ export default function PdfStudio() {
               <ImageDown size={30} aria-hidden="true" />
               <strong>Nothing to preview yet</strong>
               <p>
-                Add{" "}
-                {mode === "pdf-to-image"
-                  ? "a PDF"
-                  : mode === "images-to-pdf"
-                    ? "images"
-                    : "an image"}{" "}
-                to see a real preview and file details here. Previews are built
-                from your file, never stock images.
+                Add a PDF to see real page previews and document details here.
+                Previews are built from your file, never stock images.
               </p>
             </div>
-          ) : mode === "images-to-pdf" ? (
-            compare === "result" && results[0]?.format === "pdf" ? (
-              <PdfGallery
-                key={`generated-${results[0].id}`}
-                blob={results[0].blob}
-                pageCount={results[0].pages ?? 1}
-                page={pdfPage}
-                onPage={setPdfPage}
-                title={`Preview of ${results[0].name}`}
-              />
-            ) : (
-              <PdfLayoutPreview item={selected} settings={settings} />
-            )
+          ) : compare === "result" && results.length ? (
+            (() => {
+              const previewResult =
+                results.find((entry) => entry.id === selectedId) ?? results[0];
+              return (
+                <PdfGallery
+                  key={`generated-${previewResult.id}`}
+                  blob={previewResult.blob}
+                  pageCount={previewResult.pages ?? 1}
+                  page={pdfPage}
+                  onPage={setPdfPage}
+                  title={`Preview of ${previewResult.name}`}
+                />
+              );
+            })()
           ) : selected.format === "pdf" ? (
             <PdfGallery
               key={`source-${selected.id}`}
@@ -1570,9 +1536,9 @@ export default function PdfStudio() {
                   type="button"
                   className="converter-result-thumb"
                   onClick={() => {
-                    setSelectedId(result.itemId);
+                    setSelectedId(result.id);
                     setCompare("result");
-                    if (result.page) setPdfPage(result.page);
+                    setPdfPage(result.page ?? 1);
                   }}
                   aria-label={`Preview ${result.name}`}
                 >
@@ -1595,17 +1561,13 @@ export default function PdfStudio() {
                           result.height,
                         )}`}
                   </small>
-                  {result.format !== "pdf" ? (
-                    <small className="converter-size-compare">
-                      {formatBytes(result.sourceBytes)} →{" "}
-                      {formatBytes(result.blob.size)}
-                      <span className="converter-saving">
-                        {savingsLabel(result.sourceBytes, result.blob.size)}
-                      </span>
-                    </small>
-                  ) : (
-                    <small>Raster PDF · no text layer</small>
-                  )}
+                  <small className="converter-size-compare">
+                    {formatBytes(result.sourceBytes)} →{" "}
+                    {formatBytes(result.blob.size)}
+                    <span className="converter-saving">
+                      {savingsLabel(result.sourceBytes, result.blob.size)}
+                    </span>
+                  </small>
                   {result.note ? (
                     <small className="converter-result-note">
                       {result.note}
@@ -1626,22 +1588,19 @@ export default function PdfStudio() {
             ))}
           </ul>
           <p className="converter-hint">
-            Sizes and dimensions above are read from the actual encoded files.
-            {mode === "pdf-to-image"
-              ? " Savings compare each page with an even share of the source PDF, so they are not shown as a percentage."
-              : ""}
+            Page counts and file sizes above are read from the actual written
+            PDFs.
           </p>
         </section>
       ) : null}
 
       <div className="workspace-foot">
         <p>
-          Files are decoded and encoded on this device. Closing the tab clears
-          the queue and results. Originals are never modified.
+          PDFs are read and written on this device. Closing the tab clears the
+          queue and results. Originals are never modified.
         </p>
         <span className="chip converter-chip">
-          <Layers size={13} aria-hidden="true" /> {CONVERT_FORMATS.length}{" "}
-          output formats
+          <Layers size={13} aria-hidden="true" /> 4 PDF actions
         </span>
       </div>
     </div>
@@ -2035,78 +1994,6 @@ function PdfGallery({
         {selectedPages
           ? `${selectedPages.length} page${selectedPages.length === 1 ? "" : "s"} in the export range (${describePageRange(selectedPages)}).`
           : "Preview rendered locally from the real PDF with PDF.js."}
-      </p>
-    </div>
-  );
-}
-
-function PdfLayoutPreview({
-  item,
-  settings,
-}: {
-  item: QueueItem;
-  settings: ConvertSettings;
-}) {
-  if (!item.width || !item.height) {
-    return (
-      <div className="converter-empty">
-        <Layers size={30} aria-hidden="true" />
-        <strong>Reading the image…</strong>
-        <p>The layout preview appears as soon as the dimensions are known.</p>
-      </div>
-    );
-  }
-  const page = resolvePage(
-    settings.pdfMake.pageSize,
-    settings.pdfMake.orientation,
-    settings.pdfMake.customWidthMm,
-    settings.pdfMake.customHeightMm,
-  );
-  const marginPt = mmToPt(settings.pdfMake.marginMm);
-  const placement = placeImage(
-    item.width,
-    item.height,
-    page.widthPt,
-    page.heightPt,
-    marginPt,
-    settings.pdfMake.fit,
-  );
-  const top =
-    ((page.heightPt - placement.y - placement.height) / page.heightPt) * 100;
-  return (
-    <div className="converter-layout-preview">
-      <div
-        className="converter-page"
-        style={{
-          aspectRatio: `${page.widthPt} / ${page.heightPt}`,
-          background: settings.pdfMake.background,
-        }}
-      >
-        <img
-          src={item.url}
-          alt={`Page layout preview for ${item.name}`}
-          style={{
-            left: `${(placement.x / page.widthPt) * 100}%`,
-            top: `${top}%`,
-            width: `${(placement.width / page.widthPt) * 100}%`,
-            height: `${(placement.height / page.heightPt) * 100}%`,
-            objectFit: settings.pdfMake.fit === "fill" ? "fill" : "cover",
-          }}
-        />
-        <span
-          className="converter-page-margin"
-          style={{
-            left: `${(marginPt / page.widthPt) * 100}%`,
-            right: `${(marginPt / page.widthPt) * 100}%`,
-            top: `${(marginPt / page.heightPt) * 100}%`,
-            bottom: `${(marginPt / page.heightPt) * 100}%`,
-          }}
-        />
-      </div>
-      <p className="converter-hint">
-        Live layout preview · {page.label} {settings.pdfMake.orientation} ·{" "}
-        {page.widthMm} × {page.heightMm} mm · {settings.pdfMake.marginMm} mm
-        margin · {settings.pdfMake.fit} fit
       </p>
     </div>
   );

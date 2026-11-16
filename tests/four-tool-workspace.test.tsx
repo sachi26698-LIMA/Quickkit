@@ -105,4 +105,34 @@ describe("every converter workspace exposes the required controls", () => {
       });
     });
   }
+
+  it("displays accurate PDF-only copy and limits in PDF Studio without image-converter claims", async () => {
+    const { container } = render(await PdfStudioPage());
+    const text = container.textContent ?? "";
+
+    expect(text).toContain(
+      "Drop one or more PDFs here to merge, split, extract, rotate, reorder or compress pages, or choose files.",
+    );
+    const chips = screen.getByLabelText(
+      "Supported formats and limits",
+    ).textContent!;
+    expect(chips).toContain("PDF");
+    expect(chips).toContain("Up to 20 files");
+    expect(chips).toContain("25 MB each");
+    expect(chips).toContain("150 MB per batch");
+    expect(chips).toContain("Up to 100 pages per PDF");
+    expect(chips).not.toMatch(/15 MB each|AVIF|BMP|TIFF/);
+
+    expect(text).not.toContain(
+      "Drop images here to convert between JPG, PNG, WEBP",
+    );
+    expect(text).not.toContain("PDF → image");
+    expect(text).not.toContain("7 output formats");
+    expect(text).not.toContain("Raster PDF · no text layer");
+    expect(text).toContain("PDF output");
+    expect(text).toContain("4 PDF actions");
+    expect(text).toContain(
+      "Add a PDF to see real page previews and document details here.",
+    );
+  });
 });
