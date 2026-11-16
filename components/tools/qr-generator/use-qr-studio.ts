@@ -137,11 +137,15 @@ function renderKeyFor(
 
 /**
  * A real page, used by the empty state so the sample code actually works.
- * It must be a URL this project serves: the sample is shown verbatim in the
- * UI and encoded into a scannable code, so an unowned domain here produced a
- * demo QR that led nowhere.
+ *
+ * Re-exported rather than redefined: the value has to match the sample payload
+ * the workspace encodes and the browser end-to-end suite decodes, and a second
+ * literal is exactly how the two drifted apart. `QR_SAMPLE_URL` in the payload
+ * module is the source of truth.
  */
-export const QR_SAMPLE_URL = "https://quickkit-rosy.vercel.app/?src=qr-example";
+import { QR_SAMPLE_URL } from "@/lib/tools/qr/payload";
+
+export { QR_SAMPLE_URL };
 
 const PREVIEW_SIZE = 320;
 const HEAVY_DEBOUNCE_MS = 650;

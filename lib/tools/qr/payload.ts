@@ -1876,12 +1876,24 @@ export function isKnownContentType(id: string): id is QrContentTypeId {
 }
 
 /**
+ * The page the empty-state sample points at, so the demo code actually resolves.
+ *
+ * It lives here, beside the values that are encoded, because the workspace and
+ * the browser end-to-end suite must agree on the exact bytes: the suite builds
+ * its expectation from `QR_SAMPLE_VALUES`, so a sample URL defined anywhere else
+ * silently drifts and turns every "does the exported PNG decode to the payload"
+ * test red while the app itself is fine. The feature and the check both read
+ * this one constant.
+ */
+export const QR_SAMPLE_URL = "https://quickkit-rosy.vercel.app/?src=qr-example";
+
+/**
  * A working sample per content type, used by the "Try sample" affordance so a
  * first-time user sees a real, decodable code for whichever type is selected.
  * Every entry builds a valid payload (covered by the payload unit tests).
  */
 export const QR_SAMPLE_VALUES: Record<QrContentTypeId, QrValues> = {
-  url: { url: "https://quickkit.tools/?src=qr-example" },
+  url: { url: QR_SAMPLE_URL },
   payment: {
     method: "upi",
     payeeName: "Aurora Café",
