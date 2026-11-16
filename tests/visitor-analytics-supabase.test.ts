@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -119,5 +120,46 @@ describe("visitor counter stored in Supabase", () => {
       visitors: 0,
       averageSeconds: 0,
     });
+  });
+});
+
+describe("visitor flood guard migration", () => {
+  const sql = readFileSync(
+    "supabase/migrations/202611160004_quickkit_visitor_flood_guard.sql",
+    "utf8",
+  );
+
+  it("is transactional and removes nothing", () => {
+    expect(sql).toMatch(/^begin;$/m);
+    expect(sql.trimEnd().endsWith("commit;")).toBe(true);
+    expect(sql).not.toMatch(
+      /\b(drop|truncate|delete\s+from\s+public\.quickkit_visitor_(ids|totals))\b/i,
+    );
+  });
+
+  it("limits new visits per minute before it stores anything for them", () => {
+    const limit = sql.indexOf(">= c_new_visits_per_minute");
+    const insertSession = sql.indexOf(
+      "insert into public.quickkit_visitor_sessions",
+    );
+    const insertVisitor = sql.indexOf(
+      "insert into public.quickkit_visitor_ids",
+    );
+    expect(sql).toMatch(/c_new_visits_per_minute constant integer := 120;/);
+    expect(sql).toContain("created_at >= now() - interval '1 minute'");
+    expect(limit).toBeGreaterThan(0);
+    expect(insertSession).toBeGreaterThan(limit);
+    expect(insertVisitor).toBeGreaterThan(insertSession);
+  });
+
+  it("keeps the function private to the server", () => {
+    expect(sql).toMatch(/security definer\s+set search_path = pg_catalog/);
+    expect(sql).toMatch(
+      /revoke all on function public\.quickkit_record_visit\(text, text, bigint\)\s+from public, anon, authenticated;/,
+    );
+    expect(sql).toMatch(
+      /grant execute on function public\.quickkit_record_visit\(text, text, bigint\)\s+to service_role;/,
+    );
+    expect(sql).not.toMatch(/grant[^;]*\b(anon|authenticated)\b/i);
   });
 });

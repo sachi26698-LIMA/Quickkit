@@ -57,10 +57,15 @@ are pruned after 24h inactivity on the next write; aggregate totals remain.
 Clearing browser data/opt-out does not subtract prior aggregate contributions.
 
 The public endpoint returns aggregates only. It rejects cross-origin writes and
-invalid/oversized input, but cannot authenticate a human visitor: configure hosting
-WAF/rate limits (especially POST `/api/visitor-stats`) and database spending limits
-before exposing to production. Legal review of opt-in text, identifiers, retention
-and hosting location is required; no regulatory compliance is claimed.
+invalid/oversized input, but cannot authenticate a human visitor. With the
+Supabase store, `quickkit_record_visit()` therefore accepts at most 120 new
+visits per minute site-wide (migration `202611160004`); above that, extra new
+visits are neither stored nor counted, while heartbeats for visits already
+accepted continue. This bounds stored rows and how far a script can inflate the
+graph; it does not make the numbers verified people. Hosting WAF/rate limits on
+POST `/api/visitor-stats` remain a useful second layer. Legal review of opt-in
+text, identifiers, retention and hosting location is the operator's
+responsibility; no regulatory compliance is claimed.
 
 For local verification use a database outside the repository, e.g.
 `ANALYTICS_DATABASE_URL=file:/home/user/.cache/quickkit-visitors.db npm run dev`.
