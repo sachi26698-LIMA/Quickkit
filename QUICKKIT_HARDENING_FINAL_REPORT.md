@@ -319,3 +319,48 @@ removed, no schema, credential or SMTP setting touched.
 **Merge is not requested here.** Per the standing instruction, merging, deploying and any
 production change require explicit approval. Two items in §9 need a product decision before
 this is called finished — neither is a blocker for review.
+
+---
+
+## 11. Post-merge reconciliation with `main`
+
+While this branch was open, `main` advanced 12 commits and independently shipped several
+things this branch had reported as gaps. The branch was merged with `main` (`1b8d8b1`) and
+the PR is now `MERGEABLE`. Where `main` superseded this work, **`main` won** — and it is
+worth being explicit about that, because two findings in §1/§3 are now historical:
+
+| Finding on this branch | What `main` shipped | Resolution |
+|---|---|---|
+| No homepage review feed; `subscribeToolFeedback` had 0 consumers | A real feed (`data-laptop-tool-review`) plus `POST /api/tool-feedback` | **Superseded.** Feedback is now genuinely sent, so this branch's "Nothing is uploaded" copy would have been **false**; `main`'s "sent to the QUICKKIT team" was taken |
+| The glass panel had no `data-laptop-feedback-style` attribute, so the test selector was wrong | `main` added the attribute to the component | **Superseded.** `main`'s spec was taken; the branch's selector rewrite is obsolete |
+| Hash Comparison / File Privacy Checker had no reachable UI | `main` fixed the same defect independently, the same way | **Duplicated.** The branch's page change was dropped in favour of `main`'s within `DeveloperToolPage` |
+
+**Kept from this branch, because `main` has no equivalent:**
+
+- **The QR decode-repair loop** (`lib/tools/qr/render.ts`). `main` hardened the *reader*
+  (`verify.ts`) so it stops rejecting valid small codes; this branch fixes the *renderer* so
+  it stops emitting codes that cannot be read. These are complementary — both survive, and a
+  300-combination sweep on the merged tree reports **0 undecodable, 0 silent resizes**.
+- The `data-step` progression assertions, ported into `main`'s richer spec so no coverage
+  was lost.
+
+**Two issues the merge surfaced, both caught by this branch's own guards:**
+
+1. `lib/system-health.ts` (new on `main`) imports a Supabase *type*. The server-only rule
+   flagged it. Rather than exempting it, the rule now requires server-only modules to prove
+   the import is type-only, so it cannot widen into a runtime dependency.
+2. A branch test asserted admin labels (`"Owner action required"`, `"NOT CONFIGURED"`) that
+   `main` replaced with `describeSystemHealth()`. Adopted `main`'s assertions.
+
+### Merged-tree gates (`1b8d8b1`)
+
+| Gate | Result |
+|---|---|
+| `tsc --noEmit` | exit 0 |
+| `eslint .` | exit 0 |
+| `npm run format:check` | exit 0 |
+| `vitest run` | **2729 / 2729**, 198 files |
+| `npm run build` | exit 0 |
+| `npm audit` | 0 vulnerabilities |
+
+The test count rose from 2500 to 2729 because `main` brought its own new suites.
