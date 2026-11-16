@@ -5,6 +5,13 @@ import { isIP } from "node:net";
 import type { NextRequest } from "next/server";
 import { tools } from "@/lib/catalog";
 import {
+  isSiteFeedbackRating,
+  SITE_FEEDBACK_MAX_TAGS,
+  SITE_FEEDBACK_MESSAGE_MAX,
+  SITE_FEEDBACK_NAME_MAX,
+  siteFeedbackTagsFor,
+} from "@/lib/site-feedback";
+import {
   TOOL_FEEDBACK_COMMENT_MAX,
   TOOL_FEEDBACK_MAX_TAGS,
   TOOL_FEEDBACK_TAGS,
@@ -30,7 +37,14 @@ const CONTACT_FIELDS = new Set([
   "message",
   "consent",
 ]);
-const FEEDBACK_FIELDS = new Set(["name", "message", "consent"]);
+const FEEDBACK_FIELDS = new Set([
+  "name",
+  "message",
+  "rating",
+  "tags",
+  "tool",
+  "consent",
+]);
 const TOOL_FEEDBACK_FIELDS = new Set([
   "tool",
   "rating",
@@ -168,13 +182,48 @@ export async function parseContactSubmission(request: NextRequest) {
   if (error) throw new SubmissionError("unavailable");
 }
 
+/**
+ * The homepage feedback form. A visitor may send a star rating, a short
+ * message, or both; quick answers are accepted only with the rating they
+ * belong to, and "About" only for a tool that exists. Nothing is stored unless the visitor opted in (`consent`).
+ */
 export async function parseFeedbackSubmission(request: NextRequest) {
   const body = await readJson(request, FEEDBACK_FIELDS);
-  const message = cleanText(body.message, 180);
-  const name = body.name === undefined ? null : cleanText(body.name, 35);
+  const hasMessage =
+    typeof body.message === "string" && body.message.trim().length > 0;
+  const message = hasMessage
+    ? cleanText(body.message, SITE_FEEDBACK_MESSAGE_MAX)
+    : "";
+  const name =
+    body.name === undefined
+      ? null
+      : cleanText(body.name, SITE_FEEDBACK_NAME_MAX);
+  const hasRating = body.rating !== undefined && body.rating !== null;
+  const rating = hasRating ? body.rating : null;
+  const rawTags = body.tags === undefined ? [] : body.tags;
+  const allowedTags = isSiteFeedbackRating(rating)
+    ? siteFeedbackTagsFor(rating)
+    : [];
+  // "About": one tool from the catalogue, or absent for QUICKKIT overall.
+  const hasTool = body.tool !== undefined && body.tool !== "";
+  const tool =
+    hasTool && typeof body.tool === "string" && TOOL_SLUGS.has(body.tool)
+      ? body.tool
+      : null;
   if (
-    !message ||
+    (hasTool && !tool) ||
+    (body.message !== undefined && typeof body.message !== "string") ||
+    message === null ||
     (body.name !== undefined && body.name !== "" && !name) ||
+    (hasRating && !isSiteFeedbackRating(rating)) ||
+    // Something must be said: stars, words, or both.
+    (!hasRating && !message) ||
+    !Array.isArray(rawTags) ||
+    rawTags.length > SITE_FEEDBACK_MAX_TAGS ||
+    !rawTags.every(
+      (tag): tag is string =>
+        typeof tag === "string" && allowedTags.includes(tag),
+    ) ||
     body.consent !== true
   ) {
     throw new SubmissionError("invalid");
@@ -183,9 +232,17 @@ export async function parseFeedbackSubmission(request: NextRequest) {
   await enforceRateLimit(request, "feedback");
   const client = getSupabaseAdminClient();
   if (!client) throw new SubmissionError("unavailable");
-  const { error } = await client
-    .from("quickkit_feedback_submissions")
-    .insert({ name, message });
+  const { error } = await client.from("quickkit_feedback_submissions").insert({
+    name,
+    message,
+    // The rating columns are named only when a rating was given, so a plain
+    // message is stored exactly as it was before ratings existed.
+    ...(isSiteFeedbackRating(rating)
+      ? { rating, tags: [...new Set(rawTags)] }
+      : {}),
+    // Likewise named only when the visitor chose a tool under "About".
+    ...(tool ? { tool_slug: tool } : {}),
+  });
   if (error) throw new SubmissionError("unavailable");
 }
 

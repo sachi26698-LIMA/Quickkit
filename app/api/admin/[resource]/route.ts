@@ -117,16 +117,48 @@ export async function GET(
         .order("created_at", { ascending: false })
         .limit(500);
       if (statusFilter) ratingQuery = ratingQuery.eq("status", statusFilter);
-      const [messages, ratings] = await Promise.all([query, ratingQuery]);
+      // Reads nothing useful; it only tells whether the homepage form's
+      // rating column exists yet (see `homepage_ratings_ready` below).
+      const homepageRatingProbe = access.context.db
+        .from("quickkit_feedback_submissions")
+        .select("rating")
+        .limit(1);
+      const [messages, ratings, homepageRatings] = await Promise.all([
+        query,
+        ratingQuery,
+        homepageRatingProbe,
+      ]);
       if (messages.error)
         return apiError(503, "Private submissions are unavailable.");
       const toolNames = new Map<string, string>(
         tools.map((tool) => [tool.slug, tool.name]),
       );
-      const messageRows = (messages.data ?? []).map((row) => ({
-        ...row,
-        source: "message" as const,
-      }));
+      // Homepage feedback: a message, a star rating, or both.
+      const messageRows = (messages.data ?? []).map((row) => {
+        const { rating, tags, tool_slug, ...rest } = row as typeof row & {
+          rating?: unknown;
+          tags?: unknown;
+          tool_slug?: unknown;
+        };
+        // "About": the tool the visitor chose, when they chose one.
+        const about =
+          typeof tool_slug === "string" && tool_slug ? tool_slug : null;
+        const hasRating =
+          typeof rating === "number" &&
+          Number.isInteger(rating) &&
+          rating >= 1 &&
+          rating <= 5;
+        return {
+          ...rest,
+          source: "message" as const,
+          ...(hasRating
+            ? { rating, tags: Array.isArray(tags) ? tags : [] }
+            : {}),
+          ...(about
+            ? { tool_slug: about, tool_name: toolNames.get(about) ?? about }
+            : {}),
+        };
+      });
       // Until the tool-ratings migration is applied the ratings read fails;
       // the written messages are still shown and the page says why.
       const ratingRows = ratings.error
@@ -149,6 +181,9 @@ export async function GET(
           String(b.created_at).localeCompare(String(a.created_at)),
         ),
         ratings_ready: !ratings.error,
+        // False until the homepage-rating migration is applied: plain
+        // messages still arrive, but a visitor's star rating cannot be saved.
+        homepage_ratings_ready: !homepageRatings.error,
       });
     }
     if (resource === "settings") {

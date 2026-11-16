@@ -96,8 +96,11 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Messages you choose to send</strong> through the contact form
-          or, after separately opting in, the feedback form. Submitted messages
-          are private to QUICKKIT and are not displayed to other visitors. See{" "}
+          or, after separately opting in, the homepage feedback form. The
+          feedback form can carry an optional name, a message of up to 180
+          characters, an optional 1–5 star rating, the options you tick and the
+          tool you choose under “About”. Submitted messages and ratings are
+          private to QUICKKIT and are not displayed to other visitors. See{" "}
           <a href="#retention">section 10</a>.
         </li>
         <li>
@@ -193,6 +196,15 @@ export default function PrivacyPage() {
         identifiers.
       </p>
       <ul>
+        <li>
+          <code>quickkit-hero-feedback-v1</code> — feedback you save in the
+          homepage “Share your experience” form: optional name, message (up to
+          180 characters), optional star rating, the options you ticked and the
+          tool you chose under “About”. It is shown back to you on the homepage,
+          stays in this browser and is transmitted only if you tick “Send this
+          feedback privately to QUICKKIT”. You can delete each entry in the
+          form.
+        </li>
         <li>
           <code>quickkit-tool-feedback-v1</code> — this browser’s copy of the
           tool ratings you sent: the rating, selected feedback options, comment

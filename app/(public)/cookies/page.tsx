@@ -147,6 +147,29 @@ export default function CookiesPage() {
             </tr>
             <tr role="row">
               <td role="cell" data-label="Key / database">
+                <code>quickkit-hero-feedback-v1</code>
+              </td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
+                Feedback you save in the homepage “Share your experience” form:
+                optional name, message (180 characters maximum), optional 1–5
+                star rating, the options you ticked and the tool you chose under
+                “About”. Shown back to you on the homepage only. It is sent to
+                QUICKKIT for private review only if you tick “Send this feedback
+                privately to QUICKKIT”.
+              </td>
+              <td role="cell" data-label="Created when">
+                You submit the homepage feedback form
+              </td>
+              <td role="cell" data-label="Removed when">
+                You delete the entry in the form, or browser site data is
+                cleared.
+              </td>
+            </tr>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>quickkit-tool-feedback-v1</code>
               </td>
               <td role="cell" data-label="Type">

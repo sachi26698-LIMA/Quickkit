@@ -236,9 +236,9 @@ for (const width of [390, 1440]) {
     await expect(
       dialog.getByRole("region", { name: "Saved feedback" }),
     ).toBeVisible();
-    await expect(
-      dialog.getByRole("button", { name: /delete|remove/i }),
-    ).toHaveCount(0);
+    // Each saved entry can be removed from this browser, newest first.
+    const saved = dialog.getByRole("region", { name: "Saved feedback" });
+    await expect(saved.getByRole("button", { name: /^Delete/ })).toHaveCount(2);
     await expect(dialog.getByText("A second entry.")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
@@ -247,6 +247,16 @@ for (const width of [390, 1440]) {
     await page.reload();
     await expect(screen.getByText("A second entry.")).toBeVisible();
     await expect(screen.getByText("Asha")).toBeVisible();
+    await trigger.hover({ force: true });
+    await trigger.click();
+    await saved.getByRole("button", { name: "Delete feedback 1" }).click();
+    await expect(saved.getByRole("button", { name: /^Delete/ })).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(screen.getByText("A second entry.")).toHaveCount(0);
+    await expect(screen.getByText("Asha")).toBeVisible();
+    await page.reload();
+    await expect(screen.getByText("Asha")).toBeVisible();
+    await expect(screen.getByText("A second entry.")).toHaveCount(0);
   });
 }
 
@@ -562,7 +572,7 @@ for (const width of [390, 1440]) {
 }
 
 for (const width of [390, 1440]) {
-  test(`laptop glass panel opens the complete rating form with read-only reviews at ${width}px`, async ({
+  test(`laptop glass panel opens the complete rating form and keeps saved reviews at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
@@ -622,8 +632,10 @@ for (const width of [390, 1440]) {
     await button.hover({ force: true });
     await button.click();
     await expect(
-      modal.getByRole("button", { name: /delete|remove/i }),
-    ).toHaveCount(0);
+      modal
+        .getByRole("region", { name: "Saved feedback" })
+        .getByText("Riya · Image Resizer"),
+    ).toBeVisible();
     await page.keyboard.press("Escape");
     await page.reload();
     await expect(panel.getByText("Riya", { exact: true })).toBeVisible();

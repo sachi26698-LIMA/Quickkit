@@ -40,6 +40,7 @@ import { AdminModalLayer } from "./admin-modal-layer";
 import {
   AdminFeedbackInsights,
   AdminStars,
+  ratingGroupOf,
   ratingLabel,
   summarizeRatings,
 } from "./admin-feedback-insights";
@@ -63,6 +64,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
   const [feedbackRating, setFeedbackRating] = useState("all");
   const [feedbackTool, setFeedbackTool] = useState("all");
   const [ratingsReady, setRatingsReady] = useState(true);
+  const [homepageRatingsReady, setHomepageRatingsReady] = useState(true);
   const [maintenanceTool, setMaintenanceTool] = useState<AdminTool | null>(
     null,
   );
@@ -120,6 +122,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
         data?: Row[];
         category_options?: string[];
         ratings_ready?: boolean;
+        homepage_ratings_ready?: boolean;
         error?: string;
       } | null;
       if (!response.ok)
@@ -128,7 +131,10 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
       setRows(nextRows);
       setSelectedIds([]);
       if (kind === "tools") setCategoryOptions(body?.category_options ?? []);
-      if (kind === "feedback") setRatingsReady(body?.ratings_ready !== false);
+      if (kind === "feedback") {
+        setRatingsReady(body?.ratings_ready !== false);
+        setHomepageRatingsReady(body?.homepage_ratings_ready !== false);
+      }
       const syncedAt = Date.now();
       setReferenceNowMs(syncedAt);
       if (kind === "submissions") {
@@ -252,7 +258,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
       const matchesFeedbackTool =
         kind !== "feedback" ||
         feedbackTool === "all" ||
-        ("tool_slug" in row && row.tool_slug === feedbackTool);
+        ratingGroupOf(row as SubmissionRow) === feedbackTool;
       const createdAt = "created_at" in row ? String(row.created_at) : "";
       const matchesFromDate = !fromDate || createdAt.slice(0, 10) >= fromDate;
       const rowEntity =
@@ -432,7 +438,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
           suffix: ratings.average === null ? undefined : "/ 5",
           tone: "amber",
         },
-        { label: "Tool ratings", value: ratings.count, tone: "cyan" },
+        { label: "Star ratings", value: ratings.count, tone: "cyan" },
         { label: "Low ratings (1–2★)", value: ratings.low, tone: "teal" },
       ];
     }
@@ -989,6 +995,19 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
         </div>
       ) : null}
 
+      {kind === "feedback" && !loading && !error && !homepageRatingsReady ? (
+        <div
+          className={`${styles["admin-state"]} ${styles["admin-state--warn"]}`}
+          role="status"
+        >
+          Star ratings from the homepage feedback form are not being saved yet:
+          the{" "}
+          <code className={styles["admin-code"]}>quickkit_feedback_rating</code>{" "}
+          database migration has not been applied to this Supabase project.
+          Messages sent without a rating are unaffected.
+        </div>
+      ) : null}
+
       {kind === "feedback" && ratingSummary && !loading && !error ? (
         <AdminFeedbackInsights
           summary={ratingSummary}
@@ -1059,7 +1078,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
             >
               <option value="all">All feedback</option>
               <option value="rating">Tool ratings</option>
-              <option value="message">Written messages</option>
+              <option value="message">Homepage feedback</option>
             </select>
             <select
               className={styles["admin-select"]}
@@ -1088,7 +1107,7 @@ export default function AdminResourceTable({ kind }: { kind: ResourceKind }) {
                   setPage(1);
                 }}
               >
-                <option value="all">All tools</option>
+                <option value="all">All tools and forms</option>
                 {[...ratingSummary.tools]
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((tool) => (
@@ -1844,7 +1863,12 @@ function cells(kind: ResourceKind, row: Row, cols: string[]) {
             <div className={styles["admin-cell-primary"]}>
               <strong>{r.name || "Anonymous"}</strong>
               {r.email ? <small>{r.email}</small> : null}
-              {kind === "feedback" ? <small>Written message</small> : null}
+              {kind === "feedback" ? (
+                <small>
+                  Homepage feedback
+                  {r.tool_slug ? ` · about ${r.tool_name ?? r.tool_slug}` : ""}
+                </small>
+              ) : null}
             </div>
           ),
         )}
@@ -1871,10 +1895,24 @@ function cells(kind: ResourceKind, row: Row, cols: string[]) {
             </div>
           ) : (
             <div className={styles["admin-cell-feedback"]}>
+              {typeof r.rating === "number" ? (
+                <span className={styles["admin-rating-line"]}>
+                  <AdminStars rating={r.rating} />
+                  <strong>{r.rating}/5</strong>
+                  <span>{ratingLabel(r.rating)}</span>
+                </span>
+              ) : null}
+              {r.tags?.length ? (
+                <span className={styles["admin-tag-list"]}>
+                  {r.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </span>
+              ) : null}
               <span className={styles["admin-category-chip"]}>
                 {(r.feedback_type ?? "unclassified").replaceAll("_", " ")}
               </span>
-              <small>{r.message.slice(0, 140)}</small>
+              {r.message ? <small>{r.message.slice(0, 140)}</small> : null}
             </div>
           ),
         )}
@@ -2241,10 +2279,42 @@ function Editor({
               </p>
             </>
           ) : (
-            <p>
-              <strong>From:</strong> {String(values.name || "Anonymous")}{" "}
-              {values.email ? `· ${String(values.email)}` : ""}
-            </p>
+            <>
+              <p>
+                <strong>From:</strong> {String(values.name || "Anonymous")}{" "}
+                {values.email ? `· ${String(values.email)}` : ""}
+              </p>
+              {kind === "feedback" && r.tool_slug ? (
+                <p>
+                  <strong>About:</strong>{" "}
+                  <Link
+                    className={styles["admin-link"]}
+                    href={`/tools/${encodeURIComponent(String(r.tool_slug))}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {String(r.tool_name ?? r.tool_slug)} ↗
+                  </Link>
+                </p>
+              ) : null}
+              {kind === "feedback" && typeof r.rating === "number" ? (
+                <>
+                  <p className={styles["admin-rating-line"]}>
+                    <strong>Rating:</strong>
+                    <AdminStars rating={r.rating} size={15} />
+                    <span>
+                      {r.rating}/5 · {ratingLabel(r.rating)}
+                    </span>
+                  </p>
+                  <p>
+                    <strong>Selected options:</strong>{" "}
+                    {Array.isArray(r.tags) && r.tags.length
+                      ? (r.tags as string[]).join(", ")
+                      : "None"}
+                  </p>
+                </>
+              ) : null}
+            </>
           )}
           {kind === "submissions" ? (
             <p>
@@ -2252,7 +2322,7 @@ function Editor({
             </p>
           ) : null}
         </div>
-        {r.source === "rating" && !values.message ? (
+        {kind === "feedback" && !values.message ? (
           <p className={styles["admin-field-hint"]}>
             The visitor did not add a written comment.
           </p>

@@ -52,6 +52,17 @@ export type RatingSummary = {
   tools: { slug: string; name: string; count: number; average: number }[];
 };
 
+/** Stands in for a tool slug so homepage ratings get their own line and
+ * filter. Not a valid slug, so it can never collide with a real tool. */
+export const HOMEPAGE_RATING_KEY = "~homepage";
+export const HOMEPAGE_RATING_NAME = "Homepage feedback form";
+
+/** Which "Ratings by tool" group a row's rating belongs to; "" for none. */
+export function ratingGroupOf(row: SubmissionRow): string {
+  if (typeof row.rating !== "number") return "";
+  return row.source === "rating" ? (row.tool_slug ?? "") : HOMEPAGE_RATING_KEY;
+}
+
 export function summarizeRatings(rows: SubmissionRow[]): RatingSummary {
   const distribution = [0, 0, 0, 0, 0];
   const perTool = new Map<
@@ -61,16 +72,20 @@ export function summarizeRatings(rows: SubmissionRow[]): RatingSummary {
   let total = 0;
   let count = 0;
   for (const row of rows) {
-    if (row.source !== "rating" || typeof row.rating !== "number") continue;
+    // Tool ratings and rated homepage feedback are counted together.
+    if (typeof row.rating !== "number") continue;
     const rating = Math.round(row.rating);
     if (rating < 1 || rating > 5) continue;
     distribution[rating - 1] += 1;
     total += rating;
     count += 1;
-    const slug = row.tool_slug ?? "";
+    const slug = ratingGroupOf(row);
     const entry = perTool.get(slug) ?? {
       slug,
-      name: row.tool_name ?? slug,
+      name:
+        slug === HOMEPAGE_RATING_KEY
+          ? HOMEPAGE_RATING_NAME
+          : (row.tool_name ?? slug),
       count: 0,
       total: 0,
     };
@@ -110,6 +125,10 @@ export function AdminFeedbackInsights({
 }) {
   if (!summary.count) return null;
   const visibleTools = summary.tools.slice(0, 6);
+  const hasHomepage = summary.tools.some(
+    (tool) => tool.slug === HOMEPAGE_RATING_KEY,
+  );
+  const toolCount = summary.tools.length - (hasHomepage ? 1 : 0);
   return (
     <div className={styles["admin-feedback-insights"]}>
       <section
@@ -173,9 +192,8 @@ export function AdminFeedbackInsights({
           <h3 id="admin-rating-tools">Ratings by tool</h3>
           <p>
             <span>
-              {summary.tools.length === 1
-                ? "1 tool rated"
-                : `${summary.tools.length} tools rated`}
+              {toolCount === 1 ? "1 tool rated" : `${toolCount} tools rated`}
+              {hasHomepage ? " · plus the homepage form" : ""}
               {summary.tools.length > visibleTools.length
                 ? ` · showing the ${visibleTools.length} most rated`
                 : ""}
@@ -191,7 +209,7 @@ export function AdminFeedbackInsights({
                   type="button"
                   aria-pressed={active}
                   data-active={active}
-                  aria-label={`${tool.name}: ${tool.average.toFixed(1)} out of 5 from ${tool.count.toLocaleString()} ${tool.count === 1 ? "rating" : "ratings"}. Show only this tool.`}
+                  aria-label={`${tool.name}: ${tool.average.toFixed(1)} out of 5 from ${tool.count.toLocaleString()} ${tool.count === 1 ? "rating" : "ratings"}. Show only ${tool.slug === HOMEPAGE_RATING_KEY ? "these" : "this tool"}.`}
                   onClick={() => onSelectTool(active ? "all" : tool.slug)}
                 >
                   <span className={styles["admin-tool-ratings-name"]}>

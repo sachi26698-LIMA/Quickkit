@@ -57,11 +57,19 @@ export interface Database {
           status: AdminSubmissionStatus;
           feedback_type: FeedbackType;
           internal_notes: string;
+          /** 1–5 stars from the homepage form; null for a plain message. */
+          rating: number | null;
+          tags: string[];
+          /** Catalogue slug chosen under "About"; null for QUICKKIT overall. */
+          tool_slug: string | null;
         };
         Insert: {
           name?: string | null;
           message: string;
           feedback_type?: FeedbackType;
+          rating?: number | null;
+          tags?: string[];
+          tool_slug?: string | null;
         };
         Update: {
           status?: AdminSubmissionStatus;
