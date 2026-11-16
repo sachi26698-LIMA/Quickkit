@@ -88,9 +88,8 @@ afterEach(() => {
 
 describe("site-wide indexing & SEO invariants", () => {
   it("lists all 80 eligible canonical routes in /sitemap.xml, including /category/developer-tools and /guides/barcode, with zero noindex/redirect/duplicate URLs", async () => {
-    const { default: sitemap, routeSourceFiles } = await import(
-      "../app/sitemap"
-    );
+    const { default: sitemap, routeSourceFiles } =
+      await import("../app/sitemap");
     const entries = await sitemap();
     const urls = entries.map((entry) => entry.url);
 
@@ -106,9 +105,10 @@ describe("site-wide indexing & SEO invariants", () => {
       }
       // Every sitemap route maps only to real existing source files
       const sources = routeSourceFiles(parsed.pathname);
-      expect(sources.length, `source files for ${parsed.pathname}`).toBeGreaterThan(
-        0,
-      );
+      expect(
+        sources.length,
+        `source files for ${parsed.pathname}`,
+      ).toBeGreaterThan(0);
       for (const rel of sources) {
         expect(
           existsSync(join(process.cwd(), rel)),
@@ -118,7 +118,13 @@ describe("site-wide indexing & SEO invariants", () => {
     }
 
     // Core static + guide pages
-    for (const path of ["/", "/tools", "/help", "/sitemap", "/guides/barcode"]) {
+    for (const path of [
+      "/",
+      "/tools",
+      "/help",
+      "/sitemap",
+      "/guides/barcode",
+    ]) {
       expect(urls).toContain(`${ORIGIN}${path}`);
     }
 
@@ -136,7 +142,9 @@ describe("site-wide indexing & SEO invariants", () => {
     // All 56 published tools included
     expect(tools).toHaveLength(56);
     for (const tool of tools) {
-      expect(urls, `tool ${tool.slug}`).toContain(`${ORIGIN}/tools/${tool.slug}`);
+      expect(urls, `tool ${tool.slug}`).toContain(
+        `${ORIGIN}/tools/${tool.slug}`,
+      );
     }
 
     // All 12 indexable legal/company pages included
@@ -172,7 +180,11 @@ describe("site-wide indexing & SEO invariants", () => {
     }
 
     expect(urls).toHaveLength(
-      5 + legalPages.length + activeCategories.length + tools.length + INDEXABLE_BRANDS.length,
+      5 +
+        legalPages.length +
+        activeCategories.length +
+        tools.length +
+        INDEXABLE_BRANDS.length,
     );
   });
 
@@ -180,9 +192,8 @@ describe("site-wide indexing & SEO invariants", () => {
     const CalculatorOrSecurityPage = (
       await import("../app/(public)/tools/[calculator]/page")
     ).default;
-    const { generateMetadata } = await import(
-      "../app/(public)/tools/[calculator]/page"
-    );
+    const { generateMetadata } =
+      await import("../app/(public)/tools/[calculator]/page");
 
     const slugs = Object.keys(
       SECURITY_SUITE_SEO_CONTENT,
@@ -200,9 +211,10 @@ describe("site-wide indexing & SEO invariants", () => {
       const brandedTitle = `${rawTitle} | QUICKKIT`;
       const desc = String(meta.description ?? "");
 
-      expect(brandedTitle.length, `${slug} title length`).toBeGreaterThanOrEqual(
-        45,
-      );
+      expect(
+        brandedTitle.length,
+        `${slug} title length`,
+      ).toBeGreaterThanOrEqual(45);
       expect(brandedTitle.length, `${slug} title length`).toBeLessThanOrEqual(
         60,
       );
@@ -226,13 +238,16 @@ describe("site-wide indexing & SEO invariants", () => {
       const { container, unmount } = render(element);
 
       // Must render SSR operation summary list rather than a hollow loading line
-      const ssrOps = container.querySelectorAll(".security-ssr-operations > li");
+      const ssrOps = container.querySelectorAll(
+        ".security-ssr-operations > li",
+      );
       // Note: in jsdom `useSyncExternalStore` hydrates to client snapshot, rendering tabs;
       // verify either tabs or SSR list is present and no skipped heading levels exist.
       const tabs = container.querySelectorAll('[role="tab"]');
-      expect(ssrOps.length + tabs.length, `${slug} operations rendered`).toBeGreaterThan(
-        0,
-      );
+      expect(
+        ssrOps.length + tabs.length,
+        `${slug} operations rendered`,
+      ).toBeGreaterThan(0);
 
       // Reference section + 4 steps + 4 FAQs
       expect(
@@ -333,7 +348,9 @@ describe("site-wide indexing & SEO invariants", () => {
     const inbound = new Map<string, number>(tools.map((t) => [t.slug, 0]));
     for (const tool of tools) {
       const rel = relatedTools(tool);
-      expect(rel.length, `${tool.slug} related count`).toBeGreaterThanOrEqual(3);
+      expect(rel.length, `${tool.slug} related count`).toBeGreaterThanOrEqual(
+        3,
+      );
       for (const target of rel) {
         expect(toolBySlug(target.slug)).toBeDefined();
         inbound.set(target.slug, (inbound.get(target.slug) ?? 0) + 1);
@@ -381,12 +398,10 @@ describe("site-wide indexing & SEO invariants", () => {
       collectionPageStructuredData,
       toolStructuredData,
     } = await import("../lib/seo");
-    const { DEFAULT_PUBLIC_ORIGIN } = await import(
-      "../lib/tools/qr/data-template"
-    );
-    const { userAgent } = await import(
-      "../lib/tools/barcode-scanner/product-lookup"
-    );
+    const { DEFAULT_PUBLIC_ORIGIN } =
+      await import("../lib/tools/qr/data-template");
+    const { userAgent } =
+      await import("../lib/tools/barcode-scanner/product-lookup");
 
     const robotsConfig = robots();
     expect(robotsConfig.sitemap).toBe(`${ORIGIN}/sitemap.xml`);

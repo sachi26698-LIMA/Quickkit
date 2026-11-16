@@ -287,6 +287,8 @@ describe("Digital Link builder", () => {
     );
     expect(built.ok).toBe(true);
     if (!built.ok) return;
-    expect(built.url).toBe("https://quickkit-rosy.vercel.app/01/09506000134352");
+    expect(built.url).toBe(
+      "https://quickkit-rosy.vercel.app/01/09506000134352",
+    );
   });
 });

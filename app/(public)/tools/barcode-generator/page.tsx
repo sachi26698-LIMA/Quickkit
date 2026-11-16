@@ -77,8 +77,8 @@ export default async function Page() {
     >
       <BarcodeStudio />
       <p className="calculator-disclaimer">
-        Choosing between EAN-13, UPC-A, Code 128, ITF-14 and GS1-128, or checking
-        quiet zones and print sizing? Read the{" "}
+        Choosing between EAN-13, UPC-A, Code 128, ITF-14 and GS1-128, or
+        checking quiet zones and print sizing? Read the{" "}
         <Link href="/guides/barcode">barcode guide</Link>.
       </p>
     </ToolShell>

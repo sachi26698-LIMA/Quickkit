@@ -62,8 +62,8 @@ export default async function Page() {
       <BatchStudio />
       <p className="calculator-disclaimer">
         Planning a mixed print run? Check module widths, quiet-zone minimums and
-        symbology rules in the{" "}
-        <Link href="/guides/barcode">barcode guide</Link>.
+        symbology rules in the <Link href="/guides/barcode">barcode guide</Link>
+        .
       </p>
     </ToolShell>
   );

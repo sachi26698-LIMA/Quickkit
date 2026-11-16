@@ -11,11 +11,7 @@
  * `lastVerified: null` everywhere is the honest value: these records have not
  * been reviewed against a manufacturer document, because none was reachable.
  */
-import type {
-  BrandRecord,
-  ProductCategory,
-  ShelfLife,
-} from "./types";
+import type { BrandRecord, ProductCategory, ShelfLife } from "./types";
 import { CATEGORY_SHELF_LIFE } from "./shelf-life";
 
 type Seed = {

@@ -262,13 +262,15 @@ export const SECURITY_SUITE_SEO_CONTENT: Record<
       },
       {
         scenario: "Session cookie review",
-        input: "Set-Cookie: __Host-sid=abc; Secure; HttpOnly; Path=/; SameSite=Lax",
+        input:
+          "Set-Cookie: __Host-sid=abc; Secure; HttpOnly; Path=/; SameSite=Lax",
         output:
           "Reports Secure, HttpOnly, SameSite=Lax, and checks __Host- prefix requirements",
       },
       {
         scenario: "PEM certificate inspection",
-        input: "Single PEM-encoded public X.509 certificate and optional DNS hostname",
+        input:
+          "Single PEM-encoded public X.509 certificate and optional DNS hostname",
         output:
           "Validity window, SHA-256 fingerprint, SAN DNS names, and whether the supplied hostname matches",
       },
