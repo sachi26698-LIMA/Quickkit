@@ -886,3 +886,80 @@ run in GitHub Actions, which provisions all three browsers via
 - **No weakened controls:** CSP, Permissions-Policy, HSTS, redirects and the CSRF
   origin guard were all re-read from a running server, above.
 - **No unrelated dependency changes:** proven by diffing every lockfile entry.
+
+## 16. Merge attempt and CI result (2026-11-16)
+
+### 16.1 What was committed and pushed
+
+The staged work was committed as a **true merge commit with two parents** —
+`176742e` (this branch) and `fb80a6f` (`origin/main`) — and pushed as
+**`c01ec69`**. PR #57 moved from `CONFLICTING` to **`MERGEABLE`**.
+
+Only one commit was pushed, and it was a fast-forward of the branch tip
+(`176742e..c01ec69`). No force-push, no history rewrite of anything already
+published.
+
+### 16.2 CI failed — the PR was NOT merged
+
+Two independent runs on `c01ec69` (`43968077686`, `43968062891`) both failed, in
+one step only:
+
+| Step                                                          | Result                                      |
+| ------------------------------------------------------------- | ------------------------------------------- |
+| format:check, lint, `npm test`, build, typecheck, `npm audit` | **pass**                                    |
+| `npm run test:e2e`                                            | **FAIL — 2 failed, 1155 passed, 7 skipped** |
+
+The two failures are the same test at two viewports:
+
+```
+[chromium] › tests/e2e/home-premium.spec.ts:7:3 › premium homepage preserves discovery on mobile
+[chromium] › tests/e2e/home-premium.spec.ts:7:3 › premium homepage preserves discovery on desktop
+
+expect(new Set(chipColours).size).toBe(5)   Expected: 5   Received: 8
+```
+
+### 16.3 Root cause: a stale assertion on `main`, not a defect in this merge
+
+The evidence that this pre-dates the branch:
+
+- `main`'s **own** CI run on `fb80a6f` (`133550085594`) failed with the
+  **identical** two tests — `2 failed, 1155 passed, 7 skipped`, same assertion,
+  same `Expected: 5 / Received: 8`.
+- The spec `tests/e2e/home-premium.spec.ts` was last changed in `1fa5b17` and was
+  **not touched by main's three commits, nor by this branch**.
+- `app/(public)/page.tsx` **was** changed by main (`9807738`): it expanded
+  `popularSlugs` from 5 entries to 8 — adding `json-formatter`, `gst-calculator`
+  and `password-generator` — but the spec's `toBe(5)` was left behind.
+
+Measured directly from the theme module, all eight chips now resolve to distinct
+`--c-rgb` values:
+
+| Slug               | `--c-rgb`  |
+| ------------------ | ---------- |
+| merge-pdf          | 109 40 217 |
+| pdf-lock-unlock    | 193 161 69 |
+| image-compressor   | 244 63 94  |
+| qr-generator       | 200 16 46  |
+| word-counter       | 92 40 160  |
+| json-formatter     | 66 69 253  |
+| gst-calculator     | 7 116 76   |
+| password-generator | 40 165 29  |
+
+The old five happened to collapse into five unique colours; the new eight produce
+eight. **The homepage is behaving as designed; the test is out of date.**
+
+### 16.4 What was deliberately not done
+
+The PR was **not merged**. Merging a commit whose CI is red would mean shipping
+past a failing browser test, and the honest fix is a one-line correction to the
+assertion on `main` (or on this branch) — not a rewrite of the test to match
+whatever the page happens to render.
+
+The fix must also keep the assertion meaningful. Pinning it to
+`new Set(chipColours).size` equals the length of `popularSlugs` would keep the
+intent ("every popular chip is visually distinct") without hard-coding a number
+that drifts whenever the list changes.
+
+This needs the owner's decision because it changes a test on `main`'s side of the
+merge, and the project's standing rule is that tests are never weakened to obtain
+a green result.
