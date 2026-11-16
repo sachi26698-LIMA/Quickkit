@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { metadata } from "@/app/(public)/tools/barcode-generator/page";
+import { generateMetadata } from "@/app/(public)/tools/barcode-generator/page";
 import { routeSourceFiles } from "@/app/sitemap";
 import {
   filterTools,
@@ -35,7 +35,8 @@ function studioSource(file: string) {
 }
 
 describe("barcode generator route metadata", () => {
-  it("has a unique, descriptive title and a snippet-sized description", () => {
+  it("has a unique, descriptive title and a snippet-sized description", async () => {
+    const metadata = await generateMetadata();
     const title = String(metadata.title);
     const description = String(metadata.description);
     expect(title).toBe("Barcode Generator — Code 128, EAN-13 & GS1");
@@ -50,13 +51,14 @@ describe("barcode generator route metadata", () => {
     );
   });
 
-  it("declares the canonical path and social cards through the shared helper", () => {
+  it("declares the canonical path and social cards through the shared helper", async () => {
+    const metadata = await generateMetadata();
     const source = readFileSync(
       join(ROOT, "app/(public)/tools/barcode-generator/page.tsx"),
       "utf8",
     );
-    expect(source).toContain('"/tools/barcode-generator"');
-    expect(source).toContain("pageMetadata(");
+    expect(source).toContain('"barcode-generator"');
+    expect(source).toContain("publicToolMetadata(");
     expect(metadata.openGraph?.title).toContain("QUICKKIT");
     const openGraph = metadata.openGraph as Record<string, unknown>;
     const twitter = metadata.twitter as Record<string, unknown>;

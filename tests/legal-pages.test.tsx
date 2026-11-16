@@ -118,6 +118,7 @@ describe("footer navigation", () => {
       "/",
       "/tools",
       "/help",
+      "/guides/barcode",
       "/sitemap",
       "/saved",
       "/#categories",

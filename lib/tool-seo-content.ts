@@ -437,12 +437,12 @@ export const TOOL_SEO_CONTENT: Record<string, ToolSeoEntry> = {
       {
         label: "Input limits",
         detail:
-          "One or more PDFs, up to 25 MB and 100 pages per document. Real page counts are read before anything else.",
+          "Up to 20 PDFs, 25 MB and 100 pages per document, and 150 MB per batch. Real page counts are read before anything else.",
       },
       {
         label: "Operations",
         detail:
-          "Merge everything, extract named pages, split into one PDF per range, or compress. Pages can be dragged to reorder, rotated a quarter turn at a time, or marked removed.",
+          "Merge everything, extract named pages, split into one PDF per range, or compress. Pages can be dragged to reorder, rotated a quarter turn at a time, duplicated, or marked removed, with optional metadata, page numbers, and text watermark.",
       },
       {
         label: "Page ranges",

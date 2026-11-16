@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import AdUnit from "@/components/ad-unit";
+import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata(
   "Barcode Guide — Formats, GS1 Data and Printing",
@@ -62,82 +65,123 @@ const SECTIONS: { id: string; heading: string; body: string[] }[] = [
   },
 ];
 
-export default function Page() {
+export default function BarcodeGuidePage() {
   return (
-    <div className="tool-page" data-tool="barcode-guide">
-      <PageHero
-        eyebrow="QR & Barcode"
-        title="The barcode"
-        titleAccent="guide"
-        lede="What each symbology is for, how check digits work, how GS1 data is structured, and what a scan can never prove — written to be read before you print a label."
-      />
-      <div className="workspace" style={{ display: "grid", gap: 16 }}>
-        <nav aria-label="Guide contents" className="qr-card">
-          <h2 style={{ margin: "0 0 10px", fontSize: 14 }}>Contents</h2>
-          <ol
-            style={{
-              margin: 0,
-              paddingLeft: 20,
-              fontSize: 13,
-              lineHeight: 1.9,
-            }}
-          >
-            {SECTIONS.map((section) => (
-              <li key={section.id}>
-                <a href={`#${section.id}`}>{section.heading}</a>
-              </li>
-            ))}
-          </ol>
+    <div className="home inner-page" data-guide="barcode">
+      <div className="container">
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          <Link href="/" prefetch={false}>
+            Home
+          </Link>{" "}
+          <ChevronRight size={13} aria-hidden="true" />{" "}
+          <Link href="/category/qr-barcode">QR &amp; Barcode</Link>{" "}
+          <ChevronRight size={13} aria-hidden="true" />{" "}
+          <span aria-current="page">Barcode Guide</span>
         </nav>
+        <JsonLd
+          data={breadcrumbStructuredData([
+            { name: "Home", path: "/" },
+            { name: "QR & Barcode", path: "/category/qr-barcode" },
+            { name: "Barcode Guide", path: "/guides/barcode" },
+          ])}
+        />
+        <PageHero
+          eyebrow="QR & Barcode"
+          title="The barcode"
+          titleAccent="guide"
+          lede="What each symbology is for, how check digits work, how GS1 data is structured, and what a scan can never prove — written to be read before you print a label."
+        />
+        <div className="workspace" style={{ display: "grid", gap: 16 }}>
+          <nav aria-label="Guide contents" className="qr-card">
+            <h2 style={{ margin: "0 0 10px", fontSize: 14 }}>Contents</h2>
+            <ol
+              style={{
+                margin: 0,
+                paddingLeft: 20,
+                fontSize: 13,
+                lineHeight: 1.9,
+              }}
+            >
+              {SECTIONS.map((section) => (
+                <li key={section.id}>
+                  <a href={`#${section.id}`}>{section.heading}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
 
-        {SECTIONS.map((section) => (
-          <section key={section.id} id={section.id} className="qr-card">
+          {SECTIONS.map((section) => (
+            <section key={section.id} id={section.id} className="qr-card">
+              <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>
+                {section.heading}
+              </h2>
+              {section.body.map((paragraph) => (
+                <p
+                  key={paragraph.slice(0, 40)}
+                  style={{
+                    margin: "0 0 10px",
+                    fontSize: 13.5,
+                    lineHeight: 1.75,
+                  }}
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </section>
+          ))}
+
+          <section className="qr-card">
             <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>
-              {section.heading}
+              Where to go next
             </h2>
-            {section.body.map((paragraph) => (
-              <p
-                key={paragraph.slice(0, 40)}
-                style={{ margin: "0 0 10px", fontSize: 13.5, lineHeight: 1.75 }}
-              >
-                {paragraph}
-              </p>
-            ))}
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: 20,
+                fontSize: 13.5,
+                lineHeight: 1.9,
+              }}
+            >
+              <li>
+                <Link href="/tools/barcode-generator">Barcode studio</Link> —
+                generate and style a symbol, or decode one from a photo.
+              </li>
+              <li>
+                <Link href="/tools/barcode-scanner">Barcode scanner</Link> —
+                read EAN, UPC, Code 128, ITF-14 and GS1-128 symbols from a
+                camera or image.
+              </li>
+              <li>
+                <Link href="/tools/qr-generator">QR Code Generator</Link> and{" "}
+                <Link href="/tools/qr-code-scanner">QR Code Scanner</Link> —
+                create, verify and read 2D QR codes locally.
+              </li>
+              <li>
+                <Link href="/tools/gs1-intelligence">GS1 Intelligence</Link> —
+                parse an element string, read every AI and build a Digital Link.
+              </li>
+              <li>
+                <Link href="/tools/product-lookup">Product lookup</Link> — see
+                what a community database records for a GTIN, with its gaps
+                shown.
+              </li>
+              <li>
+                <Link href="/tools/batch-studio">Batch Barcode Studio</Link> —
+                turn a mixed-symbology CSV into validated SVG and PNG archives.
+              </li>
+              <li>
+                <Link href="/tools/batch-code-checker">Batch Code Checker</Link>{" "}
+                — check a lot code against documented decoders.
+              </li>
+              <li>
+                <Link href="/tools/barcode-developer">Developer tools</Link> —
+                compare values and diagnose a photo that will not scan.
+              </li>
+            </ul>
           </section>
-        ))}
 
-        <section className="qr-card">
-          <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Where to go next</h2>
-          <ul
-            style={{
-              margin: 0,
-              paddingLeft: 20,
-              fontSize: 13.5,
-              lineHeight: 1.9,
-            }}
-          >
-            <li>
-              <Link href="/tools/barcode-generator">Barcode studio</Link> —
-              generate and style a symbol, or decode one from a photo.
-            </li>
-            <li>
-              <Link href="/tools/gs1-intelligence">GS1 Intelligence</Link> —
-              parse an element string, read every AI and build a Digital Link.
-            </li>
-            <li>
-              <Link href="/tools/product-lookup">Product lookup</Link> — see
-              what a community database records for a GTIN, with its gaps shown.
-            </li>
-            <li>
-              <Link href="/tools/batch-code-checker">Batch Code Checker</Link> —
-              check a lot code against documented decoders.
-            </li>
-            <li>
-              <Link href="/tools/barcode-developer">Developer tools</Link> —
-              compare values and diagnose a photo that will not scan.
-            </li>
-          </ul>
-        </section>
+          <AdUnit placement="guide-bottom" format="auto" />
+        </div>
       </div>
     </div>
   );

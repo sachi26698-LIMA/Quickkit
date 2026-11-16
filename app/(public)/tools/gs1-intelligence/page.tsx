@@ -1,16 +1,28 @@
+import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import Gs1Intelligence from "@/components/tools/gs1-intelligence";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "GS1 Intelligence — Parse AIs and Digital Links",
-  "Parse GS1 element strings, HRI strings and Digital Links: each AI explained, dates interpreted, the GTIN check digit verified and a Digital Link built.",
-  "/tools/gs1-intelligence",
-);
+const DEFAULT_TITLE = "GS1 Intelligence — Parse AIs and Digital Links";
+const DEFAULT_DESCRIPTION =
+  "Parse GS1 element strings, HRI strings and Digital Links: each AI explained, dates interpreted, the GTIN check digit verified and a Digital Link built.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata(
+    "gs1-intelligence",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("gs1-intelligence");
   return (
     <ToolShell
+      publicData={publicData}
       slug="gs1-intelligence"
       headingDescription="An element string is not free text: each application identifier has a fixed meaning, a length rule and, for dates, a calendar interpretation. This workspace reads the string the way a scanner does, explains each AI, and refuses a GTIN whose check digit does not hold."
       stepsHeading="How to read a GS1 element string"
@@ -52,6 +64,11 @@ export default function Page() {
       }}
     >
       <Gs1Intelligence />
+      <p className="calculator-disclaimer">
+        For background on GS1 application identifiers, YYMMDD date rules, check
+        digits and Digital Link structure, see the{" "}
+        <Link href="/guides/barcode">barcode guide</Link>.
+      </p>
     </ToolShell>
   );
 }

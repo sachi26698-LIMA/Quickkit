@@ -780,7 +780,7 @@ export function extractEncryptedToken(input: string): string | null {
   }
   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("/qr")) {
     try {
-      const parsed = new URL(trimmed, "https://quickkit.tools");
+      const parsed = new URL(trimmed, "https://quickkit-rosy.vercel.app");
       if (parsed.pathname.replace(/\/+$/, "") !== "/qr") return null;
       return parsed.searchParams.get(ENCRYPTED_QUERY_PARAM);
     } catch {

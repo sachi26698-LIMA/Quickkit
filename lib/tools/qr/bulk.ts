@@ -396,6 +396,6 @@ export function findDuplicates(payloads: (string | null)[]) {
 }
 
 export const BULK_TEMPLATE = `name,url,label
-QUICKKIT Home,https://quickkit.tools,home
-Pricing page,https://quickkit.tools/pricing,pricing
-Support,https://quickkit.tools/help,help`;
+QUICKKIT Home,https://quickkit-rosy.vercel.app,home
+All Tools,https://quickkit-rosy.vercel.app/tools,tools
+Support,https://quickkit-rosy.vercel.app/help,help`;

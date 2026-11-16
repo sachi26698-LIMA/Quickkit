@@ -61,7 +61,7 @@ import {
 export const DATA_TEMPLATE_PATH = "/qr";
 export const DATA_TEMPLATE_PARAM = "d";
 export const DATA_TEMPLATE_SECRET_PARAM = "s";
-export const DEFAULT_PUBLIC_ORIGIN = "https://quickkit.tools";
+export const DEFAULT_PUBLIC_ORIGIN = "https://quickkit-rosy.vercel.app";
 
 const MAX_TOKEN_CHARS = 6_000;
 const MAX_INFLATED_BYTES = 24_576;

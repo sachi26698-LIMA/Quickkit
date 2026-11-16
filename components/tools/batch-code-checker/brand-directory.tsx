@@ -113,6 +113,9 @@ export default function BrandDirectory() {
                   <li key={brand.slug}>
                     <Link
                       href={`/tools/batch-code-checker/brand/${brand.slug}`}
+                      rel={
+                        brand.decoderStatus === "none" ? "nofollow" : undefined
+                      }
                     >
                       {brand.name}
                     </Link>

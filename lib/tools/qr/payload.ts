@@ -1881,7 +1881,7 @@ export function isKnownContentType(id: string): id is QrContentTypeId {
  * Every entry builds a valid payload (covered by the payload unit tests).
  */
 export const QR_SAMPLE_VALUES: Record<QrContentTypeId, QrValues> = {
-  url: { url: "https://quickkit.tools/?src=qr-example" },
+  url: { url: "https://quickkit-rosy.vercel.app/?src=qr-example" },
   payment: {
     method: "upi",
     payeeName: "Aurora Café",

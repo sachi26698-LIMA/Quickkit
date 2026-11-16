@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { tools } from "@/lib/catalog";
 import { toolTheme, toolThemeStyle, type ToolTheme } from "@/lib/tool-theme";
+import { useHydrated } from "@/lib/use-hydrated";
 import styles from "./tool-download-feedback.module.css";
 import {
   TOOL_FEEDBACK_KEY as STORAGE_KEY,
@@ -47,7 +48,9 @@ async function sendToolFeedback(entry: {
 }
 
 export default function ToolDownloadFeedback() {
+  const hydrated = useHydrated();
   const pathname = usePathname();
+  if (!hydrated) return null;
   const slug = pathname.startsWith("/tools/") ? pathname.slice(7) : "";
   const tool = tools.find((item) => item.slug === slug);
   return tool ? (
@@ -129,7 +132,7 @@ function Feedback({
         setError("");
         // Browsers expose download initiation, not when a file finishes saving.
         // Leave the browser's download action untouched, then invite feedback.
-        modal?.showModal();
+        modal?.showModal?.();
         setOpen(true);
       }, 650);
     };
@@ -137,7 +140,7 @@ function Feedback({
     return () => {
       document.removeEventListener("click", onDownload, true);
       clearTimeout(timer);
-      modal?.close();
+      if (typeof modal?.close === "function" && modal.open) modal.close();
     };
   }, [slug]);
 
@@ -151,7 +154,9 @@ function Feedback({
   }, [open]);
 
   function dismiss() {
-    dialog.current?.close();
+    if (typeof dialog.current?.close === "function" && dialog.current.open) {
+      dialog.current.close();
+    }
     setOpen(false);
   }
 

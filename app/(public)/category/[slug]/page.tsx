@@ -8,7 +8,7 @@ import CategoryToolGrid from "@/components/category-tool-grid";
 import { categoryMeta } from "@/lib/catalog";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 import {
   breadcrumbStructuredData,
   collectionPageStructuredData,
@@ -166,6 +166,13 @@ export default async function CategoryPage({
               {copy.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 40)}>{paragraph}</p>
               ))}
+              {meta.slug === "qr-barcode" ? (
+                <p>
+                  New to symbologies, quiet zones or GS1 identifiers? Read the{" "}
+                  <Link href="/guides/barcode">Barcode Guide</Link> before
+                  sending labels to print.
+                </p>
+              ) : null}
             </div>
           </section>
         ) : null}

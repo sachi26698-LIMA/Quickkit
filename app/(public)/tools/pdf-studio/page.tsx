@@ -6,12 +6,12 @@ import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 const steps = [
-  "Add one or more PDFs from your device, or drop them into the upload area. Each file's real page count is read before anything else, so the page grid, the plan summary and the button all describe what is actually there. Up to 25 MB and 100 pages per document.",
+  "Add one or more PDFs from your device, or drop them into the upload area. Each file's real page count is read before anything else, so the page grid, the plan summary and the button all describe what is actually there. Up to 20 PDFs, 25 MB and 100 pages per document, and 150 MB per batch.",
   "Choose what to write: merge everything into one PDF, extract just the pages you name, split into one PDF per range, or compress. The setting explains each action in plain words before you pick it.",
-  "Work on the pages. Drag a thumbnail to reorder it, rotate a single page a quarter turn at a time, or mark a page as removed. Nothing is applied until you run, and the plan line updates as you go.",
+  "Work on the pages. Drag a thumbnail to reorder it, rotate a single page a quarter turn at a time, duplicate a page, or mark a page as removed. Nothing is applied until you run, and the plan line updates as you go.",
   "Set the page ranges when you extract or split, for example 1-3, 7. Ranges apply to each file, so 1-2 across two PDFs means pages 1–2 of each. An invalid range is reported and blocks the run rather than guessing.",
   "For compress, pick a quality preset. Image streams are recompressed at that setting while text stays crisp, so a text-heavy document shrinks less than a scan-heavy one.",
-  "Optionally set a document title and a file name, then run. Split produces one PDF per range, downloaded individually or as a single ZIP. Every output shows its page count and real file size before you save it.",
+  "Optionally set document metadata, page numbers, a text watermark and an output file name, then run. Split produces one PDF per range, downloaded individually or as a single ZIP. Every output shows its page count and real file size before you save it.",
 ];
 
 const faqs = [

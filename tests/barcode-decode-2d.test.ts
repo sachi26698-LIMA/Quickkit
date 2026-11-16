@@ -56,13 +56,13 @@ describe("2D decoding", () => {
 
   it("decodes a QR code and reports the format", async () => {
     const outcome = decodeBarcodes(
-      await rasterFor("qrcode", "https://quickkit.online"),
+      await rasterFor("qrcode", "https://quickkit-rosy.vercel.app"),
       { profile: "image" },
     );
     const first = outcome.barcodes[0];
     expect(first?.format).toBe("qrcode");
     expect(first?.label).toBe("QR Code");
-    expect(first?.text).toBe("https://quickkit.online");
+    expect(first?.text).toBe("https://quickkit-rosy.vercel.app");
   });
 
   it("decodes a Data Matrix symbol", async () => {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 import { footerGroups, legalPages } from "@/lib/legal";
 import JsonLd from "@/components/json-ld";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
@@ -65,6 +65,7 @@ const groups: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/tools", label: "All Tools" },
       { href: "/saved", label: "Saved Tools" },
       { href: "/help", label: "Help Center" },
+      { href: "/guides/barcode", label: "Barcode Guide" },
       { href: "/#categories", label: "Categories (homepage section)" },
     ],
   },
@@ -95,7 +96,7 @@ export default async function SitemapPage() {
           (tool.categories as readonly string[]).includes(category.name)),
     ),
   );
-  const legalCount = legalPages.length + 3; // + home, help, sitemap
+  const legalCount = legalPages.length + 4; // + home, help, barcode guide, sitemap
   const pageGroups = [
     ...groups.filter(
       ({ title }) => title !== "Categories" && title !== "Tools",
@@ -119,7 +120,7 @@ export default async function SitemapPage() {
     categories
       .filter(
         (category) =>
-          !tools.some(
+          !indexableTools.some(
             (tool) =>
               tool.category === category.name ||
               ("categories" in tool &&
