@@ -29,10 +29,11 @@ export async function generateMetadata() {
     getPublicSiteSettings(),
     getPublicCatalog(),
   ]);
+  // The search description says what the site does. The short brand tagline
+  // from Admin → Site settings belongs to the footer and is not used here.
   return pageMetadata(
     "Free Online PDF, Image, QR, Code & Math Tools",
-    settings.tagline ??
-      `Use ${catalog.tools.length} free online tools for PDFs, images, OCR, QR codes, JSON, code and calculators. Fast browser-first utilities; no account needed.`,
+    `Use ${catalog.tools.length} free online tools for PDFs, images, OCR, QR codes, JSON, code and calculators. Fast browser-first utilities; no account needed.`,
     "/",
     settings.website_name,
   );
@@ -102,9 +103,11 @@ export default async function Home() {
               PDFs, images, text and code
             </span>
           </h1>
+          {/* Always this sentence. Saving Site settings in the admin stores
+              the brand tagline too, and it used to replace this line; the
+              tagline is shown in the footer only. */}
           <p className="hero-lede">
-            {settings.tagline ??
-              `${tools.length} browser tools for the jobs that interrupt a working day. No account needed, no install — and most files never leave your device.`}
+            {`${tools.length} browser tools for the jobs that interrupt a working day. No account needed, no install — and most files never leave your device.`}
           </p>
         </div>
         <div className="hero-search-zone">

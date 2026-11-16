@@ -4,13 +4,22 @@ import type { ToolCategory } from "@/lib/catalog";
 /**
  * Colour identity for each tool page.
  *
- * Each tool owns an explicit accent, shared by listing cards, related links,
- * 3D icons and its workspace. Category colours remain the fallback for new
- * tools, not a restriction on the palette of existing tools.
+ * Every tool owns one accent that no other tool uses, shared by its listing
+ * card, related links, 3D icon and workspace. The 56 accents are spread over
+ * the whole colour wheel and over light and dark shades so that any two tools
+ * are told apart at a glance, and tools listed in the same category sit
+ * further apart still because their cards are shown side by side. Both
+ * distances are enforced in tests/tool-theme.test.tsx (measured in OKLab, a
+ * colour space built to match what the eye sees), so adding a tool with a
+ * look-alike colour fails the build instead of reaching the site.
+ *
+ * Category colours remain the fallback for a tool that has no entry yet.
  *
  *  rgb   primary accent as "r g b" (used with alpha in CSS)
- *  rgb2  secondary accent (gradient partner / highlights)
- *  deep  text-safe darker shade of the primary (≥ 4.5:1 on white)
+ *  rgb2  lighter partner of the same hue (gradients / highlights)
+ *  deep  text-safe darker shade of the primary (≥ 4.5:1 on white). Buttons
+ *        put white text on a gradient from `deep` towards `rgb`, so `deep`
+ *        must also keep that gradient dark enough.
  */
 export type ToolTheme = { rgb: string; rgb2: string; deep: string };
 
@@ -21,72 +30,69 @@ const t = (rgb: string, rgb2: string, deep: string): ToolTheme => ({
 });
 
 export const toolThemes: Record<string, ToolTheme> = {
-  // PDF Tools — distinct accents for each document task
+  // PDF Tools
   "merge-pdf": t("109 40 217", "168 85 255", "#5b21b6"),
-  "split-pdf": t("234 88 12", "251 146 60", "#9a3412"),
-  "compress-pdf": t("5 150 105", "52 211 153", "#065f46"),
-  "pdf-to-image": t("219 39 119", "244 114 182", "#9d174d"),
-  "images-to-pdf": t("2 132 199", "56 189 248", "#075985"),
-  "pdf-studio": t("79 70 229", "129 140 248", "#3730a3"),
-  "word-to-pdf": t("37 99 235", "96 165 250", "#1e40af"),
-  "pdf-to-word": t("13 148 136", "45 212 191", "#115e59"),
-  "pdf-lock-unlock": t("180 83 9", "251 191 36", "#78350f"),
-  // Image Tools — rose, cyan, violet and amber
+  "split-pdf": t("243 87 10", "253 168 139", "#8d2f05"),
+  "compress-pdf": t("34 92 0", "78 136 56", "#174300"),
+  "pdf-to-image": t("195 60 160", "247 110 208", "#87216e"),
+  "images-to-pdf": t("5 64 176", "53 112 227", "#002c88"),
+  "pdf-studio": t("142 6 70", "193 67 112", "#6a0232"),
+  "word-to-pdf": t("210 95 251", "232 179 254", "#76308f"),
+  "pdf-to-word": t("29 150 109", "89 198 154", "#005c40"),
+  "pdf-lock-unlock": t("193 161 69", "239 206 115", "#554306"),
+  // Image Tools
   "image-compressor": t("244 63 94", "251 113 133", "#9f1239"),
-  "image-resizer": t("0 153 173", "34 211 238", "#155e75"),
-  "image-cropper": t("139 92 246", "196 181 253", "#5b21b6"),
-  "image-to-image": t("217 119 6", "251 191 36", "#92400e"),
+  "image-resizer": t("48 188 117", "108 238 163", "#02502d"),
+  "image-cropper": t("111 91 233", "155 149 255", "#4a3ba2"),
+  "image-to-image": t("166 10 138", "218 76 185", "#7e1869"),
   // QR & Barcode
-  "qr-code-scanner": t("15 118 110", "45 212 191", "#134e4a"),
   "qr-generator": t("200 16 46", "255 59 48", "#991b1b"),
-  "barcode-generator": t("194 40 22", "245 158 11", "#9a3412"),
-  // The barcode family reads as one red group, but each tool keeps its own
-  // accent so the studio, the reader and the reference pages stay distinct.
-  "barcode-scanner": t("190 18 60", "251 113 133", "#881337"),
-  "barcode-developer": t("157 23 77", "244 114 182", "#831843"),
-  "batch-studio": t("146 64 14", "245 158 11", "#7c2d12"),
-  "batch-code-checker": t("154 52 18", "251 146 60", "#7c2d12"),
-  "gs1-intelligence": t("162 28 175", "232 121 249", "#86198f"),
-  "product-lookup": t("133 77 14", "250 204 21", "#713f12"),
+  "qr-code-scanner": t("6 160 176", "86 208 224", "#075761"),
+  "barcode-generator": t("43 198 28", "101 245 89", "#054b01"),
+  "barcode-scanner": t("122 146 252", "184 200 254", "#3745a8"),
+  "barcode-developer": t("241 10 243", "254 157 251", "#7b237b"),
+  "batch-studio": t("238 98 163", "254 176 207", "#931f5b"),
+  "batch-code-checker": t("2 90 141", "62 135 189", "#02436b"),
+  "gs1-intelligence": t("154 38 250", "186 134 253", "#5f2d93"),
+  "product-lookup": t("151 81 5", "200 126 64", "#743c01"),
   // Text & Writing
-  "word-counter": t("107 33 168", "183 148 246", "#6b21a8"),
-  "image-to-text": t("3 105 161", "56 189 248", "#075985"),
+  "word-counter": t("92 40 160", "134 88 210", "#45157e"),
+  "image-to-text": t("25 114 251", "118 170 254", "#0e49a5"),
   "case-converter": t("192 38 211", "232 121 249", "#86198f"),
   // Developer Tools
-  "json-formatter": t("67 56 202", "6 182 212", "#3730a3"),
-  "json-validator": t("8 145 178", "34 211 238", "#155e75"),
-  "html-formatter": t("249 115 22", "253 186 116", "#9a3412"),
-  "css-minifier": t("16 185 129", "110 231 183", "#065f46"),
-  "javascript-minifier": t("202 138 4", "250 204 21", "#854d0e"),
-  "base64-encoder-decoder": t("126 34 206", "192 132 252", "#581c87"),
-  "url-encoder-decoder": t("6 182 212", "103 232 249", "#155e75"),
-  "uuid-generator": t("190 24 93", "244 63 94", "#9d174d"),
-  "regex-tester": t("147 51 234", "216 180 254", "#6b21a8"),
-  "hash-generator": t("22 163 74", "74 222 128", "#166534"),
-  "xml-formatter": t("14 165 233", "125 211 252", "#075985"),
-
-  // Security & Privacy — teal
-  "password-generator": t("17 139 119", "20 184 166", "#115e59"),
-  "advanced-cryptography": t("20 112 130", "56 189 201", "#0b3944"),
-  "dns-email-security": t("31 122 107", "70 190 164", "#0b3c35"),
-  "website-security-review": t("38 111 153", "91 177 225", "#10344b"),
-  "privacy-metadata-manager": t("88 105 156", "157 171 232", "#292f55"),
-  "url-network-privacy": t("46 126 133", "101 197 195", "#123b3f"),
-  "privacy-policy-workbench": t("111 93 146", "181 158 222", "#352849"),
-  "api-credential-tools": t("84 119 94", "152 192 143", "#263a2b"),
-  // Calculators — distinct accents across finance, health and converters
-  "percentage-calculator": t("29 78 216", "96 165 250", "#1e3a8a"),
-  "bmi-calculator": t("101 163 13", "163 230 53", "#3f6212"),
-  "discount-calculator": t("225 29 72", "251 113 133", "#9f1239"),
-  "gst-calculator": t("21 128 61", "74 222 128", "#14532d"),
-  "age-calculator": t("217 70 239", "240 171 252", "#86198f"),
-  "date-difference-calculator": t("124 58 237", "167 139 250", "#5b21b6"),
-  "emi-calculator": t("30 58 138", "59 130 246", "#1e3a8a"),
-  "loan-calculator": t("4 120 87", "52 211 153", "#064e3b"),
-  "scientific-calculator": t("55 48 163", "129 140 248", "#312e81"),
-  "unit-converter": t("14 116 144", "103 232 249", "#164e63"),
-  "temperature-converter": t("220 38 38", "251 146 60", "#991b1b"),
-  "time-converter": t("71 85 105", "148 163 184", "#334155"),
+  "json-formatter": t("66 69 253", "116 140 252", "#313da0"),
+  "json-validator": t("6 144 222", "112 191 254", "#055484"),
+  "html-formatter": t("239 134 25", "254 195 150", "#6f3b05"),
+  "css-minifier": t("158 107 243", "197 171 253", "#6239a0"),
+  "javascript-minifier": t("135 151 58", "181 198 106", "#4b5701"),
+  "base64-encoder-decoder": t("122 29 118", "170 77 164", "#60005d"),
+  "url-encoder-decoder": t("26 134 16", "82 181 73", "#0a5b04"),
+  "uuid-generator": t("214 17 109", "253 107 156", "#8c0e46"),
+  "regex-tester": t("196 84 49", "248 131 95", "#8c2800"),
+  "hash-generator": t("58 187 177", "111 233 222", "#094a45"),
+  "xml-formatter": t("86 101 119", "129 145 164", "#3e4c5d"),
+  // Security & Privacy
+  "password-generator": t("40 165 29", "97 214 86", "#085e02"),
+  "advanced-cryptography": t("160 19 7", "212 76 60", "#7c0300"),
+  "dns-email-security": t("192 124 59", "242 171 107", "#794300"),
+  "website-security-review": t("23 4 249", "67 114 253", "#173392"),
+  "privacy-metadata-manager": t("146 40 187", "194 93 238", "#6c2788"),
+  "url-network-privacy": t("3 126 167", "75 173 216", "#095470"),
+  "privacy-policy-workbench": t("245 17 169", "254 149 204", "#89195f"),
+  "api-credential-tools": t("100 103 0", "144 148 62", "#4d5004"),
+  // Calculators
+  "percentage-calculator": t("26 98 196", "75 145 247", "#01489f"),
+  "bmi-calculator": t("148 180 31", "191 226 89", "#384700"),
+  "discount-calculator": t("171 48 98", "223 96 142", "#8f144c"),
+  "gst-calculator": t("7 116 76", "71 162 119", "#045738"),
+  "age-calculator": t("252 86 221", "253 183 235", "#882676"),
+  "date-difference-calculator": t("68 7 206", "102 85 254", "#2f2087"),
+  "emi-calculator": t("145 116 21", "192 162 77", "#5f4a01"),
+  "loan-calculator": t("42 178 238", "156 218 253", "#004966"),
+  "scientific-calculator": t("123 55 2", "171 98 55", "#5c2700"),
+  "unit-converter": t("188 138 237", "223 195 253", "#65338e"),
+  "temperature-converter": t("242 124 119", "252 192 187", "#922428"),
+  "time-converter": t("114 137 161", "159 183 209", "#3d5268"),
 };
 
 /** Category family used for any tool that has no explicit entry yet. */
