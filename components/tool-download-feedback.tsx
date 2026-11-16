@@ -318,9 +318,9 @@ function Feedback({
               <span>{rating}/5</span>
             </div>
             <p>
-              Feedback added to your laptop screen.
+              Feedback saved on this device.
               <br />
-              <small>Visible on the homepage in this browser only.</small>
+              <small>Stored in this browser only. Nothing is uploaded.</small>
             </p>
             <button className={styles.primary} type="button" onClick={dismiss}>
               Keep creating <Heart size={17} />

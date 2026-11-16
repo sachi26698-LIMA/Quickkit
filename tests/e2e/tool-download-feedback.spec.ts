@@ -164,9 +164,9 @@ test("storage errors never pretend feedback was saved", async ({ page }) => {
   await modal.getByRole("radio", { name: "3 stars — It was okay" }).check();
   await modal.getByRole("button", { name: "Save my feedback" }).click();
   await expect(modal.getByRole("alert")).toContainText("couldn’t save");
-  await expect(
-    modal.getByText("Feedback added to your laptop screen."),
-  ).toHaveCount(0);
+  await expect(modal.getByText("Feedback saved on this device.")).toHaveCount(
+    0,
+  );
   await modal.getByRole("button", { name: "Close feedback" }).click();
   await expect(modal).not.toBeVisible();
 });
@@ -446,45 +446,52 @@ for (const width of [390, 1440]) {
       .click();
     const modal = page.locator("dialog[data-feedback-tool]");
     await expect(modal).toBeVisible();
-    await modal.getByRole("radio").nth(4).check();
+    // Step 01 of 02 is the rating; the comment form is not offered until a
+    // star is chosen, so there is nothing to submit out of order.
+    const card = modal.locator("[data-tool-feedback]");
+    await expect(card).toHaveAttribute("data-step", "rating");
+    await expect(modal.getByLabel("Anything else?")).toHaveCount(0);
+    await modal.getByRole("radio", { name: /^5 stars/ }).check();
+    // Step 02 of 02 invites the optional comment.
+    await expect(card).toHaveAttribute("data-step", "details");
     await modal.getByLabel("Anything else?").fill("My text looks perfect!");
     await modal.getByRole("button", { name: "Save my feedback" }).click();
+    await expect(card).toHaveAttribute("data-step", "thanks");
     await expect(
-      modal.getByText("Feedback added to your laptop screen."),
+      modal.getByText("Feedback saved on this device."),
     ).toBeVisible();
-    await modal.getByRole("button", { name: "Keep creating" }).click();
-    await page.goto("/");
-    const review = page.locator('[data-laptop-tool-review="case-converter"]');
-    await expect(review).toBeVisible();
-    await expect(
-      review.getByText("Case Converter", { exact: true }),
-    ).toBeVisible();
-    await expect(review.getByText("My text looks perfect!")).toBeVisible();
-    await expect(
-      review.getByRole("img", { name: "5 out of 5 stars" }),
-    ).toBeVisible();
+    // The confirmation tells the visitor where the review went.
+    await expect(modal.getByText(/this browser only/i)).toBeVisible();
+    // The review is persisted for this tool, with its rating and comment, and
+    // carries the theme colour the dialog themed itself with.
+    const stored = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("quickkit-tool-feedback-v1") ?? "[]"),
+    );
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({
+      tool: "case-converter",
+      rating: 5,
+      comment: "My text looks perfect!",
+    });
     expect(
-      await review.evaluate((el) =>
+      await modal.evaluate((el) =>
         getComputedStyle(el).getPropertyValue("--t-rgb").trim(),
       ),
-    ).toBe("192 38 211");
+    ).toMatch(/^\d+ \d+ \d+$/);
+    await modal.getByRole("button", { name: "Keep creating" }).click();
+    await expect(modal).not.toBeVisible();
+    // The review survives a reload. The invitation is shown per download, so
+    // it is not open on a fresh page load — only a download opens it.
     await page.reload();
-    await expect(review).toBeVisible();
-    const trigger = page
-      .getByRole("group", { name: "QUICKKIT laptop preview" })
-      .getByRole("button", { name: "Share feedback" });
-    await trigger.hover({ force: true });
-    await trigger.click();
-    const manager = page.getByRole("dialog", { name: "Share your experience" });
-    await expect(
-      manager.getByRole("region", { name: "Saved tool reviews" }),
-    ).toBeVisible();
-    await expect(
-      manager.getByRole("button", { name: /delete|remove/i }),
-    ).toHaveCount(0);
-    await page.keyboard.press("Escape");
-    await expect(review).toBeVisible();
-    await page.reload();
-    await expect(review).toBeVisible();
+    const afterReload = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("quickkit-tool-feedback-v1") ?? "[]"),
+    );
+    expect(afterReload).toHaveLength(1);
+    expect(afterReload[0]).toMatchObject({
+      tool: "case-converter",
+      rating: 5,
+      comment: "My text looks perfect!",
+    });
+    await expect(page.locator("dialog[data-feedback-tool]")).not.toBeVisible();
   });
 }
