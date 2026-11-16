@@ -7,6 +7,7 @@ import {
   Share2,
 } from "lucide-react";
 import AdminResourceTable from "@/components/admin/admin-resource-table";
+import AdminSeoRegistry from "@/components/admin/admin-seo-registry";
 import { PageHeading } from "@/components/admin/admin-page";
 import styles from "@/components/admin/admin.module.css";
 import { siteOrigin } from "@/lib/seo";
@@ -120,6 +121,8 @@ export default function AdminSeoPage() {
           </small>
         </article>
       </div>
+
+      <AdminSeoRegistry />
 
       <section className={styles["admin-section"]}>
         <div className={styles["admin-section-head"]}>

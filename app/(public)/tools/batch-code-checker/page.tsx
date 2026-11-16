@@ -3,17 +3,15 @@ import ToolShell from "@/components/tool-shell";
 import BatchChecker from "@/components/tools/batch-code-checker";
 import BrandDirectory from "@/components/tools/batch-code-checker/brand-directory";
 import BatchCodeReference from "@/components/tools/batch-code-checker/reference";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "Batch Code Checker — Lot Codes, Decoded Honestly";
 const DEFAULT_DESCRIPTION =
   "Check a cosmetics lot code against documented decoders: verified, estimated from cited guidance, or not decodable — never an invented date.";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "batch-code-checker",
     DEFAULT_TITLE,
     DEFAULT_DESCRIPTION,

@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import ImageCompressor from "@/components/tools/image-compressor";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -45,7 +45,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "image-compressor",
     "Image Compressor — Shrink JPG, PNG, WebP & AVIF",
     "Compress up to 20 JPEG, PNG, WebP, or AVIF images locally by quality slider or exact KB/MB target size, keep or flatten alpha, and download a ZIP.",

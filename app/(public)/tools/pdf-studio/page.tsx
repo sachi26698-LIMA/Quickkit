@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import PdfStudio from "@/components/tools/pdf-studio";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -50,7 +50,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "pdf-studio",
     "PDF Studio — Merge, Split, Rotate & Reorder Pages",
     "Merge, split, extract, rotate, reorder, remove, and compress PDF pages in one local browser workspace with live page thumbnails and batch ZIP export.",

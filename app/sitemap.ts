@@ -9,6 +9,7 @@ import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 import { legalPages } from "@/lib/legal";
 import { securityGroupBySlug } from "@/lib/tools/security/consolidation";
 import { INDEXABLE_BRANDS } from "@/lib/tools/batch-code/brands";
+import { allToolSeoRecords, allCategorySeoRecords } from "@/lib/seo/resolve";
 
 /**
  * Tools whose engine lives outside `lib/tools/<slug>`.
@@ -304,42 +305,54 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     legalPages.filter((page) => page.indexable).map((page) => page.href),
   );
 
+  // The registry can veto a path the catalogue would otherwise publish (for
+  // example a roadmap category with no tools, or a route kept out of search on
+  // purpose). It never *adds* a path: existence is still decided by the live
+  // catalogue, so a registry record cannot make a 404 appear in the sitemap.
+  const registryExcluded = new Set(
+    [...allToolSeoRecords(), ...allCategorySeoRecords()]
+      .filter((record) => !record.indexable)
+      .map((record) => record.path),
+  );
+
   const paths = [
-    ...new Set([
-      ...staticRoutes,
-      ...legalRouteSet,
-      ...catalog.categories
-        .filter((category) =>
-          catalog.tools.some(
+    ...new Set(
+      [
+        ...staticRoutes,
+        ...legalRouteSet,
+        ...catalog.categories
+          .filter((category) =>
+            catalog.tools.some(
+              (tool) =>
+                tool.isIndexable &&
+                (!tool.canonicalPath ||
+                  tool.canonicalPath === `/tools/${tool.slug}`) &&
+                (tool.category === category.name ||
+                  ("categories" in tool &&
+                    Array.isArray(tool.categories) &&
+                    (tool.categories as readonly string[]).includes(
+                      category.name,
+                    ))),
+            ),
+          )
+          .map((category) => `/category/${category.slug}`),
+        ...catalog.tools
+          .filter(
             (tool) =>
               tool.isIndexable &&
               (!tool.canonicalPath ||
-                tool.canonicalPath === `/tools/${tool.slug}`) &&
-              (tool.category === category.name ||
-                ("categories" in tool &&
-                  Array.isArray(tool.categories) &&
-                  (tool.categories as readonly string[]).includes(
-                    category.name,
-                  ))),
-          ),
-        )
-        .map((category) => `/category/${category.slug}`),
-      ...catalog.tools
-        .filter(
-          (tool) =>
-            tool.isIndexable &&
-            (!tool.canonicalPath ||
-              tool.canonicalPath === `/tools/${tool.slug}`),
-        )
-        .map((tool) => `/tools/${tool.slug}`),
-      ...(catalog.tools.some(
-        (tool) => tool.slug === "batch-code-checker" && tool.isIndexable,
-      )
-        ? INDEXABLE_BRANDS.map(
-            (brand) => `/tools/batch-code-checker/brand/${brand.slug}`,
+                tool.canonicalPath === `/tools/${tool.slug}`),
           )
-        : []),
-    ]),
+          .map((tool) => `/tools/${tool.slug}`),
+        ...(catalog.tools.some(
+          (tool) => tool.slug === "batch-code-checker" && tool.isIndexable,
+        )
+          ? INDEXABLE_BRANDS.map(
+              (brand) => `/tools/batch-code-checker/brand/${brand.slug}`,
+            )
+          : []),
+      ].filter((path) => !registryExcluded.has(path)),
+    ),
   ];
 
   const repoRoot = process.cwd();

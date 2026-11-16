@@ -15,6 +15,7 @@ import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
 import { pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 import {
   getPublicCatalog,
   getPublicSiteSettings,
@@ -31,9 +32,14 @@ export async function generateMetadata() {
   ]);
   // The search description says what the site does. The short brand tagline
   // from Admin → Site settings belongs to the footer and is not used here.
+  // Copy comes from the SEO registry (`lib/seo/pages.ts`), which is audited in
+  // CI for budget, uniqueness and keyword coverage. `{count}` is filled from the
+  // same catalogue read the page body uses, so the number in the snippet and the
+  // number in the H1 can never drift apart.
+  const record = resolvePageSeo("/", { toolCount: catalog.tools.length })!;
   return pageMetadata(
-    "Free Online PDF, Image, QR, Code & Math Tools",
-    `Use ${catalog.tools.length} free online tools for PDFs, images, OCR, QR codes, JSON, code and calculators. Fast browser-first utilities; no account needed.`,
+    record.title,
+    record.description,
     "/",
     settings.website_name,
   );

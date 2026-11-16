@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import JsonFormatter from "@/components/tools/json-formatter";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "json-formatter",
     TOOL_SEO_METADATA["json-formatter"].title,
     TOOL_SEO_METADATA["json-formatter"].description,

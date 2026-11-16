@@ -1,16 +1,14 @@
 import ToolShell from "@/components/tool-shell";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
 import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const entry = TOOL_SEO_CONTENT["password-generator"];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "password-generator",
     TOOL_SEO_METADATA["password-generator"].title,
     TOOL_SEO_METADATA["password-generator"].description,

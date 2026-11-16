@@ -6,28 +6,19 @@ export const revalidate = 300;
 import { footerGroups, legalPages } from "@/lib/legal";
 import JsonLd from "@/components/json-ld";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 
 export async function generateMetadata() {
-  const { categories, tools } = await getPublicCatalog();
+  const { tools } = await getPublicCatalog();
   const indexableTools = tools.filter(
     (tool) =>
       tool.isIndexable &&
       (!tool.canonicalPath || tool.canonicalPath === `/tools/${tool.slug}`),
   );
-  const indexableCategories = categories.filter((category) =>
-    indexableTools.some(
-      (tool) =>
-        tool.category === category.name ||
-        ("categories" in tool &&
-          Array.isArray(tool.categories) &&
-          (tool.categories as readonly string[]).includes(category.name)),
-    ),
-  );
-  return pageMetadata(
-    "HTML Sitemap — All Tools, Categories & Policies",
-    `Explore the complete HTML sitemap for QUICKKIT: direct links to all ${indexableTools.length} online tools, ${indexableCategories.length} tool categories, help guides, legal terms and trust policies.`,
-    "/sitemap",
-  );
+  const record = resolvePageSeo("/sitemap", {
+    toolCount: indexableTools.length,
+  })!;
+  return pageMetadata(record.title, record.description, "/sitemap");
 }
 
 const legalGroupLabel: Record<string, string> = {

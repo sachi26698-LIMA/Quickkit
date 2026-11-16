@@ -1,17 +1,17 @@
 import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { BARCODE_SUITE_SEO_CONTENT } from "@/lib/seo/barcode-suite-content";
 import ProductLookup from "@/components/tools/product-lookup";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "GTIN Product Lookup — Open Food Facts, Labelled";
 const DEFAULT_DESCRIPTION =
   "Look up a GTIN in Open Food Facts: ingredients, allergens and nutrition as recorded, missing fields shown as missing, ODbL attribution, no manufacturer claim.";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "product-lookup",
     DEFAULT_TITLE,
     DEFAULT_DESCRIPTION,
@@ -28,6 +28,12 @@ export default async function Page() {
       stepsHeading="How to read a lookup result"
       faqsHeading="Product lookup questions, answered"
       relatedHeading="Generate, scan, then look up"
+      referenceSection={
+        <ToolReferenceSection
+          slug="product-lookup"
+          entry={BARCODE_SUITE_SEO_CONTENT["product-lookup"]}
+        />
+      }
       content={{
         steps: [
           "Enter the GTIN printed under the barcode, then look it up. The check digit is validated in the browser first, so an 11-digit mistyping is rejected before any request leaves the page.",

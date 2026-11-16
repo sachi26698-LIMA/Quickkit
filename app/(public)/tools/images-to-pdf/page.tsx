@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import ImagesToPdf from "@/components/tools/images-to-pdf";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -50,7 +50,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "images-to-pdf",
     "Images to PDF Converter — JPG, PNG & WebP to PDF",
     "Combine up to 20 JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, and browser-supported HEIC images into a PDF. Reorder pages; choose A4, Letter, or custom page sizes.",

@@ -12,10 +12,14 @@ import AdUnit from "@/components/ad-unit";
 import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 
+// Resolved from the SEO registry (`lib/seo/pages.ts`) rather than written here,
+// so the audit can see this page's title in the same place as every other one.
+const HELP_SEO = resolvePageSeo("/help")!;
 export const metadata = pageMetadata(
-  "Help Center — Tool Guides, Privacy & Support",
-  "Get help using QUICKKIT's online tools: how browser-local processing works, the Word to PDF server exception, supported browsers, limits and saved tools.",
+  HELP_SEO.title,
+  HELP_SEO.description,
   "/help",
 );
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import JsonLd from "@/components/json-ld";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -12,8 +13,11 @@ import ContactLink from "@/components/contact-link";
 import AdUnit from "@/components/ad-unit";
 import LegalRelated from "@/components/legal-related";
 
+// Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
+// itself still lives in `lib/legal.ts`, so the description has one source.
+const PAGE_SEO = resolvePageSeo("/faq")!;
 export const metadata = pageMetadata(
-  "Frequently Asked Questions — Privacy & Limits",
+  PAGE_SEO.title,
   legalPageByHref("/faq")!.description,
   "/faq",
 );

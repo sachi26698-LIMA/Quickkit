@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import WordCounter from "@/components/tools/word-counter";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "word-counter",
     TOOL_SEO_METADATA["word-counter"].title,
     TOOL_SEO_METADATA["word-counter"].description,

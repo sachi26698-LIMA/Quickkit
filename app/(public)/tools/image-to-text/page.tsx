@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import ImageToText from "@/components/tools/image-to-text";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -54,7 +54,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "image-to-text",
     "Image to Text (OCR) — extract text locally",
     "Run OCR on photos, screenshots and scanned PDFs in 8 languages. See confidence highlights and export TXT, DOCX, PDF, CSV or JSON. Nothing is uploaded.",

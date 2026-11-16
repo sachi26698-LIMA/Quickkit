@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import ImageToImage from "@/components/tools/image-to-image";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -50,7 +50,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "image-to-image",
     "Image Converter — JPG, PNG, WebP, AVIF & TIFF",
     "Convert up to 20 images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF locally in your browser with resize, crop, target KB/MB size, and ZIP export.",

@@ -1,17 +1,21 @@
 import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { BARCODE_SUITE_SEO_CONTENT } from "@/lib/seo/barcode-suite-content";
 import BatchStudio from "@/components/tools/batch-studio";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "Batch Barcode Studio — Mixed CSV to SVG and PNG";
 const DEFAULT_DESCRIPTION =
   "Turn a CSV into a ZIP of barcode symbols, one symbology per row if you need it: every row validated on its own, formats grouped into separate archives.";
 
 export async function generateMetadata() {
-  return publicToolMetadata("batch-studio", DEFAULT_TITLE, DEFAULT_DESCRIPTION);
+  return resolvedToolMetadata(
+    "batch-studio",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
 }
 
 export default async function Page() {
@@ -24,6 +28,12 @@ export default async function Page() {
       stepsHeading="How a batch run works"
       faqsHeading="Batch questions, answered"
       relatedHeading="Single labels, checks and lookups"
+      referenceSection={
+        <ToolReferenceSection
+          slug="batch-studio"
+          entry={BARCODE_SUITE_SEO_CONTENT["batch-studio"]}
+        />
+      }
       content={{
         steps: [
           "Paste your rows or upload a CSV. The first row is the header, and the data, label and format columns are detected from the header names — you can override any of the three.",

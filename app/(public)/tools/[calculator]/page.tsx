@@ -25,11 +25,9 @@ import Scientific from "@/components/tools/phase9-scientific";
 import TimeAdvanced from "@/components/tools/phase9-v2-time";
 import TimeZones from "@/components/tools/phase9-timezones";
 import CalendarTime from "@/components/tools/phase9-v2-calendar-time";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
 import { calculatorInfo } from "@/lib/calculator-info";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 export function generateStaticParams() {
   return [
@@ -53,7 +51,7 @@ export async function generateMetadata({
     const seo = isConsolidatedSecuritySlug(calculator)
       ? SECURITY_SUITE_SEO_CONTENT[calculator]
       : null;
-    return publicToolMetadata(
+    return resolvedToolMetadata(
       calculator,
       seo?.seoTitle ?? security.name,
       seo?.seoDescription ?? security.description,
@@ -61,7 +59,7 @@ export async function generateMetadata({
   }
   const info = calculatorInfo[calculator];
   return info
-    ? publicToolMetadata(calculator, info.seoTitle, info.description)
+    ? resolvedToolMetadata(calculator, info.seoTitle, info.description)
     : {};
 }
 export default async function Page({

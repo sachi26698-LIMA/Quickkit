@@ -2,6 +2,26 @@ import {
   securityGroups,
   securityGroupKeywords,
 } from "@/lib/tools/security/consolidation";
+import { CATEGORY_SEO_RECORDS } from "@/lib/seo/categories";
+
+/**
+ * The shipped category title/description.
+ *
+ * `categoryMeta` below is the visual catalogue (name, slug, tint, icon) and the
+ * place where an administrator's override lands. The researched search copy
+ * lives in `lib/seo/categories.ts`; this helper reads it so there is exactly one
+ * authored source. Falling back to the category name keeps the type total.
+ */
+function shippedCategoryCopy(slug: string): {
+  title: string;
+  description: string;
+} {
+  const record = CATEGORY_SEO_RECORDS.find((item) => item.slug === slug);
+  return {
+    title: record?.title ?? slug,
+    description: record?.description ?? "",
+  };
+}
 
 export const toolCategories = [
   "PDF Tools",
@@ -32,80 +52,72 @@ export const categoryMeta: CategoryMeta[] = [
   {
     name: "PDF Tools",
     slug: "pdf-tools",
-    seoTitle: "Free Online PDF Tools — Merge, Split & Convert",
+    seoTitle: shippedCategoryCopy("pdf-tools").title,
     blurb: "Merge, split, convert, lock and manage PDF files.",
-    description:
-      "Merge, split, compress, edit, lock/unlock and convert PDFs to Word or images. Browser-local PDF utilities plus consent-based Word to PDF conversion.",
+    description: shippedCategoryCopy("pdf-tools").description,
     tint: "tint-pdf",
     icon: "pdf",
   },
   {
     name: "Image Tools",
     slug: "image-tools",
-    seoTitle: "Free Online Image Tools — Compress, Resize & Crop",
+    seoTitle: shippedCategoryCopy("image-tools").title,
     blurb: "Edit, convert, compress and optimize images.",
-    description:
-      "Compress images to an exact KB size, resize by pixels or presets, crop ratios or circles, and convert JPG, PNG, WebP, AVIF and TIFF locally in your browser.",
+    description: shippedCategoryCopy("image-tools").description,
     tint: "tint-image",
     icon: "image",
   },
   {
     name: "QR & Barcode",
     slug: "qr-barcode",
-    seoTitle: "QR Code Generator & Scanner — Free Online Tools",
+    seoTitle: shippedCategoryCopy("qr-barcode").title,
     blurb: "Create and scan QR codes and barcodes.",
-    description:
-      "Create custom scannable QR codes with logos, colours, Payment/UPI links and CSV batches, or scan QR codes from your camera and screenshots in your browser.",
+    description: shippedCategoryCopy("qr-barcode").description,
     tint: "tint-qr",
     icon: "qr",
   },
   {
     name: "Text & Writing",
     slug: "text-writing",
-    seoTitle: "Text & OCR Tools — Word Counter & Case Converter",
+    seoTitle: shippedCategoryCopy("text-writing").title,
     blurb: "Format, analyze and transform text easily.",
-    description:
-      "Count words, characters and reading time, convert between 10 text case styles, and extract text from images or scanned PDFs in 8 languages locally.",
+    description: shippedCategoryCopy("text-writing").description,
     tint: "tint-text",
     icon: "text",
   },
   {
     name: "Developer Tools",
     slug: "developer-tools",
-    seoTitle: "Developer Tools — JSON, Minifiers, Regex & Hashes",
+    seoTitle: shippedCategoryCopy("developer-tools").title,
     blurb: "Encode, decode, format and work with dev utilities.",
-    description:
-      "Format and validate JSON, XML and HTML, minify CSS and JavaScript, test regex in a worker, encode Base64/URLs, and generate UUID v4 or SHA hashes locally.",
+    description: shippedCategoryCopy("developer-tools").description,
     tint: "tint-dev",
     icon: "code",
   },
   {
     name: "Calculators",
     slug: "calculators",
-    seoTitle: "Online Calculators — EMI, GST, BMI & Unit Tools",
+    seoTitle: shippedCategoryCopy("calculators").title,
     blurb: "Simple and advanced calculations for everyday use.",
-    description:
-      "Calculate EMI and loan schedules, Indian GST, discounts, percentages, BMI, exact age, business-day differences, scientific math and unit conversions locally.",
+    description: shippedCategoryCopy("calculators").description,
     tint: "tint-calc",
     icon: "calc",
   },
   {
     name: "Security & Privacy",
     slug: "security-privacy",
-    seoTitle: "Security & Privacy — Local Tools",
+    seoTitle: shippedCategoryCopy("security-privacy").title,
     blurb: "Generate, check and manage your data securely.",
-    description:
-      "Use browser tools for passwords, encryption, hashes, metadata and privacy reviews, plus consent-based public DNS lookups.",
+    description: shippedCategoryCopy("security-privacy").description,
     tint: "tint-security",
     icon: "shield",
   },
   {
     name: "AI Tools",
     slug: "ai-tools",
-    seoTitle: "AI Tools (Coming Soon) — Roadmap Category",
+    seoTitle: shippedCategoryCopy("ai-tools").title,
     blurb: "Smart tools powered by artificial intelligence.",
-    description:
-      "AI-assisted document and text utilities are on the QUICKKIT roadmap. Explore the published PDF, image, OCR, QR, developer, calculator and privacy tools today.",
+    description: shippedCategoryCopy("ai-tools").description,
     tint: "tint-ai",
     icon: "sparkles",
   },

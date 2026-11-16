@@ -16,6 +16,7 @@ import {
 } from "@/lib/seo";
 import { categoryContent } from "@/lib/category-content";
 import { categoryFilterFor } from "@/lib/category-filters";
+import { resolveCategorySeo } from "@/lib/seo/resolve";
 
 export function generateStaticParams() {
   return categoryMeta.map((c) => ({ slug: c.slug }));
@@ -39,8 +40,14 @@ export async function generateMetadata({
         Array.isArray(tool.categories) &&
         (tool.categories as readonly string[]).includes(meta.name)),
   );
+  // The shipped, researched record is the default. An administrator's
+  // `seo_title` override (collected into `meta.seoTitle` by the catalogue
+  // projection) still wins, because the admin panel is the control surface.
+  const record = resolveCategorySeo(slug);
+  const title = meta.seoTitle || record?.title || meta.name;
+  const description = meta.description || record?.description || meta.blurb;
   return {
-    ...pageMetadata(meta.seoTitle, meta.description, `/category/${meta.slug}`),
+    ...pageMetadata(title, description, `/category/${meta.slug}`),
     // A category with nothing in it yet is a placeholder, not a destination:
     // keep it reachable from the nav but out of the index until it ships tools.
     ...(published ? {} : { robots: { index: false, follow: true } }),

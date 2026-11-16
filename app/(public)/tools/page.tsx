@@ -12,14 +12,14 @@ import {
   collectionPageStructuredData,
   pageMetadata,
 } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 
 export async function generateMetadata() {
   const { tools } = await getPublicCatalog();
-  return pageMetadata(
-    `All ${tools.length} Free Online Tools — PDF, Image & Code`,
-    `Browse ${tools.length} published, active QUICKKIT tools: PDF, image, OCR, QR, developer and calculator utilities.`,
-    "/tools",
-  );
+  // Registry copy, with the live published-tool count substituted so the title
+  // and the visible "N FREE TOOLS" eyebrow state the same number.
+  const record = resolvePageSeo("/tools", { toolCount: tools.length })!;
+  return pageMetadata(record.title, record.description, "/tools");
 }
 
 export default async function ToolsPage() {

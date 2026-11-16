@@ -3,6 +3,7 @@ import LegalPageShell, {
   OwnerPlaceholder,
 } from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -11,8 +12,11 @@ import {
 import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
+// Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
+// itself still lives in `lib/legal.ts`, so the description has one source.
+const PAGE_SEO = resolvePageSeo("/terms")!;
 export const metadata = pageMetadata(
-  "Terms and Conditions — rules for using the tools",
+  PAGE_SEO.title,
   legalPageByHref("/terms")!.description,
   "/terms",
 );
