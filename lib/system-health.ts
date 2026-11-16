@@ -80,7 +80,7 @@ export type SystemHealthReport = {
   error_monitoring: ErrorMonitoringHealth;
 };
 
-const PROBE_TIMEOUT_MS = 4000;
+const PROBE_TIMEOUT_MS = 6000;
 const CACHE_MS = 5 * 60 * 1000;
 
 type Cached<T> = { at: number; value: T };
