@@ -36,7 +36,7 @@ Read-only row counts showed zero rows in eight tables and one existing `quickkit
 - **Contact/feedback:** public submissions are validated, consented and same-origin checked; server-only HMAC limiting uses the `quickkit_submission_limits` RPC/table. Private inbox reads/updates/deletes require the authorized Admin API. No live HTTP submission or synthetic DB row was created in this task.
 - **Admin activity:** events are written/read through server-only database access. No real Admin mutation was made; live activity table is empty.
 - **Profiles/favorites:** existing tables are legacy/dormant in the visitor UI; favorites remain browser-local and no visitor account/login feature is enabled. Preserve existing records.
-- **Visitor statistics:** separate libSQL/Turso database, not Supabase. `ANALYTICS_DATABASE_URL` and optional `ANALYTICS_DATABASE_TOKEN` are absent from local runtime and were not listed in Vercel project metadata. No analytics table was read or written.
+- **Visitor statistics and error events:** stored in this Supabase project by migration `202611160003_quickkit_system_health.sql` (tables `quickkit_visitor_totals`, `quickkit_visitor_ids`, `quickkit_visitor_sessions`, `quickkit_error_events`). RLS denies browser roles and only `service_role` may call the four functions. A libSQL/Turso database (`ANALYTICS_DATABASE_URL`) is an optional alternative for the visitor counter.
 
 `SUPABASE_SERVICE_ROLE_KEY` is privileged and bypasses RLS; its only valid use is server-only, post-authorization Admin/server code. Do not expose it through `NEXT_PUBLIC_*`, logs, docs, browser code, or client calls. No policies were weakened or changed during this audit.
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { reportClientError } from "@/lib/monitoring/client-report";
 import { captureHandledError } from "@/lib/monitoring/error-reporter";
 import styles from "@/components/admin/admin.module.css";
 
@@ -14,6 +15,7 @@ export default function AdminErrorBoundary({
 }) {
   useEffect(() => {
     captureHandledError(error, "admin");
+    reportClientError(error, "admin");
   }, [error]);
 
   return (

@@ -3895,6 +3895,32 @@
   line-height: 1.5;
 }
 
+.admin-error-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-error-list li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--qk-border);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.admin-error-list span {
+  overflow-wrap: anywhere;
+}
+.admin-error-list small {
+  color: var(--qk-muted);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
 /* SEO Cards & Diagnostics */
 .admin-seo-cards {
   display: grid;

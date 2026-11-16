@@ -304,12 +304,13 @@ export default function PrivacyPage() {
         provider.
       </p>
       <p>
-        The QUICKKIT application offers an opt-in first-party visitor counter,
-        described below. It does not implement application-level request logging
-        or session recording. Provider-side logging, retention periods,
-        subprocessors and hosting region depend on the deployment configuration
-        and are set by the operator&rsquo;s hosting account, so we are not going
-        to state a retention period we cannot verify.
+        The QUICKKIT application offers an opt-in first-party visitor counter
+        and can keep short error reports, both described below. It does not
+        implement application-level request logging or session recording.
+        Provider-side logging, retention periods, subprocessors and hosting
+        region depend on the deployment configuration and are set by the
+        operator&rsquo;s hosting account, so we are not going to state a
+        retention period we cannot verify.
       </p>
       <p className="legal-owner-line">
         Hosting provider: <strong>Vercel Inc.</strong> (vercel.com), which
@@ -358,6 +359,22 @@ export default function PrivacyPage() {
         subtract past contributions. The operator can reset the database and
         must verify hosting location, retention and any required consent before
         enabling production.
+      </p>
+
+      <h3>Error reports</h3>
+      <p>
+        If a page fails and shows an error screen, the page tells our own server
+        that it happened; the same is noted when our server fails while building
+        a page. While the operator has error reporting switched on, the server
+        stores the type of error, a reference code, the page path without its
+        query string and, except on tool pages, a short error message from which
+        email addresses, tokens and query strings are removed first. On tool
+        pages the message is never kept, because it could quote what you typed.
+        Files, tool input, cookies, your IP address and your user agent are not
+        stored with these reports. They are kept for 30 days in the same
+        Supabase database as contact messages, are visible only to the
+        administrator, and are not shared with an error-tracking company. While
+        error reporting is off, the report is discarded on arrival.
       </p>
 
       <h2 id="retention">10. Data retention and deletion</h2>

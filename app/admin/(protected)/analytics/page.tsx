@@ -12,15 +12,22 @@ import {
 import { CategoryDonutChart } from "@/components/admin/admin-charts";
 import { PageHeading } from "@/components/admin/admin-page";
 import styles from "@/components/admin/admin.module.css";
-import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
+import { getServerErrorMonitoringStatus } from "@/lib/monitoring/error-store";
 import { getOverviewSnapshot } from "@/lib/supabase/admin-data";
+import { describeSystemHealth } from "@/lib/system-health-labels";
 
 export default async function AdminAnalyticsPage() {
-  const configured = Boolean(process.env.ANALYTICS_DATABASE_URL?.trim());
-  const tokenConfigured = Boolean(process.env.ANALYTICS_DATABASE_TOKEN?.trim());
-  const sourceReady = configured && tokenConfigured;
-  const errorMonitoring = getErrorMonitoringStatus();
   const snapshot = await getOverviewSnapshot();
+  const system = snapshot.connected ? snapshot.health?.system : undefined;
+  const analytics = system?.analytics;
+  const labels = describeSystemHealth(system);
+  const errorMonitoring = getServerErrorMonitoringStatus();
+  const store =
+    analytics?.backend === "libsql"
+      ? "a libSQL database"
+      : analytics?.backend === "supabase"
+        ? "this site's Supabase project"
+        : "no database";
 
   return (
     <>
@@ -43,28 +50,34 @@ export default async function AdminAnalyticsPage() {
                 FIRST-PARTY VISITOR ANALYTICS
               </span>
               <h3 id="analytics-state-title">
-                {sourceReady
-                  ? "Analytics source detected · read-only query required"
-                  : "Visitor analytics not configured"}
+                {analytics?.ready
+                  ? "Visitor statistics connected"
+                  : analytics?.backend
+                    ? "Visitor statistics database not ready"
+                    : "Visitor analytics not configured"}
               </h3>
             </div>
           </div>
 
-          {!sourceReady ? (
+          {analytics?.ready ? (
             <p>
-              No visitor counts, usage charts, or traffic trends are available.
-              Provision the optional first-party analytics database and its
-              server-only credentials through the owner-controlled deployment
-              process to enable aggregate reporting. Secret values are never
-              displayed here.
+              These are the same totals the homepage laptop graph shows, read
+              from {store} just now. Only browsers that chose “Allow anonymous
+              visitor statistics” are counted, so this is a floor, not a
+              measurement of all traffic.
+            </p>
+          ) : analytics?.backend ? (
+            <p>
+              The visitor counter is set to use {store}, but a read did not
+              succeed. {labels.analytics.detail}
             </p>
           ) : (
             <p>
-              Server-side analytics credentials are present. Metrics are not
-              queried directly from this screen because the existing
-              visitor-stats helper initializes tables on first access. Avoiding
-              that call preserves the read-only Admin boundary until a dedicated
-              read-only query path is reviewed.
+              No visitor counts, usage charts, or traffic trends are available.
+              Connect the Supabase server credentials (or an optional libSQL
+              database) through the owner-controlled deployment process to
+              enable aggregate reporting. Secret values are never displayed
+              here.
             </p>
           )}
 
@@ -72,31 +85,52 @@ export default async function AdminAnalyticsPage() {
             <span>
               <i
                 className={
-                  configured
+                  analytics?.ready
                     ? styles["admin-health-dot--good"]
                     : styles["admin-health-dot--neutral"]
                 }
                 aria-hidden="true"
               />
               <Database size={13} aria-hidden="true" />
-              Database URL{" "}
+              Opted-in visitors{" "}
               <strong>
-                {configured ? "present (value hidden)" : "not configured"}
+                {analytics?.ready
+                  ? analytics.visitors.toLocaleString("en")
+                  : "unavailable"}
               </strong>
             </span>
             <span>
               <i
                 className={
-                  tokenConfigured
+                  analytics?.ready
+                    ? styles["admin-health-dot--good"]
+                    : styles["admin-health-dot--neutral"]
+                }
+                aria-hidden="true"
+              />
+              <Activity size={13} aria-hidden="true" />
+              Online now{" "}
+              <strong>
+                {analytics?.ready
+                  ? analytics.online.toLocaleString("en")
+                  : "unavailable"}
+              </strong>
+            </span>
+            <span>
+              <i
+                className={
+                  analytics?.ready
                     ? styles["admin-health-dot--good"]
                     : styles["admin-health-dot--neutral"]
                 }
                 aria-hidden="true"
               />
               <ShieldCheck size={13} aria-hidden="true" />
-              Access token{" "}
+              Counting since{" "}
               <strong>
-                {tokenConfigured ? "present (value hidden)" : "not configured"}
+                {analytics?.ready && analytics.since
+                  ? analytics.since.slice(0, 10)
+                  : "unavailable"}
               </strong>
             </span>
           </div>
@@ -104,7 +138,7 @@ export default async function AdminAnalyticsPage() {
           <p className={styles["admin-panel-footnote"]}>
             The optional visitor-stats schema supports aggregate unique visitors
             and average active time only. It does not track tool-level usage,
-            browser/device breakdowns, revenue, or client failures.
+            browser/device breakdowns or revenue.
           </p>
         </section>
 
@@ -152,9 +186,9 @@ export default async function AdminAnalyticsPage() {
                   <AlertCircle size={15} />
                 </span>
                 <div>
-                  <h3>Uninstrumented telemetry boundaries</h3>
+                  <h3>Telemetry boundaries</h3>
                   <p className={styles["admin-panel-subtitle"]}>
-                    Explicitly uncollected by design
+                    What is and is not collected
                   </p>
                 </div>
               </div>
@@ -174,12 +208,13 @@ export default async function AdminAnalyticsPage() {
                 <Activity size={16} aria-hidden="true" />
                 <div>
                   <strong>
-                    Application error monitoring ({errorMonitoring.statusLabel})
+                    Application error monitoring ({labels.errorMonitoring.value}
+                    )
                   </strong>
                   <p>
-                    {errorMonitoring.configured
-                      ? "Opt-in sanitized error boundary hook is configured without logging tokens or visitor inputs."
-                      : "Safe opt-in error boundaries are prepared and remain disabled until ERROR_MONITORING_ENABLED=true and a valid HTTPS DSN are configured by the owner."}
+                    {errorMonitoring.enabled
+                      ? `${labels.errorMonitoring.detail} Events carry the error type, a scrubbed message and the route; never tool input, files, cookies or IP addresses.`
+                      : "Safe opt-in error reporting is prepared and remains off until ERROR_MONITORING_ENABLED=true is set. Nothing is collected while it is off."}
                   </p>
                 </div>
               </div>

@@ -46,6 +46,8 @@ import type {
   OverviewConnectedSnapshot,
   OverviewSnapshot,
 } from "@/lib/supabase/admin-data";
+import type { SystemHealthReport } from "@/lib/system-health";
+import { describeSystemHealth } from "@/lib/system-health-labels";
 import {
   CategoryDonutChart,
   EntityBarList,
@@ -327,6 +329,8 @@ export function AdminOverviewLive({
   const [nowMs, setNowMs] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [checkingHealth, setCheckingHealth] = useState(false);
+  const [fullCheckReport, setFullCheckReport] =
+    useState<SystemHealthReport | null>(null);
   const [healthCheckedAt, setHealthCheckedAt] = useState<string | null>(
     isSnapshot(initialSnapshot)
       ? (initialSnapshot.health?.checked_at ?? null)
@@ -621,6 +625,12 @@ export function AdminOverviewLive({
         );
         return;
       }
+      if (secResponse.ok) {
+        const body = (await secResponse.json().catch(() => null)) as {
+          data?: { system?: SystemHealthReport };
+        } | null;
+        if (body?.data?.system) setFullCheckReport(body.data.system);
+      }
       setHealthCheckedAt(new Date().toISOString());
       pushToast({
         tone: secResponse.ok ? "success" : "warning",
@@ -628,7 +638,7 @@ export function AdminOverviewLive({
           ? "Health check completed"
           : "Health check finished with warnings",
         description: secResponse.ok
-          ? "Admin API and Supabase probes responded."
+          ? "Database, sitemap, sign-in and monitoring probes responded."
           : "Security endpoint returned an unexpected status.",
       });
     } catch {
@@ -749,9 +759,30 @@ export function AdminOverviewLive({
   }
 
   const healthMeta = snapshot?.health;
-  const analyticsConfigured = Boolean(
-    healthMeta?.analytics_url_present && healthMeta?.analytics_token_present,
-  );
+  // "Run full check" returns probes that skipped the cache. A later periodic
+  // refresh is newer overall, but may carry an older cached sitemap fetch, so
+  // the newer of the two sitemap results is kept.
+  const polledReport = healthMeta?.system;
+  const systemReport =
+    fullCheckReport && polledReport
+      ? fullCheckReport.checked_at >= polledReport.checked_at
+        ? fullCheckReport
+        : {
+            ...polledReport,
+            sitemap:
+              fullCheckReport.sitemap.checked_at >
+              polledReport.sitemap.checked_at
+                ? fullCheckReport.sitemap
+                : polledReport.sitemap,
+          }
+      : (fullCheckReport ?? polledReport);
+  const healthLabels = describeSystemHealth(systemReport, {
+    sitemapOriginConfigured: healthMeta?.sitemap_origin_configured,
+    analyticsCredentialsPresent: Boolean(
+      healthMeta?.analytics_url_present && healthMeta?.analytics_token_present,
+    ),
+    errorMonitoringConfigured: healthMeta?.error_monitoring_configured,
+  });
   const healthItems: {
     label: string;
     value: string;
@@ -799,53 +830,32 @@ export function AdminOverviewLive({
     },
     {
       label: "RLS verification",
-      value: "Verification required",
-      tone: "warn",
-      detail:
-        "App does not introspect pg_policies; verify RLS policies in Supabase.",
+      ...healthLabels.rls,
       href: "/admin/security",
-      actionLabel: "Verify",
+      actionLabel: healthLabels.rls.tone === "good" ? "Review" : "Verify",
     },
     {
       label: "SMTP configuration",
-      value: "External · unverified",
-      tone: "neutral",
-      detail: "Managed externally in Supabase Auth; not probed by app.",
+      ...healthLabels.smtp,
       href: "/admin/security",
       actionLabel: "Review",
     },
     {
       label: "Sitemap verification",
-      value: "Owner verification required",
-      tone: "warn",
-      detail: healthMeta?.sitemap_origin_configured
-        ? "Origin set; deployment crawl reachability requires owner check."
-        : "SITE_URL origin not configured in this environment.",
+      ...healthLabels.sitemap,
       href: "/admin/seo",
       actionLabel: "SEO",
     },
     {
       label: "Analytics integration",
-      value: analyticsConfigured
-        ? "Read-only query required"
-        : "Not configured",
-      tone: analyticsConfigured ? "warn" : "neutral",
-      detail: analyticsConfigured
-        ? "Env credentials detected; safe read-only reporting query pending."
-        : "No verified first-party analytics database configured.",
+      ...healthLabels.analytics,
       href: "/admin/analytics",
-      actionLabel: "Setup",
+      actionLabel: healthLabels.analytics.tone === "good" ? "Open" : "Setup",
     },
     {
       label: "Error monitoring",
-      value: healthMeta?.error_monitoring_configured
-        ? "Configured (opt-in)"
-        : "Not configured",
-      tone: healthMeta?.error_monitoring_configured ? "good" : "neutral",
-      detail: healthMeta?.error_monitoring_configured
-        ? "Sanitized error boundary hook is enabled."
-        : "Opt-in error boundary hook ready; no external provider connected.",
-      href: "/admin/analytics",
+      ...healthLabels.errorMonitoring,
+      href: "/admin/security",
       actionLabel: "Details",
     },
     {

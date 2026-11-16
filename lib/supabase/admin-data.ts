@@ -2,7 +2,6 @@ import "server-only";
 
 import { categoryMeta, toolCategoriesOf, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
-import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
 import { siteOrigin } from "@/lib/seo";
 import { getAdminEmailAllowlist } from "./admin-auth";
 import type {
@@ -12,6 +11,7 @@ import type {
   ToolOverrideRow,
 } from "./database.types";
 import { getMasterAdminServiceClient } from "./master-admin";
+import { getSystemHealth, type SystemHealthReport } from "@/lib/system-health";
 import { readStoredToolMaintenance } from "@/lib/tool-maintenance";
 
 export type AdminTool = {
@@ -234,9 +234,13 @@ export type OverviewHealthStatus = {
   analytics_token_present: boolean;
   sitemap_origin_configured: boolean;
   indexing_enabled: boolean;
-  rls_verified_by_app: false;
-  smtp_verified_by_app: false;
+  /** True only when the live database report found every table protected. */
+  rls_verified_by_app: boolean;
+  /** True only when the owner's SMTP confirmation date is on record. */
+  smtp_verified_by_app: boolean;
   error_monitoring_configured: boolean;
+  /** Live probe results behind the System health panel. */
+  system?: SystemHealthReport;
 };
 
 export type OverviewConnectedSnapshot = {
@@ -403,6 +407,7 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
     ratings,
     newRatings,
     recentRatings,
+    system,
   ] = await Promise.all([
     readToolCatalog(),
     readCategoryCatalog(),
@@ -452,6 +457,7 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       .gte("created_at", fourteenDaysAgoIso)
       .order("created_at", { ascending: false })
       .limit(500),
+    getSystemHealth(db),
   ]);
   const ratingCount = !ratings.error ? (ratings.count ?? 0) : 0;
   const newRatingCount = !newRatings.error ? (newRatings.count ?? 0) : 0;
@@ -559,9 +565,10 @@ export async function getOverviewSnapshot(): Promise<OverviewSnapshot> {
       ),
       sitemap_origin_configured: Boolean(siteOrigin),
       indexing_enabled: indexingEnabled,
-      rls_verified_by_app: false,
-      smtp_verified_by_app: false,
-      error_monitoring_configured: getErrorMonitoringStatus().configured,
+      rls_verified_by_app: system.rls.status === "verified",
+      smtp_verified_by_app: system.smtp.verified_on !== null,
+      error_monitoring_configured: system.error_monitoring.configured,
+      system,
     },
   };
 }

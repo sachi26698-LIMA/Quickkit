@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { categoryMeta, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
-import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
+import { getServerErrorMonitoringStatus } from "@/lib/monitoring/error-store";
 import { siteOrigin } from "@/lib/seo";
+import { getSystemHealth, readRecentErrors } from "@/lib/system-health";
 import {
   authorizeAdminApi,
   apiError,
@@ -272,11 +273,16 @@ export async function GET(
       });
     }
     if (resource === "security") {
-      const [probe] = await Promise.all([
+      // "Run full check" and the Security page land here, so the two HTTP
+      // probes skip their cache and every answer is from this request.
+      const [probe, system, recentErrors] = await Promise.all([
         access.context.db
           .from("quickkit_admin_activity")
           .select("id", { count: "exact", head: true }),
+        getSystemHealth(access.context.db, { fresh: true }),
+        readRecentErrors(access.context.db),
       ]);
+      const rls = system.rls;
       return noStoreJson({
         data: {
           email: access.context.admin.email,
@@ -290,11 +296,18 @@ export async function GET(
           submission_hmac_configured:
             !!process.env.SUPABASE_SUBMISSION_HMAC_SECRET?.trim(),
           database_status: probe.error ? "Unavailable" : "Connected",
-          rls_status: probe.error
-            ? "Migration/table unavailable; verify in Supabase"
-            : "RLS catalog is not introspected by the app; inspect the migration and project catalog",
-          signup_disabled: null,
-          checked_at: new Date().toISOString(),
+          rls_status:
+            rls.status === "verified"
+              ? `Verified · ${rls.tables} tables protected`
+              : rls.status === "issues"
+                ? `Needs attention · ${
+                    new Set([...rls.unprotected, ...rls.anon_readable]).size
+                  } of ${rls.tables} tables`
+                : probe.error
+                  ? "Migration/table unavailable; verify in Supabase"
+                  : "Live check unavailable · apply the system health migration",
+          signup_disabled: system.smtp.signup_disabled,
+          checked_at: system.checked_at,
           analytics_url_present: Boolean(
             process.env.ANALYTICS_DATABASE_URL?.trim(),
           ),
@@ -303,9 +316,16 @@ export async function GET(
           ),
           sitemap_origin_configured: Boolean(siteOrigin),
           indexing_enabled: indexingEnabled,
-          smtp_status:
-            "Managed externally in Supabase Auth · not verified by app",
-          error_monitoring_status: getErrorMonitoringStatus().statusLabel,
+          smtp_status: system.smtp.verified_on
+            ? `Custom SMTP confirmed in Supabase on ${system.smtp.verified_on}`
+            : "Managed externally in Supabase Auth · not verified by app",
+          error_monitoring_status: system.error_monitoring.configured
+            ? "Enabled · first-party store"
+            : getServerErrorMonitoringStatus().enabled
+              ? "Enabled · store unavailable"
+              : "Not configured",
+          system,
+          recent_errors: recentErrors,
         },
       });
     }

@@ -99,6 +99,19 @@ export interface Database {
         Update: { status?: AdminSubmissionStatus; internal_notes?: string };
         Relationships: [];
       };
+      quickkit_error_events: {
+        Row: {
+          id: string;
+          created_at: string;
+          scope: string;
+          name: string;
+          message: string;
+          digest: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       quickkit_tool_feedback_limits: {
         Row: {
           bucket_hash: string;
@@ -191,6 +204,27 @@ export interface Database {
       quickkit_consume_tool_feedback_limit: {
         Args: { p_bucket_hash: string };
         Returns: boolean;
+      };
+      quickkit_record_visit: {
+        Args: { p_visitor: string; p_session: string; p_active_ms: number };
+        Returns: undefined;
+      };
+      quickkit_visitor_stats: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      quickkit_record_error: {
+        Args: {
+          p_scope: string;
+          p_name: string;
+          p_message: string;
+          p_digest: string;
+        };
+        Returns: boolean;
+      };
+      quickkit_system_health: {
+        Args: Record<string, never>;
+        Returns: Json;
       };
     };
     Enums: Record<string, never>;

@@ -41,7 +41,7 @@ display this checklist to unauthenticated visitors.
 ### Verified via Read-Only Catalog Inspection (Production Supabase Project)
 
 - Both migrations are applied (`202611100001_quickkit_account_data` and `quickkit_master_admin`).
-- Row Level Security (RLS) is enabled on all 9 `public.quickkit_*` tables.
+- Row Level Security (RLS) is enabled on every `public.quickkit_*` table; the Admin System health panel re-checks this against the live catalog on every refresh.
 - All 7 private/admin/submission tables have explicit `FOR ALL TO anon, authenticated USING (false) WITH CHECK (false)` deny policies and zero `anon`/`authenticated` table or column grants.
 - `quickkit_profiles` and `quickkit_favorites` allow `authenticated` access strictly to `(SELECT auth.uid()) = id / user_id` with column-scoped grants and zero `anon` privileges.
 - `service_role` has least-privilege grants:
@@ -82,35 +82,30 @@ or mutated by this application:
 
 ---
 
-## 4. Recommended Analytics Setup (Currently `Not configured`)
+## 4. Visitor Analytics, Error Monitoring and the System Health Panel
 
-Visitor analytics remain explicitly marked **`Not configured`** across the Admin Control Center until genuinely provisioned. No synthetic or placeholder visitor metrics are rendered.
+Migration `202611160003_quickkit_system_health.sql` connects the Admin "System health" rows to real checks. Every row is green only when a probe the server just ran confirmed it; a probe that cannot run says so instead of passing.
 
-When the owner chooses to enable optional first-party visitor statistics:
+| Row                   | What the server checks                                                                                                                                                                                                                                                                                  | Needs                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| RLS verification      | `quickkit_system_health()` reads the Postgres catalog: RLS must be on for every `public.quickkit_*` table and the `anon` role must hold no table privilege. Affected tables are named when it fails.                                                                                                    | Migration `202611160003`                                  |
+| SMTP configuration    | Live read of Supabase Auth's public settings (email sign-in on, signup closed). SMTP settings themselves are only visible in the Supabase dashboard, so the row turns green from the dated owner confirmation `AUTH_SMTP_VERIFIED_ON=YYYY-MM-DD`. No test email is sent and no SMTP credential is read. | `AUTH_SMTP_VERIFIED_ON`                                   |
+| Sitemap verification  | Fetches `SITE_URL/sitemap.xml` and `/robots.txt` like a crawler: the sitemap must parse and list pages, and robots.txt must not block all crawlers. Cached five minutes; "Run full check" refetches. Submitting the sitemap in Google Search Console is still done there.                               | `SITE_URL`, `LAUNCH_APPROVED=true`                        |
+| Analytics integration | A real read of the opt-in visitor counter, now stored in Supabase (or libSQL when `ANALYTICS_DATABASE_URL` is set). See `docs/VISITOR_STATISTICS.md`.                                                                                                                                                   | Migration `202611160003`                                  |
+| Error monitoring      | Counts stored error events in the last 24 hours and 7 days.                                                                                                                                                                                                                                             | Migration `202611160003`, `ERROR_MONITORING_ENABLED=true` |
 
-1. Provision a persistent libSQL/Turso database outside this repository.
-2. Configure server-only Vercel Production secrets (never `NEXT_PUBLIC_`):
-   - `ANALYTICS_DATABASE_URL=libsql://<database>.turso.io`
-   - `ANALYTICS_DATABASE_TOKEN=<server-only-token>`
-3. Add a dedicated **read-only** query helper for the Admin Control Center before wiring totals into `/admin/analytics`, because `lib/visitor-analytics.ts` initializes DDL tables on first call (`analyticsDatabase()`).
-4. Configure hosting WAF/rate limits on `POST /api/visitor-stats` and database spending caps.
-5. Complete legal/privacy review of the opt-in consent copy, retention window, and hosting region (see `docs/VISITOR_STATISTICS.md`).
+Before enabling the visitor counter in production, configure hosting WAF/rate limits on `POST /api/visitor-stats` and complete the legal/privacy review of the opt-in copy, retention window and hosting region.
 
 ---
 
-## 5. Safe Opt-In Error Monitoring Setup (Currently `Not configured`)
+## 5. Opt-In Error Monitoring
 
-Error monitoring is prepared cleanly via `lib/monitoring/error-reporter.ts` along with safe Next.js error boundaries (`app/admin/error.tsx` and `app/global-error.tsx`):
+Error monitoring stays **`Not configured`** and stores nothing until `ERROR_MONITORING_ENABLED=true` is set on the server. When it is on:
 
-- Remains strictly **`Not configured`** and performs zero network calls by default.
-- `sanitizeErrorForMonitoring()` strips bearer tokens, JWTs, API key prefixes, email addresses, URL credentials, and sensitive query parameters (`token`, `key`, `secret`, `password`, `auth`, `code`, `session`, `email`) before forwarding any event.
-- Browser-first tool files and user payloads are never attached to error reports.
-
-To activate monitoring after owner approval:
-
-1. Select a privacy-respecting provider (e.g., Sentry with IP anonymization and data scrubbing enabled) and obtain an HTTPS DSN.
-2. Set `ERROR_MONITORING_ENABLED=true` and `ERROR_MONITORING_DSN=<https-dsn>` in Vercel Production secrets (never commit DSN values).
-3. Register the provider SDK adapter through `registerErrorReporterAdapter()` inside an owner-approved client/server instrumentation module, keeping `sanitizeErrorForMonitoring()` in front of all outgoing events.
+- Error screens (`app/admin/error.tsx`, `app/global-error.tsx`, `app/(public)/tools/error.tsx`) post a summary to the same-origin `POST /api/error-report`; server render and route-handler failures are captured by `instrumentation.ts` (`onRequestError`).
+- Each event holds the error type, a message scrubbed by `sanitizeErrorForMonitoring()` (bearer tokens, JWTs, API key prefixes, email addresses, URL credentials and sensitive query parameters removed), Next.js's digest and the route. Tool pages never store a message, because it could quote tool input. IP addresses, cookies, user agents, files and stacks are never stored.
+- Events live in `public.quickkit_error_events` in the site's Supabase project, written only through `quickkit_record_error()` (at most 200 per hour, removed after 30 days) and listed under Admin → Security.
+- `ERROR_MONITORING_DSN` remains available for a future external provider, but no external adapter ships with the app; nothing is sent to a third party.
 
 ---
 
