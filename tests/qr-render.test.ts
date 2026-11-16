@@ -401,13 +401,18 @@ describe("a dense payload never renders below the decode threshold", () => {
     const totalModules = Math.round(
       rendered.scene.size / rendered.scene.modulePx,
     );
-    // The whole point: the reported size now clears the threshold it claims.
-    expect(rendered.design.size / totalModules).toBeGreaterThanOrEqual(3.6);
-    expect(rendered.design.size).toBeGreaterThan(256);
+    // The whole point: whatever size is reported, the pixels really decode.
+    // Density is no longer the gate — a decode-chaos band exists on both
+    // sides of 3.6 px/module, so the renderer proves the bitmap instead of
+    // guessing from a px-per-module number (see lib/tools/qr/render.ts).
     expect(rendered.verification?.ok).toBe(true);
-    expect(rendered.adjustments.some((entry) => entry.field === "size")).toBe(
-      true,
-    );
+    expect(rendered.design.size / totalModules).toBeGreaterThanOrEqual(3.5);
+    // A grown code must say why; a code that decodes as asked keeps its size.
+    if (rendered.design.size !== 256) {
+      expect(rendered.adjustments.some((entry) => entry.field === "size")).toBe(
+        true,
+      );
+    }
   });
 
   it("leaves a roomy payload at its chosen size", async () => {
@@ -466,5 +471,101 @@ describe("a transparent design is never inverted", () => {
       { hasLogo: false },
     );
     expect(design.invert).toBe(true);
+  });
+});
+
+/**
+ * Two failure modes were found by sweeping real output, and neither is a
+ * "too few pixels" problem — which is why the old px-per-module rule missed
+ * them and reported the renders as fine.
+ *
+ * 1. Fractional module pitch. Modules are laid out at `codeSide / total`
+ *    pixels. When that is not a whole number the antialiased edges land
+ *    differently on every module and smear into the light field, so the code
+ *    stops decoding *even at 6 px per module*.
+ * 2. One encoder version (23 at level L) emits a symbol no reader can lock
+ *    onto at any size, while the same payload at M or Q is fine.
+ *
+ * The renderer now decodes the real bitmap and repairs whichever applies. These
+ * tests pin the outcome: the pixels decode, the size is never silently changed,
+ * and a repair is always explained.
+ */
+describe("high-density renders are proven, not assumed", () => {
+  /** 109 modules at level L — the version that cannot be detected. */
+  const V23 = "A".repeat(1462);
+
+  it("repairs a payload whose symbol cannot be detected at its own version", async () => {
+    const rendered = await renderQr({
+      payload: V23,
+      design: { ...defaultDesign(), size: 256 },
+      artifacts: { png: true },
+      verify: true,
+    });
+    expect(rendered.verification?.ok).toBe(true);
+    expect(rendered.verification?.decoded).toBe(V23);
+    // The repair is reported, whichever route it took.
+    expect(rendered.adjustments.length).toBeGreaterThan(0);
+  });
+
+  it("never reports a size it did not honour without saying so", async () => {
+    for (const size of [200, 256, 300, 378, 420, 512]) {
+      const rendered = await renderQr({
+        payload: V23,
+        design: { ...defaultDesign(), size },
+        artifacts: { png: true },
+        verify: true,
+      });
+      expect(rendered.verification?.ok).toBe(true);
+      if (rendered.design.size !== size) {
+        expect(
+          rendered.adjustments.some((entry) => entry.field === "size"),
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("keeps a roomy render at the requested size", async () => {
+    const rendered = await renderQr({
+      payload: PAYLOAD,
+      design: { ...defaultDesign(), size: 768 },
+      artifacts: { png: true },
+      verify: true,
+    });
+    expect(rendered.design.size).toBe(768);
+    expect(rendered.adjustments).toEqual([]);
+    expect(rendered.verification?.ok).toBe(true);
+  });
+
+  it("decodes dense payloads across shapes, colours and canvases", async () => {
+    const designs: Partial<QrDesign>[] = [
+      { invert: true },
+      { transparent: true },
+      { dotStyle: "dots", dotScale: 0.9 },
+      { dotStyle: "rounded", dotScale: 0.85 },
+      {
+        frame: {
+          style: "scan",
+          text: "SCAN",
+          fg: "#3b1b4f",
+          bg: "#f4d7d4",
+        },
+      },
+    ];
+    for (const design of designs) {
+      for (const size of [256, 420]) {
+        const rendered = await renderQr({
+          payload: "https://quickkit.tools/?d=" + "A".repeat(872),
+          design: { ...defaultDesign(), size, ...design },
+          artifacts: { png: true },
+          verify: true,
+        });
+        expect(rendered.verification?.ok).toBe(true);
+        if (rendered.design.size !== size) {
+          expect(
+            rendered.adjustments.some((entry) => entry.field === "size"),
+          ).toBe(true);
+        }
+      }
+    }
   });
 });

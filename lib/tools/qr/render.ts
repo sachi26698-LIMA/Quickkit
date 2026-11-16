@@ -77,33 +77,142 @@ export async function renderQr(request: RenderRequest): Promise<RenderOutput> {
   if (!request.logo) {
     const region = design.size * codeRegionRatio(design);
     const minModulePx = 3.5;
-    // Minimum module size that actually decodes; see the note below.
-    const DECODE_SAFE_MODULE_PX = 3.6;
     const candidates: QrErrorLevel[] = ["Q", "M", "L"];
     for (const candidate of candidates) {
       if (region / (matrix.size + design.margin * 2) >= minModulePx) break;
       matrix = createMatrix(payload, candidate, { boost: false });
     }
-    // The 3.5 px step-down target is below the point where the decoder can
-    // actually lock. Measured on a version-13 symbol: 3.51 px/module 0/5
-    // decoded, 3.59 px/module 5/5. So a symbol that lands in that band is
-    // rendered, reported as fine and then quietly fails verification. When
-    // stepping ECC down cannot clear the band, grow the canvas instead — the
-    // same remedy the safety analyser offers for a crowded module grid.
-    const totalModules = matrix.size + design.margin * 2;
-    if (region / totalModules < DECODE_SAFE_MODULE_PX) {
-      const grown = Math.min(
-        QR_SIZE_MAX,
-        Math.ceil(
-          (DECODE_SAFE_MODULE_PX * totalModules) / codeRegionRatio(design),
-        ),
-      );
-      if (grown > design.size) {
-        adjustments.push({
-          field: "size",
-          message: `The output was raised to ${grown} px so every module stays at least ${DECODE_SAFE_MODULE_PX} px — a ${totalModules}-module code would not scan smaller.`,
-        });
-        design = { ...design, size: grown };
+    // A dense symbol can be mathematically perfect and still fail a camera-style
+    // decode once it is *styled* onto a fractional module grid: modules are laid
+    // out at `codeSide / total` pixels, so unless that ratio is a whole number
+    // the antialiased edges land differently on every module and smear into the
+    // light field. Measured on a 109-module symbol (version 23, level M): the
+    // same payload decodes at 4, 5 and 6 px per module when the pitch is whole
+    // and fails at 4.27, 4.40 and 5.13 px per module when it is not — so this is
+    // a pitch problem, not a "too small" problem, and a minimum px-per-module
+    // rule cannot see it (it was reporting those renders as fine).
+    //
+    // Remedy: grow the canvas to the next size where `codeSide / total` is a
+    // whole number, then *prove* it by decoding the real bitmap. Growing can
+    // change the symbol's version (a bigger canvas fits more data per module),
+    // which changes the pitch again, so re-resolve the matrix on each pass and
+    // stop on the first size that decodes. Every bump is reported, so a
+    // requested size is never silently abandoned.
+    const ECC_ORDER: QrErrorLevel[] = ["L", "M", "Q", "H"];
+    const snapToWholePitch = (candidate: typeof design, modules: number) => {
+      const ratio = codeRegionRatio(candidate);
+      if (ratio <= 0) return candidate.size;
+      // Smallest size at or above the requested one whose code region divides
+      // into `modules` equal whole-pixel cells.
+      const wanted = candidate.size * ratio;
+      const pitch = Math.max(1, Math.ceil(wanted / modules - 1e-9));
+      const snapped = Math.ceil((pitch * modules) / ratio - 1e-9);
+      return snapped <= candidate.size ? candidate.size : snapped;
+    };
+    // Density alone cannot predict this: a tiny canvas and a roomy one can both
+    // land in a band where the styled modules stop decoding, and one encoder
+    // version (23 at level L) emits a symbol no reader can lock onto at any
+    // size. So when the caller asks for proof, decode the real bitmap and fix
+    // what actually fails instead of trusting a px-per-module rule.
+    if (request.verify && !request.artifacts?.svg) {
+      const requestedLevel = design.errorLevel;
+      const matrixAt = (level: QrErrorLevel) => {
+        try {
+          return createMatrix(payload, level, { boost: false });
+        } catch {
+          return null;
+        }
+      };
+      // Probe the *candidate* symbol, not the one currently installed: matching
+      // a new module count against the old bitmap reports a bogus verdict.
+      const probeAt = (
+        symbol: QrMatrix,
+        candidate: typeof design,
+        mods: number,
+      ) => {
+        const bitmap = rasterizeScene(buildScene(symbol, candidate, null));
+        return verifyBitmap(bitmap, payload, { totalModules: mods }).ok;
+      };
+      const roundPitch = (size: number, mods: number) =>
+        snapToWholePitch({ ...design, size }, mods);
+      const trySymbol = (candidate: QrMatrix) => {
+        const mods = candidate.size + design.margin * 2;
+        const wanted = roundPitch(design.size, mods);
+        if (wanted > QR_SIZE_MAX) return false;
+        const nextDesign = { ...design, size: wanted };
+        if (!probeAt(candidate, nextDesign, mods)) return false;
+        matrix = candidate;
+        if (wanted !== design.size) {
+          adjustments.push({
+            field: "size",
+            message: `The output was raised to ${wanted} px so each of the ${mods} modules falls on whole pixels — at a fractional module size the styled edges smear and the code stops scanning.`,
+          });
+        }
+        design = nextDesign;
+        return true;
+      };
+
+      if (!probeAt(matrix, design, matrix.size + design.margin * 2)) {
+        // Explain the failure on the payload's own symbol by trying a whole
+        // pixel pitch first; it is the cheapest fix and the most common one.
+        const initialModules = matrix.size + design.margin * 2;
+        const pitched = roundPitch(design.size, initialModules);
+        let fixed =
+          pitched > design.size &&
+          probeAt(matrix, { ...design, size: pitched }, initialModules);
+        if (fixed) {
+          design = { ...design, size: pitched };
+          adjustments.push({
+            field: "size",
+            message: `The output was raised to ${pitched} px so each of the ${initialModules} modules falls on whole pixels — at a fractional module size the styled edges smear and the code stops scanning.`,
+          });
+        }
+        // Then any stronger level the payload can still fit. Forced explicitly
+        // with `boost: false`: auto-boosting would silently undo the choice.
+        if (!fixed) {
+          for (const level of ECC_ORDER) {
+            if (ECC_ORDER.indexOf(level) <= ECC_ORDER.indexOf(requestedLevel))
+              continue;
+            const candidate = matrixAt(level);
+            if (!candidate) continue;
+            if (trySymbol(candidate)) {
+              adjustments.push({
+                field: "errorLevel",
+                message: `Error correction was raised to level ${level} because the code did not read back at level ${requestedLevel}.`,
+              });
+              fixed = true;
+              break;
+            }
+          }
+        }
+        let grew = false;
+        if (!fixed) {
+          // Last resort: more pixels for the same symbol.
+          const mods = matrix.size + design.margin * 2;
+          for (const factor of [1.15, 1.35, 1.6, 2]) {
+            const grown = Math.min(
+              QR_SIZE_MAX,
+              Math.ceil(design.size * factor),
+            );
+            if (grown <= design.size) continue;
+            if (probeAt(matrix, { ...design, size: grown }, mods)) {
+              design = { ...design, size: grown };
+              adjustments.push({
+                field: "size",
+                message: `The output was raised to ${grown} px because the ${mods}-module code did not read back at the size you asked for.`,
+              });
+              fixed = true;
+              grew = true;
+              break;
+            }
+          }
+        }
+        if (!fixed && !grew) {
+          adjustments.push({
+            field: "errorLevel",
+            message: `This payload could not be read back at any size or error-correction level. It is close to the format's limit — shorten it and try again.`,
+          });
+        }
       }
     }
   }
