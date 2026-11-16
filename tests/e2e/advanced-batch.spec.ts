@@ -74,3 +74,105 @@ test("calculator category searches and filters catalog and fits", async ({
   ).toBe(true);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
+// Search and the type picker used to exist on the Calculators page only.
+for (const category of [
+  {
+    path: "/category/pdf-tools",
+    noun: "PDF tools",
+    typeLabel: "PDF tool type",
+    total: 9,
+    type: "convert",
+    typeCount: 4,
+    search: "word to pdf",
+    link: "Word to PDF Converter",
+  },
+  {
+    path: "/category/image-tools",
+    noun: "image tools",
+    typeLabel: "Image tool type",
+    total: 4,
+    type: "size",
+    typeCount: 2,
+    search: "crop",
+    link: "Image Cropper",
+  },
+  {
+    path: "/category/qr-barcode",
+    noun: "QR and barcode tools",
+    typeLabel: "Code tool type",
+    total: 9,
+    type: "qr",
+    typeCount: 2,
+    search: "scanner",
+    link: "QR Code Scanner",
+  },
+  {
+    path: "/category/text-writing",
+    noun: "text tools",
+    typeLabel: "Text tool type",
+    total: 3,
+    type: "write",
+    typeCount: 2,
+    search: "case",
+    link: "Case Converter",
+  },
+  {
+    path: "/category/developer-tools",
+    noun: "developer tools",
+    typeLabel: "Developer tool type",
+    total: 11,
+    type: "minify",
+    typeCount: 2,
+    search: "css",
+    link: "CSS Minifier",
+  },
+  {
+    path: "/category/security-privacy",
+    noun: "security tools",
+    typeLabel: "Security tool type",
+    total: 9,
+    type: "secrets",
+    typeCount: 4,
+    search: "password",
+    link: "Password Generator",
+  },
+]) {
+  test(`${category.path} searches, filters by type and fits a phone`, async ({
+    page,
+  }) => {
+    await page.goto(category.path);
+    const status = page.locator(".category-filter-status");
+    await expect(status).toHaveText(
+      `Showing ${category.total} of ${category.total} ${category.noun}`,
+    );
+    await page.getByLabel(category.typeLabel).selectOption(category.type);
+    await expect(status).toHaveText(
+      `Showing ${category.typeCount} of ${category.total} ${category.noun}`,
+    );
+    await expect(page.locator(".category-tools .tool-card")).toHaveCount(
+      category.typeCount,
+    );
+    await page.getByLabel(`Search ${category.noun}`).fill(category.search);
+    await expect(
+      page.getByRole("link", { name: category.link, exact: true }),
+    ).toBeVisible();
+    // Nothing matches: the page says so and one press brings every tool back.
+    await page.getByLabel(`Search ${category.noun}`).fill("zzzz-no-such-tool");
+    await expect(status).toHaveText(
+      `Showing 0 of ${category.total} ${category.noun}`,
+    );
+    await page
+      .getByRole("button", { name: `Show all ${category.noun}` })
+      .click();
+    await expect(page.locator(".category-tools .tool-card")).toHaveCount(
+      category.total,
+    );
+    await page.setViewportSize({ width: 375, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+}

@@ -204,9 +204,9 @@ describe("Supabase stays server-side", () => {
       .map(rel);
     expect(offenders).toEqual([]);
   });
-
   it("only imports the Supabase SDK from server-only modules or the proxy", () => {
     const offenders: string[] = [];
+    let typeOnly = 0;
     for (const file of sourceFiles) {
       if (isSupabaseModule(file)) continue;
       const source = read(file);
@@ -215,9 +215,25 @@ describe("Supabase stays server-side", () => {
         /from\s+"@supabase\/ssr"/.test(source);
       if (!importsSupabaseSdk) continue;
       if (rel(file).endsWith("proxy.ts")) continue;
+      // A type-only import is erased at build time and ships nothing to the
+      // browser, but it is only safe in a file the browser never receives, so
+      // the server-only check still gates it. Anything else is an offender.
+      if (isServerOnlyModule(file)) {
+        const isTypeOnly = /import\s+type\s+[^;]*from\s+"@supabase\//.test(
+          source,
+        );
+        expect(isTypeOnly, `${rel(file)} must import Supabase types only`).toBe(
+          true,
+        );
+        typeOnly += 1;
+        continue;
+      }
       offenders.push(rel(file));
     }
     expect(offenders).toEqual([]);
+    // The exemption is exercised: if a future refactor removes the type-only
+    // import this drops to 0 and the rule silently stops being tested.
+    expect(typeOnly).toBeGreaterThan(0);
   });
 
   it("keeps every Supabase API host out of browser-reachable code", () => {

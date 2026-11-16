@@ -1744,6 +1744,42 @@ h2 {
 .category-tools {
   margin-top: 28px;
 }
+/* Search box and type picker above the tools of every category. */
+.category-browser {
+  margin-top: 28px;
+}
+.category-filters {
+  margin: 0 0 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.category-filters input,
+.category-filters select {
+  min-height: 48px;
+  font: inherit;
+}
+.category-filters input:focus-visible,
+.category-filters select:focus-visible {
+  outline: 3px solid rgb(var(--c-rgb, 109 40 217) / 0.45);
+  outline-offset: 2px;
+}
+.category-filter-status {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #51496a;
+}
+.category-browser .category-tools {
+  margin-top: 18px;
+}
+.category-filter-empty {
+  margin-top: 18px;
+  padding: 28px 20px;
+  border: 1px dashed #d6cfe8;
+  border-radius: 16px;
+  text-align: center;
+}
+.category-filter-empty p {
+  margin: 0 0 14px;
+}
 .more-categories {
   margin-top: 64px;
 }

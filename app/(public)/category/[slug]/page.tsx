@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ChevronRight, Clock } from "lucide-react";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 import AdUnit from "@/components/ad-unit";
-import ToolCard from "@/components/tool-card";
 import JsonLd from "@/components/json-ld";
-import CalculatorCategoryGrid from "@/components/calculator-category-grid";
+import CategoryToolGrid from "@/components/category-tool-grid";
 import { categoryMeta } from "@/lib/catalog";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 
@@ -16,6 +15,7 @@ import {
   pageMetadata,
 } from "@/lib/seo";
 import { categoryContent } from "@/lib/category-content";
+import { categoryFilterFor } from "@/lib/category-filters";
 
 export function generateStaticParams() {
   return categoryMeta.map((c) => ({ slug: c.slug }));
@@ -123,19 +123,15 @@ export default async function CategoryPage({
           </span>
         </header>
 
-        {list.length && meta.slug === "calculators" ? (
-          <CalculatorCategoryGrid tools={list} />
-        ) : list.length ? (
-          <>
-            <h2 className="sr-only">Available {meta.name}</h2>
-            <div
-              className={`tool-grid category-tools cat-${categoryTone(meta.name)}`}
-            >
-              {list.map((tool) => (
-                <ToolCard key={tool.slug} tool={tool} category={meta.name} />
-              ))}
-            </div>
-          </>
+        {/* Every category lists its tools the same way: a search box, a type
+            picker and the cards, each card in its own tool colour. */}
+        {list.length ? (
+          <CategoryToolGrid
+            tools={list}
+            categoryName={meta.name}
+            tone={categoryTone(meta.name)}
+            filter={categoryFilterFor(meta.slug, meta.name)}
+          />
         ) : (
           <div className="empty coming-soon">
             <Clock size={34} aria-hidden="true" />

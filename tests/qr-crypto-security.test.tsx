@@ -21,8 +21,10 @@ import {
   exportCreatorSignerJson,
   fromBase64Url,
   generateNewSigner,
+  getOrCreateSigner,
   importCreatorSignerJson,
   pinTrustedSigner,
+  rotateCreatorSigner,
   toBase64Url,
   unpinTrustedSigner,
 } from "@/lib/tools/qr/crypto-security";
@@ -116,6 +118,67 @@ describe("NIST P-256 key compression & backup", () => {
     const unpinned = unpinTrustedSigner(imported.fingerprint);
     expect(unpinned.some((p) => p.fingerprint === imported.fingerprint)).toBe(
       false,
+    );
+  });
+});
+
+describe("creator signing key — first use", () => {
+  const KEY = "quickkit:qr:signer-key:v1";
+
+  it("gives every caller that arrives at once the same key and stores it once", async () => {
+    localStorage.clear();
+    const signers = await Promise.all([
+      getOrCreateSigner(),
+      getOrCreateSigner(),
+      getOrCreateSigner(),
+      getOrCreateSigner(),
+    ]);
+    const fingerprints = new Set(signers.map((signer) => signer.fingerprint));
+    expect(fingerprints.size).toBe(1);
+    const stored = JSON.parse(localStorage.getItem(KEY)!);
+    expect(stored.fingerprint).toBe(signers[0].fingerprint);
+    // Later calls keep returning that stored key.
+    expect((await getOrCreateSigner()).fingerprint).toBe(stored.fingerprint);
+  });
+
+  it("does not replace a key rotated while the first one was still being created", async () => {
+    localStorage.clear();
+    // Hold the first key creation open until the rotation has finished.
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const original = crypto.subtle.generateKey.bind(crypto.subtle);
+    let calls = 0;
+    const spy = vi
+      .spyOn(crypto.subtle, "generateKey")
+      .mockImplementation(async (...args: unknown[]) => {
+        if (++calls === 1) await gate;
+        return (original as (...a: unknown[]) => Promise<CryptoKeyPair>)(
+          ...args,
+        );
+      });
+    try {
+      const first = getOrCreateSigner();
+      const rotated = await rotateCreatorSigner();
+      release();
+      expect((await first).fingerprint).toBe(rotated.fingerprint);
+      expect(JSON.parse(localStorage.getItem(KEY)!).fingerprint).toBe(
+        rotated.fingerprint,
+      );
+      expect((await getOrCreateSigner()).fingerprint).toBe(rotated.fingerprint);
+    } finally {
+      release();
+      spy.mockRestore();
+    }
+  });
+
+  it("creates a fresh key after storage is cleared", async () => {
+    localStorage.clear();
+    const before = await getOrCreateSigner();
+    localStorage.clear();
+    const after = await getOrCreateSigner();
+    expect(after.fingerprint).not.toBe(before.fingerprint);
+    expect(JSON.parse(localStorage.getItem(KEY)!).fingerprint).toBe(
+      after.fingerprint,
     );
   });
 });

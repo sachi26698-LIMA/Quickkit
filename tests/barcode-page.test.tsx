@@ -149,7 +149,7 @@ describe("visual identity", () => {
     ).toBe("crimson");
   });
 
-  it("stays inside the QR family's red theme with a warm shift", () => {
+  it("has a colour of its own, separate from the QR generator", () => {
     const theme = toolTheme("barcode-generator", "QR & Barcode");
     const qr = toolTheme("qr-generator", "QR & Barcode");
     expect(theme.rgb).not.toBe(qr.rgb);

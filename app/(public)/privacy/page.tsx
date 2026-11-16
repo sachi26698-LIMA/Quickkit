@@ -10,11 +10,6 @@ import {
 } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
-import {
-  localToolCount,
-  nonLocalToolCount,
-  totalTools,
-} from "@/lib/catalog-counts";
 
 export const metadata = pageMetadata(
   "Privacy Policy — how your data is handled",
@@ -30,7 +25,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       href="/privacy"
       title="Privacy Policy"
-      intro={`${localToolCount} of the ${totalTools} published tools process everything in your browser and send nothing. The other ${nonLocalToolCount} are named in section 5, and each states on its own page exactly what leaves your device. Visitors have no accounts or cloud-synced favourites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages may be stored privately for review.`}
+      intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages, and tool ratings you choose to send, may be stored privately for review."
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
@@ -48,14 +43,9 @@ export default function PrivacyPage() {
           sections 7 and 8.
         </li>
         <li>
-          <strong>
-            {localToolCount} of {totalTools} tools are fully local.
-          </strong>{" "}
-          Their files and text are processed in the tab and no request is made.
-          The remaining {nonLocalToolCount} are disclosed individually in{" "}
-          <a href="#uploads">section 5</a>: Word to PDF uploads only after an
-          explicit consent step, and four tools make optional, click-only
-          lookups that never carry file contents.
+          Most tools process files and text in your browser. Word to PDF is an
+          explicit-consent exception using operator-controlled LibreOffice
+          processing; selecting a file alone does not upload it.
         </li>
         <li>
           Saved tools stay only in this browser. QR presets, QR history and
@@ -74,9 +64,9 @@ export default function PrivacyPage() {
         Public tools require no registration. Supabase Auth handles sign-in only
         for administrator identities maintained by the operator; visitors cannot
         register or use a QUICKKIT account. If you explicitly submit the contact
-        form or opt in to send feedback, the submitted fields are stored
-        privately for response/review. Word to PDF remains the separately
-        disclosed explicit-consent upload exception.
+        form, opt in to send feedback, or send a tool rating, the submitted
+        fields are stored privately for response/review. Word to PDF remains the
+        separately disclosed explicit-consent upload exception.
       </p>
       <p>What exists, in total, is:</p>
       <ul>
@@ -106,9 +96,20 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Messages you choose to send</strong> through the contact form
-          or, after separately opting in, the feedback form. Submitted messages
-          are private to QUICKKIT and are not displayed to other visitors. See{" "}
+          or, after separately opting in, the homepage feedback form. The
+          feedback form can carry an optional name, a message of up to 180
+          characters, an optional 1–5 star rating, the options you tick and the
+          tool you choose under “About”. Submitted messages and ratings are
+          private to QUICKKIT and are not displayed to other visitors. See{" "}
           <a href="#retention">section 10</a>.
+        </li>
+        <li>
+          <strong>Tool ratings you choose to send</strong> from the optional
+          invitation shown after a download: the tool’s name, your 1–5 star
+          rating, the options you tick and an optional comment of up to 600
+          characters. No name, email address, account or file is attached. The
+          rating is transmitted only when you press “Send my feedback”;
+          dismissing the invitation sends nothing.
         </li>
       </ul>
 
@@ -151,29 +152,19 @@ export default function PrivacyPage() {
 
       <h2 id="uploads">5. Do files leave my device?</h2>
       <p>
-        <strong>No file tool other than Word to PDF transmits a file.</strong>{" "}
-        {localToolCount} of {totalTools} published tools make no request at all
-        while processing. Word to PDF is the one upload: with explicit consent,
-        Convert or Refresh sends DOCX bytes to the operator-controlled native
-        engine or private worker. Automatic re-upload requires separate opt-in.
-        No upload occurs on file selection and no third-party conversion
-        fallback is used. Native job files are temporary and cleanup is required
-        after processing; actual host isolation, crash cleanup and
-        logging/retention remain the operator&rsquo;s responsibility and are
-        verified against the running deployment. Native conversion is disabled
-        when its engine is unavailable.
-      </p>
-      <p>
-        The Content Security Policy is the technical check on those claims.
-        Site- wide, fetch and XHR connections are allowed only to this
-        site&rsquo;s own origin, the named Google AdSense hosts and (when
-        configured) this project&rsquo;s Supabase origin — no wildcards. Three
-        routes widen
-        <code>connect-src</code> by exactly two hosts, and nothing else: the DNS
-        and email tool adds <code>cloudflare-dns.com</code>, while the URL/IP
-        privacy tool adds <code>api.ipify.org</code> and{" "}
-        <code>api64.ipify.org</code>. Every other tool page keeps the site-wide
-        policy.
+        Most tools do not transmit selected files as part of processing. Word to
+        PDF is the exception: with explicit consent, Convert or Refresh sends
+        DOCX bytes to the operator-controlled native engine or private worker.
+        Automatic re-upload requires separate opt-in. No upload occurs on file
+        selection and no third-party conversion fallback is used. Native job
+        files are temporary and cleanup is required after processing; actual
+        host isolation, crash cleanup and logging/retention remain the
+        operator&rsquo;s responsibility and are verified against the running
+        deployment. Native conversion is disabled when its engine is
+        unavailable. The Content Security Policy allows application fetch and
+        XHR connections only to this site&rsquo;s own origin and the Google
+        AdSense hosts described in sections 7 and 8 — no wildcards and no other
+        third parties.
       </p>
       <p>
         Two honest qualifications. First, the hosting provider still sees the
@@ -183,10 +174,11 @@ export default function PrivacyPage() {
         running in the page; the application does not deliberately send tool
         inputs to it, but it may be able to read page content. Do not enter
         sensitive material if you are not comfortable with that access. The
-        contact and feedback submission forms transmit only the fields you
-        explicitly submit after consent. They never upload tool inputs or files;
-        if the private submission service is unavailable, the form reports an
-        error and does not claim the message was delivered.
+        contact and feedback submission forms and the optional tool rating
+        transmit only the fields you explicitly submit after consent. They never
+        upload tool inputs or files; if the private submission service is
+        unavailable, the form reports an error and does not claim the message
+        was delivered.
       </p>
       <p>
         A full tool-by-tool account of what happens to each file type is in the{" "}
@@ -205,11 +197,27 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li>
-          <code>quickkit-tool-feedback-v1</code> — optional local tool ratings,
-          selected feedback options, comments (up to 600 characters) and
-          timestamps. Saved only when you choose to save feedback; not
-          published. Please do not include personal information or file
-          contents. Browser site-data controls can erase it.
+          <code>quickkit-hero-feedback-v1</code> — feedback you save in the
+          homepage “Share your experience” form: optional name, message (up to
+          180 characters), optional star rating, the options you ticked and the
+          tool you chose under “About”. It is shown back to you on the homepage,
+          stays in this browser and is transmitted only if you tick “Send this
+          feedback privately to QUICKKIT”. You can delete each entry in the
+          form.
+        </li>
+        <li>
+          <code>quickkit-tool-feedback-v1</code> — this browser’s copy of the
+          tool ratings you sent: the rating, selected feedback options, comment
+          (up to 600 characters) and timestamp. Saved only when you choose to
+          send feedback; the same rating is transmitted to QUICKKIT for private
+          review and is not published. Please do not include personal
+          information or file contents. Browser site-data controls can erase the
+          local copy.
+        </li>
+        <li>
+          <code>quickkit-tool-feedback-prompted-v1</code> — tool slugs and the
+          time the rating invitation was last shown, so the same tool asks at
+          most once in 24 hours. Never transmitted.
         </li>
         <li>
           <code>quickkit:saved-tools</code> — tool slugs shown by Saved. This
@@ -276,38 +284,6 @@ export default function PrivacyPage() {
         .
       </p>
       <p>
-        <strong>Optional lookups you can decline.</strong> Four tools can
-        contact a named third party, and only after you press a button on that
-        page after reading what it does. None of them sends a file, a document
-        or the contents of a workspace:
-      </p>
-      <ul>
-        <li>
-          <strong>Ultimate DNS &amp; Email Security</strong> and the DNS
-          operations inside it query a public resolver —{" "}
-          <code>cloudflare-dns.com</code> over DNS-over-HTTPS — with the domain
-          name you type. Cloudflare sees that domain name and your IP address.
-          Records and headers you paste stay in the tab; no live website scan is
-          performed.
-        </li>
-        <li>
-          <strong>Ultimate URL, IP &amp; Browser Privacy</strong> can call{" "}
-          <code>api.ipify.org</code> (or <code>api64.ipify.org</code>) to show
-          the public address a service observes. ipify sees your IP address.
-          Everything else on that page is a local review of information you
-          paste.
-        </li>
-        <li>
-          <strong>GTIN Product Lookup</strong> and the scanner&rsquo;s optional
-          lookup send one 8–14 digit number to this site&rsquo;s own{" "}
-          <code>/api/product-lookup</code> endpoint, which reads Open Food Facts
-          (an ODbL-licensed, crowd-sourced database). Open Food Facts receives
-          the number and a request from our server, not from your browser; the
-          product image is proxied here so your browser makes no third-party
-          request at all. No batch code, image or scan history is sent.
-        </li>
-      </ul>
-      <p>
         Supabase provides authentication for authorized administrators and
         database hosting for messages explicitly submitted with consent. The
         administrator identity is managed by the operator. Supabase receives no
@@ -328,12 +304,13 @@ export default function PrivacyPage() {
         provider.
       </p>
       <p>
-        The QUICKKIT application offers an opt-in first-party visitor counter,
-        described below. It does not implement application-level request logging
-        or session recording. Provider-side logging, retention periods,
-        subprocessors and hosting region depend on the deployment configuration
-        and are set by the operator&rsquo;s hosting account, so we are not going
-        to state a retention period we cannot verify.
+        The QUICKKIT application offers an opt-in first-party visitor counter
+        and can keep short error reports, both described below. It does not
+        implement application-level request logging or session recording.
+        Provider-side logging, retention periods, subprocessors and hosting
+        region depend on the deployment configuration and are set by the
+        operator&rsquo;s hosting account, so we are not going to state a
+        retention period we cannot verify.
       </p>
       <p className="legal-owner-line">
         Hosting provider: <strong>Vercel Inc.</strong> (vercel.com), which
@@ -364,14 +341,14 @@ export default function PrivacyPage() {
         again.
       </p>
       <p>
-        The public laptop graph shows participating browsers seen in the last 45
-        seconds, distinct participating browser identifiers since tracking
-        began, and average visible time across participating visits (including
-        ongoing visits). These are estimates, not verified people: other
-        devices, cleared storage and automated requests can affect counts. No
-        historical traffic before installation can be recovered. The three bars
-        use a logarithmic scale; duration is in seconds, the other bars are
-        counts.
+        The “Live audience” graph on the home page shows participating browsers
+        seen in the last 45 seconds, distinct participating browser identifiers
+        since tracking began, and average visible time across participating
+        visits (including ongoing visits). These are estimates, not verified
+        people: other devices, cleared storage and automated requests can affect
+        counts. No historical traffic before installation can be recovered. The
+        three bars use a logarithmic scale; duration is in seconds, the other
+        bars are counts.
       </p>
       <p>
         Server-side visit records are pruned after 24 hours without a heartbeat
@@ -379,9 +356,25 @@ export default function PrivacyPage() {
         retained for cumulative deduplication, together with aggregate totals.
         They are not linked to names or accounts. Turning participation off
         stops future reporting and removes the local identifiers, but does not
-        subtract past contributions. The operator can reset the database and
-        must verify hosting location, retention and any required consent before
-        enabling production.
+        subtract past contributions. These records are kept in the same Supabase
+        database as contact messages, can be read and written only by our
+        server, and can be reset by the operator.
+      </p>
+
+      <h3>Error reports</h3>
+      <p>
+        If a page fails and shows an error screen, the page tells our own server
+        that it happened; the same is noted when our server fails while building
+        a page. While the operator has error reporting switched on, the server
+        stores the type of error, a reference code, the page path without its
+        query string and, except on tool pages, a short error message from which
+        email addresses, tokens and query strings are removed first. On tool
+        pages the message is never kept, because it could quote what you typed.
+        Files, tool input, cookies, your IP address and your user agent are not
+        stored with these reports. They are kept for 30 days in the same
+        Supabase database as contact messages, are visible only to the
+        administrator, and are not shared with an error-tracking company. While
+        error reporting is off, the report is discarded on arrival.
       </p>
 
       <h2 id="retention">10. Data retention and deletion</h2>
@@ -411,16 +404,20 @@ export default function PrivacyPage() {
           security needs. Visitors cannot create QUICKKIT accounts.
         </li>
         <li>
-          <strong>Contact and opted-in feedback submissions:</strong> held in
-          the private Supabase project so the operator can review and respond.
-          They are deleted when no longer needed or on a verified deletion
-          request. This release does not set an automated fixed retention term.
+          <strong>
+            Contact and opted-in feedback submissions, and tool ratings:
+          </strong>{" "}
+          held in the private Supabase project so the operator can review and
+          respond. They are deleted when no longer needed or on a verified
+          deletion request. This release does not set an automated fixed
+          retention term.
         </li>
         <li>
           <strong>Submission abuse controls:</strong> a keyed, non-reversible
-          HMAC of the request address and its 15-minute rate-limit counter are
-          stored server-side; the raw address is not written to the rate-limit
-          table. Old buckets are pruned when later submissions arrive.
+          HMAC of the request address and its rate-limit counter (15 minutes for
+          messages, one hour for tool ratings) are stored server-side; the raw
+          address is not written to the rate-limit table. Old buckets are pruned
+          when later submissions arrive.
         </li>
         <li>
           <strong>Hosting logs:</strong> see section 9 — governed by the

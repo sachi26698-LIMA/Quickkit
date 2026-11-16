@@ -3,10 +3,12 @@
  *
  * Design guarantees:
  * - Remains strictly OFF ("Not configured") unless the owner explicitly enables
- *   monitoring AND configures a valid DSN through environment variables.
+ *   monitoring through environment variables.
+ * - When enabled, scrubbed events are stored in the site's own Supabase project
+ *   (see `lib/monitoring/error-store.ts`); a valid external DSN is optional.
  * - Never exposes, logs, or returns DSN credentials or secret values.
  * - Scrubs tokens, cookies, email addresses, query strings, and user payloads
- *   before forwarding any sanitized event to an optionally registered adapter.
+ *   before any event is stored or forwarded.
  * - Fails silently (never breaks rendering or request handling).
  */
 
@@ -14,6 +16,8 @@ export type ErrorMonitoringStatus = {
   configured: boolean;
   enabled: boolean;
   dsnPresent: boolean;
+  /** True when the server can store events in the site's own database. */
+  firstParty: boolean;
   statusLabel: string;
 };
 
@@ -50,8 +54,13 @@ function isValidMonitoringDsn(value: string | undefined): boolean {
 /**
  * Reports strictly boolean readiness and a safe label.
  * Never returns the DSN, host, project ID, or credentials.
+ *
+ * `firstParty` is supplied by server code (`errorStoreAvailable()`); browser
+ * code never passes it, so a browser always reports a strict no-op.
  */
-export function getErrorMonitoringStatus(): ErrorMonitoringStatus {
+export function getErrorMonitoringStatus(
+  options: { firstParty?: boolean } = {},
+): ErrorMonitoringStatus {
   const enabled = isTruthyFlag(
     process.env.ERROR_MONITORING_ENABLED ??
       process.env.NEXT_PUBLIC_ERROR_MONITORING_ENABLED,
@@ -60,14 +69,18 @@ export function getErrorMonitoringStatus(): ErrorMonitoringStatus {
     process.env.ERROR_MONITORING_DSN ??
       process.env.NEXT_PUBLIC_ERROR_MONITORING_DSN,
   );
-  const configured = enabled && dsnPresent;
+  const firstParty = options.firstParty === true;
+  const configured = enabled && (dsnPresent || firstParty);
 
   return {
     configured,
     enabled,
     dsnPresent,
+    firstParty,
     statusLabel: configured
-      ? "Configured (opt-in adapter ready)"
+      ? dsnPresent
+        ? "Configured (opt-in adapter ready)"
+        : "Enabled · first-party store"
       : dsnPresent && !enabled
         ? "DSN present · disabled by flag"
         : "Not configured",

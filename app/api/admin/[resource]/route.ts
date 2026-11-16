@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { categoryMeta, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
-import { getErrorMonitoringStatus } from "@/lib/monitoring/error-reporter";
+import { getServerErrorMonitoringStatus } from "@/lib/monitoring/error-store";
 import { siteOrigin } from "@/lib/seo";
+import { getSystemHealth, readRecentErrors } from "@/lib/system-health";
 import {
   authorizeAdminApi,
   apiError,
@@ -22,6 +23,11 @@ import type {
   FeedbackType,
   SiteSettingKey,
 } from "@/lib/supabase/database.types";
+import {
+  TOOL_MAINTENANCE_REASON_MAX,
+  readStoredToolMaintenance,
+  withToolMaintenance,
+} from "@/lib/tool-maintenance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -95,11 +101,91 @@ export async function GET(
         .order("created_at", { ascending: false })
         .limit(250);
       const status = request.nextUrl.searchParams.get("status");
-      if (status && statuses.has(status as AdminSubmissionStatus))
-        query = query.eq("status", status as AdminSubmissionStatus);
-      const { data, error } = await query;
-      if (error) return apiError(503, "Private submissions are unavailable.");
-      return noStoreJson({ data: data ?? [] });
+      const statusFilter =
+        status && statuses.has(status as AdminSubmissionStatus)
+          ? (status as AdminSubmissionStatus)
+          : null;
+      if (statusFilter) query = query.eq("status", statusFilter);
+      if (resource === "submissions") {
+        const { data, error } = await query;
+        if (error) return apiError(503, "Private submissions are unavailable.");
+        return noStoreJson({ data: data ?? [] });
+      }
+      // The feedback inbox combines written messages with tool star ratings.
+      let ratingQuery = access.context.db
+        .from("quickkit_tool_feedback")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (statusFilter) ratingQuery = ratingQuery.eq("status", statusFilter);
+      // Reads nothing useful; it only tells whether the homepage form's
+      // rating column exists yet (see `homepage_ratings_ready` below).
+      const homepageRatingProbe = access.context.db
+        .from("quickkit_feedback_submissions")
+        .select("rating")
+        .limit(1);
+      const [messages, ratings, homepageRatings] = await Promise.all([
+        query,
+        ratingQuery,
+        homepageRatingProbe,
+      ]);
+      if (messages.error)
+        return apiError(503, "Private submissions are unavailable.");
+      const toolNames = new Map<string, string>(
+        tools.map((tool) => [tool.slug, tool.name]),
+      );
+      // Homepage feedback: a message, a star rating, or both.
+      const messageRows = (messages.data ?? []).map((row) => {
+        const { rating, tags, tool_slug, ...rest } = row as typeof row & {
+          rating?: unknown;
+          tags?: unknown;
+          tool_slug?: unknown;
+        };
+        // "About": the tool the visitor chose, when they chose one.
+        const about =
+          typeof tool_slug === "string" && tool_slug ? tool_slug : null;
+        const hasRating =
+          typeof rating === "number" &&
+          Number.isInteger(rating) &&
+          rating >= 1 &&
+          rating <= 5;
+        return {
+          ...rest,
+          source: "message" as const,
+          ...(hasRating
+            ? { rating, tags: Array.isArray(tags) ? tags : [] }
+            : {}),
+          ...(about
+            ? { tool_slug: about, tool_name: toolNames.get(about) ?? about }
+            : {}),
+        };
+      });
+      // Until the tool-ratings migration is applied the ratings read fails;
+      // the written messages are still shown and the page says why.
+      const ratingRows = ratings.error
+        ? []
+        : (ratings.data ?? []).map((row) => ({
+            id: row.id,
+            created_at: row.created_at,
+            status: row.status,
+            internal_notes: row.internal_notes,
+            name: null,
+            message: row.comment,
+            source: "rating" as const,
+            tool_slug: row.tool_slug,
+            tool_name: toolNames.get(row.tool_slug) ?? row.tool_slug,
+            rating: row.rating,
+            tags: Array.isArray(row.tags) ? row.tags : [],
+          }));
+      return noStoreJson({
+        data: [...messageRows, ...ratingRows].sort((a, b) =>
+          String(b.created_at).localeCompare(String(a.created_at)),
+        ),
+        ratings_ready: !ratings.error,
+        // False until the homepage-rating migration is applied: plain
+        // messages still arrive, but a visitor's star rating cannot be saved.
+        homepage_ratings_ready: !homepageRatings.error,
+      });
     }
     if (resource === "settings") {
       const { data, error } = await access.context.db
@@ -187,11 +273,16 @@ export async function GET(
       });
     }
     if (resource === "security") {
-      const [probe] = await Promise.all([
+      // "Run full check" and the Security page land here, so the two HTTP
+      // probes skip their cache and every answer is from this request.
+      const [probe, system, recentErrors] = await Promise.all([
         access.context.db
           .from("quickkit_admin_activity")
           .select("id", { count: "exact", head: true }),
+        getSystemHealth(access.context.db, { fresh: true }),
+        readRecentErrors(access.context.db),
       ]);
+      const rls = system.rls;
       return noStoreJson({
         data: {
           email: access.context.admin.email,
@@ -205,11 +296,18 @@ export async function GET(
           submission_hmac_configured:
             !!process.env.SUPABASE_SUBMISSION_HMAC_SECRET?.trim(),
           database_status: probe.error ? "Unavailable" : "Connected",
-          rls_status: probe.error
-            ? "Migration/table unavailable; verify in Supabase"
-            : "RLS catalog is not introspected by the app; inspect the migration and project catalog",
-          signup_disabled: null,
-          checked_at: new Date().toISOString(),
+          rls_status:
+            rls.status === "verified"
+              ? `Verified · ${rls.tables} tables protected`
+              : rls.status === "issues"
+                ? `Needs attention · ${
+                    new Set([...rls.unprotected, ...rls.anon_readable]).size
+                  } of ${rls.tables} tables`
+                : probe.error
+                  ? "Migration/table unavailable; verify in Supabase"
+                  : "Live check unavailable · apply the system health migration",
+          signup_disabled: system.smtp.signup_disabled,
+          checked_at: system.checked_at,
           analytics_url_present: Boolean(
             process.env.ANALYTICS_DATABASE_URL?.trim(),
           ),
@@ -218,9 +316,16 @@ export async function GET(
           ),
           sitemap_origin_configured: Boolean(siteOrigin),
           indexing_enabled: indexingEnabled,
-          smtp_status:
-            "Managed externally in Supabase Auth · not verified by app",
-          error_monitoring_status: getErrorMonitoringStatus().statusLabel,
+          smtp_status: system.smtp.verified_on
+            ? `Custom SMTP confirmed in Supabase on ${system.smtp.verified_on}`
+            : "Managed externally in Supabase Auth · not verified by app",
+          error_monitoring_status: system.error_monitoring.configured
+            ? "Enabled · first-party store"
+            : getServerErrorMonitoringStatus().enabled
+              ? "Enabled · store unavailable"
+              : "Not configured",
+          system,
+          recent_errors: recentErrors,
         },
       });
     }
@@ -389,9 +494,19 @@ export async function DELETE(
     if (resource !== "submissions" && resource !== "feedback")
       return apiError(405, "This resource cannot be deleted.");
     if (
-      Object.keys(body).some((key) => !["id", "confirm"].includes(key)) ||
+      Object.keys(body).some(
+        (key) =>
+          ![
+            "id",
+            "confirm",
+            ...(resource === "feedback" ? ["source"] : []),
+          ].includes(key),
+      ) ||
       typeof body.id !== "string" ||
-      !/^[0-9a-f-]{36}$/i.test(body.id)
+      !/^[0-9a-f-]{36}$/i.test(body.id) ||
+      ("source" in body &&
+        body.source !== "message" &&
+        body.source !== "rating")
     )
       return apiError(
         400,
@@ -400,7 +515,9 @@ export async function DELETE(
     const table =
       resource === "submissions"
         ? "quickkit_contact_submissions"
-        : "quickkit_feedback_submissions";
+        : body.source === "rating"
+          ? "quickkit_tool_feedback"
+          : "quickkit_feedback_submissions";
     if (
       !(await auditAdminAction(
         access.context,
@@ -445,6 +562,8 @@ async function updateTool(
     "seo_description",
     "canonical_path",
     "is_indexable",
+    "maintenance_enabled",
+    "maintenance_reason",
   ]);
   if (
     Object.keys(body).some((key) => !allowed.has(key)) ||
@@ -545,14 +664,73 @@ async function updateTool(
       update[key] = body[key];
     }
   }
+  // Maintenance mode ("temporarily off") is stored inside metadata_override.
+  let maintenanceChange: "on" | "off" | "note" | null = null;
+  if ("maintenance_enabled" in body || "maintenance_reason" in body) {
+    if (
+      "maintenance_enabled" in body &&
+      typeof body.maintenance_enabled !== "boolean"
+    )
+      return apiError(400, "Maintenance mode must be on or off.");
+    const reason =
+      "maintenance_reason" in body
+        ? normalizeText(body.maintenance_reason, TOOL_MAINTENANCE_REASON_MAX)
+        : undefined;
+    if (reason === null)
+      return apiError(
+        400,
+        `The maintenance note must be ${TOOL_MAINTENANCE_REASON_MAX} characters or fewer.`,
+      );
+    const existing = await context.db
+      .from("quickkit_admin_tool_overrides")
+      .select("metadata_override")
+      .eq("tool_slug", tool.slug)
+      .maybeSingle();
+    if (existing.error)
+      return apiError(
+        503,
+        "Tool metadata could not be read. Verify server configuration and database access.",
+      );
+    const metadata = existing.data?.metadata_override ?? {};
+    const current = readStoredToolMaintenance(metadata);
+    const enabled =
+      typeof body.maintenance_enabled === "boolean"
+        ? body.maintenance_enabled
+        : current.enabled;
+    const nextReason = reason ?? current.reason;
+    if (enabled !== current.enabled || nextReason !== current.reason) {
+      update.metadata_override = withToolMaintenance(metadata, {
+        enabled,
+        reason: nextReason,
+        // Keep the original time while the tool stays off.
+        since: enabled
+          ? current.enabled && current.since
+            ? current.since
+            : new Date().toISOString()
+          : null,
+      });
+      maintenanceChange =
+        enabled !== current.enabled ? (enabled ? "on" : "off") : "note";
+    }
+  }
   if (Object.keys(update).length <= 2)
     return apiError(400, "No editable changes provided.");
   if (
-    !(await auditAdminAction(context, "tool.update", "tool", tool.slug, {
-      fields: Object.keys(update).filter(
-        (k) => !["tool_slug", "updated_by"].includes(k),
-      ),
-    }))
+    !(await auditAdminAction(
+      context,
+      maintenanceChange === "on"
+        ? "tool.maintenance_on"
+        : maintenanceChange === "off"
+          ? "tool.maintenance_off"
+          : "tool.update",
+      "tool",
+      tool.slug,
+      {
+        fields: Object.keys(update).filter(
+          (k) => !["tool_slug", "updated_by"].includes(k),
+        ),
+      },
+    ))
   )
     return apiError(
       503,
@@ -787,14 +965,17 @@ async function updateSubmission(
 ) {
   const keys =
     resource === "feedback"
-      ? ["id", "status", "feedback_type", "internal_notes"]
+      ? ["id", "status", "feedback_type", "internal_notes", "source"]
       : ["id", "status", "internal_notes"];
   if (
     Object.keys(body).some((k) => !keys.includes(k)) ||
     typeof body.id !== "string" ||
-    !/^[0-9a-f-]{36}$/i.test(body.id)
+    !/^[0-9a-f-]{36}$/i.test(body.id) ||
+    ("source" in body && body.source !== "message" && body.source !== "rating")
   )
     return apiError(400, "Invalid submission update.");
+  // Star ratings live in their own table and have no message type.
+  const isRating = resource === "feedback" && body.source === "rating";
   const update: Record<string, unknown> = {};
   if ("status" in body) {
     if (
@@ -812,6 +993,7 @@ async function updateSubmission(
   if ("feedback_type" in body) {
     if (
       resource !== "feedback" ||
+      isRating ||
       typeof body.feedback_type !== "string" ||
       !feedbackTypes.has(body.feedback_type as FeedbackType)
     )
@@ -832,7 +1014,9 @@ async function updateSubmission(
   const table =
     resource === "submissions"
       ? "quickkit_contact_submissions"
-      : "quickkit_feedback_submissions";
+      : isRating
+        ? "quickkit_tool_feedback"
+        : "quickkit_feedback_submissions";
   const { data, error } = await context.db
     .from(table)
     .update(update as never)

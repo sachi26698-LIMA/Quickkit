@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseToolFeedback } from "../lib/tool-feedback";
+import {
+  TOOL_FEEDBACK_PROMPT_INTERVAL_MS,
+  canPromptToolFeedback,
+  parseToolFeedback,
+  parseToolFeedbackPromptLog,
+} from "../lib/tool-feedback";
 
 const valid = {
   tool: "merge-pdf",
@@ -37,5 +42,60 @@ describe("shared device-local tool feedback", () => {
     }));
     expect(parseToolFeedback(JSON.stringify(entries))).toHaveLength(105);
     expect(parseToolFeedback(JSON.stringify(entries))[0].comment).toBe("0");
+  });
+});
+
+describe("once-a-day rating invitation", () => {
+  const now = Date.UTC(2026, 10, 15, 12, 0, 0);
+  const hour = 60 * 60 * 1000;
+
+  it("asks for a tool that has never been prompted", () => {
+    expect(canPromptToolFeedback({}, "merge-pdf", now)).toBe(true);
+  });
+
+  it("stays quiet for 24 hours after the invitation was shown, then asks again", () => {
+    const log = { "merge-pdf": now };
+    expect(canPromptToolFeedback(log, "merge-pdf", now + 1)).toBe(false);
+    expect(canPromptToolFeedback(log, "merge-pdf", now + 23 * hour)).toBe(
+      false,
+    );
+    expect(
+      canPromptToolFeedback(
+        log,
+        "merge-pdf",
+        now + TOOL_FEEDBACK_PROMPT_INTERVAL_MS - 1,
+      ),
+    ).toBe(false);
+    expect(
+      canPromptToolFeedback(
+        log,
+        "merge-pdf",
+        now + TOOL_FEEDBACK_PROMPT_INTERVAL_MS,
+      ),
+    ).toBe(true);
+  });
+
+  it("tracks each tool separately", () => {
+    const log = { "merge-pdf": now };
+    expect(canPromptToolFeedback(log, "split-pdf", now + hour)).toBe(true);
+  });
+
+  it("ignores corrupt, expired and far-future entries in the stored log", () => {
+    expect(TOOL_FEEDBACK_PROMPT_INTERVAL_MS).toBe(24 * hour);
+    for (const raw of [null, "", "oops", "[]", "null", "4"]) {
+      expect(parseToolFeedbackPromptLog(raw, now)).toEqual({});
+    }
+    expect(
+      parseToolFeedbackPromptLog(
+        JSON.stringify({
+          "merge-pdf": now - hour,
+          "split-pdf": now - 25 * hour,
+          "qr-code-generator": now + 48 * hour,
+          "image-resizer": "yesterday",
+          "../admin": now,
+        }),
+        now,
+      ),
+    ).toEqual({ "merge-pdf": now - hour });
   });
 });

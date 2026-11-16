@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import {
   categoryMeta,
@@ -12,6 +13,10 @@ import { getMasterAdminServiceClient } from "./master-admin";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import type { CategoryOverrideRow, ToolOverrideRow } from "./database.types";
+import {
+  readToolMaintenance,
+  type ToolMaintenance,
+} from "@/lib/tool-maintenance";
 
 export type PublicTool = Tool & {
   seoTitle: string | null;
@@ -20,14 +25,17 @@ export type PublicTool = Tool & {
   isIndexable: boolean;
   isFeatured: boolean;
   publicDescription: string | null;
+  /** Set while an administrator has switched this tool off for maintenance. */
+  maintenance: ToolMaintenance | null;
 };
 
 /**
  * Reads validated admin overrides for server-rendered public pages. Database
  * failures deliberately fall back to the shipped catalogue. This module never
- * returns credentials or private submissions to a caller.
+ * returns credentials or private submissions to a caller. Wrapped in `cache`
+ * so the layouts and the page of one request share a single read.
  */
-export async function getPublicCatalog() {
+export const getPublicCatalog = cache(async function getPublicCatalog() {
   const db = getMasterAdminServiceClient();
   if (!db) return mergePublicCatalog([], []);
   const [toolResult, categoryResult] = await Promise.all([
@@ -42,7 +50,7 @@ export async function getPublicCatalog() {
   const toolRows = (toolResult.data ?? []) as ToolOverrideRow[];
   const categoryRows = (categoryResult.data ?? []) as CategoryOverrideRow[];
   return mergePublicCatalog(toolRows, categoryRows);
-}
+});
 
 export type PublicToolShellData = Awaited<
   ReturnType<typeof getPublicCatalog>
@@ -150,6 +158,7 @@ export function mergePublicCatalog(
           isIndexable: row?.is_indexable ?? true,
           isFeatured: row?.is_featured ?? false,
           publicDescription: safeText(row?.description_override, 1000),
+          maintenance: readToolMaintenance(row?.metadata_override),
         } as PublicTool,
       ];
     },

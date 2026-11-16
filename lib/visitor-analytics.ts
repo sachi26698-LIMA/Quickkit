@@ -1,5 +1,6 @@
 import { createClient, type Client } from "@libsql/client";
 import { createHash } from "node:crypto";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type VisitorStats = {
   online: number;
@@ -7,13 +8,29 @@ export type VisitorStats = {
   averageSeconds: number;
   since: string;
 };
+export type VisitorAnalyticsBackend = "libsql" | "supabase";
 let client: Client | undefined;
 let ready: Promise<unknown> | undefined;
 
+function libsqlUrl() {
+  const url = process.env.ANALYTICS_DATABASE_URL?.trim();
+  if (!url || (process.env.VERCEL && url.startsWith("file:"))) return undefined;
+  return url;
+}
+
+/**
+ * Where the opt-in visitor counter is stored. A libSQL database, when one is
+ * configured, keeps working as before; otherwise the counter lives in the
+ * site's own Supabase project behind server-only functions.
+ */
+export function visitorAnalyticsBackend(): VisitorAnalyticsBackend | null {
+  if (libsqlUrl()) return "libsql";
+  return getSupabaseAdminClient() ? "supabase" : null;
+}
+
 export function analyticsDatabase() {
-  const url = process.env.ANALYTICS_DATABASE_URL;
-  if (!url || (process.env.VERCEL && url.startsWith("file:")))
-    throw new Error("Persistent analytics database is not configured");
+  const url = libsqlUrl();
+  if (!url) throw new Error("Persistent analytics database is not configured");
   if (!client) {
     client = createClient({
       url,
@@ -32,6 +49,12 @@ export function analyticsDatabase() {
   }
   return { client, ready: ready! };
 }
+
+function supabaseDatabase() {
+  const db = getSupabaseAdminClient();
+  if (!db) throw new Error("Persistent analytics database is not configured");
+  return db;
+}
 const hash = (id: string) => createHash("sha256").update(id).digest("hex");
 
 /** Visible-tab time, server-capped; no URL, IP, user agent or file data stored. */
@@ -41,6 +64,16 @@ export async function recordVisit(
   activeMs: number,
   now = Date.now(),
 ) {
+  if (!libsqlUrl()) {
+    // The database function applies the same rules with its own clock.
+    const { error } = await supabaseDatabase().rpc("quickkit_record_visit", {
+      p_visitor: hash(visitorId),
+      p_session: hash(sessionId),
+      p_active_ms: activeMs,
+    });
+    if (error) throw new Error("Visitor statistics are unavailable");
+    return;
+  }
   const { client, ready } = analyticsDatabase();
   await ready;
   const tx = await client.transaction("write");
@@ -87,9 +120,40 @@ export async function recordVisit(
   }
 }
 
+let cachedStats: { at: number; value: VisitorStats } | undefined;
+
+async function readSupabaseStats(): Promise<VisitorStats> {
+  const { data, error } = await supabaseDatabase().rpc(
+    "quickkit_visitor_stats",
+  );
+  const row =
+    data && typeof data === "object" && !Array.isArray(data) ? data : null;
+  const count = (value: unknown) =>
+    Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : 0;
+  if (error || !row || typeof row.since !== "string")
+    throw new Error("Visitor statistics are unavailable");
+  const visits = count(row.visits);
+  return {
+    online: count(row.online),
+    visitors: count(row.visitors),
+    averageSeconds: visits
+      ? Math.round(count(row.active_ms) / visits / 1000)
+      : 0,
+    since: row.since,
+  };
+}
+
 export async function readVisitorStats(
   now = Date.now(),
 ): Promise<VisitorStats> {
+  if (!libsqlUrl()) {
+    // Many browsers poll this at once; one database read serves a few seconds.
+    if (cachedStats && now - cachedStats.at >= 0 && now - cachedStats.at < 5000)
+      return cachedStats.value;
+    const value = await readSupabaseStats();
+    cachedStats = { at: now, value };
+    return value;
+  }
   const { client, ready } = analyticsDatabase();
   await ready;
   const results = await client.batch(

@@ -57,17 +57,69 @@ export interface Database {
           status: AdminSubmissionStatus;
           feedback_type: FeedbackType;
           internal_notes: string;
+          /** 1–5 stars from the homepage form; null for a plain message. */
+          rating: number | null;
+          tags: string[];
+          /** Catalogue slug chosen under "About"; null for QUICKKIT overall. */
+          tool_slug: string | null;
         };
         Insert: {
           name?: string | null;
           message: string;
           feedback_type?: FeedbackType;
+          rating?: number | null;
+          tags?: string[];
+          tool_slug?: string | null;
         };
         Update: {
           status?: AdminSubmissionStatus;
           feedback_type?: FeedbackType;
           internal_notes?: string;
         };
+        Relationships: [];
+      };
+      quickkit_tool_feedback: {
+        Row: {
+          id: string;
+          tool_slug: string;
+          rating: number;
+          tags: string[];
+          comment: string;
+          status: AdminSubmissionStatus;
+          internal_notes: string;
+          consent_at: string;
+          created_at: string;
+        };
+        Insert: {
+          tool_slug: string;
+          rating: number;
+          tags?: string[];
+          comment?: string;
+        };
+        Update: { status?: AdminSubmissionStatus; internal_notes?: string };
+        Relationships: [];
+      };
+      quickkit_error_events: {
+        Row: {
+          id: string;
+          created_at: string;
+          scope: string;
+          name: string;
+          message: string;
+          digest: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      quickkit_tool_feedback_limits: {
+        Row: {
+          bucket_hash: string;
+          window_started_at: string;
+          attempt_count: number;
+        };
+        Insert: never;
+        Update: never;
         Relationships: [];
       };
       quickkit_submission_limits: {
@@ -148,6 +200,31 @@ export interface Database {
       quickkit_consume_submission_limit: {
         Args: { p_scope: string; p_bucket_hash: string };
         Returns: boolean;
+      };
+      quickkit_consume_tool_feedback_limit: {
+        Args: { p_bucket_hash: string };
+        Returns: boolean;
+      };
+      quickkit_record_visit: {
+        Args: { p_visitor: string; p_session: string; p_active_ms: number };
+        Returns: undefined;
+      };
+      quickkit_visitor_stats: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      quickkit_record_error: {
+        Args: {
+          p_scope: string;
+          p_name: string;
+          p_message: string;
+          p_digest: string;
+        };
+        Returns: boolean;
+      };
+      quickkit_system_health: {
+        Args: Record<string, never>;
+        Returns: Json;
       };
     };
     Enums: Record<string, never>;

@@ -1,7 +1,7 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
 import { publicToolMetadata } from "@/lib/supabase/public-catalog";
 import DeveloperToolPage from "@/components/tools/devtools/page";
-import HashGenerator from "@/components/tools/devtools/hash-generator";
+import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
@@ -16,7 +16,10 @@ export default async function Page() {
   const publicData = await getPublicToolShellData("hash-generator");
   return (
     <DeveloperToolPage publicData={publicData} slug="hash-generator">
-      <HashGenerator />
+      {/* Three operations share this address: hashing, digest comparison and
+          file signature checks. The old /tools/hash-comparison and
+          /tools/file-privacy-checker links redirect to their tab here. */}
+      <ConsolidatedWorkspace slug="hash-generator" />
     </DeveloperToolPage>
   );
 }

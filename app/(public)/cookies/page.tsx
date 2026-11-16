@@ -147,23 +147,66 @@ export default function CookiesPage() {
             </tr>
             <tr role="row">
               <td role="cell" data-label="Key / database">
+                <code>quickkit-hero-feedback-v1</code>
+              </td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
+                Feedback you save in the homepage “Share your experience” form:
+                optional name, message (180 characters maximum), optional 1–5
+                star rating, the options you ticked and the tool you chose under
+                “About”. Shown back to you on the homepage only. It is sent to
+                QUICKKIT for private review only if you tick “Send this feedback
+                privately to QUICKKIT”.
+              </td>
+              <td role="cell" data-label="Created when">
+                You submit the homepage feedback form
+              </td>
+              <td role="cell" data-label="Removed when">
+                You delete the entry in the form, or browser site data is
+                cleared.
+              </td>
+            </tr>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
                 <code>quickkit-tool-feedback-v1</code>
               </td>
               <td role="cell" data-label="Type">
                 localStorage
               </td>
               <td role="cell" data-label="What it holds">
-                Optional ratings, tool slugs, feedback options, comments (600
-                characters maximum) and timestamps. Shown in this browser’s
-                homepage laptop; not transmitted or published to other visitors.
+                This browser’s copy of the tool ratings you sent: ratings, tool
+                slugs, feedback options, comments (600 characters maximum) and
+                timestamps. The same rating is sent to QUICKKIT for private
+                review; it is not published to other visitors.
               </td>
               <td role="cell" data-label="Created when">
-                You choose “Save my feedback” after a tool download
+                You choose “Send my feedback” after a tool download
               </td>
               <td role="cell" data-label="Removed when">
                 Until browser site data is cleared. No in-app deletion or
                 automatic replacement of older reviews. Storage limits may
                 prevent saving further reviews.
+              </td>
+            </tr>
+            <tr role="row">
+              <td role="cell" data-label="Key / database">
+                <code>quickkit-tool-feedback-prompted-v1</code>
+              </td>
+              <td role="cell" data-label="Type">
+                localStorage
+              </td>
+              <td role="cell" data-label="What it holds">
+                Tool slugs and the time the rating invitation was last shown, so
+                each tool asks at most once in 24 hours. Not transmitted.
+              </td>
+              <td role="cell" data-label="Created when">
+                The rating invitation appears after a tool download
+              </td>
+              <td role="cell" data-label="Removed when">
+                Until browser site data is cleared. Entries older than 24 hours
+                are dropped the next time the invitation is recorded.
               </td>
             </tr>
             <tr role="row">

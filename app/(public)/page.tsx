@@ -20,11 +20,6 @@ import {
   getPublicSiteSettings,
 } from "@/lib/supabase/public-catalog";
 import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
-import {
-  localToolCount,
-  nonLocalToolCount,
-  totalTools,
-} from "@/lib/catalog-counts";
 import styles from "@/app/home-premium.module.css";
 
 export const dynamic = "force-dynamic";
@@ -34,10 +29,11 @@ export async function generateMetadata() {
     getPublicSiteSettings(),
     getPublicCatalog(),
   ]);
+  // The search description says what the site does. The short brand tagline
+  // from Admin → Site settings belongs to the footer and is not used here.
   return pageMetadata(
     "Free Online PDF, Image, QR, Code & Math Tools",
-    settings.tagline ??
-      `Use ${catalog.tools.length} free online tools for PDFs, images, OCR, QR codes, JSON, code and calculators. Fast browser-first utilities; no account needed.`,
+    `Use ${catalog.tools.length} free online tools for PDFs, images, OCR, QR codes, JSON, code and calculators. Fast browser-first utilities; no account needed.`,
     "/",
     settings.website_name,
   );
@@ -55,7 +51,7 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
   {
     Icon: ShieldCheck,
     title: "Privacy Focused",
-    text: `${localToolCount} of ${totalTools} published tools run entirely in your browser, so their files and text never leave your device. Word to PDF uploads only after an explicit consent step; the other ${nonLocalToolCount - 1} make optional, click-only lookups to a named service.`,
+    text: "Most published tools run in your browser so files stay on your device. Word to PDF and optional DNS or public IP lookups contact services only after your consent.",
   },
   {
     Icon: Sparkles,
@@ -107,9 +103,11 @@ export default async function Home() {
               PDFs, images, text and code
             </span>
           </h1>
+          {/* Always this sentence. Saving Site settings in the admin stores
+              the brand tagline too, and it used to replace this line; the
+              tagline is shown in the footer only. */}
           <p className="hero-lede">
-            {settings.tagline ??
-              `${tools.length} browser tools for the jobs that interrupt a working day. No account needed, no install — and ${localToolCount} of them never send a file anywhere.`}
+            {`${tools.length} browser tools for the jobs that interrupt a working day. No account needed, no install — and most files never leave your device.`}
           </p>
         </div>
         <div className="hero-search-zone">

@@ -376,6 +376,7 @@ describe("Release readiness: Opt-in privacy-preserving error monitoring", () => 
       configured: false,
       enabled: false,
       dsnPresent: false,
+      firstParty: false,
       statusLabel: "Not configured",
     });
 

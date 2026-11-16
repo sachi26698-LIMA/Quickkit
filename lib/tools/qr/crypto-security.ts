@@ -269,6 +269,8 @@ export type ActiveSigner = {
 
 let memorySignerPromise: Promise<ActiveSigner> | null = null;
 let hydratedStorageCache: { raw: string; signer: ActiveSigner } | null = null;
+/** The one first-use key creation in flight, shared by every caller. */
+let pendingStoredSigner: Promise<ActiveSigner> | null = null;
 
 async function hydrateSignerFromRecord(
   record: StoredSignerKey,
@@ -355,11 +357,26 @@ export async function getOrCreateSigner(): Promise<ActiveSigner> {
           return signer;
         }
       }
-      const { signer, record } = await generateNewSigner();
-      const serialized = JSON.stringify(record);
-      window.localStorage.setItem(SIGNER_STORAGE_KEY, serialized);
-      hydratedStorageCache = { raw: serialized, signer };
-      return signer;
+      // First use. The studio asks for the key from several places at once;
+      // if each made its own, the last to finish would replace the key a QR
+      // was just signed with. Everyone waiting shares one creation instead.
+      if (!pendingStoredSigner) {
+        const storage = window.localStorage;
+        pendingStoredSigner = (async () => {
+          const { signer, record } = await generateNewSigner();
+          // A key imported or rotated while this one was being made wins.
+          const current = storage.getItem(SIGNER_STORAGE_KEY);
+          if (current && hydratedStorageCache?.raw === current)
+            return hydratedStorageCache.signer;
+          const serialized = JSON.stringify(record);
+          storage.setItem(SIGNER_STORAGE_KEY, serialized);
+          hydratedStorageCache = { raw: serialized, signer };
+          return signer;
+        })().finally(() => {
+          pendingStoredSigner = null;
+        });
+      }
+      return await pendingStoredSigner;
     } catch {
       // Fall back to in-memory key if storage is unavailable or blocked.
     }

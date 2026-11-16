@@ -50,6 +50,6 @@ Do not configure the Production service-role key in this shared workspace. Do no
 
 No migration needs to be applied for the current Admin schema; both existing migrations are already present. No migration was replayed. Never change/drop/seed tables or inspect private submission/profile content for routine verification. The live count of one profile row is not permission to inspect/delete it. Service-role access bypasses RLS and must remain behind the server-only module and verified Admin authorization. Catalog checks do not prove real HTTP/Auth behavior.
 
-## Visitor statistics are separate
+## Visitor statistics
 
-The visitor chart is implemented using libSQL/Turso (`ANALYTICS_DATABASE_URL`, optional `ANALYTICS_DATABASE_TOKEN`), not Supabase. These variables were not present in local configuration or Vercel project metadata. Without an approved persistent DB, the endpoint intentionally reports unavailable rather than demo data. No live analytics database operation was run.
+The visitor chart is stored in the site's Supabase project once migration `202611160003_quickkit_system_health.sql` is applied (server-only functions; browsers have no table access). A libSQL/Turso database (`ANALYTICS_DATABASE_URL`, optional `ANALYTICS_DATABASE_TOKEN`) is still supported and takes precedence when set. Without either store, the endpoint intentionally reports unavailable rather than demo data.

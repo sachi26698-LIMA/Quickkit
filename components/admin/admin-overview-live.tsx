@@ -46,12 +46,15 @@ import type {
   OverviewConnectedSnapshot,
   OverviewSnapshot,
 } from "@/lib/supabase/admin-data";
+import type { SystemHealthReport } from "@/lib/system-health";
+import { describeSystemHealth } from "@/lib/system-health-labels";
 import {
   CategoryDonutChart,
   EntityBarList,
   OperationalTrendChart,
 } from "./admin-charts";
 import { REFRESH_INTERVAL_OPTIONS, useAdminLive } from "./admin-live-context";
+import { AdminModalLayer } from "./admin-modal-layer";
 import { AdminIdentityContext } from "./admin-shell";
 import styles from "./admin.module.css";
 
@@ -326,6 +329,8 @@ export function AdminOverviewLive({
   const [nowMs, setNowMs] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [checkingHealth, setCheckingHealth] = useState(false);
+  const [fullCheckReport, setFullCheckReport] =
+    useState<SystemHealthReport | null>(null);
   const [healthCheckedAt, setHealthCheckedAt] = useState<string | null>(
     isSnapshot(initialSnapshot)
       ? (initialSnapshot.health?.checked_at ?? null)
@@ -620,6 +625,12 @@ export function AdminOverviewLive({
         );
         return;
       }
+      if (secResponse.ok) {
+        const body = (await secResponse.json().catch(() => null)) as {
+          data?: { system?: SystemHealthReport };
+        } | null;
+        if (body?.data?.system) setFullCheckReport(body.data.system);
+      }
       setHealthCheckedAt(new Date().toISOString());
       pushToast({
         tone: secResponse.ok ? "success" : "warning",
@@ -627,7 +638,7 @@ export function AdminOverviewLive({
           ? "Health check completed"
           : "Health check finished with warnings",
         description: secResponse.ok
-          ? "Admin API and Supabase probes responded."
+          ? "Database, sitemap, sign-in and monitoring probes responded."
           : "Security endpoint returned an unexpected status.",
       });
     } catch {
@@ -748,9 +759,30 @@ export function AdminOverviewLive({
   }
 
   const healthMeta = snapshot?.health;
-  const analyticsConfigured = Boolean(
-    healthMeta?.analytics_url_present && healthMeta?.analytics_token_present,
-  );
+  // "Run full check" returns probes that skipped the cache. A later periodic
+  // refresh is newer overall, but may carry an older cached sitemap fetch, so
+  // the newer of the two sitemap results is kept.
+  const polledReport = healthMeta?.system;
+  const systemReport =
+    fullCheckReport && polledReport
+      ? fullCheckReport.checked_at >= polledReport.checked_at
+        ? fullCheckReport
+        : {
+            ...polledReport,
+            sitemap:
+              fullCheckReport.sitemap.checked_at >
+              polledReport.sitemap.checked_at
+                ? fullCheckReport.sitemap
+                : polledReport.sitemap,
+          }
+      : (fullCheckReport ?? polledReport);
+  const healthLabels = describeSystemHealth(systemReport, {
+    sitemapOriginConfigured: healthMeta?.sitemap_origin_configured,
+    analyticsCredentialsPresent: Boolean(
+      healthMeta?.analytics_url_present && healthMeta?.analytics_token_present,
+    ),
+    errorMonitoringConfigured: healthMeta?.error_monitoring_configured,
+  });
   const healthItems: {
     label: string;
     value: string;
@@ -798,62 +830,32 @@ export function AdminOverviewLive({
     },
     {
       label: "RLS verification",
-      value: "Owner action required",
-      tone: "warn",
-      detail:
-        "Every public table has RLS enabled with deny-browser policies. This app cannot introspect pg_policies from the service-role client, so re-verify in the Supabase SQL editor after any schema change.",
+      ...healthLabels.rls,
       href: "/admin/security",
-      actionLabel: "Verify",
+      actionLabel: healthLabels.rls.tone === "good" ? "Review" : "Verify",
     },
     {
       label: "SMTP configuration",
-      value: "NOT CONFIGURED",
-      tone: "neutral",
-      detail:
-        "Supabase Auth mail is configured outside this project; this app has no delivery probe and does not claim delivery works.",
+      ...healthLabels.smtp,
       href: "/admin/security",
       actionLabel: "Review",
     },
     {
-      label: "Sitemap and robots.txt",
-      value: healthMeta?.indexing_enabled
-        ? healthMeta.sitemap_origin_configured
-          ? "Indexing enabled"
-          : "WARNING · origin missing"
-        : "Indexing off (intentional)",
-      tone: healthMeta?.indexing_enabled
-        ? healthMeta.sitemap_origin_configured
-          ? "good"
-          : "warn"
-        : "neutral",
-      detail: healthMeta?.sitemap_origin_configured
-        ? "Origin configured. robots.txt and sitemap.xml are served by this deployment; crawl reachability requires an owner check."
-        : "SITE_URL origin not configured in this environment, so robots.txt disallows crawling and the sitemap is empty by design.",
+      label: "Sitemap verification",
+      ...healthLabels.sitemap,
       href: "/admin/seo",
       actionLabel: "SEO",
     },
     {
       label: "Analytics integration",
-      value: analyticsConfigured
-        ? "Read-only query required"
-        : "Not configured",
-      tone: analyticsConfigured ? "warn" : "neutral",
-      detail: analyticsConfigured
-        ? "Env credentials detected; safe read-only reporting query pending."
-        : "No verified first-party analytics database configured.",
+      ...healthLabels.analytics,
       href: "/admin/analytics",
-      actionLabel: "Setup",
+      actionLabel: healthLabels.analytics.tone === "good" ? "Open" : "Setup",
     },
     {
       label: "Error monitoring",
-      value: healthMeta?.error_monitoring_configured
-        ? "Configured (opt-in)"
-        : "Not configured",
-      tone: healthMeta?.error_monitoring_configured ? "good" : "neutral",
-      detail: healthMeta?.error_monitoring_configured
-        ? "Sanitized error boundary hook is enabled."
-        : "Opt-in error boundary hook ready; no external provider connected.",
-      href: "/admin/analytics",
+      ...healthLabels.errorMonitoring,
+      href: "/admin/security",
       actionLabel: "Details",
     },
     {
@@ -1623,95 +1625,102 @@ export function AdminOverviewLive({
       </div>
 
       {preferencesOpen ? (
-        <div
-          className={styles["admin-modal-backdrop"]}
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setPreferencesOpen(false);
-          }}
-        >
-          <section
-            ref={preferencesDialog}
-            className={styles["admin-modal"]}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="dashboard-preferences-heading"
+        <AdminModalLayer>
+          <div
+            className={styles["admin-modal-backdrop"]}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget)
+                setPreferencesOpen(false);
+            }}
           >
-            <div className={styles["admin-modal-head"]}>
-              <div>
-                <span className={styles["admin-kicker"]}>PERSONALIZATION</span>
-                <h3 id="dashboard-preferences-heading">Dashboard layout</h3>
-              </div>
-              <button
-                type="button"
-                className={styles["admin-icon-button"]}
-                onClick={() => setPreferencesOpen(false)}
-                aria-label="Close dashboard preferences"
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            </div>
-            <p className={styles["admin-panel-footnote"]}>
-              Layout preferences are saved in this browser for {email}; no
-              server-side preference table is configured.
-            </p>
-            <div className={styles["admin-widget-preferences"]}>
-              {order.map((id, index) => (
-                <div className={styles["admin-widget-preference"]} key={id}>
-                  <strong>{widgetLabels[id]}</strong>
-                  <div>
-                    <button
-                      type="button"
-                      className={styles["admin-icon-button"]}
-                      onClick={() => moveWidget(id, -1)}
-                      disabled={index === 0}
-                      aria-label={`Move ${widgetLabels[id]} up`}
-                    >
-                      <ArrowUp size={15} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles["admin-icon-button"]}
-                      onClick={() => moveWidget(id, 1)}
-                      disabled={index === order.length - 1}
-                      aria-label={`Move ${widgetLabels[id]} down`}
-                    >
-                      <ArrowDown size={15} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles["admin-icon-button"]}
-                      onClick={() => toggleWidget(id)}
-                      aria-label={`${hidden.includes(id) ? "Show" : "Hide"} ${widgetLabels[id]}`}
-                    >
-                      {hidden.includes(id) ? (
-                        <Eye size={15} aria-hidden="true" />
-                      ) : (
-                        <EyeOff size={15} aria-hidden="true" />
-                      )}
-                    </button>
-                  </div>
+            <section
+              ref={preferencesDialog}
+              className={styles["admin-modal"]}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="dashboard-preferences-heading"
+            >
+              <div className={styles["admin-modal-head"]}>
+                <div>
+                  <span className={styles["admin-kicker"]}>
+                    PERSONALIZATION
+                  </span>
+                  <h3 id="dashboard-preferences-heading">Dashboard layout</h3>
                 </div>
-              ))}
-            </div>
-            <div className={styles["admin-modal-actions"]}>
-              <button
-                type="button"
-                className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
-                onClick={restoreDefaults}
-              >
-                <RotateCcw size={14} aria-hidden="true" />
-                Restore defaults
-              </button>
-              <button
-                type="button"
-                className={styles["admin-button"]}
-                onClick={() => setPreferencesOpen(false)}
-              >
-                Done
-              </button>
-            </div>
-          </section>
-        </div>
+                <button
+                  type="button"
+                  className={styles["admin-icon-button"]}
+                  onClick={() => setPreferencesOpen(false)}
+                  aria-label="Close dashboard preferences"
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              </div>
+              <div className={styles["admin-modal-body"]}>
+                <p className={styles["admin-panel-footnote"]}>
+                  Layout preferences are saved in this browser for {email}; no
+                  server-side preference table is configured.
+                </p>
+                <div className={styles["admin-widget-preferences"]}>
+                  {order.map((id, index) => (
+                    <div className={styles["admin-widget-preference"]} key={id}>
+                      <strong>{widgetLabels[id]}</strong>
+                      <div>
+                        <button
+                          type="button"
+                          className={styles["admin-icon-button"]}
+                          onClick={() => moveWidget(id, -1)}
+                          disabled={index === 0}
+                          aria-label={`Move ${widgetLabels[id]} up`}
+                        >
+                          <ArrowUp size={15} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles["admin-icon-button"]}
+                          onClick={() => moveWidget(id, 1)}
+                          disabled={index === order.length - 1}
+                          aria-label={`Move ${widgetLabels[id]} down`}
+                        >
+                          <ArrowDown size={15} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles["admin-icon-button"]}
+                          onClick={() => toggleWidget(id)}
+                          aria-label={`${hidden.includes(id) ? "Show" : "Hide"} ${widgetLabels[id]}`}
+                        >
+                          {hidden.includes(id) ? (
+                            <Eye size={15} aria-hidden="true" />
+                          ) : (
+                            <EyeOff size={15} aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className={styles["admin-modal-actions"]}>
+                <button
+                  type="button"
+                  className={`${styles["admin-button"]} ${styles["admin-button--soft"]}`}
+                  onClick={restoreDefaults}
+                >
+                  <RotateCcw size={14} aria-hidden="true" />
+                  Restore defaults
+                </button>
+                <button
+                  type="button"
+                  className={styles["admin-button"]}
+                  onClick={() => setPreferencesOpen(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </section>
+          </div>
+        </AdminModalLayer>
       ) : null}
     </>
   );

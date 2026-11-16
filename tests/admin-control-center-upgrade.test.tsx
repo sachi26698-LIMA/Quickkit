@@ -408,12 +408,9 @@ describe("AdminOverviewLive advanced live-sync, filtering, health, and customiza
       </AdminLiveProvider>,
     );
 
-    // Must be truthful about external / unconfigured services. The app cannot
-    // introspect pg_policies from the service-role client, so RLS stays an
-    // explicit OWNER ACTION rather than a green tick it cannot justify, and
-    // SMTP is reported as NOT CONFIGURED because nothing here probes delivery.
-    expect(screen.getByText("Owner action required")).toBeTruthy();
-    expect(screen.getByText("NOT CONFIGURED")).toBeTruthy();
+    // Must be truthful about external / unconfigured services
+    expect(screen.getByText("Verification required")).toBeTruthy();
+    expect(screen.getByText("External · unverified")).toBeTruthy();
     expect(screen.getAllByText("Not configured").length).toBeGreaterThanOrEqual(
       2,
     );

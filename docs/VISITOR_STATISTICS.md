@@ -5,16 +5,28 @@ browser-local numbers as website-wide totals. No historical analytics are import
 
 ## Production setup
 
-Provision a persistent libSQL-compatible database (for example Turso) and supply
-`ANALYTICS_DATABASE_URL` and its server-only `ANALYTICS_DATABASE_TOKEN` through your
-hosting secret settings. Never expose the token using NEXT_PUBLIC_. The tables are
-created automatically. All instances MUST use the same database. Without this
-configuration, or on database failure, the panel says **Live stats unavailable**.
+By default the counter is stored in the site's own Supabase project. Apply
+`supabase/migrations/202611160003_quickkit_system_health.sql` and make sure the
+server has `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`; nothing else
+is needed. Browsers cannot read or write the tables: row level security denies the
+browser roles, and only the server role may call the two database functions
+(`quickkit_record_visit`, `quickkit_visitor_stats`). New browser identifiers stop
+being added at one million so automated traffic cannot fill the database.
+
+Alternatively, provision a persistent libSQL-compatible database (for example Turso)
+and supply `ANALYTICS_DATABASE_URL` and its server-only `ANALYTICS_DATABASE_TOKEN`
+through your hosting secret settings. When that URL is set it is used instead of
+Supabase. Never expose the token using NEXT_PUBLIC_. The libSQL tables are created
+automatically. All instances MUST use the same database. Without either store, or
+on database failure, the panel says **Live stats unavailable**.
 
 A self-hosted server can instead use `file:/absolute/persistent-volume/stats.db`.
 Back up the volume; never commit the database. File URLs are rejected on Vercel.
 The development/preview database is not production traffic and must not be copied
 into production. Removing the database resets totals and the tracking start date.
+
+Admin → Analytics shows the same totals, and the System health panel reports
+"Connected" only after a real read of the counter succeeds.
 
 ## Definitions and limitations
 
@@ -45,10 +57,15 @@ are pruned after 24h inactivity on the next write; aggregate totals remain.
 Clearing browser data/opt-out does not subtract prior aggregate contributions.
 
 The public endpoint returns aggregates only. It rejects cross-origin writes and
-invalid/oversized input, but cannot authenticate a human visitor: configure hosting
-WAF/rate limits (especially POST `/api/visitor-stats`) and database spending limits
-before exposing to production. Legal review of opt-in text, identifiers, retention
-and hosting location is required; no regulatory compliance is claimed.
+invalid/oversized input, but cannot authenticate a human visitor. With the
+Supabase store, `quickkit_record_visit()` therefore accepts at most 120 new
+visits per minute site-wide (migration `202611160004`); above that, extra new
+visits are neither stored nor counted, while heartbeats for visits already
+accepted continue. This bounds stored rows and how far a script can inflate the
+graph; it does not make the numbers verified people. Hosting WAF/rate limits on
+POST `/api/visitor-stats` remain a useful second layer. Legal review of opt-in
+text, identifiers, retention and hosting location is the operator's
+responsibility; no regulatory compliance is claimed.
 
 For local verification use a database outside the repository, e.g.
 `ANALYTICS_DATABASE_URL=file:/home/user/.cache/quickkit-visitors.db npm run dev`.
