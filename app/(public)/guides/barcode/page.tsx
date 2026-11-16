@@ -5,10 +5,12 @@ import AdUnit from "@/components/ad-unit";
 import JsonLd from "@/components/json-ld";
 import PageHero from "@/components/page-hero";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 
+const GUIDE_SEO = resolvePageSeo("/guides/barcode")!;
 export const metadata: Metadata = pageMetadata(
-  "Barcode Guide — Formats, GS1 Data and Printing",
-  "A practical guide to barcode formats, check digits, GS1 identifiers, quiet zones, printing and scanning: what each symbol is for, and what it cannot prove.",
+  GUIDE_SEO.title,
+  GUIDE_SEO.description,
   "/guides/barcode",
 );
 

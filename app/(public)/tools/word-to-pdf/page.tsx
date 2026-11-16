@@ -7,10 +7,8 @@ import JsonLd from "@/components/json-ld";
 import WordToPdf from "@/components/tools/word-to-pdf";
 import { relatedTools } from "@/lib/catalog";
 import { breadcrumbStructuredData, toolStructuredData } from "@/lib/seo";
-import {
-  getPublicCatalog,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicCatalog } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT, TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 import { toolSurfaceStyle, toolTheme, toolThemeStyle } from "@/lib/tool-theme";
@@ -18,7 +16,7 @@ import "@/app/tool-pages.generated.css";
 import "@/app/tool-pages.css";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "word-to-pdf",
     TOOL_SEO_METADATA["word-to-pdf"].title,
     TOOL_SEO_METADATA["word-to-pdf"].description,

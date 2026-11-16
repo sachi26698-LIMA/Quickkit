@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import PdfCompressor from "@/components/tools/compress-pdf";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "compress-pdf",
     "Compress PDF Online — Shrink PDF Size Locally",
     "Reduce PDF file size locally in your browser with 4 presets, custom image quality, or a target KiB/MiB cap while keeping text and vector lines sharp.",

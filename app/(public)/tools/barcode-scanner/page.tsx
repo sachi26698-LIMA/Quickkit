@@ -2,17 +2,15 @@ import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import BarcodeScanner from "@/components/tools/barcode-scanner";
 import BarcodeScannerReference from "@/components/tools/barcode-scanner/reference";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "Barcode Scanner — EAN, UPC & Code 128 on Device";
 const DEFAULT_DESCRIPTION =
   "Scan EAN-13, UPC-A, UPC-E, Code 128, Code 39 and ITF-14 from a camera or image, with copy, local history and an optional GTIN lookup.";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "barcode-scanner",
     DEFAULT_TITLE,
     DEFAULT_DESCRIPTION,

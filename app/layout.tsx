@@ -28,7 +28,15 @@ export const metadata: Metadata = {
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3001"),
   ),
-  robots: { index: indexingEnabled, follow: indexingEnabled },
+  // Large image previews are requested explicitly for the pages that are meant
+  // to be indexed: the OG card and the tool screenshots should be usable in
+  // Discover and in image results, and Google otherwise caps previews at a
+  // thumbnail. A noindex build keeps `index: false` so previews stay closed.
+  robots: {
+    index: indexingEnabled,
+    follow: indexingEnabled,
+    ...(indexingEnabled ? { "max-image-preview": "large" as const } : {}),
+  },
   verification: { google: GOOGLE_SITE_VERIFICATION },
   other: { "google-adsense-account": "ca-pub-1478767466279341" },
 };

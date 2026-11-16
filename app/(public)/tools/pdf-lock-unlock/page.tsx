@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import PdfLockUnlock from "@/components/tools/pdf-lock-unlock";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "pdf-lock-unlock",
     "PDF Lock & Unlock — AES-256 Password Protection",
     "Encrypt PDFs with AES-256 or AES-128 passwords and reader permissions, or unlock authorized PDFs fully locally in your browser using QPDF WebAssembly.",

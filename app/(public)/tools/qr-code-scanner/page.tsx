@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import QrScanner from "@/components/tools/qr-scanner";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "qr-code-scanner",
     "QR Code Scanner — Camera, Screenshot & Batch Scan",
     "Scan QR codes locally from your camera, photos, screenshots, or image batches. Inspect URL safety heuristics before opening and export CSV or JSON.",

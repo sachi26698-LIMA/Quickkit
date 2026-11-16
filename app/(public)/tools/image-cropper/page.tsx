@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import ImageCropper from "@/components/tools/image-cropper";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -45,7 +45,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "image-cropper",
     "Image Cropper — Aspect Ratios, Circle & Social",
     "Crop up to 20 JPEG, PNG, and WebP images locally with freeform frames, fixed aspect ratios, circle masks, social presets, 50-step undo, and ZIP export.",

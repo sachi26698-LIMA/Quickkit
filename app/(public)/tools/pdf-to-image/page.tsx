@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import PdfToImage from "@/components/tools/pdf-to-image";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -50,7 +50,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "pdf-to-image",
     "PDF to Image Converter — Export JPG, PNG & WebP",
     "Export PDF pages to JPG, PNG, or WebP in your browser from 72 to 600 DPI. Choose all pages or a page range, preview real pixels, and download a ZIP.",

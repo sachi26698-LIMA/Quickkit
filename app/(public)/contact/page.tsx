@@ -14,6 +14,7 @@ import ContactForm from "@/components/contact-form";
 import { OwnerPlaceholder } from "@/components/legal-page-shell";
 import JsonLd from "@/components/json-ld";
 import { breadcrumbStructuredData, pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -30,8 +31,11 @@ import {
 } from "@/lib/site";
 import { getPublicSiteSettings } from "@/lib/supabase/public-catalog";
 
+// Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
+// itself still lives in `lib/legal.ts`, so the description has one source.
+const PAGE_SEO = resolvePageSeo("/contact")!;
 export const metadata = pageMetadata(
-  "Contact — support, privacy, security, business",
+  PAGE_SEO.title,
   legalPageByHref("/contact")!.description,
   "/contact",
 );

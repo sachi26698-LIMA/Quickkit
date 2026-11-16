@@ -1,11 +1,11 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import DeveloperToolPage from "@/components/tools/devtools/page";
 import UuidGenerator from "@/components/tools/devtools/uuid-generator";
 import { TOOL_SEO_METADATA } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "uuid-generator",
     TOOL_SEO_METADATA["uuid-generator"].title,
     TOOL_SEO_METADATA["uuid-generator"].description,

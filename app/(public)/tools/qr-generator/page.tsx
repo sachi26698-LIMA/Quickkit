@@ -1,11 +1,11 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import QrGenerator from "@/components/tools/qr-generator";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "qr-generator",
     "QR Code Generator — Logo, Colors, SVG & Bulk CSV",
     "Create verified QR codes across 28 types including URLs, Wi-Fi, vCard, and UPI. Style colors and logos, sign or encrypt, and export PNG, SVG, or PDF.",

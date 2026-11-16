@@ -1,17 +1,17 @@
 import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { BARCODE_SUITE_SEO_CONTENT } from "@/lib/seo/barcode-suite-content";
 import BarcodeDeveloper from "@/components/tools/barcode-developer";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "Barcode Developer Tools — Compare, Analyse, Debug";
 const DEFAULT_DESCRIPTION =
   "Compare barcode values character by character, screen a photographed symbol for resolution, contrast and quiet-zone faults, and read the lookup endpoint.";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "barcode-developer",
     DEFAULT_TITLE,
     DEFAULT_DESCRIPTION,
@@ -28,6 +28,12 @@ export default async function Page() {
       stepsHeading="Debug a barcode problem in three steps"
       faqsHeading="Developer questions, answered"
       relatedHeading="Generate, parse and look up"
+      referenceSection={
+        <ToolReferenceSection
+          slug="barcode-developer"
+          entry={BARCODE_SUITE_SEO_CONTENT["barcode-developer"]}
+        />
+      }
       content={{
         steps: [
           "Compare the values first. A parenthesised HRI label and a scanner's raw output are normalised before comparison, so (01)09506000134352 and 09506000134352 are reported as the same GTIN rather than as different strings.",

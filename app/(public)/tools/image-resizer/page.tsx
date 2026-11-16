@@ -1,5 +1,5 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import ImageResizer from "@/components/tools/image-resizer";
 import ToolReferenceSection from "@/components/tool-reference-section";
@@ -45,7 +45,7 @@ const faqs = [
 ];
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "image-resizer",
     "Image Resizer — Pixels, Percent & Social Presets",
     "Resize JPEG, PNG or WebP images by pixels, percentage, longest side, or social presets. Export JPEG, PNG, WebP, or AVIF when supported; crop and ZIP locally.",

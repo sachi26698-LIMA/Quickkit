@@ -4,6 +4,7 @@ import { categoryMeta, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
 import { getServerErrorMonitoringStatus } from "@/lib/monitoring/error-store";
 import { siteOrigin } from "@/lib/seo";
+import { allPageSeoRecords, fillToolCount } from "@/lib/seo/pages";
 import { getSystemHealth, readRecentErrors } from "@/lib/system-health";
 import {
   authorizeAdminApi,
@@ -238,52 +239,27 @@ export async function GET(
       const activeToolCount = toolCatalog.tools.filter(
         (tool) => tool.is_published && tool.is_enabled,
       ).length;
-      const common = [
-        {
-          path: "/",
-          title: "Free Online PDF, Image, QR, Code & Math Tools | QUICKKIT",
-          description: `Use ${activeToolCount} free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities; no account is needed to use the tools.`,
-        },
-        {
-          path: "/tools",
-          title: "All Free Online Tools",
-          description:
-            "Browse QUICKKIT's browser-first PDF, image, OCR, QR, developer, calculator and security tools.",
-        },
-        {
-          path: "/guides/barcode",
-          title: "Barcode Guide — Formats, GS1 Data and Printing",
-          description:
-            "A practical guide to barcode formats, check digits, GS1 identifiers, quiet zones, printing and scanning.",
-        },
-        {
-          path: "/help",
-          title: "Help Center — Tool Guides, Privacy & Support",
-          description:
-            "Get help using QUICKKIT's online tools: browser-local processing, supported browsers, limits and saved tools.",
-        },
-        {
-          path: "/sitemap",
-          title: "HTML Sitemap — All Tools, Categories & Policies",
-          description:
-            "Complete HTML sitemap for QUICKKIT: direct links to all online tools, categories, guides and legal policies.",
-        },
-        {
-          path: "/about",
-          title: "About QUICKKIT",
-          description:
-            "Learn how QUICKKIT's free browser-first tools work and how to get help.",
-        },
-        {
-          path: "/contact",
-          title: "Contact QUICKKIT",
-          description: "Contact QUICKKIT with a question or support request.",
-        },
-      ].map((entry) => ({
-        ...entry,
-        canonical: siteOrigin ? `${siteOrigin}${entry.path}` : null,
-        indexable: indexingEnabled,
-      }));
+      // The static/non-tool inventory is composed from the same registry the
+      // pages resolve their metadata from, rather than a second hand-maintained
+      // copy. `{count}` is filled with the live published-tool count so the
+      // admin preview matches what the page will render.
+      const pageRecords = allPageSeoRecords().filter(
+        (record) => record.indexable,
+      );
+      const common = pageRecords.map((record) => {
+        const title = fillToolCount(record.title, activeToolCount);
+        const description = fillToolCount(record.description, activeToolCount);
+        return {
+          path: record.path,
+          // The rendered `<title>`, brand suffix included, exactly as
+          // `pageMetadata()` produces it — the operator is reviewing the SERP
+          // string, not the raw registry field.
+          title: `${title} | QUICKKIT`,
+          description,
+          canonical: siteOrigin ? `${siteOrigin}${record.path}` : null,
+          indexable: indexingEnabled,
+        };
+      });
       const toolPages = toolCatalog.tools.map((tool) => ({
         path: tool.route,
         title: tool.seo_title,

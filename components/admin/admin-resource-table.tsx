@@ -1984,8 +1984,23 @@ function cells(kind: ResourceKind, row: Row, cols: string[]) {
           <strong>{title || "Missing title"}</strong>
           <small>{description || "Missing description"}</small>
           <small>
-            {title.length}/180 title · {description.length}/320 description
-            characters
+            {title.length}/180 stored title · {description.length}/320 stored
+            description characters
+          </small>
+          {/* The stored limits are the database's; the search budget is
+              stricter. Shown side by side so a stored value can be valid in
+              Postgres and still be wrong for a search result. */}
+          <small
+            className={
+              /\|\s*QUICKKIT$/.test(title) ||
+              title.length + " | QUICKKIT".length > 60
+                ? styles["admin-seo-budget-warn"]
+                : undefined
+            }
+          >
+            Search snippet: {title.length + " | QUICKKIT".length}/60 rendered
+            title · {description.length}/160 description
+            {description.length > 160 ? " — over the snippet budget" : ""}
           </small>
         </div>,
       )}
@@ -2010,11 +2025,24 @@ function cells(kind: ResourceKind, row: Row, cols: string[]) {
       {td(
         "index",
         cols[3],
-        <span
-          className={`${styles["admin-badge"]} ${r.indexable ? styles["admin-badge--green"] : styles["admin-badge--gray"]}`}
-        >
-          {r.indexable ? "Indexable by config" : "Noindex by config"}
-        </span>,
+        <div className={styles["admin-cell-stack"]}>
+          <span
+            className={`${styles["admin-badge"]} ${r.indexable ? styles["admin-badge--green"] : styles["admin-badge--gray"]}`}
+          >
+            {r.indexable ? "Indexable by config" : "Noindex by config"}
+          </span>
+          {/* "Indexable by config" is not the same claim as "in the sitemap".
+              The sitemap is derived from the live catalogue at request time, so
+              a route can be cleared for indexing and still be absent because the
+              tool is unpublished, disabled, non-canonical, or vetoed by the SEO
+              registry. This column says which of those applies instead of
+              promising an inclusion it cannot verify from the browser. */}
+          <small className={styles["admin-muted-inline"]}>
+            {!r.indexable
+              ? "Sitemap: excluded"
+              : "Sitemap: listed only if published, enabled, canonical and not registry-vetoed"}
+          </small>
+        </div>,
       )}
     </>
   );

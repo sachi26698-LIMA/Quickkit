@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import PdfToWord from "@/components/tools/pdf-to-word";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "pdf-to-word",
     "PDF to Word Converter — PDF to Editable DOCX",
     "Convert PDFs into editable Word (DOCX) files in your browser with layout or clean-flow modes, page ranges, side-by-side preview, and on-device OCR.",

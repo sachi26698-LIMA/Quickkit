@@ -58,7 +58,9 @@ describe("barcode generator route metadata", () => {
       "utf8",
     );
     expect(source).toContain('"barcode-generator"');
-    expect(source).toContain("publicToolMetadata(");
+    // Metadata now resolves through the shared SEO registry helper, which wins
+    // over the page literal unless an administrator overrides it in Supabase.
+    expect(source).toContain("resolvedToolMetadata(");
     expect(metadata.openGraph?.title).toContain("QUICKKIT");
     const openGraph = metadata.openGraph as Record<string, unknown>;
     const twitter = metadata.twitter as Record<string, unknown>;

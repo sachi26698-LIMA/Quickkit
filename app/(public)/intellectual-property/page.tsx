@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
+import { resolvePageSeo } from "@/lib/seo/pages";
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_LAST_UPDATED_ISO,
@@ -9,8 +10,11 @@ import {
 import ContactLink from "@/components/contact-link";
 import { contactEmail, ownerDetail } from "@/lib/site";
 
+// Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
+// itself still lives in `lib/legal.ts`, so the description has one source.
+const PAGE_SEO = resolvePageSeo("/intellectual-property")!;
 export const metadata = pageMetadata(
-  "Intellectual Property & Open-Source Licences",
+  PAGE_SEO.title,
   legalPageByHref("/intellectual-property")!.description,
   "/intellectual-property",
 );

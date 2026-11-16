@@ -1,17 +1,17 @@
 import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
+import ToolReferenceSection from "@/components/tool-reference-section";
+import { BARCODE_SUITE_SEO_CONTENT } from "@/lib/seo/barcode-suite-content";
 import Gs1Intelligence from "@/components/tools/gs1-intelligence";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "GS1 Intelligence — Parse AIs and Digital Links";
 const DEFAULT_DESCRIPTION =
   "Parse GS1 element strings, HRI strings and Digital Links: each AI explained, dates interpreted, the GTIN check digit verified and a Digital Link built.";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "gs1-intelligence",
     DEFAULT_TITLE,
     DEFAULT_DESCRIPTION,
@@ -28,6 +28,12 @@ export default async function Page() {
       stepsHeading="How to read a GS1 element string"
       faqsHeading="GS1 questions, answered"
       relatedHeading="Identify, look up, decode"
+      referenceSection={
+        <ToolReferenceSection
+          slug="gs1-intelligence"
+          entry={BARCODE_SUITE_SEO_CONTENT["gs1-intelligence"]}
+        />
+      }
       content={{
         steps: [
           "Paste the data. Parenthesised HRI such as (01)09506000134352(10)LOT-42 works, and so does the raw element string a scanner emits, where a variable-length field is terminated by an FNC1 character (shown here as <GS>). A GS1 Digital Link URL is recognised too.",

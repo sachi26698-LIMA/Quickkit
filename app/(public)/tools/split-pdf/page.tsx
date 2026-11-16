@@ -1,12 +1,12 @@
 import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
-import { publicToolMetadata } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 import ToolShell from "@/components/tool-shell";
 import PdfSplitter from "@/components/tools/split-pdf";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "split-pdf",
     "Split PDF Online — Extract Pages & Custom Ranges",
     "Split a PDF by custom page ranges, selected pages, every N pages, or one file per page locally in your browser. Preview outputs and download a ZIP.",

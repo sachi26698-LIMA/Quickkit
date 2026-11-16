@@ -17,7 +17,8 @@
     "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"components/**/*.tsx\" \"lib/**/*.ts\" \"tests/**/*.{ts,tsx}\" \"workers/**/*.ts\" \"scripts/**/*.mjs\" \"*config.{ts,mjs}\" package.json tsconfig.json",
     "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"components/**/*.tsx\" \"lib/**/*.ts\" \"tests/**/*.{ts,tsx}\" \"workers/**/*.ts\" \"scripts/**/*.mjs\" \"*config.{ts,mjs}\" package.json tsconfig.json",
     "prepare:ocr": "node scripts/copy-ocr-assets.mjs",
-    "fixture:word-to-pdf": "node scripts/word-to-pdf-v5-fixture.mjs"
+    "fixture:word-to-pdf": "node scripts/word-to-pdf-v5-fixture.mjs",
+    "seo:report": "tsx scripts/seo-report.mts"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,8 @@
     "@libsql/client": "^0.18.0",
     "@neslinesli93/qpdf-wasm": "0.3.1",
     "@peculiar/x509": "3.1.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "@tesseract.js-data/ben": "1.0.0",
     "@tesseract.js-data/eng": "^1.0.0",
     "@tesseract.js-data/guj": "^1.0.0",
@@ -54,9 +57,7 @@
     "react-dom": "^19.3.1",
     "reflect-metadata": "0.2.2",
     "terser": "^5.51.2",
-    "tesseract.js": "^7.0.0",
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.119.0"
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -77,6 +78,7 @@
     "jsqr": "^1.4.0",
     "pngjs": "^7.0.0",
     "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "vitest": "^4.1.12",
     "zxing-wasm": "^3.1.6"

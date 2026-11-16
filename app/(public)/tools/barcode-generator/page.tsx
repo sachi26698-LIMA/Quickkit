@@ -4,17 +4,15 @@ import BarcodeStudio from "@/components/tools/barcode-studio";
 import BarcodeReference from "@/components/tools/barcode-studio/reference";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
-import {
-  getPublicToolShellData,
-  publicToolMetadata,
-} from "@/lib/supabase/public-catalog";
+import { getPublicToolShellData } from "@/lib/supabase/public-catalog";
+import { resolvedToolMetadata } from "@/lib/supabase/tool-seo";
 
 const DEFAULT_TITLE = "Barcode Generator — Code 128, EAN-13 & GS1";
 const DEFAULT_DESCRIPTION =
   "Generate Code 128, EAN-13, UPC, ITF-14 and GS1-128 barcodes with real check-digit validation, then style, print, bulk-export or scan them in your browser.";
 
 export async function generateMetadata() {
-  return publicToolMetadata(
+  return resolvedToolMetadata(
     "barcode-generator",
     DEFAULT_TITLE,
     DEFAULT_DESCRIPTION,
