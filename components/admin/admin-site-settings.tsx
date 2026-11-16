@@ -289,7 +289,7 @@ export default function AdminSiteSettings() {
           <label
             className={`${styles["admin-field"]} ${styles["admin-span-2"]}`}
           >
-            <span>Tagline</span>
+            <span>Tagline (shown in the footer)</span>
             <input
               className={styles["admin-input"]}
               maxLength={160}
