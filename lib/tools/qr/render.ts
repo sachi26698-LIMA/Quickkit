@@ -114,7 +114,7 @@ export async function renderQr(request: RenderRequest): Promise<RenderOutput> {
     // version (23 at level L) emits a symbol no reader can lock onto at any
     // size. So when the caller asks for proof, decode the real bitmap and fix
     // what actually fails instead of trusting a px-per-module rule.
-    if (request.verify && !request.artifacts?.svg) {
+    if (request.verify) {
       const requestedLevel = design.errorLevel;
       const matrixAt = (level: QrErrorLevel) => {
         try {

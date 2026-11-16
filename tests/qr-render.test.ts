@@ -524,6 +524,29 @@ describe("high-density renders are proven, not assumed", () => {
     }
   });
 
+  it("repairs the same way whether or not SVG is also requested", async () => {
+    // The studio's heavy pass asks for png + svg + verify together. An earlier
+    // guard keyed off the svg flag and silently skipped the repair on that
+    // exact path, so this pins both call shapes to the same verdict.
+    const payload = "A".repeat(1462);
+    const pngOnly = await renderQr({
+      payload,
+      design: { ...defaultDesign(), size: 256 },
+      artifacts: { png: true },
+      verify: true,
+    });
+    const withSvg = await renderQr({
+      payload,
+      design: { ...defaultDesign(), size: 256 },
+      artifacts: { png: true, svg: true },
+      verify: true,
+    });
+    expect(withSvg.verification?.ok).toBe(true);
+    expect(pngOnly.verification?.ok).toBe(true);
+    expect(withSvg.design.size).toBe(pngOnly.design.size);
+    expect(withSvg.matrix.size).toBe(pngOnly.matrix.size);
+  });
+
   it("keeps a roomy render at the requested size", async () => {
     const rendered = await renderQr({
       payload: PAYLOAD,
