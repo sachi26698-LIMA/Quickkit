@@ -11,22 +11,25 @@
 
 ## 1. Executive summary
 
-Three real product defects were found and fixed. All three were **invisible from the test
-suite** and were only found by testing actual rendered output.
+Four real product defects were found and fixed. The first three were **invisible from the
+test suite** and were only found by testing actual rendered output; the fourth was surfaced
+by E2E failures that had been mistaken for flaky tests.
 
 | # | Defect | Severity | Status |
 |---|---|---|---|
 | 1 | QR codes could be exported that **could not be scanned**, while the UI said they were fine | **High** — the core deliverable was silently broken | Fixed |
 | 2 | The dense-render guard **never ran** on the code path QR Studio actually uses | **High** — defect 1 was still live after being "fixed" | Fixed |
 | 3 | The tool-feedback dialog promised reviews would be **"Visible on the homepage"**, which is not a feature | Medium — user-facing false claim | Fixed |
+| 4 | **Hash Comparison** and **File Privacy Checker** had **no reachable UI** — their legacy URLs redirected to a page that ignored `?operation=` | **High** — two advertised tools were unusable | Fixed |
 
-The 13 E2E failures turned out to be **stale tests, not product bugs**. They failed
-identically on `main` and on this branch, so none were branch-introduced. Zero product
-code was changed to make them pass — the assertions were corrected to match the UI that
-actually ships.
+Of the 13 E2E failures, **7 were stale tests and 6 exposed defect 4**. All 13 failed
+identically on `main` and on this branch, so none were branch-introduced. The 7 stale ones
+were corrected to the UI that actually ships; the other 6 were fixed by fixing the real
+defect, not by touching the tests.
 
-**Readiness:** the deterministic gates are all green and the QR defect is genuinely closed
-(540-combination sweep, 0 failures). Approval to merge is a separate decision — see §8.
+**Readiness:** every gate is green — deterministic checks pass, the QR defect is closed
+(540-combination sweep, 0 failures), and E2E is **1150 passed / 0 failed**. Approval to
+merge is a separate decision — see §8.
 
 ---
 
@@ -210,7 +213,37 @@ project's own `format:check` glob. The project's gate — which covers `app/`, `
 E2E **cannot run in this sandbox**: `npx playwright install chromium` fails on the proxied
 download, so there is no browser binary. E2E results come from GitHub Actions only.
 
-<!-- E2E_RESULT_PLACEHOLDER -->
+**Result (CI run `43910834152`, commit `4efa1ad`): `success`.**
+
+| | Before | After |
+|---|---|---|
+| Passed | 1137 | **1150** |
+| Failed | 13 | **0** |
+| Skipped | 7 | 7 |
+
+```
+7 skipped
+1150 passed (29.7m)
+3 passed (19.1s)
+8 passed (49.6s)
+```
+
+The 13 failures were eliminated in two ways, and it is worth being precise about which:
+
+- **7 were stale assertions** (the home-hero and tool-download clusters). Corrected to the shipped UI; nothing in the product changed for them.
+- **6 shared one real product defect.** `security-consolidation.spec.ts:7`, `:27`, `:107`,
+  `security-functional-acceptance.spec.ts:222`, `:333` and `security-privacy-upgrades.spec.ts:202`
+  all navigate to `/tools/hash-comparison` or `/tools/file-privacy-checker`, or wait for
+  `#tab-hash-comparison`. Those URLs redirected to a page that rendered a single tool and had
+  no tabs at all. Fixing that route fixed all six.
+
+An intermediate run (`43896937697`) showed 6 failures and is the one that exposed the
+route defect. An earlier run (`43896916226`) is **not** a valid measurement of the test
+realignment: it ran commit `cc13b23`, which predates the test fixes, so it was still
+executing the old assertions.
+
+The timeouts added in §4 were justified but were **not** the cause: the failing steps waited
+the full 120 s and 180 s for an element that never existed.
 
 ---
 
@@ -267,10 +300,22 @@ reverted independently.
 
 ## 10. Readiness
 
-**The branch is ready for review.** The three defects are fixed and pinned by regression
-tests; every deterministic gate is green; security posture is sound and unchanged in
-strength.
+**The branch is ready for review.** All four defects are fixed and pinned by regression
+tests. Every gate is green:
+
+| Gate | Result |
+|---|---|
+| `tsc --noEmit` | exit 0 |
+| `eslint .` | exit 0 |
+| `npm run format:check` | exit 0 |
+| `vitest run` | 2500 / 2500, 180 files |
+| `npm run build` | exit 0, 97 static pages |
+| `npm audit` | 0 vulnerabilities |
+| E2E (CI `43910834152`) | **1150 passed, 0 failed, 7 skipped** |
+
+Security posture is sound and unchanged in strength — no control was relaxed, no tool
+removed, no schema, credential or SMTP setting touched.
 
 **Merge is not requested here.** Per the standing instruction, merging, deploying and any
 production change require explicit approval. Two items in §9 need a product decision before
-this is called finished.
+this is called finished — neither is a blocker for review.
