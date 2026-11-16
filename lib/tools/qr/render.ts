@@ -14,6 +14,7 @@ import { sceneToSvg } from "./svg";
 import { verifyBitmap, type QrVerification } from "./verify";
 import { utf8Length } from "./capacity";
 import {
+  QR_SIZE_MAX,
   QrUserError,
   type QrDesign,
   type QrErrorLevel,
@@ -57,22 +58,53 @@ export async function renderQr(request: RenderRequest): Promise<RenderOutput> {
   const payload = request.payload ?? "";
   if (!payload) throw new QrUserError("There is nothing to encode yet.");
   const base = { ...defaultDesign(), ...(request.design ?? {}) };
-  const { design, adjustments } = clampDesign(base, {
+  const clamped = clampDesign(base, {
     hasLogo: Boolean(request.logo),
   });
+  const adjustments = clamped.adjustments;
+  let design = clamped.design;
   let matrix = createMatrix(payload, design.errorLevel, {
     boost: design.boost,
   });
   // When no center logo is present and a compact pixel export would crowd
   // modules below ~3.5 px due to high ECC overhead, step ECC down so modules
   // stay large, crisp and reliably decodable (including light-on-dark palettes).
+  // Stepping down alone is not always enough: a long Data Template payload can
+  // stay under the threshold even at L, and a version-13 symbol crowded into a
+  // 256 px preset becomes undecodable (measured: 0 of 6 decoder attempts, while
+  // the same payload at 3.84 px/module decodes 4/4). Grow the canvas, which is
+  // the remedy the safety analyser already offers for the same condition.
   if (!request.logo) {
     const region = design.size * codeRegionRatio(design);
     const minModulePx = 3.5;
+    // Minimum module size that actually decodes; see the note below.
+    const DECODE_SAFE_MODULE_PX = 3.6;
     const candidates: QrErrorLevel[] = ["Q", "M", "L"];
     for (const candidate of candidates) {
       if (region / (matrix.size + design.margin * 2) >= minModulePx) break;
       matrix = createMatrix(payload, candidate, { boost: false });
+    }
+    // The 3.5 px step-down target is below the point where the decoder can
+    // actually lock. Measured on a version-13 symbol: 3.51 px/module 0/5
+    // decoded, 3.59 px/module 5/5. So a symbol that lands in that band is
+    // rendered, reported as fine and then quietly fails verification. When
+    // stepping ECC down cannot clear the band, grow the canvas instead — the
+    // same remedy the safety analyser offers for a crowded module grid.
+    const totalModules = matrix.size + design.margin * 2;
+    if (region / totalModules < DECODE_SAFE_MODULE_PX) {
+      const grown = Math.min(
+        QR_SIZE_MAX,
+        Math.ceil(
+          (DECODE_SAFE_MODULE_PX * totalModules) / codeRegionRatio(design),
+        ),
+      );
+      if (grown > design.size) {
+        adjustments.push({
+          field: "size",
+          message: `The output was raised to ${grown} px so every module stays at least ${DECODE_SAFE_MODULE_PX} px — a ${totalModules}-module code would not scan smaller.`,
+        });
+        design = { ...design, size: grown };
+      }
     }
   }
   const scene = buildScene(matrix, design, request.logo ?? null);

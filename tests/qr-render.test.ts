@@ -373,3 +373,98 @@ describe("V3 frames, eye colours and logo background stay scannable", () => {
     expect(report.findings.some((f) => f.field === "eyeFrame")).toBe(true);
   });
 });
+
+/**
+ * A dense payload rendered at a compact preset used to verify as unreadable at
+ * 3.51 px/module while the renderer reported success: the ECC step-down loop was
+ * satisfied by 3.5 px, which is below the point jsQR can actually lock. The
+ * canvas now grows instead, so a "verified" render really is decodable.
+ */
+describe("a dense payload never renders below the decode threshold", () => {
+  /** A Data Template payload long enough to reach version 13 at level Q. */
+  const DENSE = "https://quickkit.tools/qr?d=z." + "H".repeat(283);
+
+  it("grows the canvas instead of emitting an undecodable code", async () => {
+    const rendered = await renderQr({
+      payload: DENSE,
+      design: {
+        ...defaultDesign(),
+        size: 256,
+        margin: 2,
+        errorLevel: "Q",
+        transparent: true,
+        cornerRadius: 0,
+      },
+      artifacts: { png: true, svg: true },
+      verify: true,
+    });
+    const totalModules = Math.round(
+      rendered.scene.size / rendered.scene.modulePx,
+    );
+    // The whole point: the reported size now clears the threshold it claims.
+    expect(rendered.design.size / totalModules).toBeGreaterThanOrEqual(3.6);
+    expect(rendered.design.size).toBeGreaterThan(256);
+    expect(rendered.verification?.ok).toBe(true);
+    expect(rendered.adjustments.some((entry) => entry.field === "size")).toBe(
+      true,
+    );
+  });
+
+  it("leaves a roomy payload at its chosen size", async () => {
+    const rendered = await renderQr({
+      payload: PAYLOAD,
+      design: { ...defaultDesign(), size: 320 },
+      artifacts: { png: true },
+      verify: true,
+    });
+    expect(rendered.design.size).toBe(320);
+    expect(rendered.verification?.ok).toBe(true);
+    expect(rendered.adjustments.some((entry) => entry.field === "size")).toBe(
+      false,
+    );
+  });
+});
+
+/**
+ * A transparent design has no field to invert. Inverting one produced light
+ * modules on nothing, which flattens onto white and cannot decode at any size
+ * (measured 0 of 6 decoder attempts). Transparency wins and the drop is
+ * explained rather than silently producing an unexportable code.
+ */
+describe("a transparent design is never inverted", () => {
+  it("drops the invert flag and says so", async () => {
+    const { clampDesign } = await import("../lib/tools/qr/style");
+    const { design, adjustments } = clampDesign(
+      { ...defaultDesign(), transparent: true, invert: true },
+      { hasLogo: false },
+    );
+    expect(design.transparent).toBe(true);
+    expect(design.invert).toBe(false);
+    expect(adjustments.some((entry) => entry.field === "invert")).toBe(true);
+  });
+
+  it("still decodes with both properties requested", async () => {
+    const rendered = await renderQr({
+      payload: PAYLOAD,
+      design: {
+        ...defaultDesign(),
+        size: 320,
+        transparent: true,
+        invert: true,
+      },
+      artifacts: { png: true },
+      verify: true,
+    });
+    expect(rendered.verification?.ok).toBe(true);
+    expect(rendered.design.invert).toBe(false);
+  });
+
+  it("keeps inversion for an opaque design", async () => {
+    const { clampDesign } = await import("../lib/tools/qr/style");
+    const { design } = clampDesign(
+      { ...defaultDesign(), transparent: false, invert: true },
+      { hasLogo: false },
+    );
+    expect(design.invert).toBe(true);
+  });
+});

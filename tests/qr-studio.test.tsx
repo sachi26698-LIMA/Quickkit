@@ -6,8 +6,8 @@
  * Canvas painting is stubbed — jsdom has no 2D context, and the bitmap itself is
  * produced without one.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -15,6 +15,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import QrGenerator from "../components/tools/qr-generator";
 import { QR_SAMPLE_URL } from "../components/tools/qr-generator/use-qr-studio";
@@ -39,32 +40,65 @@ function useSmallSize() {
   fireEvent.click(within(group).getByRole("button", { name: "256 px" }));
 }
 
+/** The verdict line shared by both wait helpers, for failure output. */
+const verdictText = () =>
+  document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ??
+  "missing";
+
+/**
+ * Resolve on a `requestAnimationFrame`, i.e. after a real frame boundary.
+ *
+ * Not `setTimeout` and not `waitFor`: both are batched into the same
+ * long-running macrotask queue as the debounced heavy render, so a 650 ms
+ * debounce can sit behind hundreds of queued callbacks before it even starts.
+ * A frame callback runs on the animation-frame queue, which drains ahead of
+ * timers, and it is guaranteed to fire once the current task — including the
+ * synchronous jsQR work — completes.
+ */
+function nextFrame() {
+  return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+/**
+ * Wait for a verdict one frame at a time.
+ *
+ * Nothing about the component changes here: it still schedules its heavy render
+ * on a real 650 ms `setTimeout` and the real decoder still runs on a real
+ * clock. What changes is the *shape* of the wait. `waitFor` re-queries every
+ * 50 ms on a macrotask timer, so during the quiet stretch before the debounce
+ * fires it queues a stream of no-op callbacks into the same timer queue the
+ * debounce is waiting in, and each poll wraps its query in `act()` — dropping a
+ * full React commit between the user's click and the debounced render it is
+ * meant to observe. A frame slice does neither: it yields constantly to the
+ * event loop (so a starved runner still makes progress) and touches the DOM
+ * once per slice without forcing extra renders.
+ */
+async function waitForVerdict(match: (text: string) => boolean) {
+  const deadline = Date.now() + VERIFY_TIMEOUT;
+  while (Date.now() < deadline) {
+    await act(async () => {
+      await nextFrame();
+    });
+    // Deliberately no early exit on a `BLOCKED` verdict: dropping an inverting
+    // template is blocked while the debounce is still pending and can flip back
+    // once the next verification lands, so that text is stale, not terminal.
+    if (match(verdictText())) return;
+  }
+  throw new Error(
+    `No verdict after ${VERIFY_TIMEOUT / 1000}s.\nQR verdict: ${verdictText()}`,
+  );
+}
+
 async function settle() {
-  await waitFor(() => expect(screen.getByText(VERIFIED)).toBeInTheDocument(), {
-    timeout: VERIFY_TIMEOUT,
-    onTimeout: (error) =>
-      new Error(
-        `${error.message}\nQR verdict: ${document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ?? "missing"}`,
-      ),
-  });
+  await waitForVerdict((verdict) => verdict.startsWith(VERIFIED));
 }
 
 /** Some designs decode with warnings instead of a clean pass — both are fine. */
 async function settleOrWarn() {
-  await waitFor(
-    () =>
-      expect(
-        screen.getByText(
-          /Verified by an independent decoder|Decoded — with notes below/,
-        ),
-      ).toBeInTheDocument(),
-    {
-      timeout: VERIFY_TIMEOUT,
-      onTimeout: (error) =>
-        new Error(
-          `${error.message}\nQR verdict: ${document.querySelector("#qr-preview .qr-verdict")?.textContent?.trim() ?? "missing"}`,
-        ),
-    },
+  await waitForVerdict((verdict) =>
+    /^Verified by an independent decoder|^Decoded — with notes below/.test(
+      verdict,
+    ),
   );
 }
 
@@ -249,12 +283,7 @@ describe("qr studio — styling can never pass silently", () => {
       await settle();
       const [foreground] = screen.getAllByLabelText("Colour hex value");
       fireEvent.change(foreground, { target: { value: "#eeeeee" } });
-      await waitFor(
-        () => expect(screen.getByText(BLOCKED)).toBeInTheDocument(),
-        {
-          timeout: VERIFY_TIMEOUT,
-        },
-      );
+      await waitForVerdict((verdict) => verdict.startsWith(BLOCKED));
       expect(
         card("qr-export").getByRole("button", { name: /^PNG/ }),
       ).toBeDisabled();
@@ -341,10 +370,7 @@ describe("qr studio — styling can never pass silently", () => {
       const margin = document.getElementById("qr-margin") as HTMLInputElement;
       fireEvent.change(margin, { target: { value: "0" } });
       expect(margin.value).toBe("0");
-      await waitFor(
-        () => expect(screen.getByText(BLOCKED)).toBeInTheDocument(),
-        { timeout: VERIFY_TIMEOUT },
-      );
+      await waitForVerdict((verdict) => verdict.startsWith(BLOCKED));
       // The preview already says the code is not scannable; the buttons cannot
       // disagree with it.
       for (const name of [/^PNG/, /^High-res PNG/, /^SVG/, /^PDF/])
