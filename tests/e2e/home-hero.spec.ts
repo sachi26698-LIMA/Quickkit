@@ -212,41 +212,57 @@ for (const width of [390, 1440]) {
     await trigger.click();
     const dialog = page.getByRole("dialog", { name: "Share your experience" });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/saved only in this browser/)).toBeVisible();
-    await dialog.getByRole("radio").nth(4).check();
+    // The form states its privacy model up front: local by default, sent only
+    // if the visitor opts in. This is the shipped copy.
+    await expect(
+      dialog.getByText(/Feedback stays in this browser/),
+    ).toBeVisible();
+    // Name and message are the whole form; there is no rating control here.
     await dialog.getByLabel("Name (optional)").fill("Asha");
     await dialog.getByLabel("Your feedback").fill("Clear and easy to use.");
-    await dialog.getByRole("button", { name: "Add feedback" }).click();
+    await dialog.getByRole("button", { name: "Save on this device" }).click();
     await expect(dialog).not.toBeVisible();
+    // The entry appears on the laptop screen, and is still there after reload
+    // because it lives in this browser's storage and nowhere else.
     await expect(screen.getByText("Asha")).toBeVisible();
     await expect(screen.getByText("Clear and easy to use.")).toBeVisible();
     await page.reload();
     await expect(screen.getByText("Asha")).toBeVisible();
     await expect(screen.getByText("Clear and easy to use.")).toBeVisible();
+    // A second, unnamed entry is stored independently and shows as Anonymous.
     await trigger.hover({ force: true });
     await trigger.click();
-    await dialog.getByRole("radio").nth(3).check();
     await dialog.getByLabel("Your feedback").fill("A second entry.");
-    await dialog.getByRole("button", { name: "Add feedback" }).click();
+    await dialog.getByRole("button", { name: "Save on this device" }).click();
     await expect(screen.getByText("Anonymous")).toBeVisible();
     await expect(screen.getByText("A second entry.")).toBeVisible();
     await expect(screen.getByText("Asha")).toBeVisible();
+    // Re-opening shows both saved entries inside the dialog, each removable.
     await trigger.hover({ force: true });
     await trigger.click();
-    await expect(
-      dialog.getByRole("region", { name: "Saved feedback" }),
-    ).toBeVisible();
-    await expect(
-      dialog.getByRole("button", { name: /delete|remove/i }),
-    ).toHaveCount(0);
+    const saved = dialog.getByRole("region", { name: "Saved feedback" });
+    await expect(saved).toBeVisible();
     await expect(dialog.getByText("A second entry.")).toBeVisible();
+    await expect(
+      saved.getByRole("button", { name: /delete feedback/i }),
+    ).toHaveCount(2);
+    // Escape closes without losing what was saved.
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
     await expect(screen.getByText("A second entry.")).toBeVisible();
     await expect(screen.getByText("Asha")).toBeVisible();
+    // Entries list newest first, so "Delete feedback 1" is the anonymous one
+    // added a moment ago. Deleting it leaves the named entry alone, and the
+    // deletion survives a reload — the same persistence guarantee as saving.
+    await trigger.hover({ force: true });
+    await trigger.click();
+    await saved.getByRole("button", { name: "Delete feedback 1" }).click();
+    await expect(saved.getByRole("listitem")).toHaveCount(1);
+    await expect(saved.getByText("Clear and easy to use.")).toBeVisible();
+    await page.keyboard.press("Escape");
     await page.reload();
-    await expect(screen.getByText("A second entry.")).toBeVisible();
-    await expect(screen.getByText("Asha")).toBeVisible();
+    await expect(screen.getByText("Clear and easy to use.")).toBeVisible();
+    await expect(screen.getByText("A second entry.")).toHaveCount(0);
   });
 }
 
@@ -269,10 +285,12 @@ test("feedback reports storage failure without pretending it was saved", async (
   const screen = page.getByRole("group", { name: "QUICKKIT laptop preview" });
   await screen.getByRole("button", { name: "Share feedback" }).click();
   const dialog = page.getByRole("dialog", { name: "Share your experience" });
-  await dialog.getByRole("radio").nth(2).check();
   await dialog.getByLabel("Your feedback").fill("Test feedback");
-  await dialog.getByRole("button", { name: "Add feedback" }).click();
+  await dialog.getByRole("button", { name: "Save on this device" }).click();
+  // The write throws, so the dialog must say so and stay open rather than
+  // closing as if the entry had been kept.
   await expect(dialog.getByRole("alert")).toHaveText(/Could not save feedback/);
+  await expect(dialog).toBeVisible();
   await expect(screen.getByText("No feedback yet")).toBeVisible();
 });
 
@@ -562,14 +580,14 @@ for (const width of [390, 1440]) {
 }
 
 for (const width of [390, 1440]) {
-  test(`laptop glass panel opens the complete rating form with read-only reviews at ${width}px`, async ({
+  test(`laptop glass feedback panel opens a working form and is accessible at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/");
-    const panel = page.locator(
-      '[data-laptop-feedback-style="aurora-glass-v7"]',
-    );
+    // The glass panel is the laptop's own feedback card. It is identified by
+    // its landmark, not by a style marker, so it survives cosmetic changes.
+    const panel = page.getByRole("region", { name: "User Feedback" });
     await expect(panel).toBeVisible();
     const glass = await panel.evaluate((el) => ({
       background: getComputedStyle(el).backgroundImage,
@@ -581,20 +599,16 @@ for (const width of [390, 1440]) {
     expect(glass.background).toContain("radial-gradient");
     expect(glass.blur).toContain("blur(8px)");
     expect(glass.heading).toBeGreaterThan(4);
-    const button = panel.getByRole("button", { name: "Share feedback" });
+    const button = panel.getByRole("button", { name: /Share feedback/ });
     await button.hover({ force: true });
     await button.click();
     const modal = page.getByRole("dialog", { name: "Share your experience" });
     await expect(modal).toBeVisible();
     await modal.getByLabel("Name (optional)").fill("Riya");
     await modal
-      .getByLabel("About", { exact: true })
-      .selectOption("image-resizer");
-    await modal.getByRole("radio").nth(4).check();
-    await modal.getByRole("checkbox", { name: "Beautiful design" }).check();
-    await modal
       .getByLabel("Your feedback")
       .fill("Love the colourful new glass design.");
+    // The form must be accessible before it is used, not just after.
     const { default: AxeBuilder } = await import("@axe-core/playwright");
     const result = await new AxeBuilder({ page })
       .include("dialog[open]")
@@ -604,27 +618,16 @@ for (const width of [390, 1440]) {
         (item) => item.impact === "serious" || item.impact === "critical",
       ),
     ).toEqual([]);
-    await modal
-      .getByRole("button", { name: "Add feedback", exact: true })
-      .click();
+    await modal.getByRole("button", { name: "Save on this device" }).click();
     await expect(modal).not.toBeVisible();
     const saved = await page.evaluate(() =>
       JSON.parse(localStorage.getItem("quickkit-hero-feedback-v1")!),
     );
     expect(saved[0]).toMatchObject({
       name: "Riya",
-      rating: 5,
-      tool: "image-resizer",
-      tags: ["Beautiful design"],
       message: "Love the colourful new glass design.",
     });
     await expect(panel.getByText("Riya", { exact: true })).toBeVisible();
-    await button.hover({ force: true });
-    await button.click();
-    await expect(
-      modal.getByRole("button", { name: /delete|remove/i }),
-    ).toHaveCount(0);
-    await page.keyboard.press("Escape");
     await page.reload();
     await expect(panel.getByText("Riya", { exact: true })).toBeVisible();
   });

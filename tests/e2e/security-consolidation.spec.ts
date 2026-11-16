@@ -107,7 +107,10 @@ test("operation tabs stay usable on a narrow screen", async ({ page }) => {
 test("all workbenches fit a phone viewport and pass an automated accessibility check", async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  // Nine pages, each awaited through the hydration gate and then given a full
+  // axe audit. The sibling redirect test above loops the same nine groups and
+  // needs the same order of budget on a two-core runner.
+  test.setTimeout(300_000);
   const { default: AxeBuilder } = await import("@axe-core/playwright");
   await page.setViewportSize({ width: 375, height: 812 });
   for (const group of securityGroups) {
