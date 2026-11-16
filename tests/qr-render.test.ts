@@ -507,6 +507,23 @@ describe("high-density renders are proven, not assumed", () => {
     expect(rendered.adjustments.length).toBeGreaterThan(0);
   });
 
+  it("finds a readable size even from a canvas far too small", async () => {
+    // 128 px cannot hold a 109-module symbol at any error-correction level, so
+    // the repair has to be allowed to grow well past the requested size rather
+    // than giving up after one small step.
+    const rendered = await renderQr({
+      payload: V23,
+      design: { ...defaultDesign(), size: 128 },
+      artifacts: { png: true, svg: true },
+      verify: true,
+    });
+    expect(rendered.verification?.ok).toBe(true);
+    expect(rendered.design.size).toBeGreaterThan(128);
+    expect(rendered.adjustments.some((entry) => entry.field === "size")).toBe(
+      true,
+    );
+  });
+
   it("never reports a size it did not honour without saying so", async () => {
     for (const size of [200, 256, 300, 378, 420, 512]) {
       const rendered = await renderQr({

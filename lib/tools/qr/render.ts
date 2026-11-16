@@ -185,33 +185,49 @@ export async function renderQr(request: RenderRequest): Promise<RenderOutput> {
             }
           }
         }
-        let grew = false;
         if (!fixed) {
-          // Last resort: more pixels for the same symbol.
-          const mods = matrix.size + design.margin * 2;
-          for (const factor of [1.15, 1.35, 1.6, 2]) {
-            const grown = Math.min(
-              QR_SIZE_MAX,
-              Math.ceil(design.size * factor),
-            );
-            if (grown <= design.size) continue;
-            if (probeAt(matrix, { ...design, size: grown }, mods)) {
-              design = { ...design, size: grown };
-              adjustments.push({
-                field: "size",
-                message: `The output was raised to ${grown} px because the ${mods}-module code did not read back at the size you asked for.`,
-              });
+          // Last resort: the canvas may simply be too small for this payload
+          // at every readable level (a 1,462-byte symbol cannot decode at
+          // 128 px whatever the error-correction level). Walk the levels and
+          // a ladder of larger canvases together and take the first pairing
+          // that really decodes, growing in steps small enough not to jump
+          // over the sizes that work.
+          outer: for (const level of ECC_ORDER) {
+            if (ECC_ORDER.indexOf(level) < ECC_ORDER.indexOf(requestedLevel))
+              continue;
+            const candidate = matrixAt(level);
+            if (!candidate) continue;
+            const mods = candidate.size + design.margin * 2;
+            for (const factor of [1, 1.6, 2.2, 3, 4]) {
+              const size = Math.round(
+                Math.min(QR_SIZE_MAX, Math.max(design.size, mods) * factor),
+              );
+              if (size < design.size) continue;
+              if (!probeAt(candidate, { ...design, size }, mods)) continue;
+              if (size !== design.size) {
+                adjustments.push({
+                  field: "size",
+                  message: `The output was raised to ${size} px because a ${mods}-module code needs more room than ${design.size} px to scan.`,
+                });
+              }
+              if (level !== requestedLevel) {
+                adjustments.push({
+                  field: "errorLevel",
+                  message: `Error correction was raised to level ${level} because the code did not read back at level ${requestedLevel}.`,
+                });
+              }
+              matrix = candidate;
+              design = { ...design, size };
               fixed = true;
-              grew = true;
-              break;
+              break outer;
             }
           }
-        }
-        if (!fixed && !grew) {
-          adjustments.push({
-            field: "errorLevel",
-            message: `This payload could not be read back at any size or error-correction level. It is close to the format's limit — shorten it and try again.`,
-          });
+          if (!fixed) {
+            adjustments.push({
+              field: "errorLevel",
+              message: `This payload could not be read back at any size or error-correction level. It is close to the format's limit — shorten it and try again.`,
+            });
+          }
         }
       }
     }
