@@ -8,6 +8,7 @@ export default defineConfig([
     ".next/**",
     "coverage/**",
     "playwright-report/**",
+    "public/html-minifier/**",
     "public/ocr/**",
     "public/pdfjs/**",
     "public/qpdf/**",

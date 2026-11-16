@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import {
   categoryMeta,
@@ -18,6 +19,10 @@ import {
   type ToolMaintenance,
 } from "@/lib/tool-maintenance";
 
+export const PUBLIC_CATALOG_CACHE_TAG = "public-catalog";
+export const PUBLIC_SITE_SETTINGS_CACHE_TAG = "public-site-settings";
+const PUBLIC_CACHE_REVALIDATE_SECONDS = 300;
+
 export type PublicTool = Tool & {
   seoTitle: string | null;
   seoDescription: string | null;
@@ -29,13 +34,7 @@ export type PublicTool = Tool & {
   maintenance: ToolMaintenance | null;
 };
 
-/**
- * Reads validated admin overrides for server-rendered public pages. Database
- * failures deliberately fall back to the shipped catalogue. This module never
- * returns credentials or private submissions to a caller. Wrapped in `cache`
- * so the layouts and the page of one request share a single read.
- */
-export const getPublicCatalog = cache(async function getPublicCatalog() {
+async function fetchPublicCatalogUncached() {
   const db = getMasterAdminServiceClient();
   if (!db) return mergePublicCatalog([], []);
   const [toolResult, categoryResult] = await Promise.all([
@@ -50,6 +49,32 @@ export const getPublicCatalog = cache(async function getPublicCatalog() {
   const toolRows = (toolResult.data ?? []) as ToolOverrideRow[];
   const categoryRows = (categoryResult.data ?? []) as CategoryOverrideRow[];
   return mergePublicCatalog(toolRows, categoryRows);
+}
+
+const fetchPublicCatalogCached = unstable_cache(
+  fetchPublicCatalogUncached,
+  ["quickkit-public-catalog"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_CATALOG_CACHE_TAG],
+  },
+);
+
+/**
+ * Reads validated admin overrides for server-rendered public pages. Database
+ * failures deliberately fall back to the shipped catalogue. This module never
+ * returns credentials or private submissions to a caller. Wrapped in Next's
+ * Data Cache (`unstable_cache`) for fast ISR/static rendering + on-demand
+ * admin revalidation, and in React `cache` so layouts and pages in a single
+ * render pass share one read.
+ */
+export const getPublicCatalog = cache(async function getPublicCatalog() {
+  if (process.env.VITEST) return fetchPublicCatalogUncached();
+  try {
+    return await fetchPublicCatalogCached();
+  } catch {
+    return fetchPublicCatalogUncached();
+  }
 });
 
 export type PublicToolShellData = Awaited<
@@ -257,7 +282,21 @@ export async function publicToolMetadata(
   };
 }
 
-export async function getPublicSiteSettings() {
+type PublicSiteSettings = {
+  website_name?: string;
+  tagline?: string;
+  contact_email?: string;
+  announcement?: { enabled: boolean; message: string };
+  maintenance?: { enabled: boolean; message: string };
+  homepage_content?: {
+    announcement_title?: string;
+    announcement_body?: string;
+  };
+  social_links?: { label: string; href: string }[];
+  footer_links?: { label: string; href: string }[];
+};
+
+async function fetchPublicSiteSettingsUncached(): Promise<PublicSiteSettings> {
   const db = getMasterAdminServiceClient();
   if (!db) return {};
   const { data, error } = await db
@@ -349,17 +388,25 @@ export async function getPublicSiteSettings() {
         settings[row.setting_key] = value;
     }
   }
-  return settings as {
-    website_name?: string;
-    tagline?: string;
-    contact_email?: string;
-    announcement?: { enabled: boolean; message: string };
-    maintenance?: { enabled: boolean; message: string };
-    homepage_content?: {
-      announcement_title?: string;
-      announcement_body?: string;
-    };
-    social_links?: { label: string; href: string }[];
-    footer_links?: { label: string; href: string }[];
-  };
+  return settings as PublicSiteSettings;
 }
+
+const fetchPublicSiteSettingsCached = unstable_cache(
+  fetchPublicSiteSettingsUncached,
+  ["quickkit-public-site-settings"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_SITE_SETTINGS_CACHE_TAG],
+  },
+);
+
+export const getPublicSiteSettings = cache(
+  async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
+    if (process.env.VITEST) return fetchPublicSiteSettingsUncached();
+    try {
+      return await fetchPublicSiteSettingsCached();
+    } catch {
+      return fetchPublicSiteSettingsUncached();
+    }
+  },
+);

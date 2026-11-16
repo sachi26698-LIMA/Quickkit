@@ -8,7 +8,7 @@ import { metaBySlug, toolsByCategory } from "@/lib/catalog";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 import { legalPages } from "@/lib/legal";
 import { securityGroupBySlug } from "@/lib/tools/security/consolidation";
-import { BRANDS } from "@/lib/tools/batch-code/brands";
+import { INDEXABLE_BRANDS } from "@/lib/tools/batch-code/brands";
 
 /**
  * Tools whose engine lives outside `lib/tools/<slug>`.
@@ -34,7 +34,7 @@ const EXTRA_ROUTE_SOURCES: Readonly<Record<string, readonly string[]>> = {
   "/tools/barcode-developer": ["components/tools/barcode-developer"],
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const CALCULATOR_SOURCE_FILES: Readonly<Record<string, readonly string[]>> = {
   "age-calculator": ["components/tools/phase9-dates.tsx"],
@@ -200,7 +200,8 @@ export function routeSourceFiles(
   if (path === "/help") return ["app/(public)/help/page.tsx"];
   if (path === "/sitemap") return ["app/(public)/sitemap/page.tsx"];
 
-  if (path === "/guides/barcode") return ["app/guides/barcode/page.tsx"];
+  if (path === "/guides/barcode")
+    return ["app/(public)/guides/barcode/page.tsx"];
 
   // Brand detail pages live one level below a tool route but are generated
   // statically from the batch-code records, so they are mapped explicitly.
@@ -232,9 +233,10 @@ export function routeSourceFiles(
 
     if (securityGroupBySlug(slug)) {
       return [
-        "app/tools/[calculator]/page.tsx",
+        "app/(public)/tools/[calculator]/page.tsx",
         "lib/tools/security/catalog.ts",
         "lib/tools/security/consolidation.ts",
+        "lib/tools/security/seo-content.ts",
         "components/tools/security/consolidated-workspace.tsx",
         "lib/tools/security/logic.ts",
         "lib/tools/security/review.ts",
@@ -255,7 +257,11 @@ export function routeSourceFiles(
 
     const calcSpecific = CALCULATOR_SOURCE_FILES[slug];
     if (calcSpecific) {
-      return ["lib/calculator-info.ts", ...calcSpecific];
+      return [
+        "app/(public)/tools/[calculator]/page.tsx",
+        "lib/calculator-info.ts",
+        ...calcSpecific,
+      ];
     }
     return [];
   }
@@ -329,7 +335,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...(catalog.tools.some(
         (tool) => tool.slug === "batch-code-checker" && tool.isIndexable,
       )
-        ? BRANDS.map((brand) => `/tools/batch-code-checker/brand/${brand.slug}`)
+        ? INDEXABLE_BRANDS.map(
+            (brand) => `/tools/batch-code-checker/brand/${brand.slug}`,
+          )
         : []),
     ]),
   ];

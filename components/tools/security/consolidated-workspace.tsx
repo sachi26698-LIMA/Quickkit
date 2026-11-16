@@ -56,8 +56,36 @@ export default function ConsolidatedWorkspace({
   const item = securityToolBySlug(selected);
   // Do not render a default form before the bookmarked operation is known:
   // users must never be able to enter data into a form that hydration replaces.
+  // Instead, render the static operation directory during SSR so search engines
+  // and pre-hydration visitors see every operation included in this suite.
   if (search === null)
-    return <p role="status">Loading the selected operation…</p>;
+    return (
+      <section
+        className="security-consolidated"
+        aria-label={`${group.name} operations`}
+      >
+        <p className="security-tabs-note">
+          Choose an operation. Switching tabs clears that operation’s inputs and
+          results from the page; save anything you need first.
+        </p>
+        <ul className="security-ssr-operations">
+          {operations.map((operation) => {
+            const definition = securityToolBySlug(operation);
+            return (
+              <li key={operation}>
+                <strong>{name(operation)}:</strong>{" "}
+                {definition?.description ??
+                  (operation === "password-generator"
+                    ? "Generate passwords locally using cryptographic randomness."
+                    : operation === "hash-generator"
+                      ? "Compute MD5, SHA-1, SHA-256, SHA-384 and SHA-512 digests locally."
+                      : "Encode or decode UTF-8 text and files up to 10 MB as Base64 locally.")}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
   return (
     <section
       className="security-consolidated"

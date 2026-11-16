@@ -1,8 +1,13 @@
 import ConsolidatedWorkspace from "@/components/tools/security/consolidated-workspace";
+import ToolReferenceSection from "@/components/tool-reference-section";
 import {
   securityGroupBySlug,
   securityGroups,
 } from "@/lib/tools/security/consolidation";
+import {
+  isConsolidatedSecuritySlug,
+  SECURITY_SUITE_SEO_CONTENT,
+} from "@/lib/tools/security/seo-content";
 import { notFound } from "next/navigation";
 import ToolShell from "@/components/tool-shell";
 import Calculator from "@/components/tools/calculator";
@@ -44,8 +49,16 @@ export async function generateMetadata({
 }) {
   const { calculator } = await params;
   const security = securityGroupBySlug(calculator);
-  if (security)
-    return publicToolMetadata(calculator, security.name, security.description);
+  if (security) {
+    const seo = isConsolidatedSecuritySlug(calculator)
+      ? SECURITY_SUITE_SEO_CONTENT[calculator]
+      : null;
+    return publicToolMetadata(
+      calculator,
+      seo?.seoTitle ?? security.name,
+      seo?.seoDescription ?? security.description,
+    );
+  }
   const info = calculatorInfo[calculator];
   return info
     ? publicToolMetadata(calculator, info.seoTitle, info.description)
@@ -59,11 +72,21 @@ export default async function Page({
   const { calculator } = await params;
   const security = securityGroupBySlug(calculator);
   const publicData = await getPublicToolShellData(calculator);
-  if (security)
+  if (security) {
+    const seo = isConsolidatedSecuritySlug(calculator)
+      ? SECURITY_SUITE_SEO_CONTENT[calculator]
+      : null;
     return (
       <ToolShell
         slug={calculator}
         publicData={publicData}
+        headingDescription={seo?.headingDescription}
+        stepsHeading={seo?.stepsHeading}
+        faqsHeading={seo?.faqsHeading}
+        relatedHeading={seo?.relatedHeading}
+        referenceSection={
+          seo ? <ToolReferenceSection slug={calculator} entry={seo} /> : null
+        }
         privacyNotice={
           security.slug === "dns-email-security"
             ? "Optional DNS queries send your domain and IP address to Cloudflare after your consent."
@@ -72,12 +95,12 @@ export default async function Page({
               : undefined
         }
         content={{
-          steps: [
+          steps: seo?.steps ?? [
             "Choose an operation tab.",
             "Enter the requested input and process it locally, or explicitly consent to an optional external lookup.",
             "Review, copy or download the result; switching tabs clears the current workspace.",
           ],
-          faqs: [
+          faqs: seo?.faqs ?? [
             {
               q: "Where is my input processed?",
               a:
@@ -97,6 +120,7 @@ export default async function Page({
         <ConsolidatedWorkspace slug={security.slug} />
       </ToolShell>
     );
+  }
   const info = calculatorInfo[calculator];
   if (!info) notFound();
   const referenceSection = (

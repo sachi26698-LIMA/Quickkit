@@ -22,7 +22,7 @@ import {
 import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
 import styles from "@/app/home-premium.module.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata() {
   const [settings, catalog] = await Promise.all([
@@ -44,6 +44,9 @@ const popularSlugs = [
   "image-compressor",
   "qr-generator",
   "word-counter",
+  "json-formatter",
+  "gst-calculator",
+  "password-generator",
 ];
 
 const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
@@ -248,29 +251,36 @@ export default async function Home() {
                 by range, compress, and lock or unlock with AES-256. PDF to Word
                 writes an editable DOCX, PDF to Image renders pages at 72–600
                 DPI, Images to PDF builds a document from photos, and{" "}
-                <Link href="/category/pdf-tools">PDF Studio</Link> covers
-                page-level editing. Most PDF tools take files up to 50 MB and
-                100 MB per batch, which keeps memory predictable on a phone, and
-                a PDF that cannot be handled safely — signed, XFA, damaged — is
-                named with a next step instead of being silently skipped.
+                <Link href="/tools/pdf-studio">PDF Studio</Link> covers
+                page-level editing. Most{" "}
+                <Link href="/category/pdf-tools">PDF Tools</Link> take files up
+                to 50 MB and 100 MB per batch, and a PDF that cannot be handled
+                safely — signed, XFA, damaged — is named with a next step
+                instead of being silently skipped.
               </p>
               <p>
                 <strong>Images.</strong> Compress to an exact KB or MB target,
                 resize by pixels or a social preset, crop to fixed ratios or a
                 circle, and convert between JPEG, PNG, WebP, AVIF, GIF, BMP and
-                TIFF. <Link href="/tools/image-to-text">Image to Text</Link>{" "}
-                reads text out of photos, receipts and screenshots with OCR in
-                English, Hindi, Gujarati, Marathi, Bengali, Tamil, Telugu and
-                Urdu.
+                TIFF in <Link href="/category/image-tools">Image Tools</Link>.{" "}
+                <Link href="/tools/image-to-text">Image to Text</Link> reads
+                text from photos, receipts and screenshots with OCR in English,
+                Hindi, Gujarati, Marathi, Bengali, Tamil, Telugu and Urdu.
               </p>
               <p>
-                <strong>Text, code and QR.</strong> Format and validate JSON,
-                HTML and XML, minify CSS and JavaScript, encode Base64 and URLs,
-                generate UUIDs, hashes and passwords with browser cryptography,
-                and test regular expressions. QR codes can carry a link, Wi-Fi
-                credentials, a contact card or an event, export as PNG, SVG, PDF
-                or a CSV batch, and be scanned from a camera, a screenshot or a
-                folder of images.
+                <strong>Text, code, security and QR.</strong> Format and
+                validate JSON, HTML and XML, minify CSS and JavaScript, encode
+                Base64 and URLs, and test regexes in{" "}
+                <Link href="/category/developer-tools">Developer Tools</Link>,
+                or generate UUIDs, hashes, encrypted envelopes and passwords in{" "}
+                <Link href="/category/security-privacy">
+                  Security &amp; Privacy
+                </Link>
+                . QR codes and barcodes in{" "}
+                <Link href="/category/qr-barcode">QR &amp; Barcode</Link> (with
+                the <Link href="/guides/barcode">Barcode Guide</Link>) carry
+                links, Wi-Fi, contacts or GS1 data, export as PNG, SVG, PDF or
+                CSV batches, and scan from a camera or image.
               </p>
               <p>
                 <strong>Numbers.</strong>{" "}

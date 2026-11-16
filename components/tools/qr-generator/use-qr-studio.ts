@@ -136,7 +136,7 @@ function renderKeyFor(
 }
 
 /** A real page, used by the empty state so the sample code actually works. */
-export const QR_SAMPLE_URL = "https://quickkit.tools/?src=qr-example";
+export const QR_SAMPLE_URL = "https://quickkit-rosy.vercel.app/?src=qr-example";
 
 const PREVIEW_SIZE = 320;
 const HEAVY_DEBOUNCE_MS = 650;

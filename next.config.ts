@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
 import { getSupabaseCspOrigin } from "./lib/supabase/config";
+import { BRANDS, isBrandRecordIndexable } from "./lib/tools/batch-code/brands";
 import { legacySecurityRedirects } from "./lib/tools/security/consolidation";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -138,6 +139,15 @@ const config: NextConfig = {
     ];
   },
   async headers() {
+    // Three pages can use a camera — the QR Code Scanner, the Barcode
+    // Studio's scanner tab and the stand-alone Barcode Scanner. Excluding
+    // those three exact paths from the default `camera=()` rule guarantees
+    // each response emits a single Permissions-Policy header instead of two
+    // overlapping headers whose intersection in Chromium/WebKit would stay
+    // `camera=()`. Microphone and location stay off everywhere.
+    const defaultPermissionsSource =
+      "/:path((?!tools/(?:qr-code-scanner|barcode-generator|barcode-scanner)(?:/)?$).*)";
+
     return [
       {
         source: "/:path*",
@@ -154,6 +164,11 @@ const config: NextConfig = {
           { key: "Strict-Transport-Security", value: "max-age=31536000" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
+        source: defaultPermissionsSource,
+        headers: [
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
@@ -243,6 +258,30 @@ const config: NextConfig = {
               source: "/category/ai-tools",
               headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
             },
+            {
+              source: "/admin/:path*",
+              headers: [
+                {
+                  key: "X-Robots-Tag",
+                  value: "noindex, nofollow, noarchive",
+                },
+              ],
+            },
+            {
+              source: "/auth/callback",
+              headers: [
+                {
+                  key: "X-Robots-Tag",
+                  value: "noindex, nofollow, noarchive",
+                },
+              ],
+            },
+            ...BRANDS.filter((brand) => !isBrandRecordIndexable(brand)).map(
+              (brand) => ({
+                source: `/tools/batch-code-checker/brand/${brand.slug}`,
+                headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+              }),
+            ),
             {
               // Parameterized search & category filter views on /tools stay
               // functional for users while consolidating indexing to /tools

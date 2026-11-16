@@ -1,3 +1,4 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { categoryMeta, tools } from "@/lib/catalog";
 import { indexingEnabled } from "@/lib/launch";
@@ -24,10 +25,33 @@ import type {
   SiteSettingKey,
 } from "@/lib/supabase/database.types";
 import {
+  PUBLIC_CATALOG_CACHE_TAG,
+  PUBLIC_SITE_SETTINGS_CACHE_TAG,
+} from "@/lib/supabase/public-catalog";
+import {
   TOOL_MAINTENANCE_REASON_MAX,
   readStoredToolMaintenance,
   withToolMaintenance,
 } from "@/lib/tool-maintenance";
+
+function revalidatePublicCatalog() {
+  try {
+    revalidateTag(PUBLIC_CATALOG_CACHE_TAG, { expire: 0 });
+    revalidatePath("/", "layout");
+    revalidatePath("/sitemap.xml");
+  } catch {
+    // Revalidation store is unavailable in unit-test environments outside Next request context.
+  }
+}
+
+function revalidatePublicSiteSettings() {
+  try {
+    revalidateTag(PUBLIC_SITE_SETTINGS_CACHE_TAG, { expire: 0 });
+    revalidatePath("/", "layout");
+  } catch {
+    // Revalidation store is unavailable in unit-test environments outside Next request context.
+  }
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -211,18 +235,38 @@ export async function GET(
         readToolCatalog(),
         readCategoryCatalog(),
       ]);
+      const activeToolCount = toolCatalog.tools.filter(
+        (tool) => tool.is_published && tool.is_enabled,
+      ).length;
       const common = [
         {
           path: "/",
           title: "Free Online PDF, Image, QR, Code & Math Tools | QUICKKIT",
-          description:
-            "Use 42 free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities; no account is needed to use the tools.",
+          description: `Use ${activeToolCount} free online tools for PDFs, images, OCR, QR codes, JSON/code formatting and calculators. Fast browser-first utilities; no account is needed to use the tools.`,
         },
         {
           path: "/tools",
           title: "All Free Online Tools",
           description:
-            "Browse QUICKKIT's browser-first PDF, image, OCR, QR, developer and calculator tools.",
+            "Browse QUICKKIT's browser-first PDF, image, OCR, QR, developer, calculator and security tools.",
+        },
+        {
+          path: "/guides/barcode",
+          title: "Barcode Guide — Formats, GS1 Data and Printing",
+          description:
+            "A practical guide to barcode formats, check digits, GS1 identifiers, quiet zones, printing and scanning.",
+        },
+        {
+          path: "/help",
+          title: "Help Center — Tool Guides, Privacy & Support",
+          description:
+            "Get help using QUICKKIT's online tools: browser-local processing, supported browsers, limits and saved tools.",
+        },
+        {
+          path: "/sitemap",
+          title: "HTML Sitemap — All Tools, Categories & Policies",
+          description:
+            "Complete HTML sitemap for QUICKKIT: direct links to all online tools, categories, guides and legal policies.",
         },
         {
           path: "/about",
@@ -237,9 +281,7 @@ export async function GET(
         },
       ].map((entry) => ({
         ...entry,
-        canonical: siteOrigin
-          ? `${siteOrigin}${entry.path === "/" ? "" : entry.path}`
-          : null,
+        canonical: siteOrigin ? `${siteOrigin}${entry.path}` : null,
         indexable: indexingEnabled,
       }));
       const toolPages = toolCatalog.tools.map((tool) => ({
@@ -251,7 +293,8 @@ export async function GET(
           indexingEnabled &&
           tool.is_published &&
           tool.is_enabled &&
-          tool.is_indexable,
+          tool.is_indexable &&
+          tool.canonical_path === tool.route,
       }));
       const categoryPages = categoryCatalog.categories.map((category) => ({
         path: `/category/${category.slug}`,
@@ -260,7 +303,8 @@ export async function GET(
         canonical: siteOrigin
           ? `${siteOrigin}/category/${category.slug}`
           : null,
-        indexable: indexingEnabled && category.is_published,
+        indexable:
+          indexingEnabled && category.is_published && category.tool_count > 0,
       }));
       return noStoreJson({
         data: [...common, ...categoryPages, ...toolPages],
@@ -447,6 +491,7 @@ export async function DELETE(
           { onConflict: "tool_slug" },
         );
       if (error) return apiError(503, "Tool overrides could not be reset.");
+      revalidatePublicCatalog();
       return noStoreJson({ ok: true, reset: true });
     }
     if (resource === "categories") {
@@ -489,6 +534,7 @@ export async function DELETE(
           { onConflict: "category_slug" },
         );
       if (error) return apiError(503, "Category could not be archived.");
+      revalidatePublicCatalog();
       return noStoreJson({ ok: true, archived: true });
     }
     if (resource !== "submissions" && resource !== "feedback")
@@ -744,6 +790,7 @@ async function updateTool(
       503,
       "Tool metadata could not be saved. Verify server configuration and database access.",
     );
+  revalidatePublicCatalog();
   return noStoreJson({ ok: true });
 }
 
@@ -831,6 +878,7 @@ async function createCategory(
     .from("quickkit_admin_category_overrides")
     .insert(row as never);
   if (error) return apiError(503, "Category could not be created.");
+  revalidatePublicCatalog();
   return noStoreJson({ ok: true, created: true }, 201);
 }
 
@@ -955,6 +1003,7 @@ async function updateCategory(
     .from("quickkit_admin_category_overrides")
     .upsert(update as never, { onConflict: "category_slug" });
   if (error) return apiError(503, "Category metadata could not be saved.");
+  revalidatePublicCatalog();
   return noStoreJson({ ok: true });
 }
 
@@ -1086,6 +1135,7 @@ async function updateSettings(
       503,
       "Settings could not be saved. Verify server configuration and database access.",
     );
+  revalidatePublicSiteSettings();
   return noStoreJson({ ok: true });
 }
 

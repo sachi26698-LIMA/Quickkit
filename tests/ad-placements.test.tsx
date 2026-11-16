@@ -41,6 +41,7 @@ import Home from "../app/(public)/page";
 import HelpPage from "../app/(public)/help/page";
 import AboutPage from "../app/(public)/about/page";
 import FaqPage from "../app/(public)/faq/page";
+import BarcodeGuidePage from "../app/(public)/guides/barcode/page";
 import ToolsPage from "../app/(public)/tools/page";
 import CategoryPage from "../app/(public)/category/[slug]/page";
 
@@ -179,6 +180,7 @@ describe("ad unit registry", () => {
       "app/(public)/about/page.tsx",
       "app/(public)/category/[slug]/page.tsx",
       "app/(public)/faq/page.tsx",
+      "app/(public)/guides/barcode/page.tsx",
       "app/(public)/help/page.tsx",
       "app/(public)/page.tsx",
       "app/(public)/tools/page.tsx",
@@ -195,9 +197,9 @@ describe("route coverage", () => {
     const paths = await sitemapPaths();
     const { tools } = await import("../lib/catalog");
     const { legalPages } = await import("../lib/legal");
-    const { BRANDS } = await import("../lib/tools/batch-code/brands");
+    const { INDEXABLE_BRANDS } = await import("../lib/tools/batch-code/brands");
     expect(paths).toHaveLength(
-      5 + legalPages.length + 7 + tools.length + BRANDS.length,
+      5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
     );
 
     const excluded = paths.filter((path) => !isAdEligible(path));
@@ -210,10 +212,12 @@ describe("route coverage", () => {
     for (const path of excluded) {
       expect(AD_EXCLUDED_ROUTES[path]?.length ?? 0).toBeGreaterThan(20);
     }
-    // Excluded non-sitemap routes are never advertised against either.
+    // Excluded non-sitemap routes (including undecodable brand records) are
+    // never advertised against either.
     expect(isAdEligible("/saved")).toBe(false);
     expect(isAdEligible("/qr")).toBe(false);
     expect(isAdEligible("/category/ai-tools")).toBe(false);
+    expect(isAdEligible("/tools/batch-code-checker/brand/nivea")).toBe(false);
     expect(isAdEligible("/api/contact")).toBe(false);
     expect(isAdEligible("/_not-found")).toBe(false);
   });
@@ -235,6 +239,7 @@ describe("route coverage", () => {
       <HelpPage key="help" />,
       <AboutPage key="about" />,
       <FaqPage key="faq" />,
+      <BarcodeGuidePage key="barcode-guide" />,
       <LegalPageShell
         key="legal"
         href="/privacy"

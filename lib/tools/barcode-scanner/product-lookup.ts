@@ -21,6 +21,7 @@
  *   - data is ODbL 1.0, images are CC-BY-SA, and records are volunteer-entered.
  */
 import { gtinCheckOk } from "@/lib/tools/barcode/checksums";
+import { siteOrigin } from "@/lib/seo";
 import { contactEmail } from "@/lib/site";
 
 export const PRODUCT_DATABASE = {
@@ -376,8 +377,9 @@ const FIELDS = [
 
 /** `AppName/Version (contact)` — the shape Open Food Facts asks for. */
 export function userAgent(): string {
+  const origin = siteOrigin ?? "https://quickkit-rosy.vercel.app";
   const contact = contactEmail ? `; ${contactEmail}` : "";
-  return `QUICKKIT-BarcodeScanner/1.2 (https://quickkit.online${contact})`;
+  return `QUICKKIT-BarcodeScanner/1.2 (${origin}${contact})`;
 }
 
 export function productUrl(gtin: string): string {

@@ -1,19 +1,31 @@
+import Link from "next/link";
 import ToolShell from "@/components/tool-shell";
 import BarcodeStudio from "@/components/tools/barcode-studio";
 import BarcodeReference from "@/components/tools/barcode-studio/reference";
 import ToolReferenceSection from "@/components/tool-reference-section";
 import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
-import { pageMetadata } from "@/lib/seo";
+import {
+  getPublicToolShellData,
+  publicToolMetadata,
+} from "@/lib/supabase/public-catalog";
 
-export const metadata = pageMetadata(
-  "Barcode Generator — Code 128, EAN-13 & GS1",
-  "Generate Code 128, EAN-13, UPC, ITF-14 and GS1-128 barcodes with real check-digit validation, then style, print, bulk-export or scan them in your browser.",
-  "/tools/barcode-generator",
-);
+const DEFAULT_TITLE = "Barcode Generator — Code 128, EAN-13 & GS1";
+const DEFAULT_DESCRIPTION =
+  "Generate Code 128, EAN-13, UPC, ITF-14 and GS1-128 barcodes with real check-digit validation, then style, print, bulk-export or scan them in your browser.";
 
-export default function Page() {
+export async function generateMetadata() {
+  return publicToolMetadata(
+    "barcode-generator",
+    DEFAULT_TITLE,
+    DEFAULT_DESCRIPTION,
+  );
+}
+
+export default async function Page() {
+  const publicData = await getPublicToolShellData("barcode-generator");
   return (
     <ToolShell
+      publicData={publicData}
       slug="barcode-generator"
       headingDescription="Create scannable Code 128, EAN, UPC, ITF-14 and GS1-128 labels with check digits enforced, style them, print them at a real physical size, or decode a barcode from a camera or image — nothing leaves your device."
       stepsHeading="How to create a barcode that scans the first time"
@@ -64,6 +76,11 @@ export default function Page() {
       }}
     >
       <BarcodeStudio />
+      <p className="calculator-disclaimer">
+        Choosing between EAN-13, UPC-A, Code 128, ITF-14 and GS1-128, or checking
+        quiet zones and print sizing? Read the{" "}
+        <Link href="/guides/barcode">barcode guide</Link>.
+      </p>
     </ToolShell>
   );
 }

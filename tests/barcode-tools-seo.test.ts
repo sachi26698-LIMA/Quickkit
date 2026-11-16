@@ -8,9 +8,13 @@
  * keeping `/api/` out of the crawl.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { BRANDS } from "@/lib/tools/batch-code/brands";
+import {
+  BRANDS,
+  INDEXABLE_BRANDS,
+  isBrandRecordIndexable,
+} from "@/lib/tools/batch-code/brands";
 
-const ORIGIN = "https://quickkit.online";
+const ORIGIN = "https://quickkit-rosy.vercel.app";
 
 const TOOL_ROUTES = [
   [
@@ -44,7 +48,8 @@ describe("barcode tool metadata", () => {
     const descriptions = new Set<string>();
 
     for (const [slug, load] of TOOL_ROUTES) {
-      const { metadata } = await load();
+      const { generateMetadata } = await load();
+      const metadata = await generateMetadata();
       const title = String(metadata.title);
       expect(title.length, `${slug} title`).toBeGreaterThan(10);
       expect(titles.has(title), `${slug} title unique`).toBe(false);
@@ -71,8 +76,9 @@ describe("barcode tool metadata", () => {
   });
 
   it("names the batch-code checker as a checker, never as a decoder of every brand", async () => {
-    const { metadata } =
+    const { generateMetadata } =
       await import("@/app/(public)/tools/batch-code-checker/page");
+    const metadata = await generateMetadata();
     expect(String(metadata.title)).toMatch(/batch code/i);
     expect(String(metadata.description)).toMatch(
       /documented|verified|estimated/i,
@@ -82,7 +88,7 @@ describe("barcode tool metadata", () => {
 });
 
 describe("brand record metadata", () => {
-  it("keeps all 59 brand descriptions inside the snippet window with a canonical", async () => {
+  it("keeps all 59 brand descriptions inside the snippet window with a canonical, and marks undecodable records noindex", async () => {
     const { generateMetadata } =
       await import("@/app/(public)/tools/batch-code-checker/brand/[slug]/page");
     for (const brand of BRANDS) {
@@ -101,13 +107,17 @@ describe("brand record metadata", () => {
       expect(meta.alternates?.canonical).toBe(
         `${ORIGIN}/tools/batch-code-checker/brand/${brand.slug}`,
       );
-      expect(meta.robots).toBeUndefined();
+      if (isBrandRecordIndexable(brand)) {
+        expect(meta.robots).toBeUndefined();
+      } else {
+        expect(meta.robots).toEqual({ index: false, follow: true });
+      }
     }
   });
 });
 
 describe("sitemap and robots", () => {
-  it("lists each of the three tools and every brand page exactly once", async () => {
+  it("lists each of the three tools and only indexable brand pages in XML sitemap", async () => {
     const { default: sitemap } = await import("@/app/sitemap");
     const urls = (await sitemap()).map((entry) => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
@@ -118,7 +128,7 @@ describe("sitemap and robots", () => {
     const brandUrls = urls.filter((url) =>
       url.startsWith(`${ORIGIN}/tools/batch-code-checker/brand/`),
     );
-    expect(brandUrls).toHaveLength(BRANDS.length);
+    expect(brandUrls).toHaveLength(INDEXABLE_BRANDS.length);
   });
 
   it("allows the public tools and blocks only the API namespace", async () => {

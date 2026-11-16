@@ -64,7 +64,7 @@ function contrastRatio(a: string, b: string) {
 
 export default function TwoDPanel() {
   const [format, setFormat] = useState<TwoDFormatId>("qrcode");
-  const [text, setText] = useState("https://quickkit.online");
+  const [text, setText] = useState("https://quickkit-rosy.vercel.app");
   const [ecLevel, setEcLevel] = useState<TwoDEcLevel>("M");
   const [pdf417Level, setPdf417Level] = useState(4);
   const [scale, setScale] = useState(4);

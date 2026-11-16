@@ -6,7 +6,7 @@ import PageHero from "@/components/page-hero";
 import ToolExplorer from "@/components/tool-explorer";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 import {
   breadcrumbStructuredData,
   collectionPageStructuredData,
