@@ -376,8 +376,13 @@ const FIELDS = [
 
 /** `AppName/Version (contact)` — the shape Open Food Facts asks for. */
 export function userAgent(): string {
-  const contact = contactEmail ? `; ${contactEmail}` : "";
-  return `QUICKKIT-BarcodeScanner/1.2 (https://quickkit.online${contact})`;
+  // The comment identifies us by a monitored inbox only. It previously
+  // advertised `quickkit.online`, a domain this project neither owns nor
+  // serves, so a third party was told to find us somewhere we do not control.
+  // Claiming no origin is correct until one is verified; the contact address
+  // is enough for the abuse desk to reach a human.
+  const contact = contactEmail?.trim();
+  return `QUICKKIT-BarcodeScanner/1.2 (${contact || "no contact"})`;
 }
 
 export function productUrl(gtin: string): string {

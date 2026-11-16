@@ -61,7 +61,26 @@ import {
 export const DATA_TEMPLATE_PATH = "/qr";
 export const DATA_TEMPLATE_PARAM = "d";
 export const DATA_TEMPLATE_SECRET_PARAM = "s";
-export const DEFAULT_PUBLIC_ORIGIN = "https://quickkit.tools";
+/**
+ * Last-resort origin for a generated Data Template link.
+ *
+ * This module is imported by client components, so a server-only setting such
+ * as `SITE_URL` cannot be read here. The published origin is therefore taken
+ * from the browser at call time (`window.location.origin`); this constant is
+ * only the fallback for the environments that have no window — unit tests and
+ * the prerender pass — where nothing is published to a reader anyway.
+ *
+ * It previously named `quickkit.tools`, a domain this project does not own and
+ * does not serve from, so every link generated in the browser advertised it.
+ */
+export const DEFAULT_PUBLIC_ORIGIN = "https://quickkit-rosy.vercel.app";
+
+/** The origin a reader should land on: the live page origin when there is one. */
+function publishedOrigin(): string {
+  if (typeof window !== "undefined" && window.location?.origin)
+    return window.location.origin;
+  return DEFAULT_PUBLIC_ORIGIN;
+}
 
 const MAX_TOKEN_CHARS = 6_000;
 const MAX_INFLATED_BYTES = 24_576;
@@ -330,7 +349,7 @@ function isSafeActionHref(href: string): boolean {
 }
 
 function cleanOrigin(origin?: string): string {
-  const candidate = (origin ?? "").trim();
+  const candidate = (origin ?? publishedOrigin()).trim();
   if (!candidate) return DEFAULT_PUBLIC_ORIGIN;
   try {
     const parsed = new URL(candidate);
@@ -556,7 +575,7 @@ export function decodeDataTemplate(
 
   if (/^https?:\/\//i.test(rawInput) || rawInput.startsWith("/")) {
     try {
-      const parsed = new URL(rawInput, DEFAULT_PUBLIC_ORIGIN);
+      const parsed = new URL(rawInput, publishedOrigin());
       const pathClean = parsed.pathname.replace(/\/+$/, "") || "/";
       if (pathClean !== DATA_TEMPLATE_PATH) {
         return { ok: false, message: "Not a QUICKKIT QR Data Template URL." };
@@ -1962,7 +1981,7 @@ export function inspectQrPayloadSecuritySync(
   // Hosted `/qr?…` URLs
   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("/qr")) {
     try {
-      const parsed = new URL(trimmed, DEFAULT_PUBLIC_ORIGIN);
+      const parsed = new URL(trimmed, publishedOrigin());
       const pathClean = parsed.pathname.replace(/\/+$/, "");
       if (pathClean === DATA_TEMPLATE_PATH) {
         const eParam = parsed.searchParams.get(ENCRYPTED_QUERY_PARAM);
@@ -2292,7 +2311,7 @@ export async function verifyAndResolveQrPayload(
   // 2. Hosted `/qr?…` URLs
   let parsed: URL;
   try {
-    parsed = new URL(trimmed, DEFAULT_PUBLIC_ORIGIN);
+    parsed = new URL(trimmed, publishedOrigin());
   } catch {
     return {
       state: "invalid",

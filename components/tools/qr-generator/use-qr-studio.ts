@@ -135,8 +135,13 @@ function renderKeyFor(
   return `${text.length.toString(36)}-${(hash >>> 0).toString(36)}`;
 }
 
-/** A real page, used by the empty state so the sample code actually works. */
-export const QR_SAMPLE_URL = "https://quickkit.tools/?src=qr-example";
+/**
+ * A real page, used by the empty state so the sample code actually works.
+ * It must be a URL this project serves: the sample is shown verbatim in the
+ * UI and encoded into a scannable code, so an unowned domain here produced a
+ * demo QR that led nowhere.
+ */
+export const QR_SAMPLE_URL = "https://quickkit-rosy.vercel.app/?src=qr-example";
 
 const PREVIEW_SIZE = 320;
 const HEAVY_DEBOUNCE_MS = 650;
