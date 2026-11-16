@@ -25,7 +25,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       href="/privacy"
       title="Privacy Policy"
-      intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages may be stored privately for review."
+      intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages, and tool ratings you choose to send, may be stored privately for review."
       lastUpdated={LEGAL_LAST_UPDATED}
       lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
     >
@@ -64,9 +64,9 @@ export default function PrivacyPage() {
         Public tools require no registration. Supabase Auth handles sign-in only
         for administrator identities maintained by the operator; visitors cannot
         register or use a QUICKKIT account. If you explicitly submit the contact
-        form or opt in to send feedback, the submitted fields are stored
-        privately for response/review. Word to PDF remains the separately
-        disclosed explicit-consent upload exception.
+        form, opt in to send feedback, or send a tool rating, the submitted
+        fields are stored privately for response/review. Word to PDF remains the
+        separately disclosed explicit-consent upload exception.
       </p>
       <p>What exists, in total, is:</p>
       <ul>
@@ -99,6 +99,14 @@ export default function PrivacyPage() {
           or, after separately opting in, the feedback form. Submitted messages
           are private to QUICKKIT and are not displayed to other visitors. See{" "}
           <a href="#retention">section 10</a>.
+        </li>
+        <li>
+          <strong>Tool ratings you choose to send</strong> from the optional
+          invitation shown after a download: the tool’s name, your 1–5 star
+          rating, the options you tick and an optional comment of up to 600
+          characters. No name, email address, account or file is attached. The
+          rating is transmitted only when you press “Send my feedback”;
+          dismissing the invitation sends nothing.
         </li>
       </ul>
 
@@ -163,10 +171,11 @@ export default function PrivacyPage() {
         running in the page; the application does not deliberately send tool
         inputs to it, but it may be able to read page content. Do not enter
         sensitive material if you are not comfortable with that access. The
-        contact and feedback submission forms transmit only the fields you
-        explicitly submit after consent. They never upload tool inputs or files;
-        if the private submission service is unavailable, the form reports an
-        error and does not claim the message was delivered.
+        contact and feedback submission forms and the optional tool rating
+        transmit only the fields you explicitly submit after consent. They never
+        upload tool inputs or files; if the private submission service is
+        unavailable, the form reports an error and does not claim the message
+        was delivered.
       </p>
       <p>
         A full tool-by-tool account of what happens to each file type is in the{" "}
@@ -185,11 +194,18 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li>
-          <code>quickkit-tool-feedback-v1</code> — optional local tool ratings,
-          selected feedback options, comments (up to 600 characters) and
-          timestamps. Saved only when you choose to save feedback; not
-          published. Please do not include personal information or file
-          contents. Browser site-data controls can erase it.
+          <code>quickkit-tool-feedback-v1</code> — this browser’s copy of the
+          tool ratings you sent: the rating, selected feedback options, comment
+          (up to 600 characters) and timestamp. Saved only when you choose to
+          send feedback; the same rating is transmitted to QUICKKIT for private
+          review and is not published. Please do not include personal
+          information or file contents. Browser site-data controls can erase the
+          local copy.
+        </li>
+        <li>
+          <code>quickkit-tool-feedback-prompted-v1</code> — tool slugs and the
+          time the rating invitation was last shown, so the same tool asks at
+          most once in 24 hours. Never transmitted.
         </li>
         <li>
           <code>quickkit:saved-tools</code> — tool slugs shown by Saved. This
@@ -359,16 +375,20 @@ export default function PrivacyPage() {
           security needs. Visitors cannot create QUICKKIT accounts.
         </li>
         <li>
-          <strong>Contact and opted-in feedback submissions:</strong> held in
-          the private Supabase project so the operator can review and respond.
-          They are deleted when no longer needed or on a verified deletion
-          request. This release does not set an automated fixed retention term.
+          <strong>
+            Contact and opted-in feedback submissions, and tool ratings:
+          </strong>{" "}
+          held in the private Supabase project so the operator can review and
+          respond. They are deleted when no longer needed or on a verified
+          deletion request. This release does not set an automated fixed
+          retention term.
         </li>
         <li>
           <strong>Submission abuse controls:</strong> a keyed, non-reversible
-          HMAC of the request address and its 15-minute rate-limit counter are
-          stored server-side; the raw address is not written to the rate-limit
-          table. Old buckets are pruned when later submissions arrive.
+          HMAC of the request address and its rate-limit counter (15 minutes for
+          messages, one hour for tool ratings) are stored server-side; the raw
+          address is not written to the rate-limit table. Old buckets are pruned
+          when later submissions arrive.
         </li>
         <li>
           <strong>Hosting logs:</strong> see section 9 — governed by the

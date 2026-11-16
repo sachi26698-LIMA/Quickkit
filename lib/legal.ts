@@ -13,8 +13,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** The date this shared set of legal page drafts was most recently revised. Not legal approval. */
-export const LEGAL_LAST_UPDATED = "10 November 2026";
-export const LEGAL_LAST_UPDATED_ISO = "2026-11-10";
+export const LEGAL_LAST_UPDATED = "15 November 2026";
+export const LEGAL_LAST_UPDATED_ISO = "2026-11-15";
 
 /** React uses dateTime; the HTML serializer emits the standard datetime attribute. */
 export const isoDatetime = (value: string) => ({ dateTime: value });

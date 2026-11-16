@@ -70,6 +70,37 @@ export interface Database {
         };
         Relationships: [];
       };
+      quickkit_tool_feedback: {
+        Row: {
+          id: string;
+          tool_slug: string;
+          rating: number;
+          tags: string[];
+          comment: string;
+          status: AdminSubmissionStatus;
+          internal_notes: string;
+          consent_at: string;
+          created_at: string;
+        };
+        Insert: {
+          tool_slug: string;
+          rating: number;
+          tags?: string[];
+          comment?: string;
+        };
+        Update: { status?: AdminSubmissionStatus; internal_notes?: string };
+        Relationships: [];
+      };
+      quickkit_tool_feedback_limits: {
+        Row: {
+          bucket_hash: string;
+          window_started_at: string;
+          attempt_count: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       quickkit_submission_limits: {
         Row: {
           scope: string;
@@ -147,6 +178,10 @@ export interface Database {
     Functions: {
       quickkit_consume_submission_limit: {
         Args: { p_scope: string; p_bucket_hash: string };
+        Returns: boolean;
+      };
+      quickkit_consume_tool_feedback_limit: {
+        Args: { p_bucket_hash: string };
         Returns: boolean;
       };
     };

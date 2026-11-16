@@ -19,10 +19,13 @@ export default function ToolCard({
   /** Label for the listing the card appears in; defaults to the primary category. */
   category?: string;
 }) {
+  // Set on catalogue entries an administrator has switched off for an update.
+  const isOff = Boolean((tool as Tool & { maintenance?: unknown }).maintenance);
   return (
     <article
       className={`tool-card cat-${toolTone(tool)}`}
       data-tool={tool.slug}
+      data-maintenance={isOff ? "true" : undefined}
       style={toolSurfaceStyle(toolTheme(tool.slug, tool.category))}
     >
       <div className="card-top">
@@ -39,7 +42,7 @@ export default function ToolCard({
       </h3>
       <p>{tool.description}</p>
       <div className="card-footer">
-        <span>Open tool</span>
+        <span>{isOff ? "Being updated" : "Open tool"}</span>
         <ArrowUpRight size={17} aria-hidden="true" />
       </div>
     </article>

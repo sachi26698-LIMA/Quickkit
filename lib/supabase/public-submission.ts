@@ -3,6 +3,12 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import type { NextRequest } from "next/server";
+import { tools } from "@/lib/catalog";
+import {
+  TOOL_FEEDBACK_COMMENT_MAX,
+  TOOL_FEEDBACK_MAX_TAGS,
+  TOOL_FEEDBACK_TAGS,
+} from "@/lib/tool-feedback";
 import { getSupabaseAdminClient } from "./admin";
 import { hasSameOrigin } from "./request-origin";
 
@@ -25,6 +31,14 @@ const CONTACT_FIELDS = new Set([
   "consent",
 ]);
 const FEEDBACK_FIELDS = new Set(["name", "message", "consent"]);
+const TOOL_FEEDBACK_FIELDS = new Set([
+  "tool",
+  "rating",
+  "tags",
+  "comment",
+  "consent",
+]);
+const TOOL_SLUGS = new Set<string>(tools.map((tool) => tool.slug));
 
 function cleanText(value: unknown, maximum: number): string | null {
   if (typeof value !== "string") return null;
@@ -98,7 +112,7 @@ function getIngressAddress(request: NextRequest): string {
 
 async function enforceRateLimit(
   request: NextRequest,
-  scope: "contact" | "feedback",
+  scope: "contact" | "feedback" | "tool_feedback",
 ): Promise<void> {
   const client = getSupabaseAdminClient();
   const secret = process.env.SUPABASE_SUBMISSION_HMAC_SECRET?.trim();
@@ -108,10 +122,17 @@ async function enforceRateLimit(
   const bucketHash = createHmac("sha256", secret)
     .update(getIngressAddress(request).slice(0, 255))
     .digest("hex");
-  const { data, error } = await client.rpc(
-    "quickkit_consume_submission_limit",
-    { p_scope: scope, p_bucket_hash: bucketHash },
-  );
+  // Tool ratings have their own limiter (and their own, more generous quota)
+  // so a visitor who rates a few tools cannot use up the message allowance.
+  const { data, error } =
+    scope === "tool_feedback"
+      ? await client.rpc("quickkit_consume_tool_feedback_limit", {
+          p_bucket_hash: bucketHash,
+        })
+      : await client.rpc("quickkit_consume_submission_limit", {
+          p_scope: scope,
+          p_bucket_hash: bucketHash,
+        });
   if (error || typeof data !== "boolean")
     throw new SubmissionError("unavailable");
   if (!data) throw new SubmissionError("rate_limited");
@@ -165,5 +186,50 @@ export async function parseFeedbackSubmission(request: NextRequest) {
   const { error } = await client
     .from("quickkit_feedback_submissions")
     .insert({ name, message });
+  if (error) throw new SubmissionError("unavailable");
+}
+
+/**
+ * A star rating for one tool, sent only when the visitor presses Send in the
+ * rating prompt. Nothing about the visitor's files or tool input is included.
+ */
+export async function parseToolFeedbackSubmission(request: NextRequest) {
+  const body = await readJson(request, TOOL_FEEDBACK_FIELDS);
+  const tool = typeof body.tool === "string" ? body.tool : "";
+  const rating = body.rating;
+  const rawTags = body.tags === undefined ? [] : body.tags;
+  const comment =
+    body.comment === undefined || body.comment === ""
+      ? ""
+      : cleanText(body.comment, TOOL_FEEDBACK_COMMENT_MAX);
+  if (
+    !TOOL_SLUGS.has(tool) ||
+    typeof rating !== "number" ||
+    !Number.isInteger(rating) ||
+    rating < 1 ||
+    rating > 5 ||
+    !Array.isArray(rawTags) ||
+    rawTags.length > TOOL_FEEDBACK_MAX_TAGS ||
+    !rawTags.every(
+      (tag): tag is string =>
+        typeof tag === "string" && TOOL_FEEDBACK_TAGS.includes(tag),
+    ) ||
+    // A whitespace-only note is treated as no note rather than an error.
+    (comment === null &&
+      (typeof body.comment !== "string" || body.comment.trim().length > 0)) ||
+    body.consent !== true
+  ) {
+    throw new SubmissionError("invalid");
+  }
+
+  await enforceRateLimit(request, "tool_feedback");
+  const client = getSupabaseAdminClient();
+  if (!client) throw new SubmissionError("unavailable");
+  const { error } = await client.from("quickkit_tool_feedback").insert({
+    tool_slug: tool,
+    rating,
+    tags: [...new Set(rawTags)],
+    comment: comment ?? "",
+  });
   if (error) throw new SubmissionError("unavailable");
 }

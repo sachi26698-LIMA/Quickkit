@@ -15,13 +15,35 @@ export async function dismissOptionalDownloadFeedback(page: Page) {
     },
   );
 }
-/** Await the delayed prompt before continuing focus-sensitive legacy journeys. */
+/** Await the delayed prompt before continuing focus-sensitive legacy journeys.
+ * The prompt is shown at most once per tool in 24 hours, so a later download
+ * in the same journey has nothing to close. */
 export async function closeDownloadFeedback(page: Page) {
   const dialog = page.locator("dialog[data-feedback-tool][open]");
   await page.removeLocatorHandler(dialog);
-  await page
-    .getByRole("button", { name: "Close feedback", exact: true })
-    .click();
+  const alreadyInvited = await page.evaluate(() => {
+    try {
+      const slug = location.pathname.split("/")[2] ?? "";
+      const log = JSON.parse(
+        localStorage.getItem("quickkit-tool-feedback-prompted-v1") ?? "{}",
+      ) as Record<string, unknown>;
+      return typeof log[slug] === "number";
+    } catch {
+      return false;
+    }
+  });
+  // Recorded just before the dialog opens: give an invitation that is on its
+  // way a moment to appear, otherwise there is nothing to close.
+  const showing =
+    !alreadyInvited ||
+    (await dialog.waitFor({ state: "visible", timeout: 1500 }).then(
+      () => true,
+      () => false,
+    ));
+  if (showing)
+    await page
+      .getByRole("button", { name: "Close feedback", exact: true })
+      .click();
   await dismissOptionalDownloadFeedback(page);
 }
 export const test = base.extend({

@@ -22,6 +22,11 @@ import type {
   FeedbackType,
   SiteSettingKey,
 } from "@/lib/supabase/database.types";
+import {
+  TOOL_MAINTENANCE_REASON_MAX,
+  readStoredToolMaintenance,
+  withToolMaintenance,
+} from "@/lib/tool-maintenance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -95,11 +100,56 @@ export async function GET(
         .order("created_at", { ascending: false })
         .limit(250);
       const status = request.nextUrl.searchParams.get("status");
-      if (status && statuses.has(status as AdminSubmissionStatus))
-        query = query.eq("status", status as AdminSubmissionStatus);
-      const { data, error } = await query;
-      if (error) return apiError(503, "Private submissions are unavailable.");
-      return noStoreJson({ data: data ?? [] });
+      const statusFilter =
+        status && statuses.has(status as AdminSubmissionStatus)
+          ? (status as AdminSubmissionStatus)
+          : null;
+      if (statusFilter) query = query.eq("status", statusFilter);
+      if (resource === "submissions") {
+        const { data, error } = await query;
+        if (error) return apiError(503, "Private submissions are unavailable.");
+        return noStoreJson({ data: data ?? [] });
+      }
+      // The feedback inbox combines written messages with tool star ratings.
+      let ratingQuery = access.context.db
+        .from("quickkit_tool_feedback")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (statusFilter) ratingQuery = ratingQuery.eq("status", statusFilter);
+      const [messages, ratings] = await Promise.all([query, ratingQuery]);
+      if (messages.error)
+        return apiError(503, "Private submissions are unavailable.");
+      const toolNames = new Map<string, string>(
+        tools.map((tool) => [tool.slug, tool.name]),
+      );
+      const messageRows = (messages.data ?? []).map((row) => ({
+        ...row,
+        source: "message" as const,
+      }));
+      // Until the tool-ratings migration is applied the ratings read fails;
+      // the written messages are still shown and the page says why.
+      const ratingRows = ratings.error
+        ? []
+        : (ratings.data ?? []).map((row) => ({
+            id: row.id,
+            created_at: row.created_at,
+            status: row.status,
+            internal_notes: row.internal_notes,
+            name: null,
+            message: row.comment,
+            source: "rating" as const,
+            tool_slug: row.tool_slug,
+            tool_name: toolNames.get(row.tool_slug) ?? row.tool_slug,
+            rating: row.rating,
+            tags: Array.isArray(row.tags) ? row.tags : [],
+          }));
+      return noStoreJson({
+        data: [...messageRows, ...ratingRows].sort((a, b) =>
+          String(b.created_at).localeCompare(String(a.created_at)),
+        ),
+        ratings_ready: !ratings.error,
+      });
     }
     if (resource === "settings") {
       const { data, error } = await access.context.db
@@ -389,9 +439,19 @@ export async function DELETE(
     if (resource !== "submissions" && resource !== "feedback")
       return apiError(405, "This resource cannot be deleted.");
     if (
-      Object.keys(body).some((key) => !["id", "confirm"].includes(key)) ||
+      Object.keys(body).some(
+        (key) =>
+          ![
+            "id",
+            "confirm",
+            ...(resource === "feedback" ? ["source"] : []),
+          ].includes(key),
+      ) ||
       typeof body.id !== "string" ||
-      !/^[0-9a-f-]{36}$/i.test(body.id)
+      !/^[0-9a-f-]{36}$/i.test(body.id) ||
+      ("source" in body &&
+        body.source !== "message" &&
+        body.source !== "rating")
     )
       return apiError(
         400,
@@ -400,7 +460,9 @@ export async function DELETE(
     const table =
       resource === "submissions"
         ? "quickkit_contact_submissions"
-        : "quickkit_feedback_submissions";
+        : body.source === "rating"
+          ? "quickkit_tool_feedback"
+          : "quickkit_feedback_submissions";
     if (
       !(await auditAdminAction(
         access.context,
@@ -445,6 +507,8 @@ async function updateTool(
     "seo_description",
     "canonical_path",
     "is_indexable",
+    "maintenance_enabled",
+    "maintenance_reason",
   ]);
   if (
     Object.keys(body).some((key) => !allowed.has(key)) ||
@@ -545,14 +609,73 @@ async function updateTool(
       update[key] = body[key];
     }
   }
+  // Maintenance mode ("temporarily off") is stored inside metadata_override.
+  let maintenanceChange: "on" | "off" | "note" | null = null;
+  if ("maintenance_enabled" in body || "maintenance_reason" in body) {
+    if (
+      "maintenance_enabled" in body &&
+      typeof body.maintenance_enabled !== "boolean"
+    )
+      return apiError(400, "Maintenance mode must be on or off.");
+    const reason =
+      "maintenance_reason" in body
+        ? normalizeText(body.maintenance_reason, TOOL_MAINTENANCE_REASON_MAX)
+        : undefined;
+    if (reason === null)
+      return apiError(
+        400,
+        `The maintenance note must be ${TOOL_MAINTENANCE_REASON_MAX} characters or fewer.`,
+      );
+    const existing = await context.db
+      .from("quickkit_admin_tool_overrides")
+      .select("metadata_override")
+      .eq("tool_slug", tool.slug)
+      .maybeSingle();
+    if (existing.error)
+      return apiError(
+        503,
+        "Tool metadata could not be read. Verify server configuration and database access.",
+      );
+    const metadata = existing.data?.metadata_override ?? {};
+    const current = readStoredToolMaintenance(metadata);
+    const enabled =
+      typeof body.maintenance_enabled === "boolean"
+        ? body.maintenance_enabled
+        : current.enabled;
+    const nextReason = reason ?? current.reason;
+    if (enabled !== current.enabled || nextReason !== current.reason) {
+      update.metadata_override = withToolMaintenance(metadata, {
+        enabled,
+        reason: nextReason,
+        // Keep the original time while the tool stays off.
+        since: enabled
+          ? current.enabled && current.since
+            ? current.since
+            : new Date().toISOString()
+          : null,
+      });
+      maintenanceChange =
+        enabled !== current.enabled ? (enabled ? "on" : "off") : "note";
+    }
+  }
   if (Object.keys(update).length <= 2)
     return apiError(400, "No editable changes provided.");
   if (
-    !(await auditAdminAction(context, "tool.update", "tool", tool.slug, {
-      fields: Object.keys(update).filter(
-        (k) => !["tool_slug", "updated_by"].includes(k),
-      ),
-    }))
+    !(await auditAdminAction(
+      context,
+      maintenanceChange === "on"
+        ? "tool.maintenance_on"
+        : maintenanceChange === "off"
+          ? "tool.maintenance_off"
+          : "tool.update",
+      "tool",
+      tool.slug,
+      {
+        fields: Object.keys(update).filter(
+          (k) => !["tool_slug", "updated_by"].includes(k),
+        ),
+      },
+    ))
   )
     return apiError(
       503,
@@ -787,14 +910,17 @@ async function updateSubmission(
 ) {
   const keys =
     resource === "feedback"
-      ? ["id", "status", "feedback_type", "internal_notes"]
+      ? ["id", "status", "feedback_type", "internal_notes", "source"]
       : ["id", "status", "internal_notes"];
   if (
     Object.keys(body).some((k) => !keys.includes(k)) ||
     typeof body.id !== "string" ||
-    !/^[0-9a-f-]{36}$/i.test(body.id)
+    !/^[0-9a-f-]{36}$/i.test(body.id) ||
+    ("source" in body && body.source !== "message" && body.source !== "rating")
   )
     return apiError(400, "Invalid submission update.");
+  // Star ratings live in their own table and have no message type.
+  const isRating = resource === "feedback" && body.source === "rating";
   const update: Record<string, unknown> = {};
   if ("status" in body) {
     if (
@@ -812,6 +938,7 @@ async function updateSubmission(
   if ("feedback_type" in body) {
     if (
       resource !== "feedback" ||
+      isRating ||
       typeof body.feedback_type !== "string" ||
       !feedbackTypes.has(body.feedback_type as FeedbackType)
     )
@@ -832,7 +959,9 @@ async function updateSubmission(
   const table =
     resource === "submissions"
       ? "quickkit_contact_submissions"
-      : "quickkit_feedback_submissions";
+      : isRating
+        ? "quickkit_tool_feedback"
+        : "quickkit_feedback_submissions";
   const { data, error } = await context.db
     .from(table)
     .update(update as never)

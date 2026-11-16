@@ -2,6 +2,48 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const key = "quickkit-tool-feedback-v1";
+const promptKey = "quickkit-tool-feedback-prompted-v1";
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+type SentRating = {
+  tool: string;
+  rating: number;
+  tags: string[];
+  comment: string;
+  consent: boolean;
+};
+
+/** Ratings the page sent to QUICKKIT during the current test. */
+let sent: SentRating[] = [];
+
+// The rating is stored by a private server route. Answer it here so these
+// journeys do not depend on a configured database; individual tests override
+// the route to exercise an unreachable server.
+test.beforeEach(async ({ page }) => {
+  sent = [];
+  await page.route("**/api/tool-feedback", async (route) => {
+    sent.push(route.request().postDataJSON() as SentRating);
+    await route.fulfill({ status: 201, json: { ok: true } });
+  });
+});
+
+/** Moves every recorded invitation into the past, as if time had gone by. */
+async function ageInvitations(page: Page, ms: number) {
+  await page.evaluate(
+    ({ promptKey, ms }) => {
+      const log = JSON.parse(localStorage.getItem(promptKey) ?? "{}");
+      for (const slug of Object.keys(log)) log[slug] -= ms;
+      localStorage.setItem(promptKey, JSON.stringify(log));
+    },
+    { promptKey, ms },
+  );
+}
+
+/** Long enough for the delayed invitation to have appeared if it was going to. */
+async function expectNoInvitation(page: Page) {
+  await page.waitForTimeout(850);
+  await expect(page.locator("dialog[data-feedback-tool][open]")).toHaveCount(0);
+}
 
 async function download(
   page: Page,
@@ -72,10 +114,23 @@ for (const width of [320, 390, 1440]) {
         (v) => v.impact === "critical" || v.impact === "serious",
       ),
     ).toEqual([]);
-    await modal.getByRole("button", { name: "Save my feedback" }).click();
+    await modal.getByRole("button", { name: "Send my feedback" }).click();
     await expect(
       page.getByRole("heading", { name: "You made our day!" }),
     ).toBeVisible();
+    // The dialog is now named after its thank-you heading, so look page-wide.
+    await expect(
+      page.getByText("Your rating was sent to the QUICKKIT team."),
+    ).toBeVisible();
+    expect(sent).toEqual([
+      {
+        tool: "case-converter",
+        rating: 5,
+        tags: ["Easy to use"],
+        comment: "Really smooth, thank you!",
+        consent: true,
+      },
+    ]);
     await expect(
       page.locator('[data-mood="love"][data-celebrate="true"]'),
     ).toBeVisible();
@@ -92,10 +147,19 @@ for (const width of [320, 390, 1440]) {
     });
     await page.getByRole("button", { name: "Keep creating" }).click();
     await expect(modal).not.toBeVisible();
+    // The same tool does not ask again on the next download…
+    await download(page);
+    await expectNoInvitation(page);
+    await ageInvitations(page, DAY_MS - 60_000);
+    await download(page);
+    await expectNoInvitation(page);
+    // …until 24 hours have passed, when it starts from a clean form.
+    await ageInvitations(page, 2 * 60_000);
     await download(page);
     await expect(modal).toBeVisible();
     await expect(modal.getByRole("radio", { checked: true })).toHaveCount(0);
     await expect(modal.getByRole("checkbox")).toHaveCount(0);
+    expect(sent).toHaveLength(1);
   });
 }
 
@@ -117,10 +181,19 @@ test("direct downloads, keyboard rating and honest low-rating thank-you", async 
   ).toBeChecked();
   await expect(modal.getByText("What could be better?")).toBeVisible();
   await modal.getByRole("checkbox", { name: "Result quality" }).check();
-  await modal.getByRole("button", { name: "Save my feedback" }).click();
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
   await expect(
     modal.getByRole("heading", { name: "Your experience matters." }),
   ).toBeVisible();
+  expect(sent).toEqual([
+    {
+      tool: "word-to-pdf",
+      rating: 2,
+      tags: ["Result quality"],
+      comment: "",
+      consent: true,
+    },
+  ]);
   await expect(modal.locator('[data-mood="care"]')).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(modal).not.toBeVisible();
@@ -129,29 +202,96 @@ test("direct downloads, keyboard rating and honest low-rating thank-you", async 
   );
 });
 
-test("cancelled downloads never prompt; a new download prompts again after dismissal and reload", async ({
+test("cancelled downloads never prompt or use up the day's invitation; each tool asks once per 24 hours", async ({
   page,
 }) => {
   await page.goto("/tools/word-counter");
   await download(page, "programmatic", true);
-  await page.waitForTimeout(850);
-  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expectNoInvitation(page);
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), promptKey),
+  ).toBeNull();
+
   await download(page);
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "Maybe later" }).click();
+  const invited = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)!),
+    promptKey,
+  );
+  expect(Object.keys(invited)).toEqual(["word-counter"]);
+  expect(Math.abs(Date.now() - invited["word-counter"])).toBeLessThan(60_000);
+
+  // Dismissed without answering: still no second invitation today, in this
+  // page or after a reload, however many files are downloaded.
+  await download(page);
+  await expectNoInvitation(page);
   await page.reload();
   await download(page);
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.getByRole("button", { name: "Maybe later" }).click();
+  await download(page);
+  await expectNoInvitation(page);
+  // Nothing was rated, so nothing was stored or sent.
   expect(
     await page.evaluate((key) => localStorage.getItem(key), key),
   ).toBeNull();
+  expect(sent).toEqual([]);
+
+  // A different tool has its own once-a-day invitation.
   await page.goto("/tools/json-formatter");
+  await download(page);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Maybe later" }).click();
+  await download(page);
+  await expectNoInvitation(page);
+
+  // A day later the first tool may ask again.
+  await page.goto("/tools/word-counter");
+  await ageInvitations(page, DAY_MS + 1_000);
   await download(page);
   await expect(page.getByRole("dialog")).toBeVisible();
 });
 
-test("storage errors never pretend feedback was saved", async ({ page }) => {
+test("an unreachable server never pretends the rating was sent, and a retry delivers it once", async ({
+  page,
+}) => {
+  let reachable = false;
+  await page.route("**/api/tool-feedback", async (route) => {
+    if (!reachable) return route.fulfill({ status: 503, json: { ok: false } });
+    sent.push(route.request().postDataJSON() as SentRating);
+    await route.fulfill({ status: 201, json: { ok: true } });
+  });
+  await page.goto("/tools/word-counter");
+  await download(page);
+  const modal = page.getByRole("dialog");
+  await expect(modal).toBeVisible();
+  await modal.getByRole("radio", { name: "4 stars — Really good" }).check();
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
+  await expect(modal.getByRole("alert")).toContainText("couldn’t send");
+  await expect(modal.locator("[data-feedback-sent]")).toHaveCount(0);
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), key),
+  ).toBeNull();
+  // The form keeps the visitor's answer so they can simply try again.
+  await expect(
+    modal.getByRole("radio", { name: "4 stars — Really good" }),
+  ).toBeChecked();
+  reachable = true;
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
+  await expect(
+    modal.getByText("Your rating was sent to the QUICKKIT team."),
+  ).toBeVisible();
+  expect(sent).toHaveLength(1);
+  expect(sent[0]).toMatchObject({ tool: "word-counter", rating: 4 });
+  const saved = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)!),
+    key,
+  );
+  expect(saved).toHaveLength(1);
+});
+
+test("a delivered rating is confirmed even when browser storage is blocked", async ({
+  page,
+}) => {
   await page.goto("/tools/word-counter");
   await page.evaluate(() => {
     Storage.prototype.setItem = () => {
@@ -162,13 +302,17 @@ test("storage errors never pretend feedback was saved", async ({ page }) => {
   const modal = page.getByRole("dialog");
   await expect(modal).toBeVisible();
   await modal.getByRole("radio", { name: "3 stars — It was okay" }).check();
-  await modal.getByRole("button", { name: "Save my feedback" }).click();
-  await expect(modal.getByRole("alert")).toContainText("couldn’t save");
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
   await expect(
-    modal.getByText("Feedback added to your laptop screen."),
-  ).toHaveCount(0);
+    modal.getByText("Your rating was sent to the QUICKKIT team."),
+  ).toBeVisible();
+  await expect(modal.getByRole("alert")).toHaveCount(0);
+  expect(sent).toHaveLength(1);
   await modal.getByRole("button", { name: "Close feedback" }).click();
   await expect(modal).not.toBeVisible();
+  // Without storage the tab still remembers it has already asked.
+  await download(page);
+  await expectNoInvitation(page);
 });
 
 test("reduced motion keeps feedback usable without animated emotion", async ({
@@ -185,7 +329,7 @@ test("reduced motion keeps feedback usable without animated emotion", async ({
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
   await modal.getByRole("radio", { name: "4 stars — Really good" }).check();
-  await modal.getByRole("button", { name: "Save my feedback" }).click();
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
   await expect(
     modal.getByRole("heading", { name: "You made our day!" }),
   ).toBeVisible();
@@ -331,7 +475,7 @@ test("layered aurora glass reacts differently to every star and celebrates after
     animations.add(layers.animation);
   }
   expect(animations.size).toBe(5);
-  await modal.getByRole("button", { name: "Save my feedback" }).click();
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
   await expect(modal.locator("[data-mood]")).toHaveAttribute(
     "data-celebrate",
     "true",
@@ -426,7 +570,7 @@ test("crying tears fall, sad sighs, smiling blinks and happy laughter keep anima
     "none",
   );
   await expect(face.locator('[class*="_tear"]').first()).toBeVisible();
-  await modal.getByRole("button", { name: "Save my feedback" }).click();
+  await modal.getByRole("button", { name: "Send my feedback" }).click();
   await expect(face.locator('[class*="_tear"]').first()).not.toBeVisible();
   await expect(
     modal.getByRole("heading", { name: "Your experience matters." }),
@@ -448,9 +592,9 @@ for (const width of [390, 1440]) {
     await expect(modal).toBeVisible();
     await modal.getByRole("radio").nth(4).check();
     await modal.getByLabel("Anything else?").fill("My text looks perfect!");
-    await modal.getByRole("button", { name: "Save my feedback" }).click();
+    await modal.getByRole("button", { name: "Send my feedback" }).click();
     await expect(
-      modal.getByText("Feedback added to your laptop screen."),
+      modal.getByText("Your rating was sent to the QUICKKIT team."),
     ).toBeVisible();
     await modal.getByRole("button", { name: "Keep creating" }).click();
     await page.goto("/");
