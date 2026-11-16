@@ -11,6 +11,12 @@
  * jsQR's local-threshold binarizer loses lock when modules dwarf its 8 px
  * analysis blocks. Every frame we try is recorded in `attempts`, so the verdict
  * can be audited rather than trusted.
+ *
+ * Small exports get one more look. At 3.5 px per module the modules are drawn
+ * 3 and 4 px wide in turn, and jsQR loses its lock on roughly one such symbol
+ * in seventy even though every module is in the right place. Those frames are
+ * read again at a whole number of pixels per module (see `wholeModuleWidths`),
+ * which is what a phone held a little nearer or further away would see.
  */
 import jsQR from "jsqr";
 import type { QrBitmap } from "./raster";
@@ -132,6 +138,63 @@ export function widthLadder(
   return deduped.slice(0, 6);
 }
 
+/**
+ * Frame widths that give a small symbol a whole number of pixels per module:
+ * the nearest size below, then the nearest two above. Empty when the modules
+ * are already whole, too small to read, or large enough for the ladder above.
+ */
+export function wholeModuleWidths(
+  sourceWidth: number,
+  totalModules: number,
+): number[] {
+  if (totalModules <= 0) return [];
+  const modulePx = sourceWidth / totalModules;
+  if (modulePx < 2.5 || modulePx >= 6) return [];
+  if (Math.abs(modulePx - Math.round(modulePx)) < 0.02) return [];
+  const below = Math.floor(modulePx);
+  const above = Math.ceil(modulePx);
+  return [below >= 3 ? below : 0, above, above + 1]
+    .filter((px) => px > 0)
+    .map((px) => totalModules * px);
+}
+
+/**
+ * Greyscale bilinear resample of a square-pixel frame to an exact width. Used
+ * only to enlarge: `resampleToWidth` averages, which is right for shrinking and
+ * cannot go up.
+ */
+export function resampleBilinear(bitmap: QrBitmap, width: number): QrBitmap {
+  const grey = resampleToWidth(bitmap, bitmap.width);
+  const target = Math.max(8, Math.round(width));
+  const height = Math.max(8, Math.round((grey.height * target) / grey.width));
+  const rgba = new Uint8ClampedArray(target * height * 4);
+  const scaleX = grey.width / target;
+  const scaleY = grey.height / height;
+  const at = (x: number, y: number) => grey.rgba[(y * grey.width + x) * 4];
+  for (let y = 0; y < height; y += 1) {
+    const fy = Math.max(0, (y + 0.5) * scaleY - 0.5);
+    const y0 = Math.min(grey.height - 1, Math.floor(fy));
+    const y1 = Math.min(grey.height - 1, y0 + 1);
+    const ty = fy - y0;
+    for (let x = 0; x < target; x += 1) {
+      const fx = Math.max(0, (x + 0.5) * scaleX - 0.5);
+      const x0 = Math.min(grey.width - 1, Math.floor(fx));
+      const x1 = Math.min(grey.width - 1, x0 + 1);
+      const tx = fx - x0;
+      const value = Math.round(
+        (at(x0, y0) * (1 - tx) + at(x1, y0) * tx) * (1 - ty) +
+          (at(x0, y1) * (1 - tx) + at(x1, y1) * tx) * ty,
+      );
+      const offset = (y * target + x) * 4;
+      rgba[offset] = value;
+      rgba[offset + 1] = value;
+      rgba[offset + 2] = value;
+      rgba[offset + 3] = 255;
+    }
+  }
+  return { width: target, height, rgba };
+}
+
 /** Midpoint split; refuses to invent contrast that is not there. */
 function threshold(rgba: Uint8ClampedArray) {
   let min = 255;
@@ -174,12 +237,31 @@ export function verifyBitmap(
   const attempts: string[] = [];
   let bestModulePx = opaque.width / Math.max(1, totalModules || 1);
 
-  for (const width of ladder) {
+  // The usual frames first, so a design that already verified is judged
+  // exactly as before; the whole-pixel frames only run when those all miss.
+  const rescue = totalModules
+    ? wholeModuleWidths(opaque.width, totalModules).filter(
+        (width) => !ladder.includes(width),
+      )
+    : [];
+  const plan: { width: number; whole: boolean }[] = [
+    ...ladder.map((width) => ({ width, whole: false })),
+    ...rescue.map((width) => ({ width, whole: true })),
+  ];
+
+  for (const { width, whole } of plan) {
     const frame =
       width === 0
         ? resampleToWidth(opaque, opaque.width)
-        : resampleToWidth(opaque, width);
-    const label = width === 0 ? "as rendered" : `${frame.width}px`;
+        : width > opaque.width
+          ? resampleBilinear(opaque, width)
+          : resampleToWidth(opaque, width);
+    const label =
+      width === 0
+        ? "as rendered"
+        : whole
+          ? `${frame.width}px whole-pixel`
+          : `${frame.width}px`;
     const frames: [string, Uint8ClampedArray][] = [["", frame.rgba]];
     const hard = threshold(frame.rgba);
     if (hard) frames.push([" hard", hard]);
@@ -198,7 +280,9 @@ export function verifyBitmap(
           modulePx,
           frameWidth: frame.width,
           attempts: [...attempts, `${label}${suffix}: matched`],
-          message: `Verified — a QR reader decoded ${expected.length.toLocaleString()} characters from the rendered ${frame.width}×${frame.height}px frame (${label}${suffix}).`,
+          message: whole
+            ? `Verified — a QR reader decoded ${expected.length.toLocaleString()} characters from the rendered image, read at ${frame.width}×${frame.height}px (${label}${suffix}).`
+            : `Verified — a QR reader decoded ${expected.length.toLocaleString()} characters from the rendered ${frame.width}×${frame.height}px frame (${label}${suffix}).`,
         };
       }
       if (result?.data) {
