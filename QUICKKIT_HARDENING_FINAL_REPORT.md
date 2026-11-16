@@ -362,5 +362,13 @@ worth being explicit about that, because two findings in §1/§3 are now histori
 | `vitest run` | **2729 / 2729**, 198 files |
 | `npm run build` | exit 0 |
 | `npm audit` | 0 vulnerabilities |
+| E2E (CI `43922872136`, `6c14397`) | **1157 passed, 0 failed, 7 skipped** |
+
+```
+7 skipped
+1157 passed (38.0m)
+3 passed (25.4s)
+8 passed (1.1m)
+```
 
 The test count rose from 2500 to 2729 because `main` brought its own new suites.
