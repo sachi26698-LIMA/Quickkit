@@ -103,7 +103,14 @@ export default function Header({
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           closeAll();
-          document.querySelector<HTMLButtonElement>(".menu-button")?.focus();
+          // Only hand focus back to the menu button when it is actually on
+          // screen (it is display:none on desktop, where focusing it would
+          // silently do nothing).
+          const menuButton =
+            document.querySelector<HTMLButtonElement>(".menu-button");
+          if (menuButton && menuButton.offsetParent !== null) {
+            menuButton.focus();
+          }
         }
       }}
     >
@@ -213,6 +220,7 @@ export default function Header({
             href="/tools#tool-search"
             className="header-search"
             aria-label="Search tools"
+            title="Search tools — or press Ctrl/⌘ K anywhere"
             onClick={onSearchClick}
           >
             <Search size={19} aria-hidden="true" />

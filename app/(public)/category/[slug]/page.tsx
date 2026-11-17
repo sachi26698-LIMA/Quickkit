@@ -6,6 +6,7 @@ import AdUnit from "@/components/ad-unit";
 import JsonLd from "@/components/json-ld";
 import CategoryToolGrid from "@/components/category-tool-grid";
 import { categoryMeta } from "@/lib/catalog";
+import { getClientCatalog } from "@/lib/client-catalog";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
 
 export const revalidate = 300;
@@ -76,6 +77,16 @@ export default async function CategoryPage({
         (tool.categories as readonly string[]).includes(meta.name)),
   );
   const others = categories.filter((category) => category.slug !== meta.slug);
+  // The grid is a client component: hand it the shared display projection
+  // (same object instances the layout's command palette ships), so the
+  // flight payload encodes each tool once instead of duplicating the full
+  // override records into the browser.
+  const clientTools = await getClientCatalog();
+  const gridList = clientTools.filter(
+    (tool) =>
+      tool.category === meta.name ||
+      (Array.isArray(tool.categories) && tool.categories.includes(meta.name)),
+  );
 
   return (
     <div className="home inner-page">
@@ -134,7 +145,7 @@ export default async function CategoryPage({
             picker and the cards, each card in its own tool colour. */}
         {list.length ? (
           <CategoryToolGrid
-            tools={list}
+            tools={gridList}
             categoryName={meta.name}
             tone={categoryTone(meta.name)}
             filter={categoryFilterFor(meta.slug, meta.name)}

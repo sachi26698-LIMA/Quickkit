@@ -1,7 +1,7 @@
 "use client";
 import { useId, useState } from "react";
 import ToolCard from "@/components/tool-card";
-import type { Tool } from "@/lib/catalog";
+import type { ClientTool } from "@/lib/client-tool";
 import {
   OTHER_GROUP_ID,
   filterCategoryTools,
@@ -19,7 +19,8 @@ export default function CategoryToolGrid({
   tone,
   filter,
 }: {
-  tools: Tool[];
+  /** Display projection — the same shared catalogue the palette ships. */
+  tools: ClientTool[];
   /** Shown on each card, so a tool listed in a second category is labelled for this one. */
   categoryName: string;
   /** Category tone class suffix, e.g. "azure". */
@@ -70,9 +71,25 @@ export default function CategoryToolGrid({
           </select>
         </label>
       </div>
-      <p className="category-filter-status" aria-live="polite">
-        Showing {found.length} of {tools.length} {filter.noun}
-      </p>
+      <div className="category-filter-status-row">
+        <p className="category-filter-status" aria-live="polite">
+          Showing {found.length} of {tools.length} {filter.noun}
+        </p>
+        {/* Reset without waiting for an empty result — filters should never
+            be a one-way door. */}
+        {filtering && found.length > 0 ? (
+          <button
+            type="button"
+            className="text-link category-filter-clear"
+            onClick={() => {
+              setQuery("");
+              setGroup("all");
+            }}
+          >
+            Clear filters
+          </button>
+        ) : null}
+      </div>
       {found.length ? (
         <div className={`tool-grid category-tools cat-${tone}`}>
           {found.map((tool) => (

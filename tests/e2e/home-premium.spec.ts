@@ -13,7 +13,7 @@ for (const viewport of [
       "Free online tools for PDFs, images, text and code",
     );
     await expect(
-      page.getByText("YOUR EVERYDAY DIGITAL TOOLKIT", { exact: true }),
+      page.getByText("Small tasks. Quick solutions.", { exact: true }),
     ).toBeVisible();
     await expect(page.locator(".category-card")).toHaveCount(8);
     await expect(page.locator(".why-card")).toHaveCount(4);
@@ -47,7 +47,7 @@ for (const viewport of [
       await laptopScreen.evaluate((el) =>
         getComputedStyle(el).getPropertyValue("--screen-accent").trim(),
       ),
-    ).toBe("#6d28d9");
+    ).toBe("#7828d8");
     const barColours = await laptopScreen
       .locator('[data-visitor-chart] [class*="_bar"]')
       .evaluateAll((bars) =>
@@ -59,7 +59,9 @@ for (const viewport of [
       laptopScreen.getByRole("button", { name: "Share feedback" }),
     ).toHaveCSS("color", "rgb(255, 255, 255)");
 
-    const search = page.getByRole("searchbox", {
+    // The hero input is an ARIA 1.2 combobox (role=combobox overrides the
+    // implicit searchbox role of input[type=search]).
+    const search = page.getByRole("combobox", {
       name: "Search tools",
       exact: true,
     });

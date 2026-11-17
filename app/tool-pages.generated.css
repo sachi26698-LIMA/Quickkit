@@ -2549,7 +2549,7 @@
   background: linear-gradient(
     135deg,
     color-mix(in srgb, rgb(var(--t-rgb)) 3%, #fff),
-    #fbeae8
+    #f6f2fd
   );
 }
 .tool-page[data-tool] .qr-gallery-preview {
@@ -2650,7 +2650,7 @@
   background: linear-gradient(
     160deg,
     color-mix(in srgb, rgb(var(--t-rgb)) 3%, #fff) 0%,
-    #f4d7d4 100%
+    #ede6fb 100%
   );
 }
 .tool-page[data-tool] .qr-landing-card {

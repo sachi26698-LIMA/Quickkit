@@ -141,7 +141,7 @@ export default function LandingBuilder({ studio }: { studio: QrStudio }) {
       {/* Live structural preview (the downloaded HTML is the real artifact). */}
       <div className="qr-landing-preview" aria-label="Landing page preview">
         <div className="qr-landing-card" style={{ borderColor: "#f0e2e6" }}>
-          <strong style={{ color: "#3b1b4f" }}>
+          <strong style={{ color: "#54205f" }}>
             {landing.title.trim() || "My links"}
           </strong>
           {landing.bio.trim() ? <p>{landing.bio.trim()}</p> : null}

@@ -40,7 +40,7 @@ export default function Image() {
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
         </span>
-        QUICK<span style={{ color: "#B93A73", marginLeft: -14 }}>KIT</span>
+        QUICK<span style={{ color: "#C4185F", marginLeft: -14 }}>KIT</span>
       </div>
       <div
         style={{
@@ -53,9 +53,9 @@ export default function Image() {
         }}
       >
         <span>Small tasks.</span>
-        <span style={{ color: "#B93A73" }}>Quick solutions.</span>
+        <span style={{ color: "#C4185F" }}>Quick solutions.</span>
       </div>
-      <div style={{ fontSize: 27, color: "#6A5570", marginTop: 34 }}>
+      <div style={{ fontSize: 27, color: "#5F5172", marginTop: 34 }}>
         Free browser tools. No sign-up. Zero hassle.
       </div>
     </div>,

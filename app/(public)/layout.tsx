@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import AdSenseLoader from "@/components/adsense-loader";
+import CommandPalette from "@/components/command-palette";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import IconMotionGate from "@/components/icon-motion-gate";
 import JsonLd from "@/components/json-ld";
 import { isAdsEnabled } from "@/lib/ads";
+import { getClientCatalog } from "@/lib/client-catalog";
 import { siteStructuredData } from "@/lib/seo";
 import { contactEmail as defaultContactEmail } from "@/lib/site";
 import {
@@ -34,9 +36,11 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [{ categories, tools }, settings] = await Promise.all([
+  const [{ categories, tools }, settings, clientTools] = await Promise.all([
     getPublicCatalog(),
     getPublicSiteSettings(),
+    // Same projected array the homepage consumes — one flight encoding.
+    getClientCatalog(),
   ]);
   const siteName = settings.website_name ?? "QUICKKIT";
   const maintenance = settings.maintenance;
@@ -99,6 +103,9 @@ export default async function PublicLayout({
         socialLinks={settings.social_links}
         extraLinks={settings.footer_links}
       />
+      {/* Global Ctrl/⌘ K search for every public page except the two that
+          already mount an inline search box (/, /tools). */}
+      <CommandPalette tools={clientTools} categories={categories} />
       <IconMotionGate />
     </>
   );
