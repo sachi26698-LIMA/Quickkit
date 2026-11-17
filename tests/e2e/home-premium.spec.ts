@@ -18,12 +18,15 @@ for (const viewport of [
     await expect(page.locator(".category-card")).toHaveCount(8);
     await expect(page.locator(".why-card")).toHaveCount(4);
 
-    const chipColours = await page
-      .locator(".popular-chip")
-      .evaluateAll((chips) =>
-        chips.map((chip) => getComputedStyle(chip).color),
-      );
-    expect(new Set(chipColours).size).toBe(5);
+    const chips = page.locator(".popular-chip");
+    const chipColours = await chips.evaluateAll((nodes) =>
+      nodes.map((chip) => getComputedStyle(chip).color),
+    );
+    // Every popular chip must be visually distinct — that is the intent. The
+    // count is deliberately not hard-coded: `popularSlugs` grew from 5 to 8,
+    // and a literal here failed CI for a homepage that was rendering correctly.
+    expect(chipColours.length).toBeGreaterThan(0);
+    expect(new Set(chipColours).size).toBe(chipColours.length);
     const featureColours = await page
       .locator(".why-icon")
       .evaluateAll((icons) =>
