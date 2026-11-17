@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { MetadataRoute } from "next";
-import { siteOrigin } from "@/lib/seo";
+import { absoluteUrl, siteOrigin } from "@/lib/seo";
 import { indexingEnabled } from "@/lib/launch";
 import { metaBySlug, toolsByCategory } from "@/lib/catalog";
 import { getPublicCatalog } from "@/lib/supabase/public-catalog";
@@ -364,7 +364,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { repoRoot, shallowCommits },
     );
     return {
-      url: siteOrigin + path,
+      url: absoluteUrl(path)!,
       ...(lastModified ? { lastModified } : {}),
     };
   });

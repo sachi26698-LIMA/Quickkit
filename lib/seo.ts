@@ -18,6 +18,32 @@ function productionOrigin() {
   return url.origin;
 }
 export const siteOrigin = productionOrigin();
+
+/**
+ * The one absolute URL for a site-relative route, so the canonical, the Open
+ * Graph URL, the sitemap and every JSON-LD node cannot disagree about it.
+ *
+ * **The homepage is the bare origin, with no trailing slash** — `https://host`.
+ * That is not a preference, it is what Next.js can actually emit: its metadata
+ * renderer collapses any same-origin URL whose pathname is `/` to
+ * `url.origin` (`resolveAbsoluteUrlWithPathname` in `next/dist/lib/metadata`),
+ * so a `canonical` of `https://host/` comes out of the build as `https://host`
+ * regardless of what is passed in. The sitemap used to list `https://host/`
+ * and the JSON-LD `@id`s used `https://host/#website`, so the site published
+ * two spellings of its most important URL. Everything now routes through this
+ * helper and states the bare origin, which is the spelling the canonical is
+ * stuck with.
+ *
+ * Google treats the slash and no-slash root as one URL, so this is not a
+ * ranking fix — it is removing an inconsistency between what the sitemap, the
+ * structured data and the canonical claim.
+ */
+export function absoluteUrl(path: string): string | undefined {
+  if (!siteOrigin) return undefined;
+  if (path === "/" || path === "") return siteOrigin;
+  return siteOrigin + (path.startsWith("/") ? path : `/${path}`);
+}
+
 export function pageMetadata(
   title: string,
   description: string,
@@ -35,7 +61,7 @@ export function pageMetadata(
     // explicit `absolute` title to include ` | QUICKKIT` in `<title>`.
     title: path === "/" ? { absolute: brandedTitle } : title,
     description,
-    alternates: siteOrigin ? { canonical: siteOrigin + path } : undefined,
+    alternates: siteOrigin ? { canonical: absoluteUrl(path) } : undefined,
     openGraph: {
       title: brandedTitle,
       description,
@@ -43,7 +69,7 @@ export function pageMetadata(
       siteName: brand,
       ...(siteOrigin
         ? {
-            url: siteOrigin + path,
+            url: absoluteUrl(path),
             images: [
               {
                 url: siteOrigin + "/opengraph-image",
@@ -86,7 +112,7 @@ export function breadcrumbStructuredData(items: Crumb[]) {
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: siteOrigin + item.path,
+      item: absoluteUrl(item.path),
     })),
   };
 }
@@ -113,6 +139,10 @@ export function siteStructuredData(
         "@type": "Organization",
         "@id": organizationId,
         name: siteName,
+        // "QuickKit" is the same brand typed in mixed case — a real spelling
+        // people use, not a second identity. It is the only alias stated:
+        // there is no legal entity, trading name or acronym to declare.
+        alternateName: "QuickKit",
         url: origin,
         logo: {
           "@type": "ImageObject",
@@ -126,6 +156,7 @@ export function siteStructuredData(
         "@type": "WebSite",
         "@id": `${origin}/#website`,
         name: siteName,
+        alternateName: "QuickKit",
         url: origin,
         inLanguage: "en",
         publisher: { "@id": organizationId },
@@ -139,6 +170,47 @@ export function siteStructuredData(
         },
       },
     ],
+  };
+}
+
+/**
+ * `WebPage` for the homepage.
+ *
+ * Rendered by the homepage only. The site-wide graph lives in the public
+ * layout and therefore appears on every public page, so a `WebPage` node with
+ * the homepage's URL cannot go in there — that would tell Google `/tools` is
+ * `/`. This builds the node for the page it is actually rendered on, and
+ * points back at the `WebSite` and `Organization` nodes by `@id` rather than
+ * repeating them (no duplicate entities).
+ */
+export function webPageStructuredData({
+  name,
+  description,
+  path,
+}: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  const url = absoluteUrl(path);
+  if (!siteOrigin || !url) return undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${siteOrigin}/#webpage`,
+    url,
+    name,
+    description,
+    inLanguage: "en",
+    isPartOf: { "@id": `${siteOrigin}/#website` },
+    about: { "@id": `${siteOrigin}/#organization` },
+    publisher: { "@id": `${siteOrigin}/#organization` },
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: `${siteOrigin}/opengraph-image`,
+      width: 1200,
+      height: 630,
+    },
   };
 }
 
@@ -190,7 +262,7 @@ export function collectionPageStructuredData({
   items: { name: string; path: string }[];
 }) {
   if (!siteOrigin || items.length === 0) return undefined;
-  const url = path === "/" ? siteOrigin : `${siteOrigin}${path}`;
+  const url = absoluteUrl(path);
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -207,7 +279,7 @@ export function collectionPageStructuredData({
         "@type": "ListItem",
         position: index + 1,
         name: item.name,
-        url: item.path === "/" ? siteOrigin : `${siteOrigin}${item.path}`,
+        url: absoluteUrl(item.path),
       })),
     },
   };
@@ -238,7 +310,7 @@ export function toolStructuredData({
   faqs?: { q: string; a: string }[];
   networkProcessing?: boolean;
 }) {
-  const url = siteOrigin ? siteOrigin + path : undefined;
+  const url = absoluteUrl(path);
   const serverProcessed =
     slug === "word-to-pdf" || path === "/tools/word-to-pdf";
   const graph: Record<string, unknown>[] = [

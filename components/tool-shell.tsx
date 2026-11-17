@@ -76,7 +76,7 @@ export default function ToolShell({
           Home
         </Link>
         <ChevronRight size={13} />
-        <Link href="/tools">Tools</Link>
+        <Link href="/tools">All Tools</Link>
         {primaryCategory ? (
           <>
             <ChevronRight size={13} />
@@ -93,7 +93,7 @@ export default function ToolShell({
       <JsonLd
         data={breadcrumbStructuredData([
           { name: "Home", path: "/" },
-          { name: "Tools", path: "/tools" },
+          { name: "All Tools", path: "/tools" },
           ...(primaryCategory
             ? [
                 {
@@ -193,7 +193,7 @@ export default function ToolShell({
         <div className="section-heading">
           <h2>{relatedHeading}</h2>
           <Link className="text-link" href="/tools">
-            All tools <ArrowUpRight size={16} />
+            All Tools <ArrowUpRight size={16} />
           </Link>
         </div>
         <div className="related-grid">

@@ -192,6 +192,89 @@ describe("Organization and WebSite JSON-LD", () => {
       breadcrumbStructuredData([{ name: "Home", path: "/" }]),
     ).toBeUndefined();
   });
+
+  it("states the brand's mixed-case spelling as the only alias", async () => {
+    const { siteStructuredData } = await import("../lib/seo");
+    const graph = (
+      siteStructuredData() as { "@graph": Record<string, unknown>[] }
+    )["@graph"];
+    for (const type of ["Organization", "WebSite"]) {
+      const node = graph.find((entry) => entry["@type"] === type)!;
+      expect(node.name).toBe("QUICKKIT");
+      expect(node.alternateName).toBe("QuickKit");
+    }
+    // One alias, not an open-ended keyword list.
+    expect(JSON.stringify(graph)).not.toContain('"Quickkit"');
+  });
+});
+
+// ── one URL per page ────────────────────────────────────────────────────────
+describe("absolute URLs", () => {
+  it("states the homepage as the bare origin, the same as the canonical", async () => {
+    const { absoluteUrl } = await import("../lib/seo");
+    // Next.js collapses a same-origin root URL to `origin` when it renders the
+    // canonical, so the sitemap, `@id`s and breadcrumbs use that spelling too.
+    expect(absoluteUrl("/")).toBe(ORIGIN);
+    expect(absoluteUrl("")).toBe(ORIGIN);
+    expect(absoluteUrl("/tools")).toBe(`${ORIGIN}/tools`);
+    expect(absoluteUrl("tools")).toBe(`${ORIGIN}/tools`);
+    expect(absoluteUrl("/category/pdf-tools")).toBe(
+      `${ORIGIN}/category/pdf-tools`,
+    );
+  });
+
+  it("makes the homepage canonical and og:url identical", async () => {
+    const { pageMetadata } = await import("../lib/seo");
+    const meta = pageMetadata(
+      "Free Online PDF, Image, QR, Code & Math Tools",
+      "Description.",
+      "/",
+      "QUICKKIT",
+    );
+    expect(meta.alternates?.canonical).toBe(ORIGIN);
+    expect(meta.openGraph?.url).toBe(ORIGIN);
+  });
+
+  it("gives every breadcrumb level the same URL the canonical would use", async () => {
+    const { breadcrumbStructuredData } = await import("../lib/seo");
+    const data = breadcrumbStructuredData([
+      { name: "Home", path: "/" },
+      { name: "All Tools", path: "/tools" },
+    ]) as { itemListElement: { item: string }[] };
+    expect(data.itemListElement[0].item).toBe(ORIGIN);
+    expect(data.itemListElement[1].item).toBe(`${ORIGIN}/tools`);
+  });
+});
+
+// ── homepage WebPage ────────────────────────────────────────────────────────
+describe("WebPage JSON-LD", () => {
+  it("describes the homepage and references the site graph by id", async () => {
+    const { webPageStructuredData } = await import("../lib/seo");
+    const data = webPageStructuredData({
+      name: "Free Online PDF, Image, QR, Code & Math Tools",
+      description: "Free browser-based tools.",
+      path: "/",
+    }) as Record<string, unknown>;
+
+    expect(data["@type"]).toBe("WebPage");
+    expect(data.url).toBe(ORIGIN);
+    expect(data["@id"]).toBe(`${ORIGIN}/#webpage`);
+    expect(data.isPartOf).toEqual({ "@id": `${ORIGIN}/#website` });
+    expect(data.about).toEqual({ "@id": `${ORIGIN}/#organization` });
+    expect(data.inLanguage).toBe("en");
+    // No rating, review, price or address is invented for the page.
+    for (const forbidden of ["aggregateRating", "review", "offers", "address"])
+      expect(JSON.stringify(data)).not.toContain(forbidden);
+  });
+
+  it("returns nothing without a production origin", async () => {
+    vi.stubEnv("SITE_URL", "");
+    vi.resetModules();
+    const { webPageStructuredData } = await import("../lib/seo");
+    expect(
+      webPageStructuredData({ name: "n", description: "d", path: "/" }),
+    ).toBeUndefined();
+  });
 });
 
 // ── breadcrumb structured data ──────────────────────────────────────────────
@@ -200,7 +283,7 @@ describe("BreadcrumbList JSON-LD", () => {
     const { breadcrumbStructuredData } = await import("../lib/seo");
     const data = breadcrumbStructuredData([
       { name: "Home", path: "/" },
-      { name: "Tools", path: "/tools" },
+      { name: "All Tools", path: "/tools" },
       { name: "Word Counter", path: "/tools/word-counter" },
     ]) as { itemListElement: Record<string, unknown>[] };
 
@@ -209,12 +292,12 @@ describe("BreadcrumbList JSON-LD", () => {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: `${ORIGIN}/`,
+        item: ORIGIN,
       },
       {
         "@type": "ListItem",
         position: 2,
-        name: "Tools",
+        name: "All Tools",
         item: `${ORIGIN}/tools`,
       },
       {
@@ -255,7 +338,12 @@ describe("BreadcrumbList JSON-LD", () => {
     const items = (block.itemListElement as Record<string, unknown>[]).map(
       (item) => item.name,
     );
-    expect(items).toEqual(["Home", "Tools", "Text & Writing", "Word Counter"]);
+    expect(items).toEqual([
+      "Home",
+      "All Tools",
+      "Text & Writing",
+      "Word Counter",
+    ]);
     expect(items).toEqual(visible);
     expect(
       (block.itemListElement as Record<string, unknown>[]).map(

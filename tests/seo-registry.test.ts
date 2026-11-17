@@ -285,9 +285,12 @@ describe("SEO registry — page-level records (hubs, guide and policies)", () =>
 
   it("agrees with the sitemap about which hub and policy pages are listed", async () => {
     const { default: sitemap } = await import("../app/sitemap");
+    const { absoluteUrl } = await import("../lib/seo");
     const urls = (await sitemap()).map((entry) => entry.url);
     for (const path of registeredPagePaths()) {
-      expect(urls, `${path} missing from sitemap`).toContain(ORIGIN + path);
+      // Built through the same helper the sitemap uses, so `/` is compared as
+      // the bare origin rather than `ORIGIN + "/"`.
+      expect(urls, `${path} missing from sitemap`).toContain(absoluteUrl(path));
     }
   });
 });

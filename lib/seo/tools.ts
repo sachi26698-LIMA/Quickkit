@@ -28,7 +28,11 @@ export const TOOL_SEO_RECORDS: ToolSeoRecord[] = [
       "merge pdf without uploading",
       "join pdf pages online",
       "merge pdf on mobile",
-      "reorder pdf pages",
+      // "reorder pdf pages" belonged here and to /tools/pdf-studio, so the two
+      // pages competed for one query. Reordering is pdf-studio's whole job, so
+      // it keeps the phrase; merge-pdf keeps the ordering work it actually
+      // does — choosing the sequence of files being combined.
+      "arrange pdf files before merging",
     ],
     intent: "transactional",
     researchId: "pdf-merge",
@@ -857,7 +861,10 @@ export const TOOL_SEO_RECORDS: ToolSeoRecord[] = [
     primaryKeyword: "json formatter",
     secondaryKeywords: [
       "json beautifier online",
-      "json validator",
+      // /tools/json-validator owns "json validator" as its primary keyword.
+      // This page does validate, but naming the dedicated validator here made
+      // two URLs claim one query, so it names the capability instead.
+      "check json syntax",
       "minify json",
       "sort json keys",
       "format json without upload",

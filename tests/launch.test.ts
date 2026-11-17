@@ -200,7 +200,10 @@ it("emits all real sitemap routes only after explicit production approval", asyn
     5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
   );
   for (const entry of routes) {
-    const path = entry.url.replace("https://test.example", "");
+    // The homepage is listed as the bare origin, so the stripped path is empty
+    // there; normalise it to "/" before comparing with `pathname`, which is
+    // always "/" for the root.
+    const path = entry.url.replace("https://test.example", "") || "/";
     const canonical = new URL(entry.url);
     expect(canonical.origin, `canonical origin for ${path}`).toBe(
       "https://test.example",
@@ -284,7 +287,13 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(routes.map((route) => route.url)).not.toContain(
     "https://test.example/category/ai-tools",
   );
-  expect(routes.every((r) => r.url.startsWith("https://test.example/"))).toBe(
-    true,
-  );
+  // Every URL on the production origin. The homepage is the bare origin (the
+  // spelling Next.js fixes for the canonical), every other route has a path.
+  expect(
+    routes.every(
+      (r) =>
+        r.url === "https://test.example" ||
+        r.url.startsWith("https://test.example/"),
+    ),
+  ).toBe(true);
 }, 15000);
