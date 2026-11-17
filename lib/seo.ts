@@ -338,6 +338,29 @@ export function toolStructuredData({
     },
   ];
 
+  if (url) {
+    // The page itself, appended after the application so existing graph order
+    // is unchanged. Homepage has `WebPage`, `/tools` and category hubs have
+    // `CollectionPage`; a tool page had no page-level entity, leaving search
+    // engines to infer the page type from `WebApplication` alone. `mainEntity`
+    // points at the tool, so the nodes are connected rather than co-located.
+    graph.push({
+      "@type": "WebPage",
+      "@id": `${url}#webpage`,
+      url,
+      name: `${name} — QUICKKIT`,
+      description,
+      inLanguage: "en",
+      ...(siteOrigin
+        ? {
+            isPartOf: { "@id": `${siteOrigin}/#website` },
+            about: { "@id": `${siteOrigin}/#organization` },
+          }
+        : {}),
+      mainEntity: { "@id": `${url}#app` },
+    });
+  }
+
   if (faqs.length > 0) {
     graph.push({
       "@type": "FAQPage",

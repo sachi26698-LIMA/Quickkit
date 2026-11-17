@@ -659,8 +659,25 @@ describe("Phase 2 technical SEO contracts", () => {
       faqs: [{ q: "Free?", a: "Yes." }],
     });
     const pdfTypes = pdfApp["@graph"].map((node) => node["@type"]);
-    expect(pdfTypes).toEqual(["WebApplication", "FAQPage"]);
+    // Tool pages carry a WebPage node as well as the application and its FAQ.
+    // `graph[0]` remains the WebApplication, which the assertions below rely on.
+    expect(pdfTypes).toEqual(["WebApplication", "WebPage", "FAQPage"]);
     expect(pdfTypes).not.toContain("HowTo");
+
+    // New contract: the page-level node must exist, must be identified by this
+    // route's own URL, and must point at the tool it describes. A WebPage that
+    // silently lost `mainEntity`, or reused another route's `@id`, would be
+    // worse than not emitting one at all.
+    const pageNode = pdfApp["@graph"].find(
+      (node) => node["@type"] === "WebPage",
+    ) as Record<string, unknown> | undefined;
+    expect(pageNode).toBeDefined();
+    expect(pageNode!.url).toBe(`${ORIGIN}/tools/merge-pdf`);
+    expect(pageNode!["@id"]).toBe(`${ORIGIN}/tools/merge-pdf#webpage`);
+    expect(pageNode!.mainEntity).toEqual({
+      "@id": `${ORIGIN}/tools/merge-pdf#app`,
+    });
+    expect(pageNode!.isPartOf).toEqual({ "@id": `${ORIGIN}/#website` });
     expect(pdfApp["@graph"][0]).toMatchObject({
       "@type": "WebApplication",
       applicationCategory: "BusinessApplication",
@@ -677,7 +694,12 @@ describe("Phase 2 technical SEO contracts", () => {
       slug: "emi-calculator",
       faqs: [],
     });
-    expect(financeApp["@graph"]).toHaveLength(1);
+    // A tool with no FAQs gets the application plus its page node, and nothing
+    // else — no empty FAQPage is emitted.
+    expect(financeApp["@graph"].map((node) => node["@type"])).toEqual([
+      "WebApplication",
+      "WebPage",
+    ]);
     expect(financeApp["@graph"][0].applicationCategory).toBe(
       "FinanceApplication",
     );
