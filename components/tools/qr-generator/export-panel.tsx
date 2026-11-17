@@ -23,7 +23,7 @@ import {
   clampSheet,
   printLayoutDef,
   type QrPrintLayoutId,
-} from "@/lib/tools/qr/layouts";
+} from "@/lib/tools/qr/layouts-data";
 import { QrDisclosure, QrRange, QrToggle } from "./shared";
 import type { QrStudio } from "./use-qr-studio";
 
