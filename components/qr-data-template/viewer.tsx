@@ -46,7 +46,14 @@ function buildSyntheticHref(
   const qs = params.toString();
   if (!qs && !hash) return "";
   const cleanHash = hash ? (hash.startsWith("#") ? hash : `#${hash}`) : "";
-  return `${DEFAULT_PUBLIC_ORIGIN}/qr${qs ? `?${qs}` : ""}${cleanHash}`;
+  // A QR reader opens the Data Template on whatever origin serves it, so the
+  // link is rebuilt against the live origin rather than a single hard-coded
+  // host. Server-side renders have no `window` and fall back to the default.
+  const origin =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : DEFAULT_PUBLIC_ORIGIN;
+  return `${origin}/qr${qs ? `?${qs}` : ""}${cleanHash}`;
 }
 
 function initialSyncResolution(

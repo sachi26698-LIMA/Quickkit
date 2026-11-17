@@ -203,10 +203,12 @@ export default function SecurityPage() {
         granted, in either mode, and production enforces the policy.
       </p>
       <p className="legal-owner-line">
-        <strong>Framing:</strong> the production policy sets{" "}
+        <strong>Framing:</strong> every deployed environment sets{" "}
         <code>frame-ancestors &apos;none&apos;</code>, so no other origin can
         embed the site in a frame — which is what stops clickjacking against the
-        controls in a tool workspace.
+        controls in a tool workspace. The only exception is the local preview
+        sandbox used while developing, which names a single
+        <code>*.e2b.app</code> origin and is never switched on for a deployment.
       </p>
 
       <h2 id="dependencies">6. External dependencies</h2>

@@ -701,7 +701,7 @@ const SOCIAL_FIELDS: QrField[] = [
     label: "Username or page name",
     type: "text",
     required: true,
-    placeholder: "quickkit.tools",
+    placeholder: "your.page",
     help: "No @ sign needed. A full URL is used exactly as typed.",
     half: true,
     max: 120,
@@ -775,7 +775,7 @@ const INSTAGRAM_FIELDS: QrField[] = [
     label: "Instagram username",
     type: "text",
     required: true,
-    placeholder: "quickkit.tools",
+    placeholder: "your.instagram",
     help: "No @ needed. A full instagram.com profile URL is used exactly as typed.",
     max: 120,
   },
@@ -787,7 +787,7 @@ const FACEBOOK_FIELDS: QrField[] = [
     label: "Facebook page name or URL",
     type: "text",
     required: true,
-    placeholder: "quickkit.tools",
+    placeholder: "your.page",
     help: "The page name from facebook.com/yourpage, or paste the full page URL.",
     max: 200,
   },
@@ -1876,12 +1876,24 @@ export function isKnownContentType(id: string): id is QrContentTypeId {
 }
 
 /**
+ * The page the empty-state sample points at, so the demo code actually resolves.
+ *
+ * It lives here, beside the values that are encoded, because the workspace and
+ * the browser end-to-end suite must agree on the exact bytes: the suite builds
+ * its expectation from `QR_SAMPLE_VALUES`, so a sample URL defined anywhere else
+ * silently drifts and turns every "does the exported PNG decode to the payload"
+ * test red while the app itself is fine. The feature and the check both read
+ * this one constant.
+ */
+export const QR_SAMPLE_URL = "https://quickkit-rosy.vercel.app/?src=qr-example";
+
+/**
  * A working sample per content type, used by the "Try sample" affordance so a
  * first-time user sees a real, decodable code for whichever type is selected.
  * Every entry builds a valid payload (covered by the payload unit tests).
  */
 export const QR_SAMPLE_VALUES: Record<QrContentTypeId, QrValues> = {
-  url: { url: "https://quickkit-rosy.vercel.app/?src=qr-example" },
+  url: { url: QR_SAMPLE_URL },
   payment: {
     method: "upi",
     payeeName: "Aurora Café",

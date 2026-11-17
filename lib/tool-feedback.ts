@@ -139,6 +139,82 @@ export function canPromptToolFeedback(
 // not repeated while the visitor stays on the site in this tab.
 const memoryPromptLog: ToolFeedbackPromptLog = {};
 
+/**
+ * Tools this browser has already rated. This is a *submitted* record, kept
+ * apart from the shown-based cooldown above: once a rating has been delivered,
+ * that tool never asks again, however long ago it was. A visitor who rates a
+ * tool has said what they think, so re-prompting them a day later is noise.
+ *
+ * Stores the slug only — never the rating, tags or comment — so the daily
+ * upload stays the single copy of what the visitor wrote.
+ */
+export const TOOL_FEEDBACK_REVIEWED_KEY = "quickkit-tool-feedback-reviewed-v1";
+/** slug → time (ms since epoch) the rating was successfully sent from here. */
+export type ToolFeedbackReviewedLog = Record<string, number>;
+
+export function parseToolFeedbackReviewedLog(
+  raw: string | null | undefined,
+): ToolFeedbackReviewedLog {
+  const log: ToolFeedbackReviewedLog = {};
+  if (!raw) return log;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return log;
+    for (const [slug, at] of Object.entries(parsed)) {
+      if (
+        /^[a-z0-9][a-z0-9-]{0,79}$/.test(slug) &&
+        typeof at === "number" &&
+        Number.isFinite(at) &&
+        // A review is remembered for good, but a timestamp from the future is
+        // a clock accident rather than evidence — keep it promptable instead
+        // of letting one bad write silence the tool forever.
+        at <= Date.now() + TOOL_FEEDBACK_PROMPT_INTERVAL_MS
+      )
+        log[slug] = at;
+    }
+  } catch {
+    // Corrupt data is treated as "not reviewed", so the visitor is still asked.
+  }
+  return log;
+}
+
+// Same fallback rule as the cooldown: a blocked store must not make the
+// dialog nag someone who has already answered it.
+const memoryReviewedLog: ToolFeedbackReviewedLog = {};
+
+function readReviewedLog(): ToolFeedbackReviewedLog {
+  let stored: string | null = null;
+  try {
+    stored = window.localStorage.getItem(TOOL_FEEDBACK_REVIEWED_KEY);
+  } catch {
+    stored = null;
+  }
+  return {
+    ...parseToolFeedbackReviewedLog(JSON.stringify(memoryReviewedLog)),
+    ...parseToolFeedbackReviewedLog(stored),
+  };
+}
+
+/** True when this browser has not already sent a rating for `slug`. */
+export function needsToolFeedbackReview(slug: string): boolean {
+  return !Object.hasOwn(readReviewedLog(), slug);
+}
+
+/** Remember that `slug` was rated, so it never asks this visitor again. */
+export function markToolFeedbackReviewed(slug: string, now = Date.now()) {
+  try {
+    window.localStorage.setItem(
+      TOOL_FEEDBACK_REVIEWED_KEY,
+      JSON.stringify({ ...readReviewedLog(), [slug]: now }),
+    );
+    delete memoryReviewedLog[slug];
+  } catch {
+    // Storage is blocked: remember it for as long as this tab stays open.
+    memoryReviewedLog[slug] = now;
+  }
+}
+
 function readPromptLog(now: number): ToolFeedbackPromptLog {
   let stored: string | null = null;
   try {

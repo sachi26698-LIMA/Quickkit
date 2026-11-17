@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import { indexingEnabled } from "./lib/launch";
-import { getSupabaseCspOrigin } from "./lib/supabase/config";
 import { BRANDS, isBrandRecordIndexable } from "./lib/tools/batch-code/brands";
 import { legacySecurityRedirects } from "./lib/tools/security/consolidation";
 
@@ -16,9 +15,12 @@ import { legacySecurityRedirects } from "./lib/tools/security/consolidation";
 // slot blank — see docs/ADSENSE_CSP.md for the reasoning and the hosts.
 //
 // No wildcards: every host is listed explicitly, `object-src` stays 'none',
-// `base-uri` and `form-action` stay 'self', and framing *this* site stays
-// forbidden (frame-ancestors 'none'). Only the resource types AdSense uses are
-// widened — script, frame, img and connect.
+// `base-uri` and `form-action` stay 'self', and framing *this* site is refused
+// (`frame-ancestors 'none'` in every deployed environment). The single,
+// documented exception is the opt-in local preview sandbox described below,
+// which names `https://*.e2b.app` instead; it is never enabled on a deployment.
+// Only the resource types AdSense uses are widened — script, frame, img and
+// connect.
 // ─────────────────────────────────────────────────────────────────────────────
 const ADSENSE_SCRIPTS = [
   "https://pagead2.googlesyndication.com", // the loader itself
@@ -70,8 +72,25 @@ const FRAME_ANCESTORS = previewFraming
   ? "frame-ancestors 'self' https://*.e2b.app"
   : "frame-ancestors 'none'";
 
-// Add only the validated configured Supabase API origin to connect-src.
-const supabaseCspOrigin = getSupabaseCspOrigin();
+// Supabase is contacted only from the server: `lib/supabase/*` is `server-only`,
+// every session read runs in a Server Component, Route Handler or `proxy.ts`,
+// and no client component imports a browser Supabase client. `connect-src`
+// therefore does not need the Supabase API origin — a browser made to respect
+// this policy never issues that request, so allowing it would only widen the
+// policy without buying anything.
+//
+// `tests/supabase-csp.test.ts` asserts both halves of that claim — that no
+// client component reaches Supabase, and that the policy therefore carries no
+// Supabase origin — so adding a browser-side call is a deliberate act that
+// trips a test instead of failing silently in the browser.
+
+// `connect-src` is the one directive that differs per route. It is built from
+// an explicit source list and merged structurally (see `withConnectSources`)
+// rather than by rewriting the finished policy string, so a route can only ever
+// *add* origins — never drop one the base policy already allows.
+const CONNECT_SRC_SOURCES = ["'self'", ...ADSENSE_CONNECTIONS];
+
+const CONNECT_SRC = `connect-src ${CONNECT_SRC_SOURCES.join(" ")}`;
 
 const CSP = [
   "default-src 'self'",
@@ -84,9 +103,30 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' blob: data: ${ADSENSE_IMAGES.join(" ")}`,
   "font-src 'self'",
-  `connect-src 'self' ${ADSENSE_CONNECTIONS.join(" ")} ${supabaseCspOrigin ?? ""}`.trim(),
+  CONNECT_SRC,
   `frame-src ${ADSENSE_FRAMES.join(" ")}`,
 ].join("; ");
+
+/**
+ * Return the policy with `extraSources` appended to `connect-src`, keeping
+ * every origin the base policy already lists.
+ *
+ * The previous implementation was
+ * `CSP.replace("connect-src 'self'", "connect-src 'self' " + host)`. That
+ * happens to preserve the base list, but it is a string rewrite of a security
+ * header: any future edit to the base spelling would silently drop origins
+ * instead of failing loudly, and the intent (merge, never subtract) was not
+ * expressed anywhere. Rebuilding from the source list makes the invariant
+ * explicit and testable.
+ */
+export function withConnectSources(policy: string, extraSources: string[]) {
+  if (extraSources.length === 0) return policy;
+  const merged = [...CONNECT_SRC_SOURCES, ...extraSources];
+  const deduped = merged.filter(
+    (source, index) => merged.indexOf(source) === index,
+  );
+  return policy.replace(CONNECT_SRC, `connect-src ${deduped.join(" ")}`);
+}
 
 // `next dev` cannot run under this policy: React's development runtime calls
 // eval() (to reconstruct component stacks across realms) and the dev server's
@@ -201,10 +241,7 @@ const config: NextConfig = {
             key: enforcing
               ? "Content-Security-Policy"
               : "Content-Security-Policy-Report-Only",
-            value: CSP.replace(
-              "connect-src 'self'",
-              `connect-src 'self' ${host}`,
-            ),
+            value: withConnectSources(CSP, host.split(" ").filter(Boolean)),
           },
         ],
       })),

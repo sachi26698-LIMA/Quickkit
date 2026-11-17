@@ -138,6 +138,19 @@ export default function AdvancedPanel({ studio }: { studio: QrStudio }) {
           dot-code and custom masks are not supported — this tool writes
           standard model-2 QR symbols only.
         </p>
+        <p className="help">
+          <Lock size={13} aria-hidden="true" /> Very long payloads can reach the
+          limits of the QR standard itself. A payload may fit level L and still
+          make a symbol too dense for many phone cameras, so a small export at a
+          high level is allowed to drop to a lower one (never below L) to keep
+          the modules large; each change is reported in the warnings, never
+          applied silently. If an export is still too small to survive that
+          density, the canvas is grown instead — and only to the next size where
+          every module lands on a whole pixel, because QR modules cannot be
+          split across pixels and a fractional grid is what blurs a dense code.
+          Growing is reported too, so a requested size is never silently
+          changed.
+        </p>
       </div>
     </QrDisclosure>
   );

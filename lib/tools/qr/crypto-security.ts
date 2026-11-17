@@ -780,7 +780,10 @@ export function extractEncryptedToken(input: string): string | null {
   }
   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("/qr")) {
     try {
-      const parsed = new URL(trimmed, "https://quickkit-rosy.vercel.app");
+      // Only the path is read here, so the base must not be a domain this
+      // project does not own. An RFC 2606 `.invalid` name can never resolve,
+      // which also guarantees this base is never mistaken for a real host.
+      const parsed = new URL(trimmed, "https://quickkit.invalid");
       if (parsed.pathname.replace(/\/+$/, "") !== "/qr") return null;
       return parsed.searchParams.get(ENCRYPTED_QUERY_PARAM);
     } catch {

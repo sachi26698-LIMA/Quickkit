@@ -6,8 +6,10 @@ import {
   defaultValuesFor,
   escapeWifi,
   foldLine,
+  QR_SAMPLE_URL,
   isKnownContentType,
   redactForDisplay,
+  sampleValuesFor,
   sensitiveKeysFor,
 } from "@/lib/tools/qr/payload";
 import { QrUserError } from "@/lib/tools/qr/types";
@@ -555,5 +557,73 @@ describe("V3 destination types validate their inputs", () => {
         paymentUrl: "javascript:alert(1)",
       }),
     ).toThrow();
+  });
+});
+
+/**
+ * The workspace's sample button and the browser end-to-end suite have to encode
+ * the same bytes. The suite builds its expectation from `QR_SAMPLE_VALUES`, so
+ * when the sample URL was redefined inside the component the two drifted, every
+ * "the exported PNG decodes to its exact payload" test went red, and the app
+ * itself was fine. Pinning the pair here makes that a unit-test failure instead
+ * of a 20-test browser mystery.
+ */
+describe("the sample payload has a single source of truth", () => {
+  it("the component's sample URL is the one the payload module encodes", async () => {
+    const { QR_SAMPLE_URL: uiSampleUrl } =
+      await import("../components/tools/qr-generator/use-qr-studio");
+    expect(uiSampleUrl).toBe(QR_SAMPLE_URL);
+    expect(buildPayload("url", sampleValuesFor("url"))).toBe(QR_SAMPLE_URL);
+  });
+
+  it("no sample URL literal is defined outside the payload module", async () => {
+    // The regression that started all of this: a second literal for the sample
+    // URL, in the workspace hook. Assert there is exactly one definition, and
+    // that the browser suite's expectation is built from it rather than from a
+    // copy, so the two cannot drift again.
+    const { readdirSync, readFileSync, statSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const root = join(__dirname, "..");
+    const walk = (dir: string, out: string[] = []): string[] => {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) walk(full, out);
+        else if (/\.(ts|tsx)$/.test(entry)) out.push(full);
+      }
+      return out;
+    };
+    const offenders: string[] = [];
+    for (const file of [
+      ...walk(join(root, "components")),
+      ...walk(join(root, "app")),
+      ...walk(join(root, "lib")),
+      ...walk(join(root, "tests", "e2e")),
+    ]) {
+      const source = readFileSync(file, "utf8");
+      // A literal assignment of the sample URL outside payload.ts is the bug.
+      if (
+        /QR_SAMPLE_URL\s*[:=]\s*["'`]/.test(source) &&
+        !file.endsWith(join("lib", "tools", "qr", "payload.ts"))
+      )
+        offenders.push(file.replace(root + "/", ""));
+    }
+    expect(offenders).toEqual([]);
+
+    // And the browser suite must derive its expectation, not hard-code one.
+    const spec = readFileSync(
+      join(root, "tests", "e2e", "qr-studio-v3.spec.ts"),
+      "utf8",
+    );
+    expect(spec).toContain("sampleValuesFor(");
+    expect(spec).not.toContain("quickkit-rosy.vercel.app");
+    expect(spec).not.toContain("quickkit.tools/?src=qr-example");
+  });
+
+  it("every content type builds a payload from its sample", () => {
+    for (const type of QR_CONTENT_TYPES) {
+      expect(
+        buildPayload(type.id, sampleValuesFor(type.id)).length,
+      ).toBeGreaterThan(0);
+    }
   });
 });

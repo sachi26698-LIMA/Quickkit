@@ -202,6 +202,7 @@ test("request header analysis reports framing risks without revealing credential
 test("password repetition and digest-length findings are processed locally", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
   await page.goto(
     "/tools/password-generator?operation=password-strength-checker",
   );

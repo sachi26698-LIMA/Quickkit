@@ -22,6 +22,8 @@ import {
   TOOL_FEEDBACK_POSITIVE_TAGS as positive,
   TOOL_FEEDBACK_RATING_LABELS as labels,
   markToolFeedbackPrompted,
+  markToolFeedbackReviewed,
+  needsToolFeedbackReview,
   parseToolFeedback,
   readToolFeedback,
   shouldPromptToolFeedback,
@@ -109,7 +111,9 @@ function Feedback({
         anchor.getAttribute("aria-disabled") === "true" ||
         modal?.open ||
         timer ||
-        // One invitation per tool per 24 hours, however many files are saved.
+        // One invitation per tool per 24 hours, however many files are saved —
+        // and none at all once this browser has already rated the tool.
+        !needsToolFeedbackReview(slug) ||
         !shouldPromptToolFeedback(slug)
       )
         return;
@@ -118,6 +122,8 @@ function Feedback({
         if (
           event.defaultPrevented ||
           modal?.open ||
+          // Re-checked: a rating sent while the timer was pending wins.
+          !needsToolFeedbackReview(slug) ||
           !shouldPromptToolFeedback(slug)
         )
           return;
@@ -180,6 +186,10 @@ function Feedback({
       );
       return;
     }
+    // The rating is with QUICKKIT, so this tool stops inviting one. Recorded
+    // separately from the copy below: a blocked store must not re-prompt
+    // someone whose rating was already delivered.
+    markToolFeedbackReviewed(slug);
     try {
       // This browser's own record of what it sent. Optional: a blocked or
       // full store must not turn a delivered rating into an error.

@@ -222,6 +222,9 @@ test("text encryption and decryption round trip", async ({ page }) => {
 test("hash comparison and redaction process two inputs locally", async ({
   page,
 }) => {
+  // Two tool pages, each behind the consolidated workspace's client-side
+  // hydration gate, on a two-core CI runner.
+  test.setTimeout(120_000);
   await page.goto("/tools/hash-comparison");
   let w = page.getByRole("group", { name: "Security tool workspace" });
   await w.getByLabel("First hexadecimal digest").fill("deadbeef");
@@ -330,6 +333,9 @@ test("security.txt generates and validates without contacting a site", async ({
 test("image metadata, cleaning, file signature and DOCX properties handle uploads", async ({
   page,
 }) => {
+  // Four workbenches plus real file uploads; the uploads alone take seconds
+  // each on CI.
+  test.setTimeout(180_000);
   const png = await readFile("tests/fixtures/image-to-text/blank.png");
   const input = { name: "blank.png", mimeType: "image/png", buffer: png };
   await page.goto("/tools/image-metadata-inspector");

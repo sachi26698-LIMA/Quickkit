@@ -278,7 +278,19 @@ export function clampDesign(
     );
   }
 
-  const invert = Boolean(raw.invert ?? base.invert);
+  // A transparent design paints no field, so inverting it would leave light
+  // modules on nothing: flattenBitmap composites that onto white and the whole
+  // symbol disappears into the page (measured: 0 of 6 decoder attempts, at
+  // every export size). Transparent wins — it is the property that makes the
+  // design usable as an overlay — and the invert flag is dropped with an
+  // explanation rather than producing a code that can never be verified.
+  const requestedInvert = Boolean(raw.invert ?? base.invert);
+  const invert = requestedInvert && !transparent;
+  if (requestedInvert && transparent)
+    note(
+      "invert",
+      "On a transparent background there is no field to invert against, so the colours were left as they are — an inverted code on transparency cannot be decoded. Turn the background back on to use inverted colours.",
+    );
   if (invert)
     note(
       "invert",
