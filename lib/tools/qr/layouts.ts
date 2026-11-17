@@ -8,154 +8,37 @@
  * artefacts (business card, sticker, product label, poster, folded table tent)
  * plus an A4 grid sheet for cutting many copies.
  */
-import { PDFDocument, StandardFonts, degrees, rgb } from "@cantoo/pdf-lib";
-import { createQrPdf, type QrPdfOptions } from "./export";
+import { type QrPdfOptions } from "./export";
+import { createQrPdf } from "./export-pdf";
 
 const MM = 72 / 25.4;
-const INK = rgb(0.106, 0.059, 0.18); // Midnight
-const GUIDE = rgb(0.8, 0.78, 0.86);
+// These were module-scope rgb() calls, which executed pdf-lib at import time and
+// pulled the whole library into the first paint. Resolved on demand instead.
+type Rgb = ReturnType<(typeof import("@cantoo/pdf-lib"))["rgb"]>;
+const inkColor = (rgb: (r: number, g: number, b: number) => Rgb): Rgb =>
+  rgb(0.106, 0.059, 0.18); // Midnight
+const guideColor = (rgb: (r: number, g: number, b: number) => Rgb): Rgb =>
+  rgb(0.8, 0.78, 0.86);
 
-export type QrPrintLayoutId =
-  | "single"
-  | "business-card"
-  | "sticker"
-  | "product-label"
-  | "poster"
-  | "table-tent"
-  | "a4-sheet";
+export {
+  PRINT_LAYOUTS,
+  printLayoutDef,
+  clampSheet,
+  DEFAULT_SHEET,
+} from "./layouts-data";
+import {
+  DEFAULT_SHEET,
+  clampSheet,
+  printLayoutDef,
+  type QrPrintLayoutId,
+  type SheetOptions,
+} from "./layouts-data";
+export type {
+  QrPrintLayout,
+  QrPrintLayoutId,
+  SheetOptions,
+} from "./layouts-data";
 
-export type QrPrintLayout = {
-  id: QrPrintLayoutId;
-  name: string;
-  blurb: string;
-  /** Fixed page size in mm; null means "use the chosen paper" (single). */
-  pageMm: { w: number; h: number } | null;
-  /** Printed code width in mm (a starting point the sheet grid can override). */
-  codeMm: number;
-};
-
-export const PRINT_LAYOUTS: QrPrintLayout[] = [
-  {
-    id: "single",
-    name: "Single code",
-    blurb: "One code centred on the paper you choose below.",
-    pageMm: null,
-    codeMm: 45,
-  },
-  {
-    id: "business-card",
-    name: "Business card",
-    blurb: "85 × 55 mm card — code on the right, name on the left.",
-    pageMm: { w: 85, h: 55 },
-    codeMm: 22,
-  },
-  {
-    id: "sticker",
-    name: "Sticker",
-    blurb: "50 × 50 mm square label — code fills the face.",
-    pageMm: { w: 50, h: 50 },
-    codeMm: 40,
-  },
-  {
-    id: "product-label",
-    name: "Product label",
-    blurb: "70 × 40 mm label — code left, caption right.",
-    pageMm: { w: 70, h: 40 },
-    codeMm: 28,
-  },
-  {
-    id: "poster",
-    name: "Poster",
-    blurb: "A4 with a large 130 mm code and a bold caption.",
-    pageMm: { w: 210, h: 297 },
-    codeMm: 130,
-  },
-  {
-    id: "table-tent",
-    name: "Table tent",
-    blurb: "A4 landscape, fold in half — a code on each standing face.",
-    pageMm: { w: 297, h: 210 },
-    codeMm: 70,
-  },
-  {
-    id: "a4-sheet",
-    name: "A4 cut sheet",
-    blurb: "A grid of identical codes on A4, with cut guides.",
-    pageMm: { w: 210, h: 297 },
-    codeMm: 45,
-  },
-];
-
-export function printLayoutDef(id: QrPrintLayoutId): QrPrintLayout {
-  return PRINT_LAYOUTS.find((layout) => layout.id === id) ?? PRINT_LAYOUTS[0];
-}
-
-export type SheetOptions = {
-  cols: number;
-  rows: number;
-  codeMm: number;
-  gapMm: number;
-};
-
-export const DEFAULT_SHEET: SheetOptions = {
-  cols: 3,
-  rows: 4,
-  codeMm: 45,
-  gapMm: 6,
-};
-
-/** Clamp a sheet grid to something that actually fits on A4 with a margin. */
-export function clampSheet(input: Partial<SheetOptions>): SheetOptions {
-  const base = { ...DEFAULT_SHEET, ...input };
-  const cols = Math.max(1, Math.min(6, Math.round(base.cols)));
-  const rows = Math.max(1, Math.min(8, Math.round(base.rows)));
-  const gapMm = Math.max(0, Math.min(15, base.gapMm));
-  // Leave a 10 mm outer margin; shrink the code if the grid would overflow.
-  const maxCode = Math.min(
-    (210 - 20 - gapMm * (cols - 1)) / cols,
-    (297 - 20 - gapMm * (rows - 1)) / rows,
-  );
-  const codeMm = Math.max(12, Math.min(base.codeMm, Math.floor(maxCode)));
-  return { cols, rows, codeMm, gapMm };
-}
-
-/** Word-wrap a caption to a width (mm) at a font size (pt). */
-function wrapText(
-  text: string,
-  font: { widthOfTextAtSize: (t: string, s: number) => number },
-  size: number,
-  maxWidthPt: number,
-  maxLines: number,
-): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const trial = line ? `${line} ${word}` : word;
-    if (font.widthOfTextAtSize(trial, size) <= maxWidthPt || !line) {
-      line = trial;
-    } else {
-      lines.push(line);
-      line = word;
-      if (lines.length === maxLines - 1) break;
-    }
-  }
-  if (line && lines.length < maxLines) lines.push(line);
-  if (lines.length === maxLines && words.join(" ") !== lines.join(" ")) {
-    const last = lines[maxLines - 1];
-    lines[maxLines - 1] =
-      font.widthOfTextAtSize(`${last}…`, size) <= maxWidthPt
-        ? `${last}…`
-        : last;
-  }
-  return lines;
-}
-
-/**
- * Build the PDF for a layout. `png` must already be decode-verified. `caption`
- * is the user's label (or null). `pdfOptions` only affects the "single" layout;
- * `sheet` only affects "a4-sheet".
- */
 export async function createLayoutPdf(
   png: Uint8Array,
   caption: string | null,
@@ -169,6 +52,11 @@ export async function createLayoutPdf(
   if (layoutId === "a4-sheet") {
     return createPrintSheetPdf(png, caption, sheet);
   }
+  // pdf-lib loads only when a real print-layout PDF is requested (~240 kB gz).
+  const { PDFDocument, StandardFonts, degrees, rgb } =
+    await import("@cantoo/pdf-lib");
+  const INK = inkColor(rgb);
+  const GUIDE = guideColor(rgb);
   const doc = await PDFDocument.create();
   const image = await doc.embedPng(png);
   const font = await doc.embedFont(StandardFonts.Helvetica);
@@ -326,6 +214,9 @@ export async function createPrintSheetPdf(
   input: SheetOptions,
 ): Promise<Uint8Array> {
   const sheet = clampSheet(input);
+  const { PDFDocument, StandardFonts, rgb } = await import("@cantoo/pdf-lib");
+  const INK = inkColor(rgb);
+  const GUIDE = guideColor(rgb);
   const doc = await PDFDocument.create();
   const image = await doc.embedPng(png);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -371,4 +262,36 @@ export async function createPrintSheetPdf(
     }
   }
   return doc.save();
+}
+
+/** Wrap a caption to a pixel width using the embedded font's own metrics. */
+function wrapText(
+  text: string,
+  font: { widthOfTextAtSize: (t: string, s: number) => number },
+  size: number,
+  maxWidthPt: number,
+  maxLines: number,
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const trial = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(trial, size) <= maxWidthPt || !line) {
+      line = trial;
+    } else {
+      lines.push(line);
+      line = word;
+      if (lines.length === maxLines - 1) break;
+    }
+  }
+  if (line && lines.length < maxLines) lines.push(line);
+  if (lines.length === maxLines && words.join(" ") !== lines.join(" ")) {
+    const last = lines[maxLines - 1];
+    lines[maxLines - 1] =
+      font.widthOfTextAtSize(`${last}…`, size) <= maxWidthPt
+        ? `${last}…`
+        : last;
+  }
+  return lines;
 }

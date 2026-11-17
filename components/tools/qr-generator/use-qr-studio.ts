@@ -62,11 +62,9 @@ import {
 } from "@/lib/tools/qr/export";
 import {
   DEFAULT_SHEET,
-  createLayoutPdf,
-  printLayoutDef,
   type QrPrintLayoutId,
   type SheetOptions,
-} from "@/lib/tools/qr/layouts";
+} from "@/lib/tools/qr/layouts-data";
 import { withPngDpi } from "@/lib/tools/qr/png";
 import {
   DEFAULT_LANDING,
@@ -1103,6 +1101,9 @@ export function useQrStudio() {
     }
     setBusy("Building PDF…");
     try {
+      // Loaded here so pdf-lib stays out of the tool's first paint.
+      const { createLayoutPdf } = await import("@/lib/tools/qr/layouts");
+      const { printLayoutDef } = await import("@/lib/tools/qr/layouts-data");
       const bytes = await createLayoutPdf(
         output.png,
         pdfOptions.caption ? label : null,
