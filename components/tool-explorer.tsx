@@ -7,8 +7,8 @@ import {
   categories as staticCategories,
   metaBySlug,
   type Category,
-  type Tool,
 } from "@/lib/catalog";
+import type { ClientTool } from "@/lib/client-tool";
 import ToolCard from "@/components/tool-card";
 import { operationForSearch } from "@/lib/tools/security/consolidation";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -43,7 +43,7 @@ function ToolExplorerContent({
 }: {
   initialQuery?: string;
   initialCategory?: Category;
-  tools: Tool[];
+  tools: ClientTool[];
   categoryMeta: import("@/lib/catalog").CategoryMeta[];
 }) {
   const ready = useHydrated();
@@ -247,7 +247,7 @@ function ToolExplorerWithUrlParams({
 }: {
   initialQuery?: string;
   initialCategory?: Category;
-  tools: Tool[];
+  tools: ClientTool[];
   categoryMeta: import("@/lib/catalog").CategoryMeta[];
 }) {
   const searchParams = useSearchParams();
@@ -286,7 +286,7 @@ export default function ToolExplorer({
 }: {
   initialQuery?: string;
   initialCategory?: Category;
-  tools: Tool[];
+  tools: ClientTool[];
   categoryMeta: import("@/lib/catalog").CategoryMeta[];
 }) {
   return (

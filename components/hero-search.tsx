@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Search, X } from "lucide-react";
-import type { Tool } from "@/lib/catalog";
+import type { ClientTool } from "@/lib/client-tool";
 import ToolIcon from "@/components/tool-icon";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -11,7 +11,7 @@ import { useHydrated } from "@/lib/use-hydrated";
  * Homepage hero search: live suggestions link straight to tools; submitting
  * opens the full toolkit at /tools with the query applied.
  */
-export default function HeroSearch({ tools }: { tools: Tool[] }) {
+export default function HeroSearch({ tools }: { tools: ClientTool[] }) {
   const ready = useHydrated();
   const router = useRouter();
   const [query, setQuery] = useState("");

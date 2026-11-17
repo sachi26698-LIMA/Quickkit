@@ -16,6 +16,7 @@ import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
+import { toClientTools } from "@/lib/client-tool";
 import {
   getPublicCatalog,
   getPublicSiteSettings,
@@ -84,6 +85,11 @@ export default async function Home() {
     getPublicCatalog(),
     getPublicSiteSettings(),
   ]);
+  // SEO/admin/maintenance fields are server-only. Project to the display subset
+  // before anything reaches a client component, so ~8.5 kB per catalogue read
+  // is not serialised into the RSC payload for a search box that never reads it.
+  // `isFeatured` is consulted here, on the server, before the projection.
+  const clientTools = toClientTools(tools);
   const featuredTools = tools.filter((tool) => tool.isFeatured);
   const popularTools = featuredTools.length
     ? featuredTools
@@ -120,7 +126,7 @@ export default async function Home() {
           </p>
         </div>
         <div className="hero-search-zone">
-          <HeroSearch tools={tools} />
+          <HeroSearch tools={clientTools} />
         </div>
         <HeroArt />
         <div className="hero-copy">
@@ -194,7 +200,7 @@ export default async function Home() {
                 </p>
               </div>
             </div>
-            <CategoryGrid categories={categories} tools={tools} />
+            <CategoryGrid categories={categories} tools={clientTools} />
           </Reveal>
         </section>
 
