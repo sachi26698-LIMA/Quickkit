@@ -11,6 +11,7 @@ import { toolSurfaceStyle, toolTheme, toolThemeStyle } from "@/lib/tool-theme";
 import { breadcrumbStructuredData, toolStructuredData } from "@/lib/seo";
 import JsonLd from "./json-ld";
 import AdUnit from "./ad-unit";
+import RecentToolTracker from "./recent-tool-tracker";
 import { ToolIcon3D, toolTone } from "./icon-3d";
 // Tool-page-only styling (scoped to .tool-page[data-tool]); the generated
 // sheet carries the lifted type scale, the hand-written one the glass UI.
@@ -86,8 +87,10 @@ export default function ToolShell({
           </>
         ) : null}
         <ChevronRight size={13} />
-        <span>{tool.name}</span>
+        <span aria-current="page">{tool.name}</span>
       </nav>
+      {/* Local-only "recently used" memory for the homepage row. */}
+      <RecentToolTracker slug={tool.slug} />
       {/* The same four levels the breadcrumb above shows. Every one of the 42
           tool pages gets it from here. */}
       <JsonLd

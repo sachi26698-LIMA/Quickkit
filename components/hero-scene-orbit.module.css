@@ -19,15 +19,15 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse,
-    #f4d7d4 0%,
-    #f4d7d466 45%,
+    #ede6fb 0%,
+    #ede6fb66 45%,
     transparent 72%
   );
 }
 .orbit {
   position: absolute;
   inset: 20% 8% 12%;
-  border: 1px solid #d6598f55;
+  border: 1px solid #f04f9b55;
   border-radius: 50%;
   transform: rotate(-10deg);
 }
@@ -116,7 +116,7 @@
 .screenLayer {
   --screen-ink: #2e1946;
   --screen-muted: #665276;
-  --screen-accent: #6d28d9;
+  --screen-accent: #7828d8;
   --screen-line: #dccced;
   z-index: 1;
   /* Opaque base hides the original render; layered light adds glass depth
@@ -183,7 +183,7 @@
   background: linear-gradient(135deg, #c084fc, #7c3aed 50%, #a21caf);
   box-shadow:
     inset 0 0.2cqw 0.4cqw #ffffff88,
-    0 0.4cqw 0.8cqw #6d28d940;
+    0 0.4cqw 0.8cqw #7828d840;
 }
 .screenLogo svg {
   width: 56%;
@@ -212,11 +212,11 @@
   padding: 0 1cqw;
   border: 0.16cqw solid #bba0df;
   border-radius: 2.6cqw;
-  color: #5b21b6;
+  color: #681fc4;
   background: linear-gradient(115deg, #ffffffed, #fcf7fff0);
   box-shadow:
     inset 0 0.15cqw 0.4cqw #ffffff,
-    0 0.4cqw 1cqw #6d28d922;
+    0 0.4cqw 1cqw #7828d822;
 }
 .miniSearch svg {
   width: 1.8cqw;
@@ -240,7 +240,7 @@
   outline-offset: 0.15cqw;
 }
 .miniSearch input::placeholder {
-  color: #5b21b6;
+  color: #681fc4;
   opacity: 1;
 }
 .miniResults {
@@ -254,7 +254,7 @@
   border: 0.12cqw solid var(--screen-line);
   border-radius: 0.8cqw;
   background: #ffffff;
-  box-shadow: 0 0.5cqw 1cqw #5b21b633;
+  box-shadow: 0 0.5cqw 1cqw #681fc433;
   font-size: 1.25cqw;
 }
 .miniResults ul {
@@ -265,7 +265,7 @@
 .miniResults a {
   display: block;
   padding: 0.65cqw 1cqw;
-  color: #5b21b6;
+  color: #681fc4;
 }
 .miniResults a:hover,
 .miniResults a:focus-visible {
@@ -369,18 +369,18 @@
   padding: 0.7cqw 1cqw;
   border: 0;
   border-radius: 0.8cqw;
-  background: linear-gradient(110deg, #5b21b6, #a21caf);
+  background: linear-gradient(110deg, #681fc4, #a21caf);
   color: #fff;
   box-shadow:
     inset 0 0.1cqw 0 #ffffff40,
-    0 0.3cqw 0.7cqw #6d28d929;
+    0 0.3cqw 0.7cqw #7828d829;
   font-size: 1cqw;
   font-weight: 800;
   line-height: 1.2;
   white-space: nowrap;
 }
 .feedbackButton:hover {
-  background: linear-gradient(110deg, #4c1d95, #86198f);
+  background: linear-gradient(110deg, #5b1fa8, #86198f);
 }
 .feedbackButton:focus-visible {
   outline: 0.22cqw solid var(--screen-accent);
@@ -496,7 +496,7 @@
   --bob-delay: -2.5s;
   --glass-light: #d8b4fe55;
   --glass-depth: #a78bfa29;
-  --glass-ink: #5b21b6;
+  --glass-ink: #681fc4;
 }
 .code {
   --anchor-x: 92%;
@@ -580,7 +580,7 @@
   --bob-delay: -0.6s;
   --art-size: clamp(32px, 6.2cqw, 80px);
   --glass-light: #c4b5fd66;
-  --glass-ink: #6d28d9;
+  --glass-ink: #7828d8;
 }
 .lock,
 .calendar,

@@ -1,31 +1,31 @@
 /* Homepage-only colour layer: shared headers, categories and tools retain
    their own palettes. No extra images, animation or client-side code. */
 .premiumHome {
-  --home-violet: #5b21b6;
-  --home-ink: #211439;
-  --home-muted: #62566f;
-  --home-line: #ded4ee;
-  --home-gradient: linear-gradient(120deg, #4c1d95, #6d28d9 52%, #a21caf);
+  --home-violet: #7828d8;
+  --home-ink: #241638;
+  --home-muted: #5f5172;
+  --home-line: #ddd3f3;
+  --home-gradient: linear-gradient(120deg, #54205f, #7828d8 55%, #c4185f);
   --purple: var(--home-violet);
-  --purple-deep: #4c1d95;
+  --purple-deep: #681fc4;
   --secondary: var(--home-muted);
   --ink: var(--home-ink);
   --border: var(--home-line);
-  --border-strong: #bca4de;
-  --lavender-soft: #f4effc;
+  --border-strong: #c4b3ea;
+  --lavender-soft: #f3edfd;
   background:
-    radial-gradient(ellipse 65% 600px at 8% 120px, #ede3fc 0%, transparent 75%),
+    radial-gradient(ellipse 65% 600px at 8% 120px, #ebe1fc 0%, transparent 75%),
     radial-gradient(
       ellipse 55% 650px at 100% 280px,
-      #fce5ee 0%,
+      #fdeaf3 0%,
       transparent 75%
     ),
     radial-gradient(
       ellipse 60% 520px at 30% 1050px,
-      #e8f5fa 0%,
+      #e3f5f6 0%,
       transparent 78%
     ),
-    linear-gradient(180deg, #fbf9ff, #fffbfc 42%, #faf8ff 75%, #fdfaff);
+    linear-gradient(180deg, #fbfaff, #fffdff 42%, #faf9ff 75%, #fcfbff);
 }
 
 .premiumHome :global(.hero) {
@@ -39,14 +39,14 @@
   max-width: 100%;
   margin-bottom: 15px;
   padding: 8px 14px;
-  border: 1px solid #dacbef;
+  border: 1px solid #d4c6f2;
   border-radius: 999px;
-  background: linear-gradient(110deg, #fffffff2, #f3eafb);
+  background: linear-gradient(110deg, #fffffff2, #f1eafd);
   box-shadow:
     inset 0 1px 0 #fff,
-    0 4px 14px #5b21b60a;
-  color: #63349a;
-  font-size: 10px;
+    0 4px 14px #681fc40a;
+  color: #681fc4;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.5;
   letter-spacing: 0.12em;
@@ -63,12 +63,12 @@
 
 .headlineAccent {
   /* The solid colour is also a fallback if text clipping is unavailable. */
-  color: #6d28d9;
+  color: #7828d8;
 }
 
 @supports (background-clip: text) {
   .headlineAccent {
-    background: linear-gradient(105deg, #5b21b6, #7e22ce 48%, #be185d);
+    background: linear-gradient(105deg, #5b1fa8, #7828d8 50%, #c4185f);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -87,11 +87,11 @@
 
 .premiumHome :global(.search-wrap) {
   background: linear-gradient(115deg, #fff, #fcfaff);
-  border-color: #d7c5ed;
+  border-color: #d0c2f0;
   box-shadow:
     0 0 0 5px #ffffffa6,
-    0 8px 18px -10px #5b21b630,
-    0 20px 46px -24px #6d28d94d;
+    0 8px 18px -10px #7828d833,
+    0 20px 46px -24px #54205f4d;
 }
 
 .premiumHome :global(.search-wrap:focus-within) {
@@ -99,7 +99,7 @@
 }
 
 .premiumHome :global(.search-wrap input::placeholder) {
-  color: #796b88;
+  color: #6e6280;
 }
 
 .premiumHome :global(.popular-chip) {
@@ -132,7 +132,7 @@
   border: 1px solid #ffffff42;
   box-shadow:
     inset 0 1px 0 #ffffff38,
-    0 8px 24px -8px #6d28d970;
+    0 8px 24px -8px #7828d870;
 }
 
 .premiumHome :global(.hero-benefits) {
@@ -141,20 +141,20 @@
 }
 
 .premiumHome :global(.hero-benefits svg) {
-  color: #0f766e;
+  color: #0e7c79;
 }
 
 .premiumHome :global(.eyebrow) {
-  color: #7e3b9d;
+  color: #681fc4;
   letter-spacing: 0.09em;
 }
 
 .premiumHome :global(.section-link) {
-  border-color: #ded2ef;
-  background: linear-gradient(120deg, #fff, #f7f2ff);
+  border-color: #ddd3f3;
+  background: linear-gradient(120deg, #fff, #f6f2fe);
   box-shadow:
     inset 0 1px 0 #fff,
-    0 4px 12px #5b21b609;
+    0 4px 12px #7828d80a;
 }
 
 .premiumHome :global(.category-card) {
@@ -183,7 +183,7 @@
 
 .premiumHome :global(.why-card:nth-child(2)) {
   --feature-rgb: 139 92 246;
-  --feature-deep: #5b21b6;
+  --feature-deep: #681fc4;
 }
 
 .premiumHome :global(.why-card:nth-child(3)) {
@@ -215,39 +215,39 @@
 .premiumHome :global(.home-copy) {
   max-width: 86ch;
   padding: clamp(20px, 3.5vw, 36px);
-  border: 1px solid #e5dbf0;
+  border: 1px solid #e3dbf5;
   border-radius: 24px;
-  background: linear-gradient(135deg, #ffffffed, #f7f3fce6);
+  background: linear-gradient(135deg, #ffffffed, #f8f5fce6);
   box-shadow:
     inset 0 1px 0 #fff,
-    0 12px 36px -28px #5b21b64d;
+    0 12px 36px -28px #7828d84d;
 }
 
 .premiumHome :global(.home-copy strong) {
-  color: #4c1d95;
+  color: #54205f;
 }
 
 .premiumHome :global(.cta-banner) {
   border: 1px solid #ffffff4d;
   border-radius: 30px;
   background:
-    radial-gradient(ellipse at 5% 0%, #8b5cf659, transparent 58%),
-    radial-gradient(ellipse at 100% 100%, #db277759, transparent 60%),
-    linear-gradient(120deg, #211339, #42216b 48%, #63245b);
+    radial-gradient(ellipse at 5% 0%, #7828d859, transparent 58%),
+    radial-gradient(ellipse at 100% 100%, #f04f9b52, transparent 60%),
+    linear-gradient(120deg, #27103f, #54205f 48%, #6a2fa0);
   box-shadow:
     inset 0 1px 0 #ffffff26,
-    0 24px 50px -20px #3b176366;
+    0 24px 50px -20px #27103f66;
 }
 
 .premiumHome :global(.cta-zap) {
   color: #f5d0fe;
-  filter: drop-shadow(0 0 18px #e879f959);
+  filter: drop-shadow(0 0 18px #f04f9b59);
 }
 
 .premiumHome :global(.cta-button) {
-  color: #4c1d95;
+  color: #54205f;
   border: 1px solid #fff;
-  background: linear-gradient(120deg, #fff, #f5eaff);
+  background: linear-gradient(120deg, #fff, #f4edfd);
   box-shadow:
     inset 0 1px 0 #fff,
     0 10px 24px #170c2a40;
@@ -259,7 +259,7 @@
   }
 
   .heroBadge {
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.08em;
     padding: 7px 12px;
   }

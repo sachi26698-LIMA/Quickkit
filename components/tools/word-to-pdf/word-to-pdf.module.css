@@ -2,10 +2,10 @@
   --plum: var(--t-deep);
   --rose: var(--t-deep);
   --coral: rgb(var(--t2-rgb));
-  --midnight: #1a0f2e;
+  --midnight: #241638;
   --blush: color-mix(in srgb, rgb(var(--t-rgb)) 14%, #fff);
   --line: rgb(var(--t-rgb) / 0.11);
-  --muted: #1a0f2eb8;
+  --muted: #241638b8;
   color: var(--midnight);
   max-width: 1660px;
   margin: 0 auto;
@@ -252,7 +252,7 @@
   max-height: 1050px;
   align-self: stretch;
   scrollbar-width: thin;
-  scrollbar-color: #3b1b4f30 transparent;
+  scrollbar-color: #54205f30 transparent;
 }
 .settingsPanel {
   width: 300px;
@@ -757,7 +757,7 @@
   margin: 0 auto;
   flex-shrink: 0;
   background: white;
-  box-shadow: 0 3px 16px #1a0f2e19;
+  box-shadow: 0 3px 16px #24163819;
 }
 .skeleton {
   display: flex;

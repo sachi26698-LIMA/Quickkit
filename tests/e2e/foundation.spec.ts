@@ -60,7 +60,9 @@ test("hero search suggests tools and opens results in All Tools", async ({
   page,
 }) => {
   await page.goto("/");
-  const search = page.getByRole("searchbox", {
+  // The hero input is an ARIA 1.2 combobox (role=combobox overrides the
+  // implicit searchbox role of input[type=search]).
+  const search = page.getByRole("combobox", {
     name: "Search tools",
     exact: true,
   });
