@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { useToolSearch } from "@/lib/use-tool-search";
+import SearchStatus from "@/components/search-status";
 import styles from "./hero-scene-orbit.module.css";
 
 /** Uses the same catalogue matching as the main hero search. */
@@ -11,7 +12,7 @@ export default function HeroScreenSearch() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const searching = query.trim().length > 0;
-  const { filter, load: loadCatalogue } = useToolSearch();
+  const { filter, status, load: loadCatalogue } = useToolSearch();
   const results = searching && filter ? filter(query, "All tools") : [];
 
   return (
@@ -51,7 +52,9 @@ export default function HeroScreenSearch() {
       </form>
       {open && searching && (
         <div className={styles.miniResults}>
-          {!filter ? (
+          {status === "error" ? (
+            <p>Search is unavailable — reload the page to try again.</p>
+          ) : !filter ? (
             <p>Searching…</p>
           ) : results.length ? (
             <ul>
@@ -71,9 +74,14 @@ export default function HeroScreenSearch() {
           )}
         </div>
       )}
-      <span className="sr-only" role="status">
-        {searching ? `${results.length} tools found` : ""}
-      </span>
+      <SearchStatus
+        state={
+          status === "error" ? "error" : searching && !filter ? "busy" : "idle"
+        }
+        query={query}
+        count={results.length}
+        labels={false}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useDeferredValue, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Clock, Search, SlidersHorizontal, X } from "lucide-react";
@@ -12,6 +12,7 @@ import {
 import ToolCard from "@/components/tool-card";
 import { operationForSearch } from "@/lib/tools/security/consolidation";
 import { useHydrated } from "@/lib/use-hydrated";
+import SearchStatus from "@/components/search-status";
 
 export function resolveExplorerCategory(
   value: string | null | undefined,
@@ -54,7 +55,12 @@ function ToolExplorerContent({
     "All tools",
     ...categoryMeta.map((meta) => meta.name),
   ];
-  const search = query.trim().toLocaleLowerCase();
+  // Deferred so a fast typist never blocks on re-filtering the whole catalogue;
+  // `pending` is true only while the filtered list is genuinely catching up, so
+  // the scanning row cannot linger once results are on screen.
+  const deferredQuery = useDeferredValue(query);
+  const pending = deferredQuery !== query;
+  const search = deferredQuery.trim().toLocaleLowerCase();
   const matches = tools.filter(
     (tool) =>
       (category === "All tools" ||
@@ -170,9 +176,11 @@ function ToolExplorerContent({
         />
       </div>
 
-      <p className="sr-only" role="status">
-        {results.length} tools found
-      </p>
+      <SearchStatus
+        state={pending ? "busy" : "idle"}
+        query={query}
+        count={results.length}
+      />
 
       <h2 className="sr-only">Browse tools</h2>
 

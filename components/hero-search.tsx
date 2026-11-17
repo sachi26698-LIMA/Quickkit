@@ -1,11 +1,18 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Search, X } from "lucide-react";
 import type { Tool } from "@/lib/catalog";
 import ToolIcon from "@/components/tool-icon";
 import { useHydrated } from "@/lib/use-hydrated";
+import SearchStatus from "@/components/search-status";
 
 /**
  * Homepage hero search: live suggestions link straight to tools; submitting
@@ -24,8 +31,20 @@ export default function HeroSearch({ tools }: { tools: Tool[] }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const searching = query.trim().length > 0;
-  const search = query.trim().toLocaleLowerCase();
-  const matches = searching
+  // Typing into a 56-tool catalogue is usually immediate, but on a slow device
+  // it can jank a keystroke. Deferring the *rendering* of the result list keeps
+  // the input responsive and gives an honest signal for when the filtered list
+  // is genuinely behind — `pending` is true only while that work is outstanding,
+  // so the scanning indicator cannot get stuck on screen.
+  const deferredQuery = useDeferredValue(query);
+  const pending = deferredQuery !== query;
+  const search = deferredQuery.trim().toLocaleLowerCase();
+  // Gate on `search`, not `searching`. `searching` reflects what the visitor has
+  // just typed; `search` reflects the value the list is actually filtered by. In
+  // the window between the two, `search` is still "" — and `includes("")` matches
+  // every tool, which would flash the entire catalogue before filtering. Gating
+  // on `search` keeps the previous list empty instead of momentarily wrong.
+  const matches = search
     ? tools.filter((tool) =>
         `${tool.name} ${tool.description} ${tool.keywords}`
           .toLocaleLowerCase()
@@ -146,6 +165,13 @@ export default function HeroSearch({ tools }: { tools: Tool[] }) {
       </form>
       {panelOpen && searching ? (
         <div className="search-panel">
+          <SearchStatus
+            state={pending ? "busy" : "idle"}
+            query={query}
+            count={results.length}
+            labels
+            className="search-status-panel"
+          />
           {results.length ? (
             <>
               <ul className="search-results">
@@ -184,9 +210,12 @@ export default function HeroSearch({ tools }: { tools: Tool[] }) {
           )}
         </div>
       ) : null}
-      <p className="sr-only" role="status">
-        {searching ? `${results.length} tools found` : ""}
-      </p>
+      <SearchStatus
+        state={pending && searching ? "busy" : "idle"}
+        query={query}
+        count={results.length}
+        labels={false}
+      />
     </div>
   );
 }

@@ -37,9 +37,39 @@
 * {
   box-sizing: border-box;
 }
+/*
+ * Scroll behaviour is deliberately NOT `smooth` here.
+ *
+ * Next.js resets the document scroll on every client-side navigation with a
+ * bare `documentElement.scrollTop = 0` (layout-router.js). A direct `scrollTop`
+ * assignment honours the CSS `scroll-behavior` of the scroller, so a global
+ * `smooth` turned that reset into an animated glide up the page being LEFT —
+ * the visitor saw the old page slide to the top, then the new page appear.
+ * That is the "animated scrolling of the previous page" symptom, and it is a
+ * stylesheet bug, not a router bug.
+ *
+ * The default is therefore instant, which is what `pushState` navigations and
+ * the browser's own back/forward restore both expect. Deliberate in-page
+ * anchors opt back in with `[data-smooth-scroll]` (see below), and the header
+ * search button asks for `behavior: "smooth"` explicitly because it is moving
+ * within one page.
+ *
+ * `scroll-padding-top` is unrelated to the animation and stays: it keeps
+ * anchor targets clear of the sticky header.
+ */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-padding-top: 96px;
+}
+
+/*
+ * Opt-in smooth scrolling for same-page anchor navigation only. Adding the
+ * attribute to <html> is a deliberate per-navigation choice, so the animation
+ * can never leak into a route change. It is cleared immediately afterwards so
+ * the next navigation is instant again.
+ */
+html[data-smooth-scroll] {
+  scroll-behavior: smooth;
 }
 body {
   margin: 0;
@@ -3081,8 +3111,13 @@ details p {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+  /* Overrides the [data-smooth-scroll] opt-in as well: a visitor who asked the
+     system to reduce motion never gets an animated scroll, even for an
+     in-page anchor. `!important` is required to beat the attribute selector's
+     higher specificity. */
+  html,
+  html[data-smooth-scroll] {
+    scroll-behavior: auto !important;
   }
   *,
   *::before,
@@ -21639,5 +21674,512 @@ body:has(.home-landing) .site-footer nav > a[data-home-link="hidden"] {
 @media (max-width: 640px) {
   .qr-dt-security-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Route skeletons
+   ───────────────────────────────────────────────────────────────────────────
+   Each route's loading.tsx composes the primitives in components/skeletons
+   into that page's real shape. The pieces below only decide how a placeholder
+   looks — the shimmer, the colour ramp and the shared page scaffolding.
+
+   Everything is sized from the same tokens the real content uses, so the
+   skeleton occupies the same box and the swap costs no layout shift. The
+   shimmer animates `background-position` on a gradient rather than layout
+   properties, so it stays on the compositor.
+   ─────────────────────────────────────────────────────────────────────────── */
+.skeleton-page {
+  padding-top: 1.5rem;
+  padding-bottom: 4rem;
+}
+.skeleton-block {
+  display: block;
+  background: linear-gradient(
+    100deg,
+    var(--lavender-soft) 30%,
+    var(--surface) 50%,
+    var(--lavender-soft) 70%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+.skeleton-text {
+  display: flex;
+  flex-direction: column;
+}
+.skeleton-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.skeleton-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin-bottom: 2rem;
+}
+.skeleton-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.skeleton-card {
+  display: block;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    100deg,
+    var(--lavender-soft) 30%,
+    var(--surface) 50%,
+    var(--lavender-soft) 70%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+.skeleton-grid {
+  display: grid;
+  gap: 1rem;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+/* A visitor who asked for reduced motion gets a still placeholder: the boxes
+   still reserve the right space, they just do not animate. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block,
+  .skeleton-card {
+    animation: none !important;
+    background: var(--lavender-soft);
+  }
+}
+/* Tool-page skeleton specifics (see app/(public)/tools/[calculator]/loading.tsx). */
+.skeleton-tool-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.skeleton-tool-title-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+.skeleton-guidance {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+  margin: 3rem 0 2rem;
+}
+.skeleton-guidance > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Search status row
+   ───────────────────────────────────────────────────────────────────────────
+   Shown only while the result list is genuinely behind (an on-demand catalogue
+   download, or a deferred render on a slow device). There is no percentage:
+   browser-local filtering has no measurable completion to report.
+   ─────────────────────────────────────────────────────────────────────────── */
+.search-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+.search-status-panel {
+  border-bottom: 1px solid var(--border);
+}
+.search-status-spinner {
+  flex: none;
+  color: var(--rose-deep);
+  animation: search-status-spin 0.9s linear infinite;
+}
+@keyframes search-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* A subtle sweep across the row, so the panel reads as "working" without
+   moving any text or stealing focus. */
+.search-status-busy::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--rose) 50%, transparent);
+  background-size: 45% 100%;
+  background-repeat: no-repeat;
+  animation: search-status-sweep 1.2s ease-in-out infinite;
+}
+@keyframes search-status-sweep {
+  from {
+    background-position: -45% 0;
+  }
+  to {
+    background-position: 145% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-status-spinner {
+    animation: none;
+  }
+  .search-status-busy::after {
+    animation: none;
+    background: var(--rose);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Gooey mobile navigation
+   ───────────────────────────────────────────────────────────────────────────
+   The panel morphs open rather than appearing: a clip-path inset transition
+   from the top edge, a short stagger on the rows, and a soft blurred underlay
+   that gives the border its liquid weight. All three animate on the
+   compositor (clip-path, transform, opacity) — no layout properties — so a
+   mid-range phone keeps 60fps and the page behind never reflows.
+
+   The desktop menu keeps the existing `.navigation` rules untouched; these
+   selectors are scoped to `.gooey-nav`, which only mounts on small screens.
+   ─────────────────────────────────────────────────────────────────────────── */
+.gooey-nav {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  animation: gooey-open 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes gooey-open {
+  from {
+    clip-path: inset(0 42% 88% 42% round 22px);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 18px);
+    opacity: 1;
+  }
+}
+/* The liquid underlay: a blurred copy of the panel's own silhouette, sitting
+   behind the content so the edge reads as a soft meniscus rather than a border. */
+.gooey-nav-blob {
+  position: absolute;
+  inset: -6px;
+  z-index: -1;
+  border-radius: 24px;
+  background: linear-gradient(
+    140deg,
+    var(--rose) 0%,
+    var(--blush) 45%,
+    var(--coral) 100%
+  );
+  filter: blur(14px);
+  opacity: 0.35;
+  pointer-events: none;
+  animation: gooey-blob 420ms ease-out both;
+}
+@keyframes gooey-blob {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+}
+.gooey-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: relative;
+}
+.gooey-nav-list > li {
+  display: contents;
+}
+/* Rows arrive on a stagger. --row is set inline per item. */
+.gooey-nav-list a,
+.gooey-nav-toggle {
+  animation: gooey-row 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--row, 0) * 32ms + 40ms);
+}
+@keyframes gooey-row {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.gooey-nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 46px;
+  padding: 13px 15px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.gooey-nav-toggle:hover,
+.gooey-nav-toggle:focus-visible {
+  background: var(--lavender-soft);
+}
+.gooey-nav-sub {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: gooey-row 200ms ease-out both;
+}
+.gooey-nav-sub[hidden] {
+  display: none;
+}
+.gooey-nav-sub a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  font-size: 14px;
+}
+.gooey-nav-sub a:hover,
+.gooey-nav-sub a:focus-visible {
+  background: var(--lavender-soft);
+}
+.gooey-nav .dropdown-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  flex: none;
+}
+
+/* Reduced motion: no morph, no stagger, no blur. The panel is simply there,
+   and stays fully operable. The menu still opens and closes instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .gooey-nav,
+  .gooey-nav-blob,
+  .gooey-nav-list a,
+  .gooey-nav-toggle,
+  .gooey-nav-sub {
+    animation: none !important;
+    clip-path: none !important;
+  }
+  .gooey-nav-blob {
+    filter: none;
+    opacity: 0.18;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Offline banner
+   ───────────────────────────────────────────────────────────────────────────
+   Non-blocking, fixed to the bottom, and only present while the browser
+   reports no connection. It never covers a control the visitor needs: it is
+   `pointer-events: none` except for its own action button.
+   ─────────────────────────────────────────────────────────────────────────── */
+.offline-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: min(46rem, calc(100vw - 2rem));
+  padding: 0.7rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-lifted);
+  color: var(--ink);
+  font-size: 0.86rem;
+  pointer-events: none;
+  animation: offline-rise 240ms ease-out both;
+}
+.offline-banner > svg {
+  flex: none;
+  color: var(--rose-deep);
+}
+.offline-banner p {
+  margin: 0;
+  line-height: 1.45;
+}
+.offline-banner-action {
+  pointer-events: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--lavender-soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.offline-banner-action:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+@keyframes offline-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@media (max-width: 600px) {
+  .offline-banner {
+    flex-wrap: wrap;
+    bottom: 0.6rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .offline-banner {
+    animation: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Upload / processing progress
+   ───────────────────────────────────────────────────────────────────────────
+   A determinate bar draws only from a real measured fraction; the
+   indeterminate variant has no number at all. See components/upload-progress.tsx
+   ─────────────────────────────────────────────────────────────────────────── */
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.86rem;
+  color: var(--ink);
+}
+.upload-progress > svg {
+  flex: none;
+}
+.upload-progress-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.upload-progress-copy small,
+.upload-progress span small {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+.upload-progress-track {
+  flex: 2 1 8rem;
+  height: 8px;
+  min-width: 6rem;
+  border-radius: 999px;
+  background: var(--lavender-soft);
+  overflow: hidden;
+}
+.upload-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--plum), var(--rose));
+  transition: width 180ms ease-out;
+}
+.upload-progress-fill.is-indeterminate {
+  width: 38%;
+  animation: upload-progress-sweep 1.25s ease-in-out infinite;
+}
+@keyframes upload-progress-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.upload-progress-percent {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  min-width: 2.8rem;
+  text-align: right;
+}
+.upload-progress button {
+  flex: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--lavender-soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.upload-progress-spinner {
+  color: var(--rose-deep);
+  animation: search-status-spin 0.9s linear infinite;
+}
+.upload-progress-success {
+  border-color: color-mix(in srgb, #1a7f4b 35%, var(--border));
+}
+.upload-progress-success > svg {
+  color: #1a7f4b;
+}
+.upload-progress-error {
+  border-color: var(--border-strong);
+}
+.upload-progress-error > svg {
+  color: var(--coral-deep);
+}
+.upload-progress-cancelled {
+  color: var(--ink-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .upload-progress-fill {
+    transition: none;
+  }
+  .upload-progress-fill.is-indeterminate {
+    animation: none;
+    width: 100%;
+    opacity: 0.45;
+  }
+  .upload-progress-spinner {
+    animation: none;
   }
 }

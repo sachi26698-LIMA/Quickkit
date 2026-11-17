@@ -4,6 +4,8 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import IconMotionGate from "@/components/icon-motion-gate";
 import JsonLd from "@/components/json-ld";
+import OfflineIndicator from "@/components/offline-indicator";
+import SmoothAnchor from "@/components/smooth-anchor";
 import { isAdsEnabled } from "@/lib/ads";
 import { siteStructuredData } from "@/lib/seo";
 import { contactEmail as defaultContactEmail } from "@/lib/site";
@@ -78,6 +80,8 @@ export default async function PublicLayout({
         extraLinks={settings.footer_links}
       />
       <IconMotionGate />
+      <SmoothAnchor />
+      <OfflineIndicator />
     </>
   );
 }
