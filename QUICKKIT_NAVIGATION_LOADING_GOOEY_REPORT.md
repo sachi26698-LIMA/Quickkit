@@ -222,3 +222,89 @@ have not claimed otherwise.
 
 Not committed. Not pushed. Not merged. Not deployed. No SMTP, credential,
 Production-setting or dependency change.
+
+---
+
+## 7. Final pre-commit review (2026-11-17)
+
+### 7.1 One real defect found and fixed during review
+
+The diff review caught a bug I had introduced. In `components/hero-search.tsx` the
+filter gated on `searching` (derived from the **live** query) while filtering by
+`search` (derived from the **deferred** value). Between the two, the deferred
+value is still `""`, and `String.includes("")` is true for every string — so the
+panel would briefly offer the entire catalogue as "matches" before narrowing.
+
+Fixed by gating on the deferred term itself, so the list is empty rather than
+wrong during that window. `tests/hero-search-deferred.test.tsx` (3 tests) locks
+it down. This is exactly the class of regression a diff review is for.
+
+### 7.2 Review results
+
+| Check                                                                                  | Result                                                                |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Modified files                                                                         | **7**, all intended, all reviewed as diffs                            |
+| New files                                                                              | **23** (21 code/test + report + 1 regression test)                    |
+| Deletions                                                                              | **0**                                                                 |
+| Existing tests modified                                                                | **0** — 75 added, none touched                                        |
+| New dependencies                                                                       | **0** — imports are only `react`, `next`, `lucide-react`              |
+| `package.json` / lockfile / `next.config` / CI config                                  | **untouched**                                                         |
+| `as any` / `@ts-ignore` / `eslint-disable` added                                       | **none**                                                              |
+| `eval` / `innerHTML` / `dangerouslySetInnerHTML` added                                 | **none**                                                              |
+| CSP / `frame-ancestors` weakened                                                       | **no** (verified in the built manifest)                               |
+| `NEXT_PUBLIC_` additions                                                               | **none**                                                              |
+| Secret scan (keys, JWTs, `service_role`, `sk_live`, `ghp_`, PEM, emails, base64 blobs) | **clean**                                                             |
+| `.env`, credentials, `.pem`, `.key` files touched                                      | **none**                                                              |
+| Service-worker allowlist, executed                                                     | **20/20 cases correct** — no API, admin, auth or cross-origin caching |
+
+### 7.3 Browser E2E — BLOCKED, not run
+
+Every provisioning route was attempted and exhausted in this environment:
+
+| Route                                    | Result                                       |
+| ---------------------------------------- | -------------------------------------------- |
+| `npx playwright install chromium`        | `Download failure, code=1`                   |
+| `cdn.playwright.dev`                     | unreachable                                  |
+| `playwright.download.prss.microsoft.com` | unreachable                                  |
+| `@puppeteer/browsers` → Chrome           | `ECONNRESET` to `googlechromelabs.github.io` |
+| Installed browser binaries               | none                                         |
+| `apt-get`                                | not root (uid 1001)                          |
+
+**1164 E2E tests enumerate successfully** (71 files) and run in CI. No browser
+evidence is claimed locally.
+
+### 7.4 Branch and remote
+
+- Branch `arena/76c44b7b-quickkit`, **created** on origin by this push.
+- Commit **`cc3a7d2859447e4a62d319cff4921271ff52a85f`**.
+- PR **#67**, state **OPEN**, **not merged**, no deploy.
+
+### 7.5 PR is CONFLICTING against current `main` — intentionally not resolved
+
+While this work was in progress `main` advanced from `6d0305e` to `33ea9c4`
+(46 files, +3072/−699). Five files overlap mine, and `main` rewrote them
+substantially (`app/globals.css` +968, `components/hero-search.tsx` +211,
+`components/tool-explorer.tsx` +298, `components/header.tsx` +48,
+`app/(public)/layout.tsx` +33). `main` also added its own
+`lib/use-recent-searches.ts` and a rewritten `hero-search.tsx` that no longer
+contains the code my deferred-query fix applies to.
+
+A scratch-worktree trial merge produced **three genuine content conflicts**:
+
+```
+CONFLICT (content): app/globals.css
+CONFLICT (content): components/hero-search.tsx
+CONFLICT (content): components/tool-explorer.tsx
+```
+
+They were **not** resolved. Resolving them means re-implementing the search
+status and deferred-filter changes on top of `main`'s new recent-searches
+design, and re-deciding the `globals.css` conflict against `main`'s rewritten
+stylesheet — both are design decisions for the owner, and silently resolving
+unrelated conflicts is explicitly out of bounds.
+
+`main` has **no** skeletons, gooey menu, offline support or service worker
+(verified: zero matching files), so nothing in this PR is duplicated work.
+
+**Recommended next step:** rebase this branch onto `origin/main` and resolve the
+three conflicts deliberately, then re-run the full gate suite and CI.
