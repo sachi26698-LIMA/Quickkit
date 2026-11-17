@@ -2390,6 +2390,68 @@ a.contact-card:hover {
     font-size: 10px;
     line-height: 1.7;
   }
+
+  /* Phone type scale.
+     Every display size above is written clamp(MIN, Nvw, MAX). On a phone the
+     vw term is always smaller than MIN, so the minimum wins and the whole page
+     sits at its largest step — the headline renders at 36px on a 360px screen
+     and at 600px alike. That is why everything reads oversized on mobile even
+     though the desktop scale is fine. These rules give phones a real, smaller
+     scale instead of the clamp floor. Sizes stay legible (nothing below 25px
+     for an h1) and the desktop scale is untouched. */
+  .hero-headline,
+  h1 {
+    font-size: 27px;
+    letter-spacing: -1.1px;
+    line-height: 1.14;
+    margin: 16px 0 14px;
+  }
+  .home .section-heading h2 {
+    font-size: 21px;
+    letter-spacing: -0.4px;
+  }
+  .page-hero h1,
+  .legal-hero h1,
+  .category-hero h1 {
+    font-size: 26px;
+    letter-spacing: -0.9px;
+    line-height: 1.16;
+  }
+  .cta-banner h2 {
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .prose h1 {
+    font-size: 28px;
+    letter-spacing: -0.9px;
+  }
+  .hero-lede {
+    font-size: 14px;
+    line-height: 1.62;
+  }
+  /* Heading rhythm: the 27px desktop h2 and its 64px section gap read heavy on
+     a phone. Tighten both so sections scan without endless scrolling; the
+     desktop rhythm is unchanged. */
+  h2 {
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    margin: 8px 0 8px;
+  }
+  h3 {
+    font-size: 16px;
+  }
+  .home-section {
+    margin-top: 40px;
+  }
+  .page-hero,
+  .legal-hero,
+  .category-hero {
+    padding-top: 22px;
+  }
+  .tool-card h3,
+  .category-card h3 {
+    font-size: 16px;
+  }
 }
 @media (max-width: 479px) {
   .trust-strip {
