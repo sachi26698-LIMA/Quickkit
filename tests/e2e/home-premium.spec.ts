@@ -12,8 +12,13 @@ for (const viewport of [
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Free online tools for PDFs, images, text and code",
     );
+    // Scope to the hero region: the footer tagline repeats the same brand
+    // sentence, so a page-wide getByText resolves to two nodes and trips
+    // Playwright's strict mode.
     await expect(
-      page.getByText("Small tasks. Quick solutions.", { exact: true }),
+      page
+        .getByRole("region", { name: "QUICKKIT tools" })
+        .getByText("Small tasks. Quick solutions.", { exact: true }),
     ).toBeVisible();
     await expect(page.locator(".category-card")).toHaveCount(8);
     await expect(page.locator(".why-card")).toHaveCount(4);
