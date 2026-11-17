@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { Tool } from "@/lib/catalog";
+import type { ClientTool } from "@/lib/client-tool";
 import { ToolIcon3D, toolTone } from "@/components/icon-3d";
 import { toolSurfaceStyle, toolTheme } from "@/lib/tool-theme";
 import FavoriteButton from "@/components/favorite-button";
@@ -14,13 +14,14 @@ export default function ToolCard({
   category,
   href,
 }: {
-  tool: Tool;
+  tool: ClientTool;
   href?: string;
   /** Label for the listing the card appears in; defaults to the primary category. */
   category?: string;
 }) {
   // Set on catalogue entries an administrator has switched off for an update.
-  const isOff = Boolean((tool as Tool & { maintenance?: unknown }).maintenance);
+  // The projection carries this as a bare boolean; see `lib/client-tool.ts`.
+  const isOff = tool.maintenance === true;
   return (
     <article
       className={`tool-card cat-${toolTone(tool)}`}

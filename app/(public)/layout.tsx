@@ -40,6 +40,24 @@ export default async function PublicLayout({
   ]);
   const siteName = settings.website_name ?? "QUICKKIT";
   const maintenance = settings.maintenance;
+  // The header only needs to know which categories have no published tool (so
+  // the link is `nofollow`). Computing it here keeps the full catalogue on the
+  // server instead of serialising it into every page's RSC payload.
+  const emptyCategorySlugs = categories
+    .filter(
+      (category) =>
+        !tools.some((tool) => {
+          // Only two tools carry a secondary category, so the field is absent
+          // from most members of the union and has to be read defensively.
+          const secondary = (tool as { categories?: readonly string[] })
+            .categories;
+          return (
+            tool.category === category.name ||
+            (Array.isArray(secondary) && secondary.includes(category.name))
+          );
+        }),
+    )
+    .map((category) => category.slug);
   return (
     <>
       <JsonLd
@@ -60,7 +78,11 @@ export default async function PublicLayout({
           {maintenance.message}
         </p>
       ) : null}
-      <Header categories={categories} tools={tools} siteName={siteName} />
+      <Header
+        categories={categories}
+        emptyCategorySlugs={emptyCategorySlugs}
+        siteName={siteName}
+      />
       <noscript>
         <p className="container status">
           These tools need JavaScript to run in your browser. Enable JavaScript

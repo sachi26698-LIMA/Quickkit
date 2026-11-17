@@ -14,6 +14,7 @@ import {
   pageMetadata,
 } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
+import { toClientTools } from "@/lib/client-tool";
 
 export async function generateMetadata() {
   const { tools } = await getPublicCatalog();
@@ -59,7 +60,7 @@ export default async function ToolsPage() {
           titleAccent="one calm place."
           lede="Search by task, filter by category, or tap the heart on any card to keep your favourites one click away."
         />
-        <ToolExplorer tools={tools} categoryMeta={categories} />
+        <ToolExplorer tools={toClientTools(tools)} categoryMeta={categories} />
 
         {/* 1 of 1 — below the tool grid, never inside the search or filter bar. */}
         <AdUnit placement="tools-index-bottom" format="auto" />
