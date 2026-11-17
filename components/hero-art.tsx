@@ -216,8 +216,6 @@ export default function HeroArt() {
         </svg>
         <img
           src="/hero-laptop-reference.webp"
-          srcSet="/hero-laptop-640.webp 640w, /hero-laptop-960.webp 960w, /hero-laptop-reference.webp 1438w"
-          sizes="(max-width: 600px) 92vw, (max-width: 860px) 88vw, (max-width: 1200px) 70vw, 960px"
           width={1438}
           height={920}
           alt=""
