@@ -84,14 +84,13 @@ test.describe("all published tool routes", () => {
   }
 });
 
-test("shared layouts fit every required responsive width", async ({
-  page,
-}, testInfo) => {
-  // This test performs 55 navigations per project; wait for document readiness,
-  // not network quiescence, which the responsive geometry checks do not need.
-  test.setTimeout(90_000);
-
-  for (const width of responsiveWidths) {
+for (const width of responsiveWidths) {
+  test(`shared layouts fit required routes at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    // Each case checks five routes. Document readiness is sufficient for layout
+    // geometry; network quiescence is checked separately by the route suite.
+    test.setTimeout(60_000);
     await page.setViewportSize({ width, height: 900 });
 
     for (const route of responsiveRoutes) {
@@ -117,5 +116,5 @@ test("shared layouts fit every required responsive width", async ({
         });
       }
     }
-  }
-});
+  });
+}
