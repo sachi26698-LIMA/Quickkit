@@ -49,12 +49,7 @@ test("QR generator verifies its own export and names the downloaded file", async
   // Direct Raw Content is the default: the symbol carries the address itself.
   await expect(page.locator("#qr-payload-view pre")).toHaveText(encoded);
 
-  // The hosted Data Template link is still reachable by choosing that mode.
-  await page.getByRole("button", { name: /Data Template \+ Link/ }).click();
-  await expect(
-    page.getByText("Verified by an independent decoder"),
-  ).toBeVisible();
-  await expect(page.locator("#qr-payload-view pre")).toContainText("/qr?d=");
+  // Export in that default mode and decode the PNG independently.
   const pending = page.waitForEvent("download");
   await page
     .locator("#qr-export")
@@ -69,6 +64,16 @@ test("QR generator verifies its own export and names the downloaded file", async
   expect(
     jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data,
   ).toBe(encoded);
+
+  // The hosted Data Template link is still reachable by choosing that mode.
+  await page
+    .locator("#qr-data-template-box")
+    .getByRole("button", { name: /Data Template \+ Link/ })
+    .click();
+  await expect(
+    page.getByText("Verified by an independent decoder"),
+  ).toBeVisible();
+  await expect(page.locator("#qr-payload-view pre")).toContainText("/qr?d=");
 });
 test("image compressor validates unsupported, oversized and corrupt inputs", async ({
   page,
