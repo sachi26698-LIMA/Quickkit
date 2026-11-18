@@ -398,7 +398,12 @@ for (const mode of ["desktop keyboard", "mobile pointer"] as const) {
   test(`cancels a large batch and leaves unfinished PDFs ready to retry (${mode})`, async ({
     page,
   }) => {
-    test.setTimeout(120_000);
+    // This journey parses 12 PDFs for real and waits up to 60s for the batch
+    // to become ready, all inside one budget. Sharing a 120s budget left the
+    // cancel step a shrinking remainder on slower WebKit runs. The extra 60s
+    // is headroom for that readiness phase only — every assertion and every
+    // per-step timeout below is unchanged.
+    test.setTimeout(180_000);
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.setViewportSize(
