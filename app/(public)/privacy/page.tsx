@@ -4,11 +4,7 @@ import LegalPageShell, {
 } from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
@@ -21,7 +17,8 @@ export const metadata = pageMetadata(
   "/privacy",
 );
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   const legalName = ownerDetail("legalName");
   const jurisdiction = ownerDetail("jurisdiction");
 
@@ -30,8 +27,8 @@ export default function PrivacyPage() {
       href="/privacy"
       title="Privacy Policy"
       intro="QUICKKIT processes most tool data in your browser. Visitors do not have accounts or cloud-synced favorites. Supabase Auth is reserved for authorized administrators; consented contact or feedback messages, and tool ratings you choose to send, may be stored privately for review."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="summary">1. The short version</h2>
       <ul>

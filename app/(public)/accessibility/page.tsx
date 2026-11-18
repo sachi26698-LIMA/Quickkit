@@ -2,11 +2,7 @@ import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 
 // Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
@@ -18,14 +14,15 @@ export const metadata = pageMetadata(
   "/accessibility",
 );
 
-export default function AccessibilityPage() {
+export default async function AccessibilityPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   return (
     <LegalPageShell
       href="/accessibility"
       title="Accessibility Statement"
       intro="QUICKKIT aims to be usable by keyboard, by screen reader and at 200% zoom. This statement records what is implemented, how it is tested, and what still falls short."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="commitment">1. Our commitment</h2>
       <p>

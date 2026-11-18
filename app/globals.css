@@ -1601,6 +1601,29 @@ h2 {
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgb(39 16 63 / 0.3);
 }
+
+/* Operator-managed social row: an icon-only entry is a 40px circle like the
+   built-in ones, while a text-only entry stays a pill so a long label never
+   squeezes into a circle. */
+.footer-socials a.footer-social-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+.footer-socials a:not(.footer-social-icon) {
+  width: auto;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-socials a:hover {
+    transform: none;
+  }
+}
 .footer-legal-links {
   display: inline-flex;
   flex-wrap: wrap;

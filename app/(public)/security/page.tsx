@@ -2,11 +2,7 @@ import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import { contactEmail, ownerDetail } from "@/lib/site";
 
@@ -19,7 +15,8 @@ export const metadata = pageMetadata(
   "/security",
 );
 
-export default function SecurityPage() {
+export default async function SecurityPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   const named = ownerDetail("securityEmail");
 
   return (
@@ -27,8 +24,8 @@ export default function SecurityPage() {
       href="/security"
       title="Security Policy"
       intro="What protects the site and your data, what that protection cannot cover, and how to report a vulnerability without doing harm."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="model">1. Security model</h2>
       <p>

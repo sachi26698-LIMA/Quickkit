@@ -1,6 +1,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { categoryMeta, tools } from "@/lib/catalog";
+import { isSocialIconId } from "@/lib/social-platforms";
 import { indexingEnabled } from "@/lib/launch";
 import { getServerErrorMonitoringStatus } from "@/lib/monitoring/error-store";
 import { siteOrigin } from "@/lib/seo";
@@ -79,6 +80,7 @@ const settingKeys = new Set<SiteSettingKey>([
   "announcement",
   "maintenance",
   "homepage_content",
+  "legal_meta",
 ]);
 
 export async function GET(
@@ -1061,7 +1063,7 @@ async function updateSettings(
     Object.keys(body).length !== 1 ||
     !Array.isArray(body.entries) ||
     body.entries.length < 1 ||
-    body.entries.length > 8
+    body.entries.length > 16
   )
     return apiError(400, "Provide one or more supported settings.");
   const validated: { setting_key: SiteSettingKey; setting_value: unknown }[] =
@@ -1148,13 +1150,17 @@ function validateSetting(key: SiteSettingKey, value: unknown): unknown | null {
     for (const item of value) {
       if (!item || typeof item !== "object" || Array.isArray(item)) return null;
       const row = item as Record<string, unknown>;
+      // `icon` is optional and must match the fixed platform allowlist, so the
+      // panel can never introduce an arbitrary icon name or remote image.
       if (
-        Object.keys(row).some((k) => !["label", "href"].includes(k)) ||
+        Object.keys(row).some((k) => !["label", "href", "icon"].includes(k)) ||
         typeof row.label !== "string" ||
         row.label.trim().length < 1 ||
         row.label.length > 50 ||
         typeof row.href !== "string" ||
-        row.href.length > 500
+        row.href.length > 500 ||
+        (row.icon !== undefined &&
+          (typeof row.icon !== "string" || !isSocialIconId(row.icon)))
       )
         return null;
       try {
@@ -1164,9 +1170,49 @@ function validateSetting(key: SiteSettingKey, value: unknown): unknown | null {
       } catch {
         return null;
       }
-      result.push({ label: row.label.trim(), href: row.href });
+      result.push({
+        label: row.label.trim(),
+        href: row.href,
+        ...(row.icon ? { icon: row.icon } : {}),
+      });
     }
     return result;
+  }
+  if (key === "legal_meta") {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return null;
+    const obj = value as Record<string, unknown>;
+    if (
+      Object.keys(obj).some(
+        (k) => !["last_updated", "last_updated_iso"].includes(k),
+      )
+    )
+      return null;
+    const lastUpdated = obj.last_updated;
+    const lastUpdatedIso = obj.last_updated_iso;
+    if (
+      typeof lastUpdated !== "string" ||
+      lastUpdated.length < 1 ||
+      lastUpdated.length > 60 ||
+      /[<>]/.test(lastUpdated)
+    )
+      return null;
+    if (
+      typeof lastUpdatedIso !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(lastUpdatedIso)
+    )
+      return null;
+    // The ISO value must be a real calendar date, not just the right shape.
+    const parsed = new Date(`${lastUpdatedIso}T00:00:00Z`);
+    if (
+      Number.isNaN(parsed.getTime()) ||
+      parsed.toISOString().slice(0, 10) !== lastUpdatedIso
+    )
+      return null;
+    return {
+      last_updated: lastUpdated.trim(),
+      last_updated_iso: lastUpdatedIso,
+    };
   }
   if (key === "homepage_content") {
     if (!value || typeof value !== "object" || Array.isArray(value))

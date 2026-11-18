@@ -2,11 +2,7 @@ import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 
 // Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
@@ -27,14 +23,15 @@ export const metadata = pageMetadata(
  * and `components/contact-form.tsx`. If a pipeline changes, this page must be
  * updated in the same commit.
  */
-export default function FileHandlingPage() {
+export default async function FileHandlingPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   return (
     <LegalPageShell
       href="/file-handling"
       title="Data Processing and File Handling Policy"
       intro="A tool-by-tool account of what QUICKKIT does with the files you give it: where they are read, what is kept, what is written to disk, and when everything is gone."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="principles">1. How processing works</h2>
       <p>

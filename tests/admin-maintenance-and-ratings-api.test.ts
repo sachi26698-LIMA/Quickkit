@@ -470,3 +470,113 @@ describe("Admin API: feedback inbox with tool ratings", () => {
     expect(db.calls.filter((call) => call.op === "delete")).toHaveLength(0);
   });
 });
+
+describe("Admin API: operator-managed social icons and legal dates", () => {
+  const siteSettings = "quickkit_admin_site_settings";
+
+  /**
+   * Returns `all`/`find` helpers bound to the db instance the route actually
+   * used, so assertions read the recorded writes rather than a second, unused
+   * builder.
+   */
+  function settingsDb() {
+    return fakeDb({
+      // The audit write must succeed, otherwise the API correctly refuses to
+      // persist a change it could not record.
+      quickkit_admin_activity: { data: null },
+      [siteSettings]: { data: null },
+    });
+  }
+
+  let captured: ReturnType<typeof fakeDb> | null = null;
+
+  async function patchSettings(setting_key: string, setting_value: unknown) {
+    authorized();
+    captured = settingsDb();
+    const response = await PATCH(
+      request("settings", "PATCH", {
+        entries: [{ setting_key, setting_value }],
+      }),
+      params("settings"),
+    );
+    // `fakeDb` returns the recorder the route's builder wrote into.
+    const writes = (table: string, op: string) => captured!.all(table, op);
+    return { response, writes };
+  }
+
+  it("accepts a social link whose icon is on the platform allowlist", async () => {
+    const { response, writes } = await patchSettings("social_links", [
+      {
+        label: "Instagram",
+        href: "https://instagram.com/quickkit",
+        icon: "instagram",
+      },
+    ]);
+    expect(response.status).toBe(200);
+    // `upsert` is called with the array of rows, so the payload is args[0][0].
+    const write = writes(siteSettings, "upsert").at(-1)!;
+    const rows = write.args[0] as { setting_value: unknown }[];
+    expect(rows).toHaveLength(1);
+    expect(rows[0].setting_value).toEqual([
+      {
+        label: "Instagram",
+        href: "https://instagram.com/quickkit",
+        icon: "instagram",
+      },
+    ]);
+  });
+
+  it("rejects an icon that is not on the allowlist", async () => {
+    const { response, writes } = await patchSettings("social_links", [
+      { label: "Sneaky", href: "https://example.test", icon: "</svg><script>" },
+    ]);
+    expect(response.status).toBe(400);
+    expect(writes(siteSettings, "upsert")).toHaveLength(0);
+  });
+
+  it("still rejects an unknown extra key on a social link", async () => {
+    const { response } = await patchSettings("social_links", [
+      { label: "X", href: "https://example.test", colour: "red" },
+    ]);
+    expect(response.status).toBe(400);
+  });
+
+  it("still rejects a non-HTTPS or credentialed URL even with a valid icon", async () => {
+    for (const href of [
+      "http://instagram.com/quickkit",
+      "https://user:pass@instagram.com/quickkit",
+    ]) {
+      const { response } = await patchSettings("social_links", [
+        { label: "Instagram", href, icon: "instagram" },
+      ]);
+      expect(response.status, href).toBe(400);
+    }
+  });
+
+  it("stores a valid legal date pair", async () => {
+    const { response, writes } = await patchSettings("legal_meta", {
+      last_updated: "1 December 2026",
+      last_updated_iso: "2026-12-01",
+    });
+    expect(response.status).toBe(200);
+    const write = writes(siteSettings, "upsert").at(-1)!;
+    const rows = write.args[0] as { setting_value: unknown }[];
+    expect(rows).toHaveLength(1);
+    expect(rows[0].setting_value).toEqual({
+      last_updated: "1 December 2026",
+      last_updated_iso: "2026-12-01",
+    });
+  });
+
+  it("rejects an impossible calendar date or markup in the label", async () => {
+    for (const value of [
+      { last_updated: "31 February 2026", last_updated_iso: "2026-02-31" },
+      { last_updated: "<b>Now</b>", last_updated_iso: "2026-12-01" },
+      { last_updated: "1 December 2026", last_updated_iso: "not-a-date" },
+      { last_updated: "", last_updated_iso: "2026-12-01" },
+    ]) {
+      const { response } = await patchSettings("legal_meta", value);
+      expect(response.status, JSON.stringify(value)).toBe(400);
+    }
+  });
+});

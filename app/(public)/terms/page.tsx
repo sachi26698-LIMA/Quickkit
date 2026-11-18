@@ -4,11 +4,7 @@ import LegalPageShell, {
 } from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import { ownerDetail, publishOperatorAsBrand } from "@/lib/site";
 
@@ -21,7 +17,8 @@ export const metadata = pageMetadata(
   "/terms",
 );
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   const jurisdiction = ownerDetail("jurisdiction");
   const legalName = ownerDetail("legalName");
 
@@ -30,8 +27,8 @@ export default function TermsPage() {
       href="/terms"
       title="Terms and Conditions"
       intro="These terms describe QUICKKIT’s free browser tools and the private administrator area. Public tools are available without registration or sign-in."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="acceptance">1. Acceptance of these terms</h2>
       <p>
@@ -204,7 +201,11 @@ export default function TermsPage() {
         components are used under their own licences. Full detail, including
         what you may quote and what needs written permission, is in the{" "}
         <Link href="/intellectual-property">Intellectual Property Policy</Link>{" "}
-        and <Link href="/copyright">Copyright and DMCA Policy</Link>.
+        and the{" "}
+        <Link href="/intellectual-property#reporting">
+          Intellectual Property &amp; Copyright Policy
+        </Link>
+        .
       </p>
 
       <h2 id="third-party">9. Third-party services and links</h2>
@@ -236,8 +237,8 @@ export default function TermsPage() {
         basis. We do not guarantee that the site, any individual tool or any
         particular feature will be available at a given time, continue to be
         offered, or remain free. Tools may be added, changed, deprecated or
-        removed. During development, categories marked &ldquo;Coming soon&rdquo;
-        are not yet functional and are shown for orientation only.
+        removed, and the catalogue shown on the site is the authoritative list
+        of what is available at any moment.
       </p>
       <p>
         Availability also depends on factors outside our control: your browser

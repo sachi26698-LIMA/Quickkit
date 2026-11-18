@@ -2,11 +2,7 @@ import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 
 // Title composed in the SEO registry (`lib/seo/pages.ts`); the policy text
@@ -18,14 +14,15 @@ export const metadata = pageMetadata(
   "/disclaimer",
 );
 
-export default function DisclaimerPage() {
+export default async function DisclaimerPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   return (
     <LegalPageShell
       href="/disclaimer"
       title="Disclaimer"
       intro="Every tool on QUICKKIT is an approximation of something. This page says where each approximation can go wrong, so you know which results to check before you rely on them."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="general">1. General information only</h2>
       <p>
@@ -202,21 +199,7 @@ export default function DisclaimerPage() {
         recognised.
       </p>
 
-      <h2 id="translation">8. Translation (planned feature)</h2>
-      <p>
-        QUICKKIT does not currently offer a PDF or document translator. The
-        category exists on the roadmap and is labelled &ldquo;Coming
-        soon&rdquo;. It is mentioned here so that the disclaimer and the{" "}
-        <Link href="/file-handling">File Handling Policy</Link> are ready before
-        it ships, and so nobody mistakes a planned tool for a working one.
-      </p>
-      <p>
-        When it is implemented, this page will state plainly whether translation
-        runs locally or calls a remote service, because machine translation in a
-        browser almost always requires a model or an API. No claim is made now.
-      </p>
-
-      <h2 id="qr">9. QR codes and scanning</h2>
+      <h2 id="qr">8. QR codes and scanning</h2>
       <ul>
         <li>
           The generator validates a code by decoding it again before offering a
@@ -239,7 +222,7 @@ export default function DisclaimerPage() {
         </li>
       </ul>
 
-      <h2 id="third-party">10. Third-party tools and dependencies</h2>
+      <h2 id="third-party">9. Third-party tools and dependencies</h2>
       <p>
         QUICKKIT is built on open-source libraries for PDF parsing and writing,
         document generation, image codecs, QR encoding and OCR. They are bundled
@@ -252,7 +235,7 @@ export default function DisclaimerPage() {
         external sites do not imply endorsement of them.
       </p>
 
-      <h2 id="availability">11. Availability and compatibility</h2>
+      <h2 id="availability">10. Availability and compatibility</h2>
       <p>
         QUICKKIT targets current versions of Chrome, Edge, Firefox and Safari on
         desktop, tablet and mobile. It may not work, or may work partially, on
@@ -267,7 +250,7 @@ export default function DisclaimerPage() {
         clipboard permission.
       </p>
 
-      <h2 id="estimated-vs-guaranteed">12. Estimates versus guarantees</h2>
+      <h2 id="estimated-vs-guaranteed">11. Estimates versus guarantees</h2>
       <div className="legal-table-wrap">
         <table role="table" className="legal-table legal-table--compare">
           <caption className="sr-only">
@@ -406,7 +389,7 @@ export default function DisclaimerPage() {
         </table>
       </div>
 
-      <h2 id="contact">13. Questions</h2>
+      <h2 id="contact">12. Questions</h2>
       <p>
         If a result looks wrong, tell us which tool and what happened — without
         attaching private files. Use the{" "}

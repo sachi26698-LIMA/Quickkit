@@ -201,7 +201,7 @@ export default function Header({
               "/privacy",
               "/cookies",
               "/disclaimer",
-              "/copyright",
+              "/intellectual-property",
               "/intellectual-property",
               "/security",
               "/accessibility",
