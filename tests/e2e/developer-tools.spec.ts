@@ -549,6 +549,9 @@ test.describe("the eleven Developer Tools", () => {
 
     await page.getByRole("button", { name: "UTF-8 text", exact: true }).click();
     await page.getByLabel("Base64 input", { exact: true }).fill("//4=");
+    await expect(page.getByLabel("Base64 input", { exact: true })).toHaveValue(
+      "//4=",
+    );
     await page
       .getByRole("button", { name: "Decode Base64", exact: true })
       .click();
@@ -557,6 +560,9 @@ test.describe("the eleven Developer Tools", () => {
       page.getByLabel("Decoded UTF-8 output", { exact: true }),
     ).toHaveValue("");
     await page.getByLabel("Base64 input", { exact: true }).fill("%%%");
+    await expect(page.getByLabel("Base64 input", { exact: true })).toHaveValue(
+      "%%%",
+    );
     await page
       .getByRole("button", { name: "Decode Base64", exact: true })
       .click();
