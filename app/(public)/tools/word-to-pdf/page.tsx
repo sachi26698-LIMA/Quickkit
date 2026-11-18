@@ -77,7 +77,7 @@ export default async function Page() {
       <JsonLd
         data={breadcrumbStructuredData([
           { name: "Home", path: "/" },
-          { name: "Tools", path: "/tools" },
+          { name: "All Tools", path: "/tools" },
           ...(category
             ? [{ name: category.name, path: `/category/${category.slug}` }]
             : []),
@@ -137,7 +137,7 @@ export default async function Page() {
           <div className="section-heading">
             <h2>More ways to work with PDFs</h2>
             <Link className="text-link" href="/tools">
-              All tools <ArrowUpRight size={16} />
+              All Tools <ArrowUpRight size={16} />
             </Link>
           </div>
           <div className="related-grid">

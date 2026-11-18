@@ -128,8 +128,10 @@ async function sitemapPaths(): Promise<string[]> {
   vi.stubEnv("VERCEL_ENV", "production");
   vi.resetModules();
   const { default: sitemap } = await import("../app/sitemap");
-  return (await sitemap()).map((entry) =>
-    entry.url.replace("https://test.example", ""),
+  // The homepage is listed as the bare origin, so its stripped path is empty;
+  // every other consumer compares route paths, where "/" is the root.
+  return (await sitemap()).map(
+    (entry) => entry.url.replace("https://test.example", "") || "/",
   );
 }
 

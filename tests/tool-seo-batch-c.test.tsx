@@ -350,4 +350,21 @@ describe("Phase 3 Batch C — 31 tool pages", () => {
     expect(renderedTitles.size).toBe(31);
     expect(renderedDescriptions.size).toBe(31);
   }, 30_000);
+
+  it("renders the extra researched FAQ where a base answer would have had to invent a number", async () => {
+    // "How much does minifying CSS save" is a real researched query, but the
+    // honest answer depends on the file. The answer added for it states measured
+    // byte counts from the tool's own sample and explicitly refuses to quote an
+    // average saving. This test exists because the first version of that content
+    // was added to a table entry nothing rendered, so it silently did nothing.
+    const { default: Page } =
+      await import("../app/(public)/tools/css-minifier/page");
+    const rendered = render((await Page()) as ReactElement);
+    const faqText =
+      rendered.container.querySelector(".tool-guidance")?.textContent;
+    expect(faqText).toContain("How much smaller will my stylesheet get?");
+    expect(faqText).toContain("75 bytes and becomes 45");
+    expect(faqText).toContain("No average saving is quoted");
+    rendered.unmount();
+  });
 });

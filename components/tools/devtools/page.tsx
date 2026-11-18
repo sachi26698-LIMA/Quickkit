@@ -219,7 +219,16 @@ const pageContent: Record<string, ToolContent> = {
 
 const pageEnhancements: Record<
   keyof typeof pageContent,
-  { step: string; faq: { q: string; a: string } }
+  {
+    step: string;
+    faq: { q: string; a: string };
+    /**
+     * Optional second tool-specific question. Some researched queries need an
+     * answer the base FAQ set cannot carry — e.g. "how much does minifying save"
+     * needs measured byte counts, not a copied statistic.
+     */
+    extraFaq?: { q: string; a: string };
+  }
 > = {
   "json-validator": {
     step: "For a large file, validate it first, then use the reported key count, depth, and UTF-8 size to decide whether to inspect or reformat it.",
@@ -247,6 +256,10 @@ const pageEnhancements: Record<
     faq: {
       q: "Why might the output not be the smallest possible CSS?",
       a: "The tool disables CSSO structure-rewriting optimizations to reduce semantic risk. It removes safe syntax overhead but does not try every transformation that might change cascade behavior.",
+    },
+    extraFaq: {
+      q: "How much smaller will my stylesheet get?",
+      a: "It depends on how the file was written, so measure it rather than trusting a percentage. Hand-written CSS with indentation, comments and spacing usually shrinks substantially; a stylesheet already produced by a build tool may barely change, because there is little whitespace left to remove. This tool reports the exact UTF-8 byte counts before and after: the sample in the examples table is 75 bytes and becomes 45, which is 40% smaller. No average saving is quoted anywhere, because none was measured across real stylesheets.",
     },
   },
   "javascript-minifier": {
@@ -312,7 +325,11 @@ export default function DeveloperToolPage({
       publicData={publicData}
       content={{
         steps: [...content.steps, enhancement.step],
-        faqs: [...content.faqs, enhancement.faq],
+        faqs: [
+          ...content.faqs,
+          enhancement.faq,
+          ...(enhancement.extraFaq ? [enhancement.extraFaq] : []),
+        ],
       }}
       headingDescription={metadata.description}
       stepsHeading={entry.stepsHeading}

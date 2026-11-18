@@ -113,7 +113,7 @@ export default async function BrandPage({ params }: Params) {
           Home
         </Link>
         <ChevronRight size={13} />
-        <Link href="/tools">Tools</Link>
+        <Link href="/tools">All Tools</Link>
         <ChevronRight size={13} />
         <Link href="/category/qr-barcode">QR &amp; Barcode</Link>
         <ChevronRight size={13} />
@@ -124,7 +124,7 @@ export default async function BrandPage({ params }: Params) {
       <JsonLd
         data={breadcrumbStructuredData([
           { name: "Home", path: "/" },
-          { name: "Tools", path: "/tools" },
+          { name: "All Tools", path: "/tools" },
           { name: "QR & Barcode", path: "/category/qr-barcode" },
           { name: "Batch Code Checker", path: "/tools/batch-code-checker" },
           { name: brand.name, path },

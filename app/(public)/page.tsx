@@ -14,7 +14,8 @@ import CategoryGrid from "@/components/category-grid";
 import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
-import { pageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/json-ld";
+import { pageMetadata, webPageStructuredData } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
 import { getClientCatalog } from "@/lib/client-catalog";
 import {
@@ -99,6 +100,17 @@ export default async function Home() {
         .filter((tool): tool is (typeof tools)[number] => Boolean(tool));
   return (
     <div className={`home home-landing ${styles.premiumHome}`}>
+      {/* Homepage-only WebPage node. The site-wide Organization + WebSite
+          graph is rendered by the public layout on every page, so it is not
+          repeated here. */}
+      <JsonLd
+        data={webPageStructuredData({
+          name: "Free Online PDF, Image, QR, Code & Math Tools",
+          description:
+            "Free browser-based tools for PDFs, images, OCR, QR codes, JSON and code formatting, and everyday calculators. Most files never leave your device.",
+          path: "/",
+        })}
+      />
       <section className="hero" aria-label="QUICKKIT tools">
         {settings.announcement?.enabled ? (
           <p className="container" role="status">
