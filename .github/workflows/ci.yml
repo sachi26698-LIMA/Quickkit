@@ -1,6 +1,26 @@
 name: Verify QUICKKIT
 on:
+  # Post-merge gate: main must be verified after every merge. This runs exactly
+  # once per merged commit and is the check a required-status rule should name.
   push:
+    branches: [main]
+  # Pre-merge gate: every PR head is verified before it can land.
+  #
+  # Both events are kept deliberately — this narrows `push:` to main rather than
+  # removing it, so post-merge validation is preserved.
+  #
+  # Why: a bare `push:` matched every branch, so each PR head started this
+  # 35-minute workflow **twice**, doubling Actions cost for zero extra coverage.
+  # The commit then carried two `verify` check runs with the same name — a
+  # passing pull_request run and an independent push run. Because a single
+  # check failure marks the git commit status `failure`, one flaky E2E test in
+  # the redundant run turned the PR's merge state `UNSTABLE` even though the
+  # pull_request run on the identical commit passed. Restricting `push:` to
+  # main removes that ambiguity: one commit, one pre-merge check, and a separate
+  # post-merge check on main.
+  #
+  # This does not address the E2E test's timing sensitivity itself, and is not
+  # claimed to. See docs/QUICKKIT_CI_DUPLICATE_RUN_FIX.md.
   pull_request:
 permissions:
   contents: read
