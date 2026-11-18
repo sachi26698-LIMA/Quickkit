@@ -87,11 +87,17 @@ test.describe("all published tool routes", () => {
 test("shared layouts fit every required responsive width", async ({
   page,
 }, testInfo) => {
+  // This test performs 55 navigations per project; wait for document readiness,
+  // not network quiescence, which the responsive geometry checks do not need.
+  test.setTimeout(90_000);
+
   for (const width of responsiveWidths) {
     await page.setViewportSize({ width, height: 900 });
 
     for (const route of responsiveRoutes) {
-      const response = await page.goto(route, { waitUntil: "networkidle" });
+      const response = await page.goto(route, {
+        waitUntil: "domcontentloaded",
+      });
       expect(response?.status(), `${route} at ${width}px`).toBe(200);
       await expect(
         page.getByRole("heading", { level: 1 }).first(),
