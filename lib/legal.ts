@@ -16,6 +16,46 @@
 export const LEGAL_LAST_UPDATED = "16 November 2026";
 export const LEGAL_LAST_UPDATED_ISO = "2026-11-16";
 
+/**
+ * Resolve the "last updated" date a policy page should display.
+ *
+ * Server-only helper: the operator can restate the date from the admin panel
+ * (`legal_meta`), and this is the one place that decides whether the override
+ * is usable. A blank, malformed or impossible value falls back to the dates
+ * compiled into this file, so a page can never render an empty, invented or
+ * stale-looking date. The Admin API validates the same shape on write; this
+ * re-checks on read because the read path also serves rows written before that
+ * validation existed.
+ */
+export async function resolveLegalLastUpdated(): Promise<{
+  label: string;
+  iso: string;
+}> {
+  try {
+    const { getPublicSiteSettings } =
+      await import("@/lib/supabase/public-catalog");
+    const { legal_meta: meta } = await getPublicSiteSettings();
+    const iso = meta?.last_updated_iso?.trim() ?? "";
+    const label = meta?.last_updated?.trim() ?? "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      const parsed = new Date(`${iso}T00:00:00Z`);
+      if (
+        !Number.isNaN(parsed.getTime()) &&
+        parsed.toISOString().slice(0, 10) === iso
+      ) {
+        return {
+          iso,
+          label: label.length ? label : LEGAL_LAST_UPDATED,
+        };
+      }
+    }
+    if (label.length) return { iso: LEGAL_LAST_UPDATED_ISO, label };
+  } catch {
+    // Settings are optional; a failure must never block a policy page.
+  }
+  return { label: LEGAL_LAST_UPDATED, iso: LEGAL_LAST_UPDATED_ISO };
+}
+
 /** React uses dateTime; the HTML serializer emits the standard datetime attribute. */
 export const isoDatetime = (value: string) => ({ dateTime: value });
 
@@ -146,7 +186,6 @@ export const legalPages: LegalPage[] = [
       { id: "images", label: "Image compression and conversion quality" },
       { id: "pdf", label: "PDF conversion limitations" },
       { id: "ocr", label: "OCR and text recognition" },
-      { id: "translation", label: "Translation (planned feature)" },
       { id: "qr", label: "QR codes and scanning" },
       { id: "third-party", label: "Third-party tools and dependencies" },
       { id: "availability", label: "Availability and compatibility" },
@@ -213,28 +252,6 @@ export const legalPages: LegalPage[] = [
       { id: "devices", label: "Browsers and devices" },
       { id: "support", label: "Getting help" },
       { id: "legal", label: "Policies" },
-    ],
-  },
-  {
-    href: "/copyright",
-    navLabel: "Copyright Policy",
-    title: "Copyright and DMCA Policy",
-    intro:
-      "How QUICKKIT handles copyright in its own materials, and how to report material you believe infringes yours.",
-    description:
-      "QUICKKIT's copyright position: ownership of branding and content, third-party licences, how to file a takedown notice and the counter-notification process.",
-    group: "legal",
-    indexable: true,
-    sections: [
-      { id: "ownership", label: "QUICKKIT's own material" },
-      { id: "third-party-ip", label: "Third-party intellectual property" },
-      { id: "user-outputs", label: "Your files and outputs" },
-      { id: "reporting", label: "Reporting infringement" },
-      { id: "dmca", label: "DMCA notice process" },
-      { id: "counter-notice", label: "Counter-notification" },
-      { id: "repeat-infringers", label: "Repeat infringers" },
-      { id: "misrepresentation", label: "Misrepresentation and misuse" },
-      { id: "contact", label: "Designated contact" },
     ],
   },
   {
@@ -329,11 +346,11 @@ export const legalPages: LegalPage[] = [
   {
     href: "/intellectual-property",
     navLabel: "Intellectual Property",
-    title: "Intellectual Property Policy",
+    title: "Intellectual Property & Copyright Policy",
     intro:
-      "What QUICKKIT owns, what it licenses from others, and what you may and may not do with the site's material.",
+      "What QUICKKIT owns, what it licenses from others, what you may and may not do with the site's material, and how to report copyright infringement.",
     description:
-      "QUICKKIT intellectual property policy: brand and editorial ownership, MIT and Apache-2.0 open-source licences, user output rights and permissions.",
+      "Intellectual property and copyright policy: brand ownership, open-source licences, your output rights, permissions and DMCA takedowns.",
     group: "legal",
     indexable: true,
     sections: [
@@ -344,6 +361,11 @@ export const legalPages: LegalPage[] = [
       { id: "permitted", label: "Permitted use" },
       { id: "not-permitted", label: "Uses that need permission" },
       { id: "user-content", label: "Your content and outputs" },
+      { id: "reporting", label: "Reporting copyright infringement" },
+      { id: "dmca", label: "DMCA notice process" },
+      { id: "counter-notice", label: "Counter-notification" },
+      { id: "repeat-infringers", label: "Repeat infringers" },
+      { id: "misrepresentation", label: "Misrepresentation and misuse" },
       { id: "permission", label: "Requesting permission" },
       { id: "contact", label: "Contact" },
     ],
@@ -359,7 +381,6 @@ export const legalPagesRequiringOwnerInput = [
   "/privacy",
   "/cookies",
   "/disclaimer",
-  "/copyright",
   "/security",
   "/contact",
   "/intellectual-property",
@@ -371,8 +392,8 @@ export const legalPagesRequiringOwnerInput = [
  * The homepage footer is deliberately short: it answers "where do I go next?"
  * with the pages a first-time visitor actually needs (tools, the four company
  * pages, the three legal pages every site must surface, security and the
- * sitemap). Everything else — disclaimer, copyright, intellectual property,
- * accessibility and the long file-handling document — stays in the footer of
+ * sitemap). Everything else — disclaimer, intellectual property, accessibility
+ * and the long file-handling document — stays in the footer of
  * every other page and is one click away from `/sitemap`, so nothing becomes
  * unreachable while the landing page stops carrying eleven policy links.
  *
@@ -444,8 +465,7 @@ export const footerGroups: {
       { href: "/privacy", label: "Privacy Policy" },
       { href: "/cookies", label: "Cookie Policy" },
       { href: "/disclaimer", label: "Disclaimer" },
-      { href: "/copyright", label: "Copyright Policy" },
-      { href: "/intellectual-property", label: "Intellectual Property" },
+      { href: "/intellectual-property", label: "IP & Copyright" },
     ],
   },
   {

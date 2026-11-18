@@ -81,7 +81,21 @@ describe("home page hero copy", () => {
       expect(lede?.textContent).toMatch(
         /^\d+ browser tools for the jobs that interrupt a working day\./,
       );
-      const text = container.querySelector(".hero")?.textContent ?? "";
+      // Compare the hero's copy, not the live status strip. HeroScreenStatus
+      // renders a clock that ticks every second, so two renders that straddle a
+      // second boundary differ by that digit and by nothing else. The two
+      // renderings happened a moment apart by design — this test is about copy
+      // staying identical, so the ticking widget is excluded rather than
+      // compared, and every word of the hero is still checked.
+      const hero = container.querySelector(".hero");
+      // Guard the exclusion list: the only time-dependent nodes in the hero are
+      // the two in the live status strip. If something else ever starts
+      // rendering a <time> here, the comparison would silently stop covering
+      // it, so fail loudly instead.
+      const clocks = hero?.querySelectorAll("[data-laptop-status] time").length;
+      expect(hero?.querySelectorAll("time").length).toBe(clocks);
+      hero?.querySelectorAll("time").forEach((node) => node.remove());
+      const text = hero?.textContent ?? "";
       unmount();
       return text;
     };

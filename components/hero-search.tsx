@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Clock, Search, X } from "lucide-react";
@@ -12,6 +18,7 @@ import {
   rememberSearch,
   useRecentSearches,
 } from "@/lib/use-recent-searches";
+import SearchStatus from "@/components/search-status";
 
 /**
  * Homepage hero search: live suggestions link straight to tools; submitting
@@ -36,7 +43,18 @@ export default function HeroSearch({ tools }: { tools: ClientTool[] }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const searching = query.trim().length > 0;
-  const results = searching ? rankTools(tools, query) : [];
+  // main's ranking (`rankTools`) is authoritative — it scores name, description
+  // and keyword matches rather than doing a flat substring test.
+  //
+  // Re-applied on top: the query is deferred so a fast typist never blocks on
+  // re-ranking, and the deferred value is what the list is actually built from.
+  // `pending` is true only while that work is genuinely outstanding, so the
+  // scanning row cannot linger once results are on screen. Gating the ranking on
+  // `deferredQuery` (not the live `query`) is what keeps the list from briefly
+  // emptying and repopulating on every keystroke.
+  const deferredQuery = useDeferredValue(query);
+  const pending = deferredQuery !== query;
+  const results = deferredQuery.trim() ? rankTools(tools, deferredQuery) : [];
   const seeded = !searching && recentSearches.length > 0;
 
   useEffect(() => {
@@ -184,6 +202,13 @@ export default function HeroSearch({ tools }: { tools: ClientTool[] }) {
       </form>
       {panelOpen && searching ? (
         <div className="search-panel" id="hero-search-panel">
+          <SearchStatus
+            state={pending ? "busy" : "idle"}
+            query={query}
+            count={results.length}
+            labels
+            className="search-status-panel"
+          />
           {total ? (
             <>
               <p className="search-panel-count" aria-hidden="true">
@@ -305,9 +330,12 @@ export default function HeroSearch({ tools }: { tools: ClientTool[] }) {
           </div>
         </div>
       ) : null}
-      <p className="sr-only" role="status">
-        {searching ? `${results.length} tools found` : ""}
-      </p>
+      <SearchStatus
+        state={pending && searching ? "busy" : "idle"}
+        query={query}
+        count={results.length}
+        labels={false}
+      />
     </div>
   );
 }

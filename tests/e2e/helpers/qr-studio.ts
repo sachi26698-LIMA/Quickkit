@@ -17,6 +17,22 @@ export async function pickType(page: Page, id: string) {
   await page.getByLabel("QR content type").selectOption(id);
 }
 
+/**
+ * Choose the QR scan destination.
+ *
+ * Direct Raw Content is the studio's default, so a spec that needs the hosted
+ * Data Template link must ask for it explicitly. Scoped to the mode panel
+ * because the same labels appear in the explanatory copy as well.
+ */
+export async function setScanMode(page: Page, mode: "template" | "raw") {
+  const name =
+    mode === "template" ? /Data Template \+ Link/ : /Direct Raw Content/;
+  await page
+    .locator("#qr-data-template-box")
+    .getByRole("button", { name })
+    .click();
+}
+
 /** Load the working sample for the current type (only offered when empty). */
 export async function trySample(page: Page) {
   // The preview card also offers a sample button; use the content card's one.

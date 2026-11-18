@@ -315,7 +315,7 @@ const LEGAL_PAGE_SEO: LegalSeoSeed[] = [
     ],
     alternativeDescription:
       "Where to send a bug report, a privacy or deletion request, a copyright notice or a security disclosure, and what response to expect for each.",
-    internalLinks: ["/help", "/security", "/privacy", "/copyright"],
+    internalLinks: ["/help", "/security", "/privacy", "/intellectual-property"],
   },
   {
     href: "/faq",
@@ -428,31 +428,6 @@ const LEGAL_PAGE_SEO: LegalSeoSeed[] = [
     internalLinks: ["/terms", "/help", "/file-handling", "/contact"],
   },
   {
-    href: "/copyright",
-    title: "Copyright & DMCA Policy — Ownership & Notices",
-    primaryKeyword: "copyright policy",
-    secondaryKeywords: [
-      "dmca takedown",
-      "counter notification",
-      "content ownership",
-      "report infringement",
-    ],
-    intent: "trust",
-    researchId: "page-copyright",
-    alternativeTitles: [
-      "Copyright Policy — Takedown and Counter-Notice",
-      "Content Ownership and How to Report Infringement",
-    ],
-    alternativeDescription:
-      "Who owns the site's writing and design, which parts are open source, who owns what you produce with a tool, and how a takedown notice is handled.",
-    internalLinks: [
-      "/intellectual-property",
-      "/terms",
-      "/contact",
-      "/accessibility",
-    ],
-  },
-  {
     href: "/accessibility",
     title: "Accessibility Statement — Keyboard & Contrast",
     primaryKeyword: "accessibility statement",
@@ -539,7 +514,7 @@ const LEGAL_PAGE_SEO: LegalSeoSeed[] = [
     ],
     alternativeDescription:
       "Who owns the brand and editorial content, which dependencies are MIT or Apache-2.0, what you may do with what a tool produces, and how to request permission.",
-    internalLinks: ["/copyright", "/terms", "/security", "/contact"],
+    internalLinks: ["/terms", "/privacy", "/security", "/contact"],
   },
 ];
 

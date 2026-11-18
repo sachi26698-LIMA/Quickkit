@@ -17,7 +17,6 @@ const REQUIRED = [
   "/about",
   "/contact",
   "/faq",
-  "/copyright",
   "/accessibility",
   "/security",
   "/file-handling",
@@ -204,7 +203,6 @@ test("the homepage footer stays short while inner pages keep the full set", asyn
   // …and hides the long policy list (still in the DOM, still crawlable).
   for (const href of [
     "/disclaimer",
-    "/copyright",
     "/intellectual-property",
     "/accessibility",
     "/file-handling",

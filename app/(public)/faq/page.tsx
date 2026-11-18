@@ -258,8 +258,10 @@ const groups: Group[] = [
             <Link href="/privacy">Privacy Policy</Link>,{" "}
             <Link href="/cookies">Cookie Policy</Link>,{" "}
             <Link href="/disclaimer">Disclaimer</Link>,{" "}
-            <Link href="/copyright">Copyright &amp; DMCA</Link>,{" "}
-            <Link href="/intellectual-property">Intellectual Property</Link>,{" "}
+            <Link href="/intellectual-property#reporting">
+              Copyright &amp; DMCA
+            </Link>
+            , <Link href="/intellectual-property">Intellectual Property</Link>,{" "}
             <Link href="/security">Security</Link>,{" "}
             <Link href="/accessibility">Accessibility</Link> and{" "}
             <Link href="/file-handling">File Handling</Link>. The{" "}

@@ -210,7 +210,10 @@ export function useQrStudio() {
   const [printLayout, setPrintLayout] = useState<QrPrintLayoutId>("single");
   const [sheet, setSheet] = useState<SheetOptions>(DEFAULT_SHEET);
   const [landing, setLanding] = useState<LandingConfig>(DEFAULT_LANDING);
-  const [encodingMode, setEncodingMode] = useState<QrEncodingMode>("template");
+  // Default to direct/raw encoding: the symbol carries the visitor's own
+  // content, not a QUICKKIT-hosted redirect link. Template mode remains one
+  // click away for anyone who wants the styled landing card.
+  const [encodingMode, setEncodingMode] = useState<QrEncodingMode>("raw");
   const [securityMode, setSecurityMode] = useState<QrSecurityMode>("signed");
   const [encryptionPassphrase, setEncryptionPassphrase] = useState<string>("");
   const [encryptionHint, setEncryptionHint] = useState<string>("");

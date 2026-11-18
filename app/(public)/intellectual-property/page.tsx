@@ -2,11 +2,7 @@ import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import { contactEmail, ownerDetail } from "@/lib/site";
 
@@ -19,16 +15,18 @@ export const metadata = pageMetadata(
   "/intellectual-property",
 );
 
-export default function IntellectualPropertyPage() {
+export default async function IntellectualPropertyPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   const business = ownerDetail("businessEmail");
+  const agent = ownerDetail("copyrightEmail");
 
   return (
     <LegalPageShell
       href="/intellectual-property"
-      title="Intellectual Property Policy"
-      intro="Who owns what on QUICKKIT, what the open-source licences allow, what you may quote, and when you need written permission."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      title="Intellectual Property & Copyright Policy"
+      intro="Who owns what on QUICKKIT, what the open-source licences allow, what you may quote, when you need written permission, and how to report material you believe infringes your rights."
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="quicksummary">1. Summary</h2>
       <ul>
@@ -47,6 +45,10 @@ export default function IntellectualPropertyPage() {
         <li>
           Short quotations with credit are welcome; presenting the site or brand
           as your own, or as endorsing you, is not.
+        </li>
+        <li>
+          Copyright complaints and DMCA notices have their own documented
+          process, described in sections 8 to 12.
         </li>
       </ul>
 
@@ -315,7 +317,140 @@ export default function IntellectualPropertyPage() {
         responsibility with you.
       </p>
 
-      <h2 id="permission">8. Requesting permission</h2>
+      <h2 id="reporting">8. Reporting copyright infringement</h2>
+      <p>
+        If you believe material on QUICKKIT infringes a copyright you own or
+        control, send a notice through the{" "}
+        <Link href="/contact">contact page</Link> or email{" "}
+        <ContactLink channel="copyright" subject="Copyright notice" /> with the
+        subject line &ldquo;Copyright notice&rdquo;, and include:
+      </p>
+      <ol>
+        <li>
+          identification of the copyrighted work you say is infringed (a title,
+          registration number if any, and where the original is published);
+        </li>
+        <li>
+          the exact URL on QUICKKIT where the allegedly infringing material
+          appears;
+        </li>
+        <li>
+          your name, postal address, telephone number and email address so we
+          can reach you;
+        </li>
+        <li>
+          a statement that you have a good-faith belief the use is not
+          authorised by the rights holder, its agent or the law;
+        </li>
+        <li>
+          a statement, under penalty of perjury where that concept applies, that
+          the information in your notice is accurate and that you are the rights
+          holder or are authorised to act on the holder&rsquo;s behalf;
+        </li>
+        <li>your physical or electronic signature.</li>
+      </ol>
+      <p>
+        We acknowledge a complete notice, review it, and where it is
+        well-founded remove or disable access to the material promptly. We may
+        ask for clarification if a notice is incomplete, and we may share the
+        notice (or its substance) with the person who supplied the material.
+      </p>
+      <p>
+        One practical note specific to QUICKKIT:{" "}
+        <strong>we do not host user-uploaded content.</strong> Your files are
+        processed in your own browser and are never stored on a QUICKKIT server,
+        so a takedown notice would almost always concern site content — artwork,
+        text, a compiled asset — rather than a file somebody uploaded.
+      </p>
+
+      <h2 id="dmca">9. DMCA notice process</h2>
+      <p>
+        The Digital Millennium Copyright Act (17 U.S.C. §512) establishes a
+        notice-and-takedown process for online service providers in the United
+        States, and a matching counter-notification process. To the extent it
+        applies to this site, the elements listed in{" "}
+        <a href="#reporting">section 8</a> are designed to satisfy the statutory
+        requirements of 17 U.S.C. §512(c)(3).
+      </p>
+      <p>
+        Notices should be sent to the designated copyright contact below. A DMCA
+        notice must be substantially complete to be effective, and knowingly
+        submitting a materially false notice can give rise to liability under 17
+        U.S.C. §512(f).
+      </p>
+      <p className="legal-owner-line">
+        Designated copyright agent (name, postal address and email required by
+        17 U.S.C. §512(c)(2)):{" "}
+        {agent ? (
+          <strong>{agent}</strong>
+        ) : contactEmail ? (
+          <>
+            no agent is published — QUICKKIT names no individual and publishes
+            no postal address, so a notice sent to{" "}
+            <ContactLink channel="copyright" subject="Copyright notice" /> with
+            the subject line &ldquo;Copyright notice&rdquo; reaches the operator
+            directly, and no registration with the U.S. Copyright Office is
+            claimed.
+          </>
+        ) : null}
+      </p>
+      <p className="legal-review-flag">
+        <strong>Legal-review note.</strong> Whether QUICKKIT qualifies for DMCA
+        safe-harbour protection, whether a registered agent with the U.S.
+        Copyright Office is required, and how the equivalent mechanisms work in
+        the operator&rsquo;s own jurisdiction are legal determinations. This
+        section describes a process; it does not claim safe-harbour status or
+        any registration.
+      </p>
+
+      <h2 id="counter-notice">10. Counter-notification</h2>
+      <p>
+        If material you supplied was removed and you believe that was a mistake
+        or misidentification, you may send a counter-notification to the same
+        address. To be considered it should include:
+      </p>
+      <ol>
+        <li>your name, address, telephone number and email address;</li>
+        <li>identification of the removed material and where it appeared;</li>
+        <li>
+          a statement under penalty of perjury that you have a good-faith belief
+          the material was removed as a result of mistake or misidentification;
+        </li>
+        <li>
+          a statement that you consent to the jurisdiction of the federal
+          district court for the district in which your address is located (or,
+          if outside the United States, any judicial district in which the
+          service provider may be found), and that you will accept service of
+          process from the person who filed the original notice;
+        </li>
+        <li>your physical or electronic signature.</li>
+      </ol>
+      <p>
+        Where the process applies, we may forward the counter-notification to
+        the original complainant and restore the material after the statutory
+        waiting period if no court action is filed. This does not limit our
+        ability to keep material removed where we have an independent reason to
+        do so.
+      </p>
+
+      <h2 id="repeat-infringers">11. Repeat infringers</h2>
+      <p>
+        Where it applies, QUICKKIT will terminate or restrict access for anyone
+        shown to be a repeat infringer. QUICKKIT may restrict access to the site
+        or restrict access from the relevant source and remove any material
+        involved.
+      </p>
+
+      <h2 id="misrepresentation">12. Misrepresentation and misuse</h2>
+      <p>
+        Do not use this process to suppress criticism, competition, or material
+        you simply dislike. Notices are legal documents. Where the law provides
+        a remedy for a knowingly false or materially misleading notice (such as
+        17 U.S.C. §512(f)), we reserve the right to rely on it, and we may
+        decline to act on notices that are abusive, incomplete or repetitive.
+      </p>
+
+      <h2 id="permission">13. Requesting permission</h2>
       <p>
         For licensing, trademark use, republication, press assets or partnership
         enquiries, email{" "}
@@ -339,11 +474,11 @@ export default function IntellectualPropertyPage() {
         <Link href="/about#operator">About page</Link>.
       </p>
 
-      <h2 id="contact">9. Contact</h2>
+      <h2 id="contact">14. Contact</h2>
       <p>
-        Copyright complaints follow the{" "}
-        <Link href="/copyright">Copyright and DMCA Policy</Link>, which has its
-        own process and designated contact. General enquiries go through the{" "}
+        Copyright and DMCA notices follow <a href="#reporting">section 8</a> and{" "}
+        <a href="#dmca">section 9</a> above, which name the designated contact.
+        General enquiries go through the{" "}
         <Link href="/contact">contact page</Link>; brand-related terms are also
         in the <Link href="/terms#ip">Terms and Conditions</Link>.
       </p>

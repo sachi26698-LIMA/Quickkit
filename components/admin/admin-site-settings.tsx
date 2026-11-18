@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import {
+  CalendarClock,
   ExternalLink,
   Globe,
   Home,
@@ -16,8 +17,22 @@ import { useEffect, useState } from "react";
 import styles from "./admin.module.css";
 import { AdminNotice } from "./admin-page";
 import { useAdminLive } from "./admin-live-context";
+import { socialPlatforms } from "@/lib/social-platforms";
 
-type PublicLink = { label: string; href: string };
+type PublicLink = { label: string; href: string; icon?: string };
+
+/** "2026-11-16" -> "16 November 2026". Blank input stays blank. */
+function formatLegalDate(iso: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  const date = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 type Settings = {
   website_name: string;
   tagline: string;
@@ -27,6 +42,7 @@ type Settings = {
   homepage_content: { announcement_title: string; announcement_body: string };
   social_links: PublicLink[];
   footer_links: PublicLink[];
+  legal_meta: { last_updated: string; last_updated_iso: string };
 };
 const defaults: Settings = {
   website_name: "QUICKKIT",
@@ -37,6 +53,7 @@ const defaults: Settings = {
   homepage_content: { announcement_title: "", announcement_body: "" },
   social_links: [],
   footer_links: [],
+  legal_meta: { last_updated: "", last_updated_iso: "" },
 };
 
 export default function AdminSiteSettings() {
@@ -107,9 +124,16 @@ export default function AdminSiteSettings() {
   ) =>
     setSettings((s) => ({
       ...s,
-      [key]: s[key].map((link, i) =>
-        i === index ? { ...link, [field]: value } : link,
-      ),
+      [key]: s[key].map((link, i) => {
+        if (i !== index) return link;
+        // An empty icon means "no icon", so the key is dropped rather than
+        // stored as "". The API validates whatever remains.
+        if (field === "icon" && !value) {
+          const rest: PublicLink = { label: link.label, href: link.href };
+          return rest;
+        }
+        return { ...link, [field]: value };
+      }),
     }));
   const addLink = (key: "social_links" | "footer_links") =>
     setSettings((s) =>
@@ -450,6 +474,76 @@ export default function AdminSiteSettings() {
         </div>
       </section>
 
+      {/* Legal document dates */}
+      <section className={styles["admin-panel"]} id="legal-dates">
+        <div className={styles["admin-panel-heading"]}>
+          <div className={styles["admin-panel-title-group"]}>
+            <span
+              className={`${styles["admin-panel-badge"]} ${styles["admin-panel-badge--teal"]}`}
+              aria-hidden="true"
+            >
+              <CalendarClock size={15} />
+            </span>
+            <div>
+              <h3>Legal document dates</h3>
+              <p className={styles["admin-panel-subtitle"]}>
+                The &ldquo;last updated&rdquo; date shown on every policy page
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className={styles["admin-settings-grid"]}>
+          <label className={styles["admin-field"]}>
+            <span>Displayed date</span>
+            <input
+              className={styles["admin-input"]}
+              maxLength={60}
+              placeholder="16 November 2026"
+              value={settings.legal_meta.last_updated}
+              onChange={(e) =>
+                setSettings((s) => ({
+                  ...s,
+                  legal_meta: { ...s.legal_meta, last_updated: e.target.value },
+                }))
+              }
+            />
+          </label>
+          <label className={styles["admin-field"]}>
+            <span>Machine-readable date (YYYY-MM-DD)</span>
+            <input
+              className={styles["admin-input"]}
+              type="date"
+              value={settings.legal_meta.last_updated_iso}
+              onChange={(e) => {
+                const iso = e.target.value;
+                setSettings((s) => ({
+                  ...s,
+                  legal_meta: {
+                    ...s.legal_meta,
+                    last_updated_iso: iso,
+                    // Keep the visible date in step with the picker unless the
+                    // operator has deliberately written their own wording.
+                    last_updated:
+                      s.legal_meta.last_updated.trim() === "" ||
+                      s.legal_meta.last_updated ===
+                        formatLegalDate(s.legal_meta.last_updated_iso)
+                        ? formatLegalDate(iso)
+                        : s.legal_meta.last_updated,
+                  },
+                }));
+              }}
+            />
+          </label>
+          <p
+            className={`${styles["admin-field-hint"]} ${styles["admin-span-2"]}`}
+          >
+            Leave both blank to keep the dates built into the site. The
+            machine-readable date must be a real calendar date; both values are
+            validated by the Admin API before they are stored.
+          </p>
+        </div>
+      </section>
+
       {/* Links */}
       <section className={styles["admin-panel"]}>
         <div className={styles["admin-panel-heading"]}>
@@ -512,6 +606,26 @@ export default function AdminSiteSettings() {
                       }
                     />
                   </label>
+                  {key === "social_links" ? (
+                    <label className={styles["admin-field"]}>
+                      <span>Icon</span>
+                      <select
+                        className={styles["admin-input"]}
+                        aria-label={`social_links ${index + 1} icon`}
+                        value={link.icon ?? ""}
+                        onChange={(e) =>
+                          setLink(key, index, "icon", e.target.value)
+                        }
+                      >
+                        <option value="">No icon (text label)</option>
+                        {socialPlatforms.map((platform) => (
+                          <option key={platform.id} value={platform.id}>
+                            {platform.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
                   <button
                     type="button"
                     className={`${styles["admin-button"]} ${styles["admin-button--danger"]} ${styles["admin-button--sm"]}`}

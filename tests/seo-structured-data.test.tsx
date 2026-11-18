@@ -838,7 +838,7 @@ describe("Phase 2 technical SEO contracts", () => {
       ["/guides/barcode", createElement(BarcodeGuidePage)],
       ["/sitemap", await SitemapPage()],
       ["/contact", await ContactPage()],
-      ["/file-handling", createElement(FileHandlingPage)],
+      ["/file-handling", await FileHandlingPage()],
     ];
 
     for (const [route, element] of samples) {

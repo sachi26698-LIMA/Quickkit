@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useDeferredValue, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Clock, Search, SlidersHorizontal, X } from "lucide-react";
@@ -15,6 +15,7 @@ import { operationForSearch } from "@/lib/tools/security/consolidation";
 import { useHydrated } from "@/lib/use-hydrated";
 import { rankTools } from "@/lib/tool-search";
 import { rememberSearch } from "@/lib/use-recent-searches";
+import SearchStatus from "@/components/search-status";
 
 export function resolveExplorerCategory(
   value: string | null | undefined,
@@ -66,8 +67,16 @@ function ToolExplorerContent({
     "All tools",
     ...categoryMeta.map((meta) => meta.name),
   ];
-
-  const needle = query.trim().toLocaleLowerCase();
+  // main's ranking (rankTools) and sort controls are authoritative here.
+  //
+  // Re-applied on top: the query is deferred so a fast typist never blocks on
+  // re-filtering the whole catalogue, and `pending` is true only while the
+  // filtered list is genuinely catching up — so the scanning row cannot linger
+  // once results are on screen. `needle` is derived from the deferred value, so
+  // the list is built from the same string the pending flag describes.
+  const deferredQuery = useDeferredValue(query);
+  const pending = deferredQuery !== query;
+  const needle = deferredQuery.trim().toLocaleLowerCase();
   const matches = tools.filter(
     (tool) =>
       (category === "All tools" ||
@@ -197,6 +206,13 @@ function ToolExplorerContent({
         />
       </div>
 
+      <SearchStatus
+        state={pending ? "busy" : "idle"}
+        query={query}
+        count={results.length}
+        labels
+        announce={false}
+      />
       <div className="explorer-meta">
         {/* One live region per page: the exact "N tools found" phrasing the
             screen-reader announcement and the e2e suite both rely on. */}

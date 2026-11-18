@@ -53,8 +53,13 @@ async function sampleStudio(
 ) {
   await gotoStudio(page);
   await pickType(page, id);
-  if (options.raw !== false) {
-    await page.getByRole("button", { name: /Direct Raw Content/ }).click();
+  // Direct Raw Content is the studio default, so only the specs that need the
+  // hosted Data Template link have to change the mode.
+  if (options.raw === false) {
+    await page
+      .locator("#qr-data-template-box")
+      .getByRole("button", { name: /Data Template \+ Link/ })
+      .click();
   }
   await trySample(page);
   await setExportSize(page, 512);

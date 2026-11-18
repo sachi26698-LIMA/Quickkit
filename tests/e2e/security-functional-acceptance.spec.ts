@@ -80,9 +80,24 @@ for (const [slug, expected, example] of cases) {
   });
 }
 
+/**
+ * Each assertion below waits on one full PBKDF2 derivation (600k rounds before
+ * AES-GCM authentication can succeed or fail). That is a deliberately expensive
+ * operation, and on a two-core CI runner it competes with every other worker's
+ * browser — so a wait sized for a normal UI update is too short. This constant
+ * is a *wait*, not a weaker check: the expected text is unchanged.
+ */
+const PBKDF2_WAIT = 30_000;
+
 test("AES-GCM file upload, download and authenticated round trip", async ({
   page,
 }) => {
+  // Three full PBKDF2 derivations (600k iterations each: encrypt, decrypt,
+  // then a deliberately wrong password) plus three file downloads. Each
+  // derivation is ~100ms idle but is scheduled against every other worker on a
+  // two-core runner, so the default 30s budget is not enough — the workspace's
+  // own progress state proves the work is still running rather than hung.
+  test.setTimeout(180_000);
   await page.goto("/tools/file-encryption");
   const w = page.getByRole("group", { name: "Security tool workspace" });
   const bytes = Buffer.from("hello private file\n\u2603");
@@ -91,7 +106,9 @@ test("AES-GCM file upload, download and authenticated round trip", async ({
     .setInputFiles({ name: "note.txt", mimeType: "text/plain", buffer: bytes });
   await w.getByLabel("Encryption password").fill("a secure test password");
   await w.getByRole("button", { name: "Process locally" }).click();
-  await expect(w.getByLabel("Result")).toHaveValue(/Encryption succeeded/);
+  await expect(w.getByLabel("Result")).toHaveValue(/Encryption succeeded/, {
+    timeout: PBKDF2_WAIT,
+  });
   const pending = page.waitForEvent("download");
   await w.getByRole("button", { name: "Download file" }).click();
   const encrypted = await pending;
@@ -106,14 +123,20 @@ test("AES-GCM file upload, download and authenticated round trip", async ({
     buffer: ciphertext,
   });
   await w.getByRole("button", { name: "Process locally" }).click();
-  await expect(w.getByLabel("Result")).toHaveValue(/Decryption succeeded/);
+  await expect(w.getByLabel("Result")).toHaveValue(/Decryption succeeded/, {
+    timeout: PBKDF2_WAIT,
+  });
   const out = page.waitForEvent("download");
   await w.getByRole("button", { name: "Download file" }).click();
   expect(await readFile((await (await out).path())!)).toEqual(bytes);
   await w.getByLabel("Encryption password").fill("wrong password");
   await w.getByRole("button", { name: "Process locally" }).click();
+  // A wrong password is not rejected early: the tool runs the full 600k
+  // iteration PBKDF2 derivation before AES-GCM authentication fails, which is
+  // the property that makes a guess expensive. That is real work, not a hang.
   await expect(w.getByRole("alert")).toContainText(
     /incorrect password or corrupted/,
+    { timeout: PBKDF2_WAIT },
   );
   await expect(w.getByRole("button", { name: "Download file" })).toHaveCount(0);
 });

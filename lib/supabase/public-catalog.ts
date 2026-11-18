@@ -11,6 +11,7 @@ import {
   type Tool,
 } from "@/lib/catalog";
 import { getMasterAdminServiceClient } from "./master-admin";
+import { isSocialIconId } from "@/lib/social-platforms";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import type { CategoryOverrideRow, ToolOverrideRow } from "./database.types";
@@ -292,8 +293,20 @@ type PublicSiteSettings = {
     announcement_title?: string;
     announcement_body?: string;
   };
-  social_links?: { label: string; href: string }[];
+  social_links?: PublicSocialLink[];
   footer_links?: { label: string; href: string }[];
+  legal_meta?: { last_updated?: string; last_updated_iso?: string };
+};
+
+/**
+ * A footer social entry. `icon` is an optional platform slug from the fixed
+ * allowlist in `lib/social-platforms.ts`; when it is absent or unrecognised the
+ * footer falls back to the plain text label it printed before icons existed.
+ */
+export type PublicSocialLink = {
+  label: string;
+  href: string;
+  icon?: string;
 };
 
 async function fetchPublicSiteSettingsUncached(): Promise<PublicSiteSettings> {
@@ -368,13 +381,22 @@ async function fetchPublicSiteSettingsUncached(): Promise<PublicSiteSettings> {
         value.every((item) => {
           if (!item || typeof item !== "object" || Array.isArray(item))
             return false;
-          const link = item as { label?: unknown; href?: unknown };
+          const link = item as {
+            label?: unknown;
+            href?: unknown;
+            icon?: unknown;
+          };
           if (
             typeof link.label !== "string" ||
             link.label.length < 1 ||
             link.label.length > 50 ||
             typeof link.href !== "string" ||
             link.href.length > 500
+          )
+            return false;
+          if (
+            link.icon !== undefined &&
+            (typeof link.icon !== "string" || !isSocialIconId(link.icon))
           )
             return false;
           try {

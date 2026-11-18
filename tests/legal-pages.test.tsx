@@ -42,12 +42,43 @@ const REQUIRED_ROUTES = [
   "/about",
   "/contact",
   "/faq",
-  "/copyright",
   "/accessibility",
   "/security",
   "/file-handling",
   "/intellectual-property",
 ];
+
+describe("merged copyright policy", () => {
+  // The stand-alone /copyright page was merged into the IP policy so a reader
+  // has one document to consult. The old URL must keep resolving, and the
+  // merged page must still carry every section a complainant looks for.
+  it("registers the merged page once and drops the stand-alone record", () => {
+    const hrefs = legalPages.map((page) => page.href);
+    expect(hrefs).toContain("/intellectual-property");
+    expect(hrefs).not.toContain("/copyright");
+  });
+
+  it("keeps every takedown heading on the merged page", () => {
+    const page = legalPageByHref("/intellectual-property");
+    const ids = page!.sections.map((section) => section.id);
+    for (const id of [
+      "reporting",
+      "dmca",
+      "counter-notice",
+      "repeat-infringers",
+      "misrepresentation",
+    ])
+      expect(ids).toContain(id);
+  });
+
+  it("redirects the old URL instead of letting it 404", async () => {
+    const { default: config } = await import("../next.config");
+    const redirects = await config.redirects!();
+    const rule = redirects.find((entry) => entry.source === "/copyright");
+    expect(rule?.destination).toBe("/intellectual-property");
+    expect(rule?.permanent).toBe(true);
+  });
+});
 
 describe("legal page registry", () => {
   it("registers every required route exactly once", () => {
@@ -159,7 +190,6 @@ describe("footer navigation", () => {
     // The long policy documents are hidden there, not removed from the site.
     for (const href of [
       "/disclaimer",
-      "/copyright",
       "/intellectual-property",
       "/accessibility",
       "/file-handling",
@@ -267,7 +297,6 @@ describe("legal page content safeguards", () => {
       import("../app/(public)/privacy/page"),
       import("../app/(public)/cookies/page"),
       import("../app/(public)/disclaimer/page"),
-      import("../app/(public)/copyright/page"),
       import("../app/(public)/security/page"),
       import("../app/(public)/accessibility/page"),
       import("../app/(public)/file-handling/page"),
@@ -295,7 +324,6 @@ describe("legal tables on a phone", () => {
   // would read as an unlabelled value on a phone.
   const TABLES = [
     "../app/(public)/cookies/page",
-    "../app/(public)/copyright/page",
     "../app/(public)/disclaimer/page",
     "../app/(public)/file-handling/page",
     "../app/(public)/intellectual-property/page",
@@ -303,7 +331,9 @@ describe("legal tables on a phone", () => {
 
   it.each(TABLES)("%s labels every cell with its column", async (path) => {
     const { default: Page } = await import(path);
-    const { container, unmount } = render(<Page />);
+    // Policy pages now await their "last updated" date, so the element is
+    // produced first and the resolved tree is what gets rendered.
+    const { container, unmount } = render(await Page());
     const cells = Array.from(
       container.querySelectorAll<HTMLTableCellElement>(
         "table.legal-table td[role='cell']",
@@ -329,7 +359,7 @@ describe("legal tables on a phone", () => {
 describe("rendered legal page shell", () => {
   it("renders breadcrumbs, one h1, the date, a table of contents and related pages", async () => {
     const { default: TermsPage } = await import("../app/(public)/terms/page");
-    const { container } = render(<TermsPage />);
+    const { container } = render(await TermsPage());
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     const breadcrumb = container.querySelector('nav[aria-label="Breadcrumb"]');
@@ -404,8 +434,9 @@ describe("rendered legal page shell", () => {
       ["about", (await import("../app/(public)/about/page")).default],
     ] as const;
     for (const [name, Page] of pages) {
-      const element = name === "contact" ? await Page() : createElement(Page);
-      const { container, unmount } = render(element);
+      // Every one of these is now an async server component: produce the
+      // element first, then render the resolved tree.
+      const { container, unmount } = render(await Page());
       const mailtos = Array.from(
         container.querySelectorAll('a[href^="mailto:"]'),
       );
@@ -430,5 +461,77 @@ describe("rendered legal page shell", () => {
     for (const group of legalPageByHref("/faq")!.sections) {
       expect(container.querySelector(`#${group.id}`), group.id).toBeTruthy();
     }
+  });
+});
+
+describe("operator-managed footer socials", () => {
+  it("draws a local icon for an allowlisted platform and a label otherwise", () => {
+    const { container, unmount } = render(
+      <Footer
+        siteName="QUICKKIT"
+        socialLinks={[
+          {
+            label: "Instagram",
+            href: "https://instagram.com/x",
+            icon: "instagram",
+          },
+          { label: "Newsletter", href: "https://example.test/news" },
+        ]}
+      />,
+    );
+    const icons = container.querySelectorAll(
+      ".footer-socials a.footer-social-icon svg",
+    );
+    // Exactly one icon: the entry that named a platform.
+    expect(icons.length).toBe(1);
+    // The icon link is still named for a screen reader.
+    expect(
+      screen.getByRole("link", {
+        name: /Instagram \(opens in new tab\)/,
+      }),
+    ).toBeInTheDocument();
+    // The icon-less entry keeps its visible text.
+    expect(
+      screen.getByRole("link", { name: /Newsletter/ }),
+    ).toBeInTheDocument();
+    unmount();
+  });
+
+  it("never renders an icon name that is not on the allowlist", () => {
+    const { container, unmount } = render(
+      <Footer
+        siteName="QUICKKIT"
+        socialLinks={[
+          { label: "Mystery", href: "https://example.test", icon: "not-real" },
+        ]}
+      />,
+    );
+    // An unknown icon degrades to the text label — it never renders markup.
+    expect(container.querySelectorAll(".footer-socials svg").length).toBe(0);
+    expect(screen.getByRole("link", { name: /Mystery/ })).toBeInTheDocument();
+    unmount();
+  });
+});
+
+describe("merged policy title", () => {
+  it("renders the same title the registry publishes", async () => {
+    const { default: IpPage } =
+      await import("../app/(public)/intellectual-property/page");
+    const { container, unmount } = render(await IpPage());
+    const h1 = container.querySelector("h1");
+    expect(h1?.textContent).toBe(
+      legalPageByHref("/intellectual-property")!.title,
+    );
+    expect(h1?.textContent).toContain("Copyright");
+    unmount();
+  });
+});
+
+describe("legal last-updated resolution", () => {
+  it("falls back to the compiled dates when no override is stored", async () => {
+    const { resolveLegalLastUpdated } = await import("../lib/legal");
+    const resolved = await resolveLegalLastUpdated();
+    expect(resolved.iso).toBe(LEGAL_LAST_UPDATED_ISO);
+    expect(resolved.label.length).toBeGreaterThan(0);
   });
 });

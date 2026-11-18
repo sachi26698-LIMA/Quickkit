@@ -11,6 +11,8 @@ import {
   type CategoryMeta,
 } from "@/lib/catalog";
 import { useFavorites } from "@/lib/use-favorites";
+import type { NavCategory } from "@/lib/nav-categories";
+import GooeyNav from "@/components/gooey-nav";
 
 /**
  * The header is a client component, so everything in its props is serialised
@@ -47,6 +49,7 @@ export default function Header({
   const pathname = usePathname();
   const { saved } = useFavorites();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const closeAll = () => {
     setOpen(false);
@@ -116,9 +119,13 @@ export default function Header({
     >
       <div className="container header-inner">
         <Brand name={siteName} />
+        {/* Desktop navigation. On small screens globals.css hides this and the
+            gooey panel below takes over, so the two never both carry the
+            #main-navigation id — a duplicate id would break aria-controls and
+            the E2E navigation contract. */}
         <nav
-          id="main-navigation"
-          className={open ? "navigation open" : "navigation"}
+          id="desktop-navigation"
+          className="navigation"
           aria-label="Main navigation"
         >
           <Link
@@ -194,7 +201,7 @@ export default function Header({
               "/privacy",
               "/cookies",
               "/disclaimer",
-              "/copyright",
+              "/intellectual-property",
               "/intellectual-property",
               "/security",
               "/accessibility",
@@ -246,6 +253,7 @@ export default function Header({
             Explore Tools <ArrowRight size={16} aria-hidden="true" />
           </Link>
           <button
+            ref={menuButtonRef}
             className="menu-button secondary"
             aria-label={open ? "Close navigation" : "Open navigation"}
             aria-expanded={open}
@@ -255,7 +263,31 @@ export default function Header({
             {open ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
+        <GooeyNav
+          open={open}
+          onClose={closeAll}
+          triggerRef={menuButtonRef}
+          categories={navCategoriesFrom(categories)}
+          pathname={pathname}
+          isCurrent={(href, section) => current(href, section)}
+          emptyCategory={(slug) => resolvedEmptyCategorySlugs.includes(slug)}
+        />
       </div>
     </header>
   );
+}
+
+/**
+ * The gooey panel needs the header's category menu without the catalogue, so it
+ * takes the same shape as `navCategories`. `categories` arrives from the server
+ * as `CategoryMeta[]`, which carries every field the panel renders.
+ */
+function navCategoriesFrom(categories: CategoryMeta[]): NavCategory[] {
+  return categories.map((meta) => ({
+    name: meta.name,
+    slug: meta.slug,
+    tint: meta.tint,
+    icon: meta.icon,
+    empty: false,
+  }));
 }

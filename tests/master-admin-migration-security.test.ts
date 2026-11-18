@@ -109,3 +109,46 @@ describe("pending Master Admin migration least privilege", () => {
     );
   });
 });
+
+describe("site settings key constraint stays in step with the Admin API", () => {
+  const legalMetaSql = readFileSync(
+    new URL(
+      "../supabase/migrations/202611170001_quickkit_legal_meta_setting.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  it("is a transactional, additive constraint widening", () => {
+    expect(legalMetaSql).toMatch(/^\s*--[^\n]*\n(?:--[^\n]*\n)*\s*begin;/i);
+    expect(legalMetaSql).toMatch(/commit;\s*$/i);
+    // The only dropped object is the constraint being recreated immediately
+    // after it. No table, column, policy or trigger is removed.
+    expect(legalMetaSql).not.toMatch(
+      /\bdrop\s+(?:table|column|policy|trigger)\b/i,
+    );
+    expect(legalMetaSql).not.toMatch(/\btruncate\b/i);
+  });
+
+  it("accepts every key the Admin API allowlist accepts", async () => {
+    const { readFileSync: read } = await import("node:fs");
+    // The runtime allowlist is the source of truth; the SQL must cover it or a
+    // save would pass validation and then fail at the database.
+    const route = read(
+      new URL("../app/api/admin/[resource]/route.ts", import.meta.url),
+      "utf8",
+    );
+    const block = route.match(
+      /const settingKeys = new Set<SiteSettingKey>\(\[([\s\S]*?)\]\);/,
+    )?.[1];
+    expect(block).toBeDefined();
+    const keys = [...block!.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]);
+    expect(keys).toContain("legal_meta");
+    for (const key of keys) {
+      expect(
+        legalMetaSql,
+        `${key} must be allowed by the constraint`,
+      ).toContain(`'${key}'`);
+    }
+  });
+});

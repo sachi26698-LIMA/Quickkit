@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart, ShieldCheck } from "lucide-react";
 import Brand from "@/components/brand";
 import SocialGlyph from "@/components/social-icons";
+import { isSocialIconId } from "@/lib/social-platforms";
 import { footerGroups, footerLinkOnHome } from "@/lib/legal";
 import { socials, socialsVisible } from "@/lib/site";
 
@@ -26,7 +27,7 @@ export default function Footer({
   siteName?: string;
   tagline?: string;
   contactEmail?: string;
-  socialLinks?: { label: string; href: string }[];
+  socialLinks?: { label: string; href: string; icon?: string }[];
   extraLinks?: { label: string; href: string }[];
 }) {
   return (
@@ -40,6 +41,11 @@ export default function Footer({
           </p>
           {/* Hidden until the URLs in `socials` are confirmed to be the
               operator's real profiles — see `socialsVisible` in lib/site.ts. */}
+          {/* Operator-managed profiles. Each row can carry a platform icon
+              from the fixed allowlist; a row without a recognised icon still
+              renders as a text link, so the footer never breaks when a setting
+              is edited. Markup for the icons is local SVG — no remote images,
+              no CSP exception. */}
           {socialsVisible || socialLinks.length > 0 ? (
             <div
               className="footer-socials"
@@ -53,17 +59,34 @@ export default function Footer({
                       href={href}
                       target="_blank"
                       rel="noreferrer"
-                      aria-label={`QUICKKIT on ${label} (opens in new tab)`}
+                      aria-label={`${siteName} on ${label} (opens in new tab)`}
                     >
                       <SocialGlyph icon={icon} />
                     </a>
                   ))
                 : null}
-              {socialLinks.map(({ label, href }) => (
-                <a key={href} href={href} target="_blank" rel="noreferrer">
-                  {label}
-                </a>
-              ))}
+              {socialLinks.map(({ label, href, icon }) => {
+                const glyph = icon && isSocialIconId(icon) ? icon : null;
+                return (
+                  <a
+                    key={`${label}-${href}`}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={glyph ? "footer-social-icon" : undefined}
+                    aria-label={
+                      glyph
+                        ? `${siteName} on ${label} (opens in new tab)`
+                        : undefined
+                    }
+                  >
+                    {glyph ? <SocialGlyph icon={glyph} /> : null}
+                    <span className={glyph ? "sr-only" : undefined}>
+                      {label}
+                    </span>
+                  </a>
+                );
+              })}
             </div>
           ) : null}
           {contactEmail ? (

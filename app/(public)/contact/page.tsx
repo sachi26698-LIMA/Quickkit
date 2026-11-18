@@ -77,7 +77,7 @@ const channels: {
     detail:
       "Notices of claimed infringement and counter-notifications, with the details the policy lists.",
     Icon: Copyright,
-    href: "/copyright#reporting",
+    href: "/intellectual-property#reporting",
   },
   {
     id: "business",
@@ -311,8 +311,10 @@ export default async function ContactPage() {
                   <h3 id="copyright">Copyright notice checklist</h3>
                   <p>
                     Notices should include the six elements listed in the{" "}
-                    <Link href="/copyright#reporting">Copyright Policy</Link>. A
-                    complete notice is actioned faster than a link with no
+                    <Link href="/intellectual-property#reporting">
+                      Copyright &amp; DMCA Policy
+                    </Link>
+                    . A complete notice is actioned faster than a link with no
                     detail.
                   </p>
                   <h3 id="business">Business &amp; IP enquiries</h3>

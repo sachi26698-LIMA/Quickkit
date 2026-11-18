@@ -33,7 +33,6 @@ const routes = [
   "/cookies",
   "/disclaimer",
   "/faq",
-  "/copyright",
   "/accessibility",
   "/security",
   "/file-handling",

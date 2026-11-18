@@ -13,7 +13,6 @@ import AdUnit from "@/components/ad-unit";
 import CategoryGrid from "@/components/category-grid";
 import HeroArt from "@/components/hero-art";
 import HeroSearch from "@/components/hero-search";
-import RecentToolsSection from "@/components/recent-tools-section";
 import Reveal from "@/components/reveal";
 import JsonLd from "@/components/json-ld";
 import { pageMetadata, webPageStructuredData } from "@/lib/seo";
@@ -199,9 +198,6 @@ export default async function Home() {
         {/* 1 of 3 — below the introduction, above the toolkit. Never inside the
             hero's search controls, and never above the fold's content. */}
         <AdUnit placement="home-after-hero" format="horizontal" />
-        {/* This browser's own history — renders nothing for first-time
-            visitors, never leaves the device. */}
-        <RecentToolsSection tools={clientTools} />
         <section
           id="categories"
           className="home-section"

@@ -243,7 +243,8 @@ export type SiteSettingKey =
   | "footer_links"
   | "announcement"
   | "maintenance"
-  | "homepage_content";
+  | "homepage_content"
+  | "legal_meta";
 export type ToolOverrideRow = {
   tool_slug: string;
   name_override: string | null;

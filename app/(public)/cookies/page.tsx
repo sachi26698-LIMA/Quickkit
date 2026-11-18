@@ -2,11 +2,7 @@ import Link from "next/link";
 import LegalPageShell from "@/components/legal-page-shell";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
-import {
-  LEGAL_LAST_UPDATED,
-  LEGAL_LAST_UPDATED_ISO,
-  legalPageByHref,
-} from "@/lib/legal";
+import { legalPageByHref, resolveLegalLastUpdated } from "@/lib/legal";
 import ContactLink from "@/components/contact-link";
 import AnalyticsConsent from "@/components/analytics-consent";
 
@@ -19,14 +15,15 @@ export const metadata = pageMetadata(
   "/cookies",
 );
 
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  const lastUpdated = await resolveLegalLastUpdated();
   return (
     <LegalPageShell
       href="/cookies"
       title="Cookie Policy"
       intro="QUICKKIT application code does not intentionally set cookies. When advertising is enabled, Google AdSense may use cookies or similar identifiers; this page also documents the browser storage created by site features."
-      lastUpdated={LEGAL_LAST_UPDATED}
-      lastUpdatedIso={LEGAL_LAST_UPDATED_ISO}
+      lastUpdated={lastUpdated.label}
+      lastUpdatedIso={lastUpdated.iso}
     >
       <h2 id="summary">1. The short version</h2>
       <ul>
@@ -395,9 +392,8 @@ export default function CookiesPage() {
         <strong>Legal-review note.</strong> Whether a specific local-storage
         entry requires consent, and which consent standard applies (ePrivacy,
         GDPR, UK PECR, state privacy laws, DPDP Act and others), is a
-        jurisdiction-specific legal question. The operator should confirm the
-        classification of each entry above has not yet been settled with
-        counsel.
+        jurisdiction-specific legal question, and the classification of each
+        entry above has not yet been settled with counsel.
       </p>
 
       <h2 id="third-party">9. Third-party cookies</h2>

@@ -176,6 +176,16 @@ const config: NextConfig = {
         destination: "/tools/image-to-image",
         permanent: true,
       },
+      {
+        // The stand-alone Copyright & DMCA policy was merged into the
+        // Intellectual Property policy so a reader has one document to consult
+        // instead of two that repeated each other. The fragment is carried over
+        // by the browser on a 308, so /copyright#reporting still lands on the
+        // equivalent heading, which keeps the same id on the merged page.
+        source: "/copyright",
+        destination: "/intellectual-property",
+        permanent: true,
+      },
     ];
   },
   async headers() {

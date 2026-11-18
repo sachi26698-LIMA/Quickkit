@@ -34,6 +34,18 @@ function card(id: string) {
   return within(document.getElementById(id) as HTMLElement);
 }
 
+/**
+ * The QR scan-destination switch lives in the Data Template panel. Querying by
+ * role alone is ambiguous because the panel renders the same labels in two
+ * places, so scope to the panel root first.
+ */
+function setQrScanMode(mode: "template" | "raw") {
+  const panel = document.getElementById("qr-data-template-box") as HTMLElement;
+  const name =
+    mode === "template" ? /Data Template \+ Link/ : /Direct Raw Content/;
+  fireEvent.click(within(panel).getAllByRole("button", { name })[0]);
+}
+
 /** Small export size: the same verification path, a quarter of the pixels. */
 function useSmallSize() {
   const group = screen.getByRole("group", { name: "Preset export sizes" });
@@ -193,7 +205,7 @@ describe("qr studio — empty state", () => {
   });
 
   it(
-    "renders a URL with an original Data Template link by default and supports Direct Raw Content",
+    "encodes Direct Raw Content by default and keeps Data Template reachable",
     async () => {
       render(<QrGenerator />);
       useSmallSize();
@@ -205,18 +217,17 @@ describe("qr studio — empty state", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Show the exact encoded content" }),
       );
-      const templatePayload =
-        document.querySelector("#qr-payload-view pre")?.textContent ?? "";
-      expect(templatePayload).toContain("/qr?d=");
-
-      // Switching to Direct Raw Content encodes the bare normalized URL.
-      fireEvent.click(
-        screen.getByRole("button", { name: /Direct Raw Content/ }),
-      );
-      await settle();
+      // The default is now the visitor's own content, not a QUICKKIT link.
       expect(document.querySelector("#qr-payload-view pre")?.textContent).toBe(
         "https://example.com/pricing?src=qr#top",
       );
+
+      // Data Template mode is still one click away and still wraps the link.
+      setQrScanMode("template");
+      await settle();
+      const templatePayload =
+        document.querySelector("#qr-payload-view pre")?.textContent ?? "";
+      expect(templatePayload).toContain("/qr?d=");
       expect(screen.getByText(/v\d+ · \d+×\d+/)).toBeInTheDocument();
     },
     TEST_TIMEOUT,
@@ -238,21 +249,21 @@ describe("qr studio — empty state", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Show the exact encoded content" }),
       );
-      const templateView =
-        document.querySelector("#qr-payload-view pre")?.textContent ?? "";
-      expect(templateView).toContain("/qr?d=");
-      expect(templateView).toContain("#s=••••••••");
-      expect(templateView).not.toContain("p@ss");
-
-      fireEvent.click(
-        screen.getByRole("button", { name: /Direct Raw Content/ }),
-      );
-      await settle();
+      // Direct Raw Content is the default: standard WIFI: string, no link.
       const view =
         document.querySelector("#qr-payload-view pre")?.textContent ?? "";
       expect(view.startsWith("WIFI:T:WPA;")).toBe(true);
       expect(view).toContain("S:Café\\;Wi\\:Fi\\\\net");
       expect(view).not.toContain("p@ss");
+
+      // Data Template mode wraps it in a link and still never shows the secret.
+      setQrScanMode("template");
+      await settle();
+      const templateView =
+        document.querySelector("#qr-payload-view pre")?.textContent ?? "";
+      expect(templateView).toContain("/qr?d=");
+      expect(templateView).toContain("#s=••••••••");
+      expect(templateView).not.toContain("p@ss");
     },
     TEST_TIMEOUT,
   );
@@ -1028,6 +1039,8 @@ describe("qr studio — Data Templates, Original Links & Payment QR", () => {
       fireEvent.change(screen.getByLabelText(/Amount/), {
         target: { value: "499" },
       });
+      // Raw is the default now; this test is about the Data Template link.
+      setQrScanMode("template");
       await settle();
 
       const linkAnchor = document.querySelector(

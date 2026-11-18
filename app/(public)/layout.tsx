@@ -5,6 +5,8 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import IconMotionGate from "@/components/icon-motion-gate";
 import JsonLd from "@/components/json-ld";
+import OfflineIndicator from "@/components/offline-indicator";
+import SmoothAnchor from "@/components/smooth-anchor";
 import { isAdsEnabled } from "@/lib/ads";
 import { getClientCatalog } from "@/lib/client-catalog";
 import { siteStructuredData } from "@/lib/seo";
@@ -107,6 +109,8 @@ export default async function PublicLayout({
           already mount an inline search box (/, /tools). */}
       <CommandPalette tools={clientTools} categories={categories} />
       <IconMotionGate />
+      <SmoothAnchor />
+      <OfflineIndicator />
     </>
   );
 }
