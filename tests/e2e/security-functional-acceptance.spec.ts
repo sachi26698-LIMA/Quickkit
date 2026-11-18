@@ -91,7 +91,9 @@ test("AES-GCM file upload, download and authenticated round trip", async ({
     .setInputFiles({ name: "note.txt", mimeType: "text/plain", buffer: bytes });
   await w.getByLabel("Encryption password").fill("a secure test password");
   await w.getByRole("button", { name: "Process locally" }).click();
-  await expect(w.getByLabel("Result")).toHaveValue(/Encryption succeeded/);
+  await expect(w.getByLabel("Result")).toHaveValue(/Encryption succeeded/, {
+    timeout: 30_000,
+  });
   const pending = page.waitForEvent("download");
   await w.getByRole("button", { name: "Download file" }).click();
   const encrypted = await pending;
@@ -106,14 +108,22 @@ test("AES-GCM file upload, download and authenticated round trip", async ({
     buffer: ciphertext,
   });
   await w.getByRole("button", { name: "Process locally" }).click();
-  await expect(w.getByLabel("Result")).toHaveValue(/Decryption succeeded/);
+  await expect(w.getByLabel("Result")).toHaveValue(/Decryption succeeded/, {
+    timeout: 30_000,
+  });
   const out = page.waitForEvent("download");
   await w.getByRole("button", { name: "Download file" }).click();
   expect(await readFile((await (await out).path())!)).toEqual(bytes);
   await w.getByLabel("Encryption password").fill("wrong password");
   await w.getByRole("button", { name: "Process locally" }).click();
+  // A wrong password is not rejected early: the tool must run the full
+  // PBKDF2 derivation (600k iterations) before AES-GCM authentication fails,
+  // which is exactly the property that makes the guess expensive. That put the
+  // alert past Playwright's 5 s default on loaded CI runners, so this
+  // assertion gets a budget sized for one derivation rather than the default.
   await expect(w.getByRole("alert")).toContainText(
     /incorrect password or corrupted/,
+    { timeout: 30_000 },
   );
   await expect(w.getByRole("button", { name: "Download file" })).toHaveCount(0);
 });
