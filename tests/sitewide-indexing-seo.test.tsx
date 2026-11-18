@@ -117,7 +117,10 @@ describe("site-wide indexing & SEO invariants", () => {
       }
     }
 
-    // Core static + guide pages
+    // Core static + guide pages. The homepage is listed as the bare origin —
+    // the same spelling Next.js forces on the canonical — so it is compared
+    // through the shared helper rather than by concatenation.
+    const { absoluteUrl } = await import("../lib/seo");
     for (const path of [
       "/",
       "/tools",
@@ -125,7 +128,7 @@ describe("site-wide indexing & SEO invariants", () => {
       "/sitemap",
       "/guides/barcode",
     ]) {
-      expect(urls).toContain(`${ORIGIN}${path}`);
+      expect(urls).toContain(absoluteUrl(path));
     }
 
     // All 7 active categories (including developer-tools) included; empty ai-tools excluded
@@ -407,8 +410,11 @@ describe("site-wide indexing & SEO invariants", () => {
     expect(robotsConfig.sitemap).toBe(`${ORIGIN}/sitemap.xml`);
 
     const homeMeta = pageMetadata("Home", "Description", "/");
-    expect(homeMeta.alternates?.canonical).toBe(`${ORIGIN}/`);
-    expect(homeMeta.openGraph?.url).toBe(`${ORIGIN}/`);
+    // The homepage is stated as the bare origin. Next.js collapses a
+    // same-origin root URL to `origin` when it renders the canonical, so the
+    // sitemap, `@id`s and metadata all use this one spelling.
+    expect(homeMeta.alternates?.canonical).toBe(ORIGIN);
+    expect(homeMeta.openGraph?.url).toBe(ORIGIN);
 
     const guideMeta = pageMetadata("Guide", "Description", "/guides/barcode");
     expect(guideMeta.alternates?.canonical).toBe(`${ORIGIN}/guides/barcode`);

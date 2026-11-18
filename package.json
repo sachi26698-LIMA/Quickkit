@@ -18,7 +18,8 @@
     "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"components/**/*.tsx\" \"lib/**/*.ts\" \"tests/**/*.{ts,tsx}\" \"workers/**/*.ts\" \"scripts/**/*.mjs\" \"*config.{ts,mjs}\" package.json tsconfig.json",
     "prepare:ocr": "node scripts/copy-ocr-assets.mjs",
     "fixture:word-to-pdf": "node scripts/word-to-pdf-v5-fixture.mjs",
-    "seo:report": "tsx scripts/seo-report.mts"
+    "seo:report": "tsx scripts/seo-report.mts",
+    "gsc:analyse": "tsx scripts/gsc-analyse.mts"
   },
   "keywords": [],
   "author": "",
