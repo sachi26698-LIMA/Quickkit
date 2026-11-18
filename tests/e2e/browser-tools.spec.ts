@@ -46,13 +46,15 @@ test("QR generator verifies its own export and names the downloaded file", async
   await page
     .getByRole("button", { name: "Show the exact encoded content" })
     .click();
-  await expect(page.locator("#qr-payload-view pre")).toContainText("/qr?d=");
+  // Direct Raw Content is the default: the symbol carries the address itself.
+  await expect(page.locator("#qr-payload-view pre")).toHaveText(encoded);
 
-  await page.getByRole("button", { name: /Direct Raw Content/ }).click();
+  // The hosted Data Template link is still reachable by choosing that mode.
+  await page.getByRole("button", { name: /Data Template \+ Link/ }).click();
   await expect(
     page.getByText("Verified by an independent decoder"),
   ).toBeVisible();
-  await expect(page.locator("#qr-payload-view pre")).toHaveText(encoded);
+  await expect(page.locator("#qr-payload-view pre")).toContainText("/qr?d=");
   const pending = page.waitForEvent("download");
   await page
     .locator("#qr-export")

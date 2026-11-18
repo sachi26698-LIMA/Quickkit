@@ -12,6 +12,7 @@ import {
   gotoStudio,
   pickType,
   setExportSize,
+  setScanMode,
   trySample,
   waitVerified,
 } from "./helpers/qr-studio";
@@ -25,6 +26,8 @@ test.describe("QR Cryptographic Anti-Tamper & Encryption E2E", () => {
     await gotoStudio(page);
     await pickType(page, "payment");
     await trySample(page);
+    // Raw is the default; these assertions are about the signed hosted link.
+    await setScanMode(page, "template");
     await setExportSize(page, 512);
     await waitVerified(page);
 
@@ -64,6 +67,8 @@ test.describe("QR Cryptographic Anti-Tamper & Encryption E2E", () => {
     await gotoStudio(page);
     await pickType(page, "wifi");
     await trySample(page);
+    // The encrypted hosted link (/qr?e=…) lives in Data Template mode.
+    await setScanMode(page, "template");
 
     // Open Security Shield and enable Password Vault (AES-256-GCM)
     const shield = page.locator("#qr-security-shield");
