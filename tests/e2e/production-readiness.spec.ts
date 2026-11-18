@@ -84,22 +84,23 @@ test.describe("all published tool routes", () => {
   }
 });
 
-for (const width of responsiveWidths) {
-  test(`shared layouts fit required routes at ${width}px`, async ({
+for (const route of responsiveRoutes) {
+  test(`shared layout ${route} fits every required responsive width`, async ({
     page,
   }, testInfo) => {
-    // Each case checks five routes. Document readiness is sufficient for layout
-    // geometry; network quiescence is checked separately by the route suite.
+    // Keep each route's 11 viewport checks together, but isolate routes so a
+    // slow navigation identifies its path and cannot consume other routes' budget.
     test.setTimeout(60_000);
-    await page.setViewportSize({ width, height: 900 });
 
-    for (const route of responsiveRoutes) {
+    for (const width of responsiveWidths) {
+      await page.setViewportSize({ width, height: 900 });
       const response = await page.goto(route, {
         waitUntil: "domcontentloaded",
       });
       expect(response?.status(), `${route} at ${width}px`).toBe(200);
       await expect(
         page.getByRole("heading", { level: 1 }).first(),
+        `visible H1 for ${route} at ${width}px`,
       ).toBeVisible();
 
       const overflow = await page.evaluate(
