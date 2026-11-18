@@ -81,6 +81,7 @@ export default function HeroScreenSearch() {
         query={query}
         count={results.length}
         labels={false}
+        announce={false}
       />
     </div>
   );

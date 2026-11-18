@@ -40,7 +40,7 @@ export type GooeyNavProps = {
   pathname: string;
   isCurrent: (href: string, section?: string[]) => "page" | undefined;
   /** Categories with no published tools get `rel="nofollow"`, matching the desktop menu. */
-  emptyCategory: (name: string) => boolean;
+  emptyCategory: (slug: string) => boolean;
 };
 
 const PRIMARY_LINKS = [
@@ -178,7 +178,7 @@ export default function GooeyNav({
               <li key={meta.slug}>
                 <Link
                   href={`/category/${meta.slug}`}
-                  rel={emptyCategory(meta.name) ? "nofollow" : undefined}
+                  rel={emptyCategory(meta.slug) ? "nofollow" : undefined}
                   onClick={onClose}
                 >
                   <span className={`dropdown-icon ${meta.tint}`}>

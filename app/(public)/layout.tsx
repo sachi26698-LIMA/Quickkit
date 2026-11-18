@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AdSenseLoader from "@/components/adsense-loader";
+import CommandPalette from "@/components/command-palette";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import IconMotionGate from "@/components/icon-motion-gate";
@@ -7,6 +8,7 @@ import JsonLd from "@/components/json-ld";
 import OfflineIndicator from "@/components/offline-indicator";
 import SmoothAnchor from "@/components/smooth-anchor";
 import { isAdsEnabled } from "@/lib/ads";
+import { getClientCatalog } from "@/lib/client-catalog";
 import { siteStructuredData } from "@/lib/seo";
 import { contactEmail as defaultContactEmail } from "@/lib/site";
 import {
@@ -36,12 +38,32 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [{ categories, tools }, settings] = await Promise.all([
+  const [{ categories, tools }, settings, clientTools] = await Promise.all([
     getPublicCatalog(),
     getPublicSiteSettings(),
+    // Same projected array the homepage consumes — one flight encoding.
+    getClientCatalog(),
   ]);
   const siteName = settings.website_name ?? "QUICKKIT";
   const maintenance = settings.maintenance;
+  // The header only needs to know which categories have no published tool (so
+  // the link is `nofollow`). Computing it here keeps the full catalogue on the
+  // server instead of serialising it into every page's RSC payload.
+  const emptyCategorySlugs = categories
+    .filter(
+      (category) =>
+        !tools.some((tool) => {
+          // Only two tools carry a secondary category, so the field is absent
+          // from most members of the union and has to be read defensively.
+          const secondary = (tool as { categories?: readonly string[] })
+            .categories;
+          return (
+            tool.category === category.name ||
+            (Array.isArray(secondary) && secondary.includes(category.name))
+          );
+        }),
+    )
+    .map((category) => category.slug);
   return (
     <>
       <JsonLd
@@ -62,7 +84,11 @@ export default async function PublicLayout({
           {maintenance.message}
         </p>
       ) : null}
-      <Header categories={categories} tools={tools} siteName={siteName} />
+      <Header
+        categories={categories}
+        emptyCategorySlugs={emptyCategorySlugs}
+        siteName={siteName}
+      />
       <noscript>
         <p className="container status">
           These tools need JavaScript to run in your browser. Enable JavaScript
@@ -79,6 +105,9 @@ export default async function PublicLayout({
         socialLinks={settings.social_links}
         extraLinks={settings.footer_links}
       />
+      {/* Global Ctrl/⌘ K search for every public page except the two that
+          already mount an inline search box (/, /tools). */}
+      <CommandPalette tools={clientTools} categories={categories} />
       <IconMotionGate />
       <SmoothAnchor />
       <OfflineIndicator />

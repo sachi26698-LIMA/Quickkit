@@ -7,23 +7,43 @@ import Brand from "@/components/brand";
 import CategoryIcon from "@/components/category-icon";
 import {
   categoryMeta as defaultCategories,
-  tools as defaultTools,
+  toolsByCategory,
   type CategoryMeta,
-  type Tool,
 } from "@/lib/catalog";
 import { useFavorites } from "@/lib/use-favorites";
 import type { NavCategory } from "@/lib/nav-categories";
 import GooeyNav from "@/components/gooey-nav";
 
+/**
+ * The header is a client component, so everything in its props is serialised
+ * into the RSC payload of **every** page on the site.
+ *
+ * It used to receive the whole catalogue (`tools`) just to answer one question:
+ * is this category empty, so its link should be `nofollow`? That shipped ~30 kB
+ * of tool records to the browser on all 158 routes to render a dropdown. The
+ * answer is now computed and passed as `emptyCategorySlugs`.
+ *
+ * When the prop is omitted the default is derived from the shipped static
+ * catalogue — a module the header already imports and which is bundled anyway —
+ * so a header rendered without the prop (component tests, any future standalone
+ * usage) still gets the correct `nofollow` behaviour instead of silently
+ * treating every category as populated.
+ */
 export default function Header({
   categories = defaultCategories,
-  tools = [...defaultTools],
+  emptyCategorySlugs,
   siteName = "QUICKKIT",
 }: {
   categories?: CategoryMeta[];
-  tools?: Tool[];
+  /** Categories with no published tool — rendered `nofollow`. */
+  emptyCategorySlugs?: string[];
   siteName?: string;
 }) {
+  const resolvedEmptyCategorySlugs =
+    emptyCategorySlugs ??
+    defaultCategories
+      .filter((meta) => toolsByCategory(meta.name).length === 0)
+      .map((meta) => meta.slug);
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const pathname = usePathname();
@@ -86,7 +106,14 @@ export default function Header({
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           closeAll();
-          document.querySelector<HTMLButtonElement>(".menu-button")?.focus();
+          // Only hand focus back to the menu button when it is actually on
+          // screen (it is display:none on desktop, where focusing it would
+          // silently do nothing).
+          const menuButton =
+            document.querySelector<HTMLButtonElement>(".menu-button");
+          if (menuButton && menuButton.offsetParent !== null) {
+            menuButton.focus();
+          }
         }
       }}
     >
@@ -139,15 +166,7 @@ export default function Header({
             >
               <ul>
                 {categories.map((meta) => {
-                  const empty = !tools.some(
-                    (tool) =>
-                      tool.category === meta.name ||
-                      ("categories" in tool &&
-                        Array.isArray(tool.categories) &&
-                        (tool.categories as readonly string[]).includes(
-                          meta.name,
-                        )),
-                  );
+                  const empty = resolvedEmptyCategorySlugs.includes(meta.slug);
                   return (
                     <li key={meta.slug}>
                       <Link
@@ -208,6 +227,7 @@ export default function Header({
             href="/tools#tool-search"
             className="header-search"
             aria-label="Search tools"
+            title="Search tools — or press Ctrl/⌘ K anywhere"
             onClick={onSearchClick}
           >
             <Search size={19} aria-hidden="true" />
@@ -250,15 +270,7 @@ export default function Header({
           categories={navCategoriesFrom(categories)}
           pathname={pathname}
           isCurrent={(href, section) => current(href, section)}
-          emptyCategory={(name) =>
-            !tools.some(
-              (tool) =>
-                tool.category === name ||
-                ("categories" in tool &&
-                  Array.isArray(tool.categories) &&
-                  (tool.categories as readonly string[]).includes(name)),
-            )
-          }
+          emptyCategory={(slug) => resolvedEmptyCategorySlugs.includes(slug)}
         />
       </div>
     </header>

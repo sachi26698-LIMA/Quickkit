@@ -1,33 +1,48 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
-import type { CategoryMeta, Tool } from "@/lib/catalog";
+import type { CategoryMeta } from "@/lib/catalog";
+import type { ClientTool } from "@/lib/client-tool";
 import { CategoryIcon3D, categoryTone } from "@/components/icon-3d";
 import TiltGrid from "@/components/tilt-grid";
 
-/** Server-rendered cards from the published catalog; TiltGrid owns pointer behavior. */
+/**
+ * Server-rendered cards from the published catalog; TiltGrid owns pointer
+ * behavior.
+ *
+ * The `tools` array is used here, on the server, only to count tools per
+ * category. It is deliberately never forwarded to `TiltGrid` — that component
+ * is a client component, so anything passed through its props is serialised
+ * into the RSC payload and shipped to every visitor. Earlier revisions passed
+ * the array down for the child to count with, which sent the whole display
+ * catalogue to the browser to render eleven numbers. The counts are computed
+ * here instead and only `{ meta, count }` crosses the boundary.
+ */
 export default function CategoryGrid({
   categories,
   tools,
   cards,
 }: {
   categories?: CategoryMeta[];
-  tools?: Tool[];
+  /** Server-only: read to count tools per category, never forwarded. */
+  tools?: ClientTool[];
   cards?: { meta: CategoryMeta; count: number }[];
 }) {
   const categoryCards =
-    cards ?? (categories ?? []).map((meta) => ({ meta, count: 0 }));
+    cards ??
+    (categories ?? []).map((meta) => ({
+      meta,
+      count: tools
+        ? tools.filter(
+            (tool) =>
+              tool.category === meta.name ||
+              (Array.isArray(tool.categories) &&
+                tool.categories.includes(meta.name)),
+          ).length
+        : 0,
+    }));
   return (
     <TiltGrid className="category-grid">
-      {categoryCards.map(({ meta, count: cardCount }) => {
-        const count = tools
-          ? tools.filter(
-              (tool) =>
-                tool.category === meta.name ||
-                ("categories" in tool &&
-                  Array.isArray(tool.categories) &&
-                  (tool.categories as readonly string[]).includes(meta.name)),
-            ).length
-          : cardCount;
+      {categoryCards.map(({ meta, count }) => {
         const comingSoon = count === 0;
         return (
           <Link

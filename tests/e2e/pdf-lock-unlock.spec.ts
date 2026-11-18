@@ -173,8 +173,13 @@ test("is registered, discoverable and accessible", async ({ page }) => {
   ).toBeVisible();
 
   await page.goto("/");
+  // Scope to the hero region: the same tool can now also appear in the
+  // "Recently used" row (this test visited its page earlier), so a
+  // page-wide link lookup resolves to two nodes and trips strict mode.
   await expect(
-    page.getByRole("link", { name: "PDF Lock & Unlock" }),
+    page
+      .getByRole("region", { name: "QUICKKIT tools" })
+      .getByRole("link", { name: "PDF Lock & Unlock" }),
   ).toBeVisible();
 });
 

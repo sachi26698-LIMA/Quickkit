@@ -14,6 +14,7 @@ import {
   pageMetadata,
 } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
+import { getClientCatalog } from "@/lib/client-catalog";
 
 export async function generateMetadata() {
   const { tools } = await getPublicCatalog();
@@ -24,7 +25,11 @@ export async function generateMetadata() {
 }
 
 export default async function ToolsPage() {
+  // `tools` feeds the visible eyebrow count (server); `clientTools` is the
+  // shared display projection the layout's command palette already ships, so
+  // the flight payload encodes the catalogue once for both.
   const { tools, categories } = await getPublicCatalog();
+  const clientTools = await getClientCatalog();
   return (
     <div className="home inner-page">
       <div className="container">
@@ -59,7 +64,7 @@ export default async function ToolsPage() {
           titleAccent="one calm place."
           lede="Search by task, filter by category, or tap the heart on any card to keep your favourites one click away."
         />
-        <ToolExplorer tools={tools} categoryMeta={categories} />
+        <ToolExplorer tools={clientTools} categoryMeta={categories} />
 
         {/* 1 of 1 — below the tool grid, never inside the search or filter bar. */}
         <AdUnit placement="tools-index-bottom" format="auto" />

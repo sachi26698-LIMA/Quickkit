@@ -163,7 +163,7 @@ export function SkeletonPageHeader({
  */
 export default function SkeletonPage({
   children,
-  label = "Loading this page",
+  label = "Loading",
   className = "",
 }: {
   children: ReactNode;
@@ -171,12 +171,12 @@ export default function SkeletonPage({
   className?: string;
 }) {
   return (
-    <div
-      className={`container skeleton-page ${className}`.trim()}
-      aria-busy="true"
-      aria-live="polite"
-    >
-      <span className="sr-only" role="status">
+    <div className={`container skeleton-page ${className}`.trim()}>
+      {/* Exactly one live region per skeleton, and it is `role="status"` only
+          once — never on every block, and never `aria-live` on the container
+          as well (that double-announces). The shapes below are aria-hidden, so
+          a screen reader hears this one sentence rather than a list of boxes. */}
+      <span className="sr-only" role="status" aria-live="polite">
         {label}…
       </span>
       {children}

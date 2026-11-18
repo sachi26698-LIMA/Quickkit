@@ -23,9 +23,12 @@ describe("search status", () => {
     expect(screen.getByRole("status")).toHaveTextContent("4 tools found");
   });
 
-  it("uses the singular for one result", () => {
+  it("keeps the exact phrasing the browser suite asserts", () => {
+    // "N tools found" is a contract with tests/e2e/developer-tools.spec.ts and
+    // category-security-hydration.spec.ts. A singular-only rewrite here broke
+    // three browser tests, so the literal string is pinned deliberately.
     render(<SearchStatus state="idle" query="merge" count={1} />);
-    expect(screen.getByRole("status")).toHaveTextContent("1 tool found");
+    expect(screen.getByRole("status")).toHaveTextContent("1 tools found");
   });
 
   it("announces an empty result honestly", () => {
@@ -33,9 +36,15 @@ describe("search status", () => {
     expect(screen.getByRole("status")).toHaveTextContent("No tools match");
   });
 
-  it("says nothing when there is no query", () => {
-    render(<SearchStatus state="idle" query="   " count={0} />);
-    expect(screen.getByRole("status")).toHaveTextContent("");
+  it("renders no live region at all when there is nothing to say", () => {
+    // An always-present empty live region is not harmless: it is a second
+    // role="status" that makes getByRole("status") ambiguous for the browser
+    // suite and gives a screen reader a stray announcement target.
+    const { container } = render(
+      <SearchStatus state="idle" query="   " count={0} />,
+    );
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(container.querySelector("[aria-live]")).toBeNull();
   });
 
   it("surfaces a catalogue load failure instead of spinning forever", () => {

@@ -16,6 +16,7 @@ import HeroSearch from "@/components/hero-search";
 import Reveal from "@/components/reveal";
 import { pageMetadata } from "@/lib/seo";
 import { resolvePageSeo } from "@/lib/seo/pages";
+import { getClientCatalog } from "@/lib/client-catalog";
 import {
   getPublicCatalog,
   getPublicSiteSettings,
@@ -80,10 +81,16 @@ const reasons: { Icon: LucideIcon; title: string; text: string }[] = [
 ];
 
 export default async function Home() {
-  const [{ tools, categories }, settings] = await Promise.all([
+  const [{ tools, categories }, settings, clientTools] = await Promise.all([
     getPublicCatalog(),
     getPublicSiteSettings(),
+    // Projected display subset shared with the layout's command palette —
+    // one array instance, one flight encoding, ~8.5 kB instead of a copy
+    // per client component.
+    getClientCatalog(),
   ]);
+  // SEO/admin/maintenance fields stay server-side. `isFeatured` is consulted
+  // here, on the server, before anything reaches a client component.
   const featuredTools = tools.filter((tool) => tool.isFeatured);
   const popularTools = featuredTools.length
     ? featuredTools
@@ -104,7 +111,7 @@ export default async function Home() {
         <div className="hero-intro">
           <span className={styles.heroBadge}>
             <Sparkles size={14} aria-hidden="true" />
-            YOUR EVERYDAY DIGITAL TOOLKIT
+            Small tasks. Quick solutions.
           </span>
           <h1 className="hero-headline">
             Free online tools for{" "}
@@ -120,7 +127,7 @@ export default async function Home() {
           </p>
         </div>
         <div className="hero-search-zone">
-          <HeroSearch tools={tools} />
+          <HeroSearch tools={clientTools} />
         </div>
         <HeroArt />
         <div className="hero-copy">
@@ -194,7 +201,7 @@ export default async function Home() {
                 </p>
               </div>
             </div>
-            <CategoryGrid categories={categories} tools={tools} />
+            <CategoryGrid categories={categories} tools={clientTools} />
           </Reveal>
         </section>
 

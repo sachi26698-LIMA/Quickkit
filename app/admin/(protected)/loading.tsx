@@ -16,13 +16,8 @@ import {
  */
 export default function AdminLoading() {
   return (
-    <div
-      className="skeleton-page"
-      aria-busy="true"
-      aria-live="polite"
-      style={{ padding: "0 0 3rem" }}
-    >
-      <span className="sr-only" role="status">
+    <div className="skeleton-page" style={{ padding: "0 0 3rem" }}>
+      <span className="sr-only" role="status" aria-live="polite">
         Loading this admin page…
       </span>
       <div aria-hidden="true">

@@ -22,16 +22,15 @@ import { contentTypeDef } from "@/lib/tools/qr/payload";
 import {
   DEFAULT_PDF_OPTIONS,
   PAPER_SIZES,
-  createQrPdf,
   csvCell,
   csvDocument,
   csvRow,
-  pdfBlob,
   pngBlob,
   qrFilename,
   safeFilenamePart,
   svgBlob,
 } from "@/lib/tools/qr/export";
+import { createQrPdf, pdfBlob } from "@/lib/tools/qr/export-pdf";
 import type { QrHistoryEntry } from "@/lib/tools/qr/storage";
 import { defaultDesign } from "@/lib/tools/qr/style";
 import {

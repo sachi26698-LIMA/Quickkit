@@ -1,103 +1,100 @@
+import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 /**
- * Route skeletons.
+ * Route skeletons — and, more importantly, the boundaries that must NOT exist.
  *
- * Next gives one loading slot per segment, so the coverage that matters is:
- * every route group that would otherwise show nothing has a boundary, and the
- * pages whose layout differs meaningfully from the generic one override it.
+ * A `loading.tsx` only helps a route that actually awaits work before it can
+ * render. Every public route in this app is statically rendered (the build
+ * marks them `○`), so their HTML is complete on arrival. Adding a boundary to a
+ * static route did real damage: Next streamed the skeleton into the same
+ * response as the finished page, so a visitor could see placeholders wrapped
+ * around content that had already rendered, and the skeleton's `role="status"`
+ * made `getByRole("status")` ambiguous in the browser suite.
+ *
+ * These assertions therefore protect both directions: the one boundary that
+ * earns its place keeps working, and the removed ones cannot come back by
+ * accident.
  */
-const globals = readFileSync("app/globals.css", "utf8");
 const primitives = readFileSync("components/skeletons/index.tsx", "utf8");
+const globals = readFileSync("app/globals.css", "utf8");
 
-const EXPECTED_BOUNDARIES = [
-  "app/(public)/loading.tsx", // public fallback: home, legal, help, account
-  "app/(public)/tools/loading.tsx", // the explorer/search results
-  "app/(public)/tools/[calculator]/loading.tsx", // every tool workspace
+/** Public routes are statically rendered — no loading boundary may be added. */
+const STATIC_ROUTES_WITHOUT_BOUNDARY = [
+  "app/(public)/loading.tsx",
+  "app/(public)/tools/loading.tsx",
+  "app/(public)/tools/[calculator]/loading.tsx",
   "app/(public)/category/[slug]/loading.tsx",
   "app/(public)/guides/loading.tsx",
-  "app/admin/(protected)/loading.tsx",
 ];
 
-describe("skeleton coverage", () => {
-  for (const path of EXPECTED_BOUNDARIES) {
-    it(`defines a loading boundary at ${path}`, () => {
-      expect(existsSync(path), `${path} must exist`).toBe(true);
+/** The admin area is dynamic (`ƒ`) and genuinely awaits data. */
+const DYNAMIC_ROUTE_WITH_BOUNDARY = "app/admin/(protected)/loading.tsx";
+
+describe("loading boundaries match route rendering mode", () => {
+  for (const path of STATIC_ROUTES_WITHOUT_BOUNDARY) {
+    it(`does not wrap the static route ${path} in a skeleton`, () => {
+      expect(existsSync(path), `${path} must not exist`).toBe(false);
     });
   }
 
-  it("composes every boundary from the shared primitives", () => {
-    for (const path of EXPECTED_BOUNDARIES) {
-      const source = readFileSync(path, "utf8");
-      expect(source, path).toMatch(/@\/components\/skeletons/u);
-    }
+  it("keeps a boundary on the dynamic admin routes", () => {
+    expect(existsSync(DYNAMIC_ROUTE_WITH_BOUNDARY)).toBe(true);
+    const source = readFileSync(DYNAMIC_ROUTE_WITH_BOUNDARY, "utf8");
+    expect(source).toMatch(/@\/components\/skeletons/u);
   });
 
-  it("keeps page-specific layouts rather than reusing one generic file", () => {
-    const tool = readFileSync(
-      "app/(public)/tools/[calculator]/loading.tsx",
-      "utf8",
-    );
-    const explorer = readFileSync("app/(public)/tools/loading.tsx", "utf8");
-    // The tool page reserves a workspace card and a guidance grid; the explorer
-    // reserves a search row and a card grid. Different shapes, one primitives set.
-    expect(tool).toMatch(/skeleton-guidance/u);
-    expect(explorer).toMatch(/SkeletonCardGrid/u);
-    expect(tool).not.toBe(explorer);
+  it("adds no boundary anywhere else under app/ that serves a static page", () => {
+    // Only the admin boundary is expected in the whole tree.
+    const found = execSync("find app -name loading.tsx", { encoding: "utf8" })
+      .split("\n")
+      .filter(Boolean);
+    expect(found).toEqual([DYNAMIC_ROUTE_WITH_BOUNDARY]);
   });
 });
 
-describe("skeleton accessibility and motion", () => {
-  it("marks the region busy and announces once to assistive tech", () => {
-    expect(primitives).toMatch(/aria-busy="true"/u);
-    expect(primitives).toMatch(/role="status"/u);
-    expect(primitives).toMatch(/sr-only/u);
+describe("skeleton accessibility", () => {
+  it("exposes exactly one live region, not one per block", () => {
+    // One `role="status"` in the shared wrapper. Individual blocks must not
+    // announce themselves, or a screen reader reads a list of empty boxes.
+    // Count rendered elements, not mentions in comments: strip block comments
+    // first so a doc line that names the attribute cannot satisfy the test.
+    const code = primitives.replaceAll(/\/\*[\s\S]*?\*\//gu, "");
+    const statusCount = (code.match(/role="status"/gu) ?? []).length;
+    expect(statusCount).toBe(1);
+  });
+
+  it("does not put aria-live on the container as well as the status node", () => {
+    // Container-level aria-live plus an inner role="status" double-announces.
+    // Read the wrapper's own opening tag and assert it carries neither.
+    const start = primitives.indexOf("container skeleton-page");
+    expect(start).toBeGreaterThan(-1);
+    const tagEnd = primitives.indexOf(">", start);
+    const openingTag = primitives.slice(start, tagEnd);
+    expect(openingTag).not.toMatch(/aria-live/u);
+    expect(openingTag).not.toMatch(/role="status"/u);
   });
 
   it("hides the decorative shapes from the accessibility tree", () => {
     expect(primitives).toMatch(/aria-hidden="true"/u);
   });
+});
 
-  it("uses a shimmer animation defined in the stylesheet", () => {
-    expect(globals).toMatch(/@keyframes skeleton-shimmer/u);
-    expect(globals).toMatch(/animation:\s*skeleton-shimmer/u);
-  });
-
+describe("skeleton motion", () => {
   it("animates only the compositor, not layout properties", () => {
-    // background-position is a paint property; it cannot trigger reflow of the
-    // page behind the skeleton, which is what would cost CLS.
-    const keyframes = globals.slice(
-      globals.indexOf("@keyframes skeleton-shimmer"),
-      globals.indexOf("@keyframes skeleton-shimmer") + 200,
-    );
+    const start = globals.indexOf("@keyframes skeleton-shimmer");
+    expect(start).toBeGreaterThan(-1);
+    const keyframes = globals.slice(start, start + 200);
     expect(keyframes).toMatch(/background-position/u);
     expect(keyframes).not.toMatch(/(width|height|top|left|margin):/u);
   });
 
   it("stops the shimmer for prefers-reduced-motion", () => {
-    // Find the reduced-motion block that governs the skeleton selectors and
-    // assert it turns the animation off. Matching on the rule body rather than
-    // a character offset keeps this independent of formatting.
     const regex =
       /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([\s\S]*?)\.skeleton-block[\s\S]*?\}/u;
     const match = regex.exec(globals);
     expect(match, "reduced-motion block for skeletons must exist").toBeTruthy();
     expect(match![0]).toMatch(/animation:\s*none/u);
-  });
-});
-
-describe("skeleton sizing avoids layout shift", () => {
-  it("reserves the workspace height with a clamp, not a percentage", () => {
-    const tool = readFileSync(
-      "app/(public)/tools/[calculator]/loading.tsx",
-      "utf8",
-    );
-    expect(tool).toMatch(/height="clamp\(/u);
-  });
-
-  it("keeps the search row at the real 3.1rem height", () => {
-    const explorer = readFileSync("app/(public)/tools/loading.tsx", "utf8");
-    expect(explorer).toMatch(/3\.1rem/u);
   });
 });

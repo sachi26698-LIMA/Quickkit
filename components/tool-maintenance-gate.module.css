@@ -3,7 +3,7 @@
 .dialog {
   --m-rgb: var(--t-rgb, 124 58 237);
   --m2-rgb: var(--t2-rgb, 236 72 153);
-  --m-deep: var(--t-deep, #4c1d95);
+  --m-deep: var(--t-deep, #5b1fa8);
   --ink: color-mix(in srgb, var(--m-deep) 68%, #17202d);
   --muted: color-mix(in srgb, var(--m-deep) 42%, #5f6672);
   width: min(460px, calc(100vw - 28px));

@@ -208,11 +208,15 @@ describe("rated tools are never asked again", () => {
       ),
     ).toEqual({});
     // Mild skew is tolerated, so normal cross-device clock drift is not a bug.
+    // Capture the timestamp once: calling Date.now() on both sides of the
+    // assertion raced the clock and failed whenever the millisecond ticked
+    // between the two calls.
+    const mildlySkewed = Date.now() + hour;
     expect(
       parseToolFeedbackReviewedLog(
-        JSON.stringify({ "merge-pdf": Date.now() + hour }),
+        JSON.stringify({ "merge-pdf": mildlySkewed }),
       ),
-    ).toEqual({ "merge-pdf": Date.now() + hour });
+    ).toEqual({ "merge-pdf": mildlySkewed });
   });
 
   it("keeps suppressing for this tab when storage is blocked", () => {

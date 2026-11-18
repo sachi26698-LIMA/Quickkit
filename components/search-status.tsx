@@ -32,6 +32,7 @@ export default function SearchStatus({
   count,
   className = "",
   labels = true,
+  announce = true,
 }: {
   state: SearchStatusState;
   query: string;
@@ -39,6 +40,14 @@ export default function SearchStatus({
   className?: string;
   /** Render the visible row (false = announcements only). */
   labels?: boolean;
+  /**
+   * Emit the polite live-region announcement. Set this to `false` on a page
+   * that already owns a live region for the result count — a second
+   * `role="status"` makes `getByRole("status")` ambiguous in the browser
+   * suite and double-announces to a screen reader. The visible scanning row
+   * still renders; only the duplicate announcement is suppressed.
+   */
+  announce?: boolean;
 }) {
   const trimmed = query.trim();
   const message =
@@ -50,7 +59,11 @@ export default function SearchStatus({
           ? ""
           : count === 0
             ? `No tools match “${trimmed}”.`
-            : `${count} tool${count === 1 ? "" : "s"} found.`;
+            : // Exact phrasing is a contract: the E2E suite and the explorer's
+              // own live region both announce "N tools found". Changing it to
+              // "1 tool found" broke three browser tests, so the wording is
+              // pinned here and asserted in tests/search-status.test.tsx.
+              `${count} tools found`;
 
   return (
     <>
@@ -70,10 +83,13 @@ export default function SearchStatus({
         </p>
       ) : null}
       {/* One polite announcement for assistive technology, covering every
-          state so the sighted-only visual row above is never the sole signal. */}
-      <span className="sr-only" role="status" aria-live="polite">
-        {message}
-      </span>
+          state so the sighted-only visual row above is never the sole signal.
+          Suppressed when the page already owns a live region for this count. */}
+      {announce && message ? (
+        <span className="sr-only" role="status" aria-live="polite">
+          {message}
+        </span>
+      ) : null}
     </>
   );
 }

@@ -68,19 +68,30 @@ afterEach(() => {
  * Saving Admin → Site settings stores every field, the brand tagline included.
  * The home page used to put that tagline in place of its description, both on
  * the page and in the search snippet, so one save of an unrelated field changed
- * the hero. The tagline belongs to the footer.
+ * the hero. The hero now carries the brand headline as its own fixed badge
+ * copy, so the regression is stated as an equality: saving the tagline must
+ * not change a single character of what the hero renders.
  */
 describe("home page hero copy", () => {
-  it("keeps its own description when a tagline is saved in site settings", async () => {
-    siteSettings.current = { website_name: "QUICKKIT", tagline: TAGLINE };
-    const { container } = render(await Home());
-    const lede = container.querySelector(".hero-lede");
-    expect(lede?.textContent).toMatch(
-      /^\d+ browser tools for the jobs that interrupt a working day\./,
-    );
-    expect(container.querySelector(".hero")?.textContent).not.toContain(
-      TAGLINE,
-    );
+  it("renders the identical hero whether or not a tagline is saved", async () => {
+    const renderHeroText = async (settings: Record<string, unknown>) => {
+      siteSettings.current = settings;
+      const { container, unmount } = render(await Home());
+      const lede = container.querySelector(".hero-lede");
+      expect(lede?.textContent).toMatch(
+        /^\d+ browser tools for the jobs that interrupt a working day\./,
+      );
+      const text = container.querySelector(".hero")?.textContent ?? "";
+      unmount();
+      return text;
+    };
+    const plain = await renderHeroText({});
+    const withTagline = await renderHeroText({
+      website_name: "QUICKKIT",
+      tagline: TAGLINE,
+    });
+    expect(withTagline).toBe(plain);
+    expect(plain).toContain("Small tasks. Quick solutions.");
   });
 
   it("keeps the search description when a tagline is saved in site settings", async () => {
