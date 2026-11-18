@@ -1752,26 +1752,30 @@ export const TOOL_SEO_RECORDS: ToolSeoRecord[] = [
   {
     path: "/tools/url-network-privacy",
     slug: "url-network-privacy",
-    title: "URL Privacy Checker — Links, Redirects & IP",
+    // The tool parses a URL's syntax and never requests it (`analyzeUrl` in
+    // lib/tools/security/url-review.ts), so redirect hops cannot be observed and
+    // nothing is stripped from a link. Both claims were removed from the title,
+    // description and keywords; `auditKeywordClusters` found the secondaries but
+    // could not see the rendered title, which is what a searcher actually reads.
+    title: "URL Privacy Checker — Inspect a Link & Your IP",
     description:
-      "Break a link into its parts, spot tracking parameters and redirect hops, and review what a page learns about your browser. The IP lookup asks consent first.",
+      "Break a link into parts, flag tracking tags and deceptive userinfo without opening it, and review browser privacy signals. IP lookup asks consent.",
     h1: "Ultimate URL, IP & Browser Privacy",
     primaryKeyword: "url privacy checker",
     secondaryKeywords: [
       "what does this url contain",
-      "remove tracking parameters",
-      "redirect checker",
+      "url inspector",
       "what is my public ip",
-      "browser fingerprint test",
+      "browser privacy check",
     ],
     intent: "informational",
     researchId: "url-privacy",
     alternativeTitles: [
       "Inspect a Link Before You Click It",
-      "Tracking Parameters and Redirect Hops",
+      "URL Parts, Tracking Tags and IP Exposure",
     ],
     alternativeDescription:
-      "Paste a suspicious link and read the host, path and tracking tags without visiting it, then review the permissions and fingerprinting surface you are exposing.",
+      "Paste a suspicious link and read its host, path and tracking tags without visiting it, then review the permissions and fingerprinting surface you are exposing.",
     internalLinks: [
       "/tools/qr-code-scanner",
       "/tools/website-security-review",

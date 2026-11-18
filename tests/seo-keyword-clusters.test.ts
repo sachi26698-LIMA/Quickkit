@@ -301,6 +301,44 @@ describe("keyword clusters — truthfulness guards", () => {
     );
   });
 
+  it("never claims the URL reviewer follows redirects or strips parameters", () => {
+    // `analyzeUrl` in lib/tools/security/url-review.ts parses syntax and never
+    // requests the URL — its own doc comment says the destination "is never
+    // requested". So it cannot observe redirect hops, and it reports tracking
+    // parameters rather than removing them. Both were previously promised in
+    // the registry title/description and in this cluster; the audit caught the
+    // cluster but could not see the rendered title.
+    const keywordText = keywordsFor(keywordClusterFor("url-network-privacy")!)
+      .join(" | ")
+      .toLowerCase();
+    // Broad on purpose: the first version matched only "redirect checker" and
+    // missed "Links, Redirects & IP" in a title mutation, so it had no teeth.
+    expect(keywordText).not.toMatch(/\bredirect/);
+    expect(keywordText).not.toMatch(/\bremove (tracking|utm)/);
+    expect(keywordText).not.toMatch(/\bfingerprint (test|scan)\b/);
+  });
+
+  it("keeps the rendered url-network-privacy snippet free of unsupported claims", () => {
+    // The cluster audit only sees keywords, not the title/description a searcher
+    // actually reads. This pins the rendered copy for the same false claims, so
+    // a future rewrite of the snippet cannot reintroduce them.
+    const record = allToolSeoRecords().find(
+      (item) => item.slug === "url-network-privacy",
+    );
+    expect(record).toBeDefined();
+    const rendered = [
+      record!.title,
+      record!.description,
+      ...(record!.alternativeTitles ?? []),
+      record!.alternativeDescription,
+    ]
+      .join(" | ")
+      .toLowerCase();
+    expect(rendered).not.toMatch(/\bredirect/);
+    expect(rendered).not.toMatch(/\bremove (tracking|utm)/);
+    expect(rendered).not.toMatch(/\bfingerprint (test|scan)\b/);
+  });
+
   it("never targets a city or region", () => {
     const cityWords =
       /\b(mumbai|delhi|bangalore|bengaluru|ahmedabad|surat|pune|chennai|kolkata|hyderabad|jaipur|london|new york)\b/i;

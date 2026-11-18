@@ -246,23 +246,33 @@ export const securityKeywordClusters: ToolKeywordCluster[] = [
   {
     slug: "url-network-privacy",
     primary: "url privacy checker",
+    // Truthfulness correction (Phase 5). `analyzeUrl` in
+    // lib/tools/security/url-review.ts parses a URL's syntax and never requests
+    // it — the doc comment there is explicit that the destination "is never
+    // requested". Two consequences the earlier wording got wrong:
+    //   • redirect hops cannot be observed, because observing them means
+    //     following the link. "redirect checker" / "redirect hops" removed.
+    //   • nothing is stripped from a link. The tool *reports* that tracking
+    //     parameters are present; it does not remove them. "remove tracking
+    //     parameters" removed, and the wording now says "reveals"/"points out".
+    // The fingerprinting tab is educational and stores no identifier, so
+    // "browser fingerprint test" was also a promise the page cannot keep.
     secondary: [
       "what does this url contain",
-      "remove tracking parameters",
-      "redirect checker",
+      "url inspector",
       "what is my public ip",
-      "browser fingerprint test",
+      "browser privacy check",
     ],
     groups: {
       alternativeName: [
         "link privacy analyser",
         "url inspector",
-        "tracking link checker",
+        "link safety checker",
       ],
       synonym: [
         "break a link into its parts",
         "see which parameters a link carries",
-        "check where a link redirects to",
+        "read a link without opening it",
       ],
       action: [
         "spot tracking parameters in a link",
@@ -271,16 +281,16 @@ export const securityKeywordClusters: ToolKeywordCluster[] = [
       ],
       longTail: [
         "find tracking parameters hiding in a shared link",
-        "see the redirect hops a link goes through",
+        "read the parts of a link without visiting the site",
         "review browser fingerprinting signals for a page",
       ],
       problem: [
-        "a shared link carries tracking parameters that should be removed",
-        "unclear where a shortened link actually goes",
+        "a shared link carries tracking parameters worth pointing out",
+        "unsure what a link contains before forwarding it",
       ],
       question: [
         "what does this url contain",
-        "how do i remove tracking parameters from a link",
+        "how do i read the tracking parameters in a link",
         "what can a website learn about my browser",
       ],
       qualifier: ["url privacy checker free", "link tracking analyser online"],
