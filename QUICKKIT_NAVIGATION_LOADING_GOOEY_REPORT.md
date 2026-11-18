@@ -308,3 +308,112 @@ unrelated conflicts is explicitly out of bounds.
 
 **Recommended next step:** rebase this branch onto `origin/main` and resolve the
 three conflicts deliberately, then re-run the full gate suite and CI.
+
+---
+
+## 8. Refinement round — the skeleton bug, the search contract, and CI green (2026-11-17)
+
+### 8.1 The skeleton-over-content bug: cause and fix
+
+**Symptom.** Placeholders and real homepage content appearing together.
+
+**Cause, verified against the build and a running server.** Every public route in
+this app is **statically rendered** — the build marks them all `○`; only
+`/admin/*` and the API are `ƒ`. A `loading.tsx` on a static route cannot help,
+because there is nothing to wait for. What it actually does is make Next open a
+Suspense boundary around a page whose HTML is already complete, and stream a
+skeleton into the same response:
+
+```
+<div class="container skeleton-page" aria-busy="true" aria-live="polite">
+  <span class="sr-only" role="status">Loading this page…</span>
+  ...30 skeleton blocks...
+```
+
+Measured before the fix: `/` → 2 `skeleton-page` roots, `/tools` → 6. The
+skeleton's `role="status"` was also a **second live region**, which made
+`getByRole("status")` ambiguous — the root cause of most of the nine browser
+failures.
+
+**Fix.** Removed the boundaries from every static route and kept the one that
+earns its place:
+
+| Route                                                    | Mode        | Boundary    |
+| -------------------------------------------------------- | ----------- | ----------- |
+| `/`, `/tools`, tools, categories, guides, legal, account | `○` static  | **removed** |
+| `/admin/*`                                               | `ƒ` dynamic | **kept**    |
+
+`SkeletonPage` now exposes exactly one live region and no longer puts
+`aria-live` on the container as well. `tests/skeletons.test.ts` asserts the
+absence of the static boundaries, so they cannot return by accident.
+
+**After the fix, measured on a running production server:**
+
+| Route                                    | skeleton roots | live regions         |
+| ---------------------------------------- | -------------- | -------------------- |
+| `/`                                      | **0**          | 0                    |
+| `/tools`                                 | **0**          | 1 (its result count) |
+| `/about`, `/privacy`                     | **0**          | 0                    |
+| `/tools/merge-pdf`                       | **0**          | 0                    |
+| `/category/pdf-tools`, `/guides/barcode` | **0**          | 0                    |
+
+Content renders exactly once (`<h1>` count on `/` is 1; the second
+`hero-headline` match is the RSC payload, not markup).
+
+### 8.2 The search announcement contract
+
+`SearchStatus` had been changed to announce "1 tool found", breaking three
+browser tests that assert "1 tools found". Restored exactly, pinned by a unit
+test, and an `announce` prop suppresses a duplicate live region where the page
+already owns one. Empty announcements are no longer rendered at all.
+
+### 8.3 Merge with main
+
+`main` had advanced 46 files to `33ea9c4`, rewriting five of the same files.
+Three real conflicts (`globals.css`, `hero-search.tsx`, `tool-explorer.tsx`)
+were resolved **semantically**, keeping both sides:
+
+- **CSS**: both additive blocks kept (my skeleton/progress rules + main's
+  command palette and recent-chip styles).
+- **Search**: `main`'s `rankTools` ranking, ARIA combobox with
+  `aria-activedescendant`, recent-search seeds and sort controls are all
+  preserved. The deferred query was re-applied **on top of** `rankTools` rather
+  than reverting main's design.
+- **Header**: aligned to `main`'s slug-based `emptyCategorySlugs`, so the gooey
+  menu and the desktop menu agree on `nofollow`.
+
+No main work was discarded. Backup branch: `backup/76c44b7b-pre-rebase`.
+
+### 8.4 Homepage recent history
+
+The `RecentToolsSection` was removed from the homepage as requested. The
+component file and `main`'s tests for it were left untouched — only the homepage
+usage and its import were removed, so nothing was weakened.
+
+### 8.5 Gooey menu
+
+Upgraded from a two-stop clip to a **three-stop liquid morph** (droplet under
+the trigger → stretched film → settled panel) with rows that rise, overshoot and
+settle on a stagger. Still compositor-only, still fully neutralised under
+`prefers-reduced-motion`, and the menu is **state-driven** — it renders on the
+`open` flag with no `animationend` listener, so it is equally usable with
+animation disabled.
+
+### 8.6 Final verification
+
+| Check                    | Result                                              |
+| ------------------------ | --------------------------------------------------- |
+| TypeScript               | **0 errors**                                        |
+| ESLint                   | **0 errors, 0 warnings**                            |
+| Prettier                 | **pass**                                            |
+| Unit / integration       | **2863 / 2863** (209 files)                         |
+| Production build         | **pass** (160 routes)                               |
+| `npm audit --omit=dev`   | **0 vulnerabilities**                               |
+| **CI browser E2E**       | **PASS — 1157 passed, 0 failed, 7 skipped** (37.7m) |
+| Previously failing tests | **all 9 now pass**                                  |
+
+One WebKit test (`pdf-compressor.spec.ts:398`) was reported **flaky** — it
+passed on retry, and this branch never touched the compressor. Recorded honestly
+rather than omitted.
+
+PR #67 is now **MERGEABLE** (was CONFLICTING). **Not merged. Not deployed.**
