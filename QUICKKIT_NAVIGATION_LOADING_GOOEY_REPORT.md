@@ -417,3 +417,113 @@ passed on retry, and this branch never touched the compressor. Recorded honestly
 rather than omitted.
 
 PR #67 is now **MERGEABLE** (was CONFLICTING). **Not merged. Not deployed.**
+
+---
+
+## 9. Refinement round 2 — QR default, admin-managed socials, merged legal pages (2026-11-15)
+
+### 9.1 QR generator: direct/raw by default
+
+The scan destination now opens in **Direct Raw Content**, so a fresh code carries
+the visitor's own content instead of a QUICKKIT-hosted redirect link. Data
+Template mode is unchanged and one click away.
+
+Verified in the server-rendered HTML of `/tools/qr-generator`: the second mode
+button carries `aria-pressed="true"`. The ECC level is untouched, and the
+existing crypto guarantees are untouched.
+
+Because RAW is now the default, every spec that asserts the hosted link had to
+select template mode **explicitly** rather than leaning on the old default:
+
+| Spec | Change |
+|---|---|
+| `tests/qr-studio.test.tsx` | 2 tests now assert the raw default and the template path |
+| `tests/e2e/browser-tools.spec.ts` | exports+decodes in raw mode, then verifies template reachable |
+| `tests/e2e/qr-crypto-security.spec.ts` | both crypto journeys call `setScanMode` |
+| `tests/e2e/qr-studio-v3.spec.ts` | `sampleStudio`'s `raw` option inverted |
+
+Nothing was skipped, deleted or relaxed — the assertions still pin the same
+payloads, they just name the mode they need.
+
+### 9.2 Footer social icons, managed from the admin panel
+
+`social_links` rows gained an optional `icon` chosen from a **fixed allowlist**
+(`lib/social-platforms.ts`): Instagram, Facebook, X, YouTube, GitHub, LinkedIn,
+WhatsApp, Telegram, Threads, Pinterest, Reddit and a generic link mark.
+
+Three deliberate constraints:
+
+1. **No remote assets.** Every mark is inline SVG, so adding a profile can never
+   introduce a third-party image request, a tracking pixel or a CSP exception.
+   The Content-Security-Policy is unchanged.
+2. **Validated twice.** The slug is checked on write (Admin API) *and* on read
+   (public catalog). An unknown value is dropped rather than rendered.
+3. **Graceful degradation.** A row without a valid icon renders as the text pill
+   it rendered before, so an edited setting can never break the footer.
+
+Verified in tests: an allowlisted icon draws exactly one local `<svg>`; an
+unknown icon name renders zero `<svg>` and keeps its visible label.
+
+### 9.3 Legal documents
+
+**`/copyright` merged into `/intellectual-property`.** Both pages carried a
+third-party licence table and a "your files and outputs" section. The unique
+takedown content — reporting infringement, the DMCA process, counter-notice,
+repeat infringers, misrepresentation — now lives on the merged page as
+sections 8–12, and the page is titled *Intellectual Property & Copyright
+Policy*.
+
+**The old URL keeps working.** `/copyright` returns **308** →
+`/intellectual-property`, and because the browser carries the fragment across a
+redirect, `/copyright#reporting` still lands on the reporting heading (the id is
+preserved). A unit test pins the redirect so it cannot silently disappear.
+
+**Unfinished-feeling content removed** (the "faltu" the operator pointed at):
+
+| Item | Action |
+|---|---|
+| Disclaimer §8 "Translation (planned feature)" | removed; later sections renumbered 8–12 |
+| Terms "Coming soon … orientation only" caveat | replaced with a plain catalogue statement |
+| Cookies sentence that was grammatically broken | rewritten |
+
+Genuinely accurate "Coming soon" statements about the AI Tools category were
+**kept** — they describe something real, so removing them would make the site
+less honest, not more professional.
+
+**"Last updated" is now operator-editable.** `legal_meta` stores a display
+string plus an ISO date. It is validated on write (real calendar date, no
+markup) and re-validated on read, falling back to the compiled dates, so a page
+can never show an empty or invented date.
+
+### 9.4 A design correction worth recording
+
+The date override was first implemented by making the shared
+`LegalPageShell` async. Three test suites failed immediately, and they were
+right to: an async boundary inside a shared presentational component forces
+every caller — and every test — to deal with a suspended tree. The fix was to
+move the boundary up to each page and keep the shell synchronous, which is also
+what lets the pages stay statically rendered.
+
+### 9.5 Verification
+
+| Check | Result |
+|---|---|
+| TypeScript | **0 errors** |
+| ESLint | **0 errors, 0 warnings** |
+| Prettier | **pass** |
+| Unit / integration | **2877 / 2877** (209 files) |
+| Production build | **pass** |
+| **CI browser E2E** | **PASS — 1145 passed, 0 failed, 7 skipped** (36.5m) |
+
+One WebKit-adjacent Chromium test
+(`security-functional-acceptance.spec.ts:83`) was reported **flaky** — it
+passed on retry, and this branch never touched that tool. Recorded rather than
+omitted.
+
+Live checks against `next start`: `/copyright` → 308 → `/intellectual-property`
+(200), merged page carries all five takedown headings, zero `skeleton-page`
+roots on `/`, `/tools`, `/privacy` and `/intellectual-property`, no `/copyright`
+link left in the rendered footer, and the QR studio renders with Direct Raw
+Content pressed.
+
+PR #67 is **MERGEABLE**. **Not merged. Not deployed.**
