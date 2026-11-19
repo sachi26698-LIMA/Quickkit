@@ -31,8 +31,10 @@ export type ExportKind = "docx" | "pdf";
 
 /** Where the bundled faces are served from. Mirrors scripts/copy-font-assets.mjs. */
 const FONT_URLS = {
-  regular: "/fonts/NotoSans-Regular.ttf",
-  bold: "/fonts/NotoSans-Bold.ttf",
+  // Kept in a subdirectory of public/fonts because the BioCraft font library
+  // owns the rest of that tree; see scripts/copy-font-assets.mjs.
+  regular: "/fonts/export/NotoSans-Regular.ttf",
+  bold: "/fonts/export/NotoSans-Bold.ttf",
 } as const;
 
 const fontCache = new Map<string, Promise<ArrayBuffer>>();

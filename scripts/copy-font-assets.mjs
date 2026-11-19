@@ -2,10 +2,10 @@ import { cp, mkdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Self-host the two Latin Noto faces the browser PDF exporter embeds, under
-// public/fonts, so a generated report can carry real Unicode — the rupee
-// sign, en and em dashes, arrows, bullets and check marks — instead of the
-// ASCII-only subset a standard PDF font can manage.
+// Self-host the two Latin Noto faces the browser PDF exporter embeds, so a
+// generated report can carry real Unicode — the rupee sign, en and em dashes,
+// arrows, bullets and check marks — instead of the ASCII-only subset a standard
+// PDF font can manage.
 //
 // The faces are the same SIL OFL 1.1 files the server-side DOCX renderer
 // already embeds from assets/noto (see lib/tools/word-to-pdf/render/fonts.ts),
@@ -14,8 +14,13 @@ import { fileURLToPath } from "node:url";
 // This mirrors scripts/copy-pdfjs-assets.mjs and scripts/copy-ocr-assets.mjs:
 // nothing is fetched from a third-party CDN, and no font file is committed to
 // public/ — the copy is generated at build time and ignored by git.
+//
+// `public/fonts/` is shared. The BioCraft font library keeps committed
+// WOFF2 faces under `public/fonts/<language>/<family>/`, so this script owns
+// exactly one subdirectory and must never clean the parent: deleting the whole
+// tree removed the font library and broke every BioCraft specimen page.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const destinationRoot = path.join(root, "public", "fonts");
+const destinationRoot = path.join(root, "public", "fonts", "export");
 const sourceRoot = path.join(root, "assets", "noto");
 
 const FACES = ["NotoSans-Regular.ttf", "NotoSans-Bold.ttf"];
@@ -38,5 +43,5 @@ await cp(
 ).catch(() => {});
 
 console.log(
-  `Copied ${FACES.length} Noto faces to public/fonts for the browser PDF exporter`,
+  `Copied ${FACES.length} Noto faces to public/fonts/export for the browser PDF exporter`,
 );
