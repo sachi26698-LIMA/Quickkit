@@ -27,9 +27,10 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    # The full cross-browser suite plus focused regression runs can exceed 45
-    # minutes on a busy runner; leave time for retries and failure artifacts.
-    timeout-minutes: 65
+    # Fast gates only: install, lint, unit tests, build, typecheck, audit. The
+    # browser suite lives in the `browser` job below so that a slow run cannot
+    # cancel a job that has already passed every deterministic check.
+    timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
@@ -48,6 +49,31 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - run: npm audit --omit=dev
+
+  # Browser suite, split out from `verify`.
+  #
+  # Why: `verify` used to run the whole Playwright suite last, inside a single
+  # 65-minute job. With the catalogue at 131 tools the suite grew past that and
+  # the job was *cancelled by timeout* — reported as a failure after every other
+  # gate had passed, with no useful signal. Two jobs mean the deterministic
+  # gates stay fast and green on their own, and the browser job gets a budget
+  # sized for a cross-browser suite instead of whatever was left over.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Sitemap lastmod checks need genuine file history, not a shallow boundary.
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "26"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
       - run: npx playwright install --with-deps chromium firefox webkit
       # Catch cancellation regressions early while retaining the complete suite below.
       - run: npx playwright test tests/e2e/pdf-compressor.spec.ts --project=webkit --project=firefox --grep 'cancels a large batch' --repeat-each=2

@@ -411,9 +411,14 @@ test("every tool uses its own palette on the glass emotion, stars and feedback c
   page,
 }) => {
   // Long walk: one download + feedback round trip per tool.
-  test.setTimeout(420_000);
+  //
+  // The budget scales with the catalogue instead of being pinned: at 56 tools
+  // 420 s was ample, but 131 tools need about 2.3x that, and a pinned budget
+  // would fail every run while looking like a product bug. A skipped tool is
+  // still reported, so a genuine timeout stays visible.
   const { tools } = await import("../../lib/catalog");
   const { toolTheme } = await import("../../lib/tool-theme");
+  test.setTimeout(Math.max(420_000, tools.length * 8_000));
   // Guard against a truncated catalog; the loop below covers each tool.
   expect(tools.length).toBeGreaterThanOrEqual(49);
   const surfaces = new Set<string>();

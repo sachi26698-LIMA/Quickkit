@@ -103,7 +103,6 @@ export type WorkspaceId =
   | "document-studio"
   | "people-text-kit"
   | "page-analyzer"
-  | "serp-preview"
   | "schema-builder"
   | "technical-seo"
   | "content-kit"
