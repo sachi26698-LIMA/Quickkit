@@ -31,6 +31,9 @@ export const toolCategories = [
   "Developer Tools",
   "Calculators",
   "Security & Privacy",
+  "HR & Payroll",
+  "SEO & Website Growth",
+  "Career & Jobs",
   "AI Tools",
 ] as const;
 export type ToolCategory = string;
@@ -45,7 +48,17 @@ export type CategoryMeta = {
   description: string;
   tint: string;
   icon:
-    "pdf" | "image" | "qr" | "text" | "code" | "calc" | "shield" | "sparkles";
+    | "pdf"
+    | "image"
+    | "qr"
+    | "text"
+    | "code"
+    | "calc"
+    | "shield"
+    | "people"
+    | "chart"
+    | "briefcase"
+    | "sparkles";
 };
 
 export const categoryMeta: CategoryMeta[] = [
@@ -111,6 +124,34 @@ export const categoryMeta: CategoryMeta[] = [
     description: shippedCategoryCopy("security-privacy").description,
     tint: "tint-security",
     icon: "shield",
+  },
+  {
+    name: "HR & Payroll",
+    slug: "hr-payroll",
+    seoTitle: shippedCategoryCopy("hr-payroll").title,
+    blurb:
+      "Salaries, statutory deductions and the HR letters that document them.",
+    description: shippedCategoryCopy("hr-payroll").description,
+    tint: "tint-hr",
+    icon: "people",
+  },
+  {
+    name: "SEO & Website Growth",
+    slug: "seo-growth",
+    seoTitle: shippedCategoryCopy("seo-growth").title,
+    blurb: "Measure what a browser can honestly measure about a page.",
+    description: shippedCategoryCopy("seo-growth").description,
+    tint: "tint-seo",
+    icon: "chart",
+  },
+  {
+    name: "Career & Jobs",
+    slug: "career-jobs",
+    seoTitle: shippedCategoryCopy("career-jobs").title,
+    blurb: "Résumé checks, offer maths and the letters to send next.",
+    description: shippedCategoryCopy("career-jobs").description,
+    tint: "tint-career",
+    icon: "briefcase",
   },
   {
     name: "AI Tools",
@@ -713,6 +754,906 @@ export const tools = [
     icon: "code",
     color: "blue",
     phase: 19,
+  },
+  {
+    slug: "salary-calculator-india",
+    name: "Salary Calculator (India)",
+    category: "HR & Payroll",
+    description:
+      "Turn an annual CTC into a monthly take-home, with employer PF, the gratuity provision, employee PF, ESI, professional tax and income tax shown line by line.",
+    keywords:
+      "salary calculator india ctc to take home in hand monthly salary pf esi professional tax income tax new regime old regime 12 lakh",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "in-hand-salary-calculator",
+    name: "In-Hand Salary Calculator",
+    category: "HR & Payroll",
+    description:
+      "Start from the monthly take-home you need and work backwards to the CTC that delivers it, solving through the tax slabs and the PF ceiling rather than inverting a formula.",
+    keywords:
+      "in hand salary calculator reverse ctc from take home net to gross salary target monthly in hand negotiate offer",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "income-tax-calculator",
+    name: "Income Tax Calculator",
+    category: "HR & Payroll",
+    description:
+      "Salary income tax under both regimes, with the slab bands, the section 87A rebate and cess itemised so you can see which band each rupee fell into.",
+    keywords:
+      "income tax calculator india new regime old regime 87a rebate standard deduction slabs salaried fy 2025-26 cess",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "pf-calculator",
+    name: "PF Calculator",
+    category: "HR & Payroll",
+    description:
+      "Employee and employer provident-fund contributions on the ₹15,000 statutory ceiling or on full basic, with the annual and monthly split and what the employer share covers.",
+    keywords:
+      "pf calculator epf employee provident fund 12% contribution 15000 wage ceiling employer share pension epf eps monthly annual",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "esi-calculator",
+    name: "ESI Calculator",
+    category: "HR & Payroll",
+    description:
+      "Employee and employer ESI contributions at 0.75% and 3.25%, showing clearly that the scheme applies only while monthly gross is at or below the ₹21,000 ceiling.",
+    keywords:
+      "esi calculator esic employee state insurance 0.75 3.25 wage ceiling 21000 monthly gross eligibility contribution",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "gratuity-calculator",
+    name: "Gratuity Calculator",
+    category: "HR & Payroll",
+    description:
+      "Gratuity under the Payment of Gratuity Act: 15/26 of last drawn basic plus DA for each completed year, with the six-month rounding rule and the ₹20 lakh ceiling applied.",
+    keywords:
+      "gratuity calculator payment of gratuity act 15/26 last drawn basic da five years completed years ceiling 20 lakh resignation retirement",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "full-and-final-settlement",
+    name: "Full and Final Settlement",
+    category: "HR & Payroll",
+    description:
+      "Everything owed on the last working day — prorated salary, leave encashment, gratuity and bonus — minus notice recovery, with each line itemised.",
+    keywords:
+      "full and final settlement calculator fnf settlement leaving job salary prorated leave encashment gratuity notice recovery exit dues",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "leave-encashment-calculator",
+    name: "Leave Encashment Calculator",
+    category: "HR & Payroll",
+    description:
+      "Leave balance under monthly or annual accrual, the carry-forward cap and what lapses, plus the encashment value at the basic plus DA day rate.",
+    keywords:
+      "leave encashment calculator earned leave balance accrual carry forward cap lapse encashment value basic da day rate annual leave",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "attendance-calculator",
+    name: "Attendance Calculator",
+    category: "HR & Payroll",
+    description:
+      "Attendance percentage, present-only percentage, payable days and the loss-of-pay deduction, keeping the two percentages that payroll must not confuse apart.",
+    keywords:
+      "attendance percentage calculator working days present absent paid leave half day loss of pay lop salary deduction hr",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "overtime-calculator",
+    name: "Overtime Calculator",
+    category: "HR & Payroll",
+    description:
+      "Overtime pay on the ordinary hourly rate with the multiplier as an explicit choice, because the statutory position is twice the ordinary rate under the Factories Act, not one and a half.",
+    keywords:
+      "overtime calculator india factories act double rate ordinary hourly wage multiplier 2x code on wages 48 hour week overtime pay",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "shift-hours-calculator",
+    name: "Shift Hours Calculator",
+    category: "HR & Payroll",
+    description:
+      "Paid hours in a shift after break, overnight shifts crossing midnight, and the weekly total checked against the 48-hour statutory limit.",
+    keywords:
+      "shift hours calculator overnight shift duration night shift payroll weekly hours 48 hour limit break deduction",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "salary-slip-generator",
+    name: "Salary Slip Generator",
+    category: "HR & Payroll",
+    description:
+      "Generate a printable payslip from earnings and deductions you enter, with gross, total deductions, net pay and employer cost summed and checked.",
+    keywords:
+      "salary slip generator payslip format india printable earnings deductions net pay code on wages wage slip employer",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "offer-letter-generator",
+    name: "Offer Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "An offer letter with designation, compensation, joining date, conditions and validity, built only from facts you supply — every gap stays a visible placeholder.",
+    keywords:
+      "offer letter generator india format employment offer ctc joining date conditions appointment letter template hr",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "experience-letter-generator",
+    name: "Experience Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "An experience certificate stating the dates, designation, department and responsibilities on record, with no performance claims added.",
+    keywords:
+      "experience letter generator india format experience certificate relieving letter employment certificate work experience hr",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "relieving-letter-generator",
+    name: "Relieving Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "A relieving letter confirming the last working day, that duties were handed over, and the full and final settlement that has been processed.",
+    keywords:
+      "relieving letter generator india format last working day full and final settlement exit clearance resignation acceptance",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "warning-letter-generator",
+    name: "Warning Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "A warning letter that records the specific incident, the policy breached, the improvement expected and a response deadline — the due-process elements a warning needs.",
+    keywords:
+      "warning letter generator india format employee misconduct performance warning show cause notice hr disciplinary due process",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "appreciation-letter-generator",
+    name: "Appreciation Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "A recognition letter that names the specific contribution, the period and the concrete impact, rather than generic praise.",
+    keywords:
+      "appreciation letter generator india format recognition letter employee award commendation specific contribution hr",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "increment-letter-generator",
+    name: "Increment Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "An increment letter stating the previous and revised CTC, the effective date and the statutory components that are recalculated.",
+    keywords:
+      "increment letter generator india format salary revision letter appraisal hike letter revised ctc effective date pf recalculation",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "termination-letter-generator",
+    name: "Termination Letter Generator",
+    category: "HR & Payroll",
+    description:
+      "A termination letter stating the clause relied on, the effective date, notice or pay in lieu and the settlement terms, with explicit legal-review warnings.",
+    keywords:
+      "termination letter generator india format employment termination notice pay in lieu settlement clause contractual discharge hr",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "internship-certificate-generator",
+    name: "Internship Certificate Generator",
+    category: "HR & Payroll",
+    description:
+      "An internship certificate confirming the period, the work performed and the outcomes delivered, for academic credit or a job application.",
+    keywords:
+      "internship certificate generator india format completion certificate intern letter academic credit work experience",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "job-description-generator",
+    name: "Job Description Generator",
+    category: "HR & Payroll",
+    description:
+      "Assemble a job description from your own responsibility and requirement lists, with the sections a JD needs and flags for the choices that cost applications.",
+    keywords:
+      "job description generator india format responsibilities requirements jd template hiring salary range must have",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "kpi-sheet-generator",
+    name: "KPI Sheet Generator",
+    category: "HR & Payroll",
+    description:
+      "Structure a KPI sheet from the metrics you choose, enforcing weights that sum to 100 and a measurable target for each, without inventing the targets.",
+    keywords:
+      "kpi sheet generator india format performance metrics weights targets employee appraisal scorecard review period",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "interview-plan-generator",
+    name: "Interview Plan Generator",
+    category: "HR & Payroll",
+    description:
+      "Build a structured interview from competencies, with a fixed question bank and a prompt for what a strong answer shows in your specific context.",
+    keywords:
+      "interview plan generator india structured interview questions competencies scorecard hiring panel question bank",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "probation-period-calculator",
+    name: "Probation Period Calculator",
+    category: "HR & Payroll",
+    description:
+      "Probation end date from a joining date, extended where a policy allows, with the confirmation-in-writing caution stated.",
+    keywords:
+      "probation period calculator india joining date confirmation end date extension appointment letter employment",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "statutory-leave-calculator",
+    name: "Statutory Leave Calculator",
+    category: "HR & Payroll",
+    description:
+      "Leave entitlement on the Factories Act basis — one day for every 20 days worked — with the divisor adjustable for state variations.",
+    keywords:
+      "statutory leave calculator india factories act annual leave earned leave 20 days entitlement shops establishments act",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "working-days-calculator",
+    name: "Working Days Calculator",
+    category: "HR & Payroll",
+    description:
+      "Add or subtract working days from a date, skipping weekends and any declared holidays, for notice periods, deadlines and joining dates.",
+    keywords:
+      "working days calculator india business days add subtract holidays weekends deadline notice period date",
+    icon: "calc",
+    color: "amber",
+    phase: 21,
+  },
+  {
+    slug: "serp-preview",
+    name: "SERP Preview",
+    category: "SEO & Website Growth",
+    description:
+      "Preview how a title and description will look in search results, with both character count and estimated pixel width against Google's truncation.",
+    keywords:
+      "serp preview google snippet title length checker pixel width meta description truncation 580px 920px search result",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "keyword-density-checker",
+    name: "Keyword Density Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Keyword occurrences, density and placement across title, description, headings, first paragraph and URL — plus repeated phrases that signal accidental stuffing.",
+    keywords:
+      "keyword density checker seo on page keyword frequency placement title heading first paragraph repeated phrases stuffing analysis",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "readability-checker",
+    name: "Readability Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Flesch Reading Ease and Flesch–Kincaid grade with sentence and syllable detail, and an explicit warning when the text is not in English.",
+    keywords:
+      "readability checker flesch reading ease kincaid grade level sentence length syllables english content score",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "on-page-audit",
+    name: "On-Page Audit",
+    category: "SEO & Website Growth",
+    description:
+      "Audit pasted HTML for multiple H1s, skipped heading levels, missing alt attributes, empty anchors and thin visible text.",
+    keywords:
+      "on page audit heading structure h1 alt text accessibility seo html checker document outline screen reader",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "duplicate-content-checker",
+    name: "Duplicate Content Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Compare two pages for near-duplicate copy using three-word overlap, the pattern that catches doorway pages before they are published.",
+    keywords:
+      "duplicate content checker near duplicate detection jaccard similarity doorway pages shingle comparison two pages seo",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "keyword-cannibalisation-checker",
+    name: "Keyword Cannibalisation Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Find pages on your own site that target the same keyword, ranked by severity with the near-duplicate titles that make it worst.",
+    keywords:
+      "keyword cannibalisation checker seo same keyword two pages internal competition consolidation duplicate targeting",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "organization-schema-generator",
+    name: "Organization Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Generate valid Organization JSON-LD with the required properties checked and every field optional until you supply it.",
+    keywords:
+      "organization schema generator json-ld structured data schema.org company markup knowledge panel logo sameas",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "article-schema-generator",
+    name: "Article Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Article JSON-LD with headline, author, publisher and ISO dates, validated for the properties that actually make a block invalid.",
+    keywords:
+      "article schema generator json-ld blog post structured data headline author publisher datepublished datemodified",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "faq-schema-generator",
+    name: "FAQ Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "FAQPage JSON-LD from question-and-answer pairs, with a reminder that the questions must actually be visible on the page.",
+    keywords:
+      "faq schema generator json-ld faqpage structured data questions answers rich results markup",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "product-schema-generator",
+    name: "Product Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Product JSON-LD with offers, price, currency and availability — and no rating field, because an invented aggregate rating is a policy violation.",
+    keywords:
+      "product schema generator json-ld offer price currency availability structured data ecommerce rich results rating",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "local-business-schema-generator",
+    name: "Local Business Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "LocalBusiness JSON-LD with a postal address, opening hours and coordinates, requiring the city and country that make local markup valid.",
+    keywords:
+      "local business schema generator json-ld postal address opening hours geo coordinates storefront seo local",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "job-posting-schema-generator",
+    name: "Job Posting Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "JobPosting JSON-LD with the organization, location, salary and full description that Google requires — the most heavily validated rich-result type.",
+    keywords:
+      "job posting schema generator json-ld jobposting structured data hiring organization salary google jobs rich results",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "breadcrumb-schema-generator",
+    name: "Breadcrumb Schema Generator",
+    category: "SEO & Website Growth",
+    description:
+      "BreadcrumbList JSON-LD from an ordered path, with absolute URLs enforced and a minimum of two items.",
+    keywords:
+      "breadcrumb schema generator json-ld breadcrumblist structured data navigation path seo sitelinks",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "json-ld-validator",
+    name: "JSON-LD Validator",
+    category: "SEO & Website Growth",
+    description:
+      "Check pasted JSON-LD for valid syntax, an @type and a schema.org @context, with the exact parse error when it fails.",
+    keywords:
+      "json-ld validator structured data checker schema.org json syntax @type @context debug markup error",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "robots-txt-generator",
+    name: "robots.txt Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Build robots.txt and have it validated in the same pass, with the failure modes that cost the most traffic flagged as errors.",
+    keywords:
+      "robots txt generator validator disallow allow user agent sitemap crawl delay googlebot seo",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "robots-txt-validator",
+    name: "robots.txt Validator",
+    category: "SEO & Website Growth",
+    description:
+      "Parse a robots.txt file into groups and report the directives that will be ignored, including rules set before any User-agent line.",
+    keywords:
+      "robots txt validator parser check directives ignored user agent rules seo debug syntax",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "sitemap-generator",
+    name: "Sitemap Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Build sitemap.xml from a URL list with lastmod, validating absolute URLs, the 50,000 limit, duplicates and the 50 MB cap.",
+    keywords:
+      "sitemap generator xml urlset lastmod changefreq priority seo 50000 urls 50mb absolute urls",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "sitemap-validator",
+    name: "Sitemap Validator",
+    category: "SEO & Website Growth",
+    description:
+      "Parse sitemap XML and check the namespace, URL validity, duplicates and the 50,000 limit, distinguishing a urlset from an index.",
+    keywords:
+      "sitemap validator xml checker urlset sitemapindex namespace absolute urls duplicates seo debug",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "canonical-checker",
+    name: "Canonical Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Compare a page URL with its declared canonical and flag the conflicts that actually de-index pages: relative canonicals, host mismatches and path differences.",
+    keywords:
+      "canonical checker url tag self referencing host mismatch relative canonical seo duplicate consolidation",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "hreflang-checker",
+    name: "Hreflang Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Check an hreflang cluster for reciprocity, self-reference, valid language tags and a sane x-default — a cluster missing any of those is ignored entirely.",
+    keywords:
+      "hreflang checker validator reciprocal self reference x-default language region tag international seo cluster",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "redirect-checker",
+    name: "Redirect Checker",
+    category: "SEO & Website Growth",
+    description:
+      "Resolve redirect chains from a rule list, catching loops, multi-hop chains and 302s standing in for permanent 301s.",
+    keywords:
+      "redirect checker chain loop 301 302 multi hop seo crawl budget temporary permanent redirect analysis",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "title-generator",
+    name: "Title Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Draft page titles from your keyword plus one concrete differentiator, with length checks — no invented superlatives and no keyword stuffing.",
+    keywords:
+      "title generator seo page title tag drafts keyword differentiator length 60 characters meta title",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "meta-description-generator",
+    name: "Meta Description Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Draft meta descriptions from the benefit you supply, with the mechanism and a call to action, each measured against the display window.",
+    keywords:
+      "meta description generator seo snippet drafts benefit mechanism call to action 160 characters length",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "content-brief-generator",
+    name: "Content Brief Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Turn a topic and a search intent into an outline with the questions a reader at that stage will have and the evidence to gather first.",
+    keywords:
+      "content brief generator seo outline search intent reader questions evidence structure article plan",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "headline-generator",
+    name: "Headline Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Headline variants by angle — how-to, comparison, explainer, data or mistakes — each promising only what the page can support.",
+    keywords:
+      "headline generator article title ideas angle how to comparison explainer mistakes content marketing",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "alt-text-generator",
+    name: "Alt Text Generator",
+    category: "SEO & Website Growth",
+    description:
+      "Alt text that fits the image's role — informational, functional, chart or decorative — including telling you when the correct answer is an empty alt.",
+    keywords:
+      "alt text generator image accessibility seo decorative functional chart empty alt attribute description",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "internal-link-suggestions",
+    name: "Internal Link Suggestions",
+    category: "SEO & Website Growth",
+    description:
+      "Find internal linking gaps: pages whose target keyword appears in another page's text but is not linked, with a suggested anchor.",
+    keywords:
+      "internal link suggestions internal linking seo anchor text page gaps site structure navigation",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "topic-cluster-builder",
+    name: "Topic Cluster Builder",
+    category: "SEO & Website Growth",
+    description:
+      "Group pages sharing significant keywords into clusters and find the orphan pages nothing links to.",
+    keywords:
+      "topic cluster builder pillar page orphan pages internal links site architecture seo content groups",
+    icon: "sparkles",
+    color: "teal",
+    phase: 21,
+  },
+  {
+    slug: "resume-ats-checker",
+    name: "Résumé ATS Checker",
+    category: "Career & Jobs",
+    description:
+      "Score résumé readiness across parseability, quantified impact, bullet mechanics and keyword match, with every finding itemised — not a fabricated per-vendor score.",
+    keywords:
+      "resume ats checker india ats score job description parseability quantified bullets contact sections readiness keyword match",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "resume-keyword-matcher",
+    name: "Résumé Keyword Matcher",
+    category: "Career & Jobs",
+    description:
+      "Extract the terms a job description emphasises and check each against your résumé, with the mention count shown for every term.",
+    keywords:
+      "resume keyword matcher job description terms coverage skills match ats missing keywords application tailoring",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "resume-bullet-improver",
+    name: "Résumé Bullet Improver",
+    category: "Career & Jobs",
+    description:
+      "Rewrite résumé bullets with rule-based changes — weak openers replaced, filler stripped — and a visible prompt where a metric is missing.",
+    keywords:
+      "resume bullet improver action verbs weak openers responsible for quantified achievements rewrite bullets cv",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "resume-summary-generator",
+    name: "Résumé Summary Generator",
+    category: "Career & Jobs",
+    description:
+      "Professional summary drafts at three lengths from your role, experience and one achievement — with hollow adjectives deliberately excluded.",
+    keywords:
+      "resume summary generator professional profile objective statement resume india fresher experienced achievement",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "resume-comparison",
+    name: "Résumé Comparison",
+    category: "Career & Jobs",
+    description:
+      "Compare two versions of a résumé on the same measurable axes, with the score delta and the words that changed.",
+    keywords:
+      "resume comparison two versions cv diff score change quantified bullets word differences job application",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "salary-converter",
+    name: "Salary Converter",
+    category: "Career & Jobs",
+    description:
+      "Convert a salary between hourly, daily, monthly and annual with the working-hours assumption stated rather than hidden.",
+    keywords:
+      "salary converter hourly daily monthly annual rate conversion ctc per hour per day per month per year",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "contractor-rate-calculator",
+    name: "Contractor Rate Calculator",
+    category: "Career & Jobs",
+    description:
+      "The contractor day rate that matches a salaried CTC, accounting for billed days and the benefits an employer would otherwise fund.",
+    keywords:
+      "contractor rate calculator india day rate freelance salary equivalent billed days loading benefits comparison",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "offer-comparison-calculator",
+    name: "Offer Comparison Calculator",
+    category: "Career & Jobs",
+    description:
+      "Compare two CTCs after Indian income tax and see how much of the raise actually reaches your bank account.",
+    keywords:
+      "offer comparison calculator india ctc after tax take home hike percentage salary negotiation new job switch",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "total-compensation-calculator",
+    name: "Total Compensation Calculator",
+    category: "Career & Jobs",
+    description:
+      "Year-one cash, steady-state and equity-inclusive totals, with a joining bonus's clawback and a variable payout's pro-rating stated.",
+    keywords:
+      "total compensation calculator ctc joining bonus clawback variable equity relocation year one steady state package",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "equity-vesting-calculator",
+    name: "Equity Vesting Calculator",
+    category: "Career & Jobs",
+    description:
+      "Value an ESOP or RSU grant with the cliff, the vesting schedule and the vested spread at a chosen month — and flag it when the options are underwater.",
+    keywords:
+      "equity vesting calculator esop rsu grant cliff strike price fmv spread schedule startup india",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "relocation-calculator",
+    name: "Relocation Calculator",
+    category: "Career & Jobs",
+    description:
+      "Compare an offer in a new city using a cost index you supply, with the break-even CTC that preserves your current purchasing power.",
+    keywords:
+      "relocation calculator cost of living city comparison salary india break even ctc purchasing power move job",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "marginal-tax-rate",
+    name: "Marginal Tax Rate Calculator",
+    category: "Career & Jobs",
+    description:
+      "The tax on your next ₹10,000, versus your average rate — the number that answers what a bonus is actually worth.",
+    keywords:
+      "marginal tax rate calculator india average rate bonus tax slab next rupee new regime old regime",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "notice-buyout-calculator",
+    name: "Notice Buyout Calculator",
+    category: "Career & Jobs",
+    description:
+      "The cost of leaving before your notice period completes, on the basic-plus-DA basis most contracts use rather than full gross.",
+    keywords:
+      "notice buyout calculator india notice period recovery salary basic da resignation early exit cost",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "notice-period-calculator",
+    name: "Notice Period Calculator",
+    category: "Career & Jobs",
+    description:
+      "Last working day from a resignation date, counting business days and skipping weekends and holidays you declare.",
+    keywords:
+      "notice period calculator india last working day resignation date business days holidays 30 60 90 days",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "experience-calculator",
+    name: "Experience Calculator",
+    category: "Career & Jobs",
+    description:
+      "Total experience from employment date ranges, merging overlapping roles so concurrent work is not double counted, with gaps listed.",
+    keywords:
+      "experience calculator total years months employment history dates overlapping roles gaps resume india",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "cover-letter-generator",
+    name: "Cover Letter Generator",
+    category: "Career & Jobs",
+    description:
+      "A four-paragraph cover letter built from your own facts, with a visible placeholder where the one thing only you can write is missing.",
+    keywords:
+      "cover letter generator india format job application letter why this company achievement skills professional",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "follow-up-generator",
+    name: "Follow-Up Message Generator",
+    category: "Career & Jobs",
+    description:
+      "Follow-up messages for after an interview, after a final round, or after silence — each designed to be easy to answer.",
+    keywords:
+      "follow up email after interview generator job application no response thank you message recruiter",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "star-answer-builder",
+    name: "STAR Answer Builder",
+    category: "Career & Jobs",
+    description:
+      "Structure a behavioural interview answer, with checks for a missing metric, a short action block and an answer that says we instead of I.",
+    keywords:
+      "star answer builder interview behavioural questions situation task action result competency preparation",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "linkedin-about-generator",
+    name: "LinkedIn About Generator",
+    category: "Career & Jobs",
+    description:
+      "A LinkedIn About section in four short paragraphs from your role, focus and one achievement, with placeholders where proof is missing.",
+    keywords:
+      "linkedin about generator summary section profile india professional headline achievement job search",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "interview-prep-plan",
+    name: "Interview Prep Plan",
+    category: "Career & Jobs",
+    description:
+      "A preparation plan by interview stage — the research to do, the stories to rehearse and the questions worth asking.",
+    keywords:
+      "interview preparation plan india screening technical manager final round questions to ask research company",
+    icon: "text",
+    color: "rose",
+    phase: 21,
+  },
+  {
+    slug: "availability-statement",
+    name: "Availability Statement",
+    category: "Career & Jobs",
+    description:
+      "A one-line availability statement generated from your real notice terms, including buyout, so it is accurate before you send it.",
+    keywords:
+      "availability statement job application notice period immediate joiner buyout sentence resume cover letter",
+    icon: "text",
+    color: "rose",
+    phase: 21,
   },
 ] as const;
 

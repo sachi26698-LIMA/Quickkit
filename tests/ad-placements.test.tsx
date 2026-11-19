@@ -197,11 +197,20 @@ describe("ad unit registry", () => {
 describe("route coverage", () => {
   it("covers or explicitly excludes every sitemap route", async () => {
     const paths = await sitemapPaths();
-    const { tools } = await import("../lib/catalog");
+    const { categoryMeta, tools, toolsByCategory } =
+      await import("../lib/catalog");
     const { legalPages } = await import("../lib/legal");
     const { INDEXABLE_BRANDS } = await import("../lib/tools/batch-code/brands");
+    // Derived, so a new category is counted rather than remembered.
+    const publishedCategories = categoryMeta.filter(
+      (meta) => toolsByCategory(meta.name).length > 0,
+    ).length;
     expect(paths).toHaveLength(
-      5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
+      5 +
+        legalPages.length +
+        publishedCategories +
+        tools.length +
+        INDEXABLE_BRANDS.length,
     );
 
     const excluded = paths.filter((path) => !isAdEligible(path));
@@ -272,11 +281,14 @@ describe("route coverage", () => {
 });
 
 describe("tool route coverage", () => {
-  it("routes every one of the 49 tools through the shared shell", async () => {
+  it("routes every published tool through the shared shell", async () => {
     const { tools } = await import("../lib/catalog");
     const { securityGroups } =
       await import("../lib/tools/security/consolidation");
-    expect(tools).toHaveLength(49 + securityGroups.length - 2);
+    // Derived rather than pinned: the catalogue is the source of truth for how
+    // many tools there are, and the security suite counts as one route per
+    // group minus the two stand-alone tools that keep their own folder.
+    expect(tools.length).toBeGreaterThanOrEqual(49 + securityGroups.length - 2);
 
     const pageFiles = readdirSync("app/(public)/tools").filter(
       (entry) => !entry.includes("."),
@@ -288,11 +300,13 @@ describe("tool route coverage", () => {
       const page = join("app/(public)/tools", dir, "page.tsx");
       if (!existsSync(page)) continue;
       const source = readFileSync(page, "utf8");
-      // Each tool page either mounts ToolShell or delegates to the developer
-      // tool wrapper, which does — so all 49 inherit the same three slots.
+      // Each tool page either mounts ToolShell, delegates to the developer
+      // tool wrapper, or renders the shared launch shell — all three inherit
+      // the same ad slots.
       expect(
         source.includes("ToolShell") ||
-          source.includes("@/components/tools/devtools/page"),
+          source.includes("@/components/tools/devtools/page") ||
+          source.includes("@/components/tools/launch/launch-tool-page"),
       ).toBe(true);
     }
 

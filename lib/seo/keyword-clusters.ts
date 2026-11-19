@@ -29,6 +29,9 @@ import { textKeywordClusters } from "./keywords/text";
 import { developerKeywordClusters } from "./keywords/developer";
 import { calculatorsKeywordClusters } from "./keywords/calculators";
 import { securityKeywordClusters } from "./keywords/security";
+import { hrKeywordClusters } from "./keywords/hr";
+import { seoKeywordClusters } from "./keywords/seo";
+import { careerKeywordClusters } from "./keywords/career";
 
 /** The keyword taxonomies the brief asks for, minus primary and secondary. */
 export type KeywordGroup =
@@ -77,6 +80,9 @@ export const keywordClusters: ToolKeywordCluster[] = [
   ...developerKeywordClusters,
   ...calculatorsKeywordClusters,
   ...securityKeywordClusters,
+  ...hrKeywordClusters,
+  ...seoKeywordClusters,
+  ...careerKeywordClusters,
 ];
 
 const CLUSTER_BY_SLUG = new Map(keywordClusters.map((c) => [c.slug, c]));

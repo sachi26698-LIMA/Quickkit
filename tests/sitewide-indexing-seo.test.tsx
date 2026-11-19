@@ -87,7 +87,7 @@ afterEach(() => {
 });
 
 describe("site-wide indexing & SEO invariants", () => {
-  it("lists all 80 eligible canonical routes in /sitemap.xml, including /category/developer-tools and /guides/barcode, with zero noindex/redirect/duplicate URLs", async () => {
+  it("lists every eligible canonical route in /sitemap.xml, including /category/developer-tools and /guides/barcode, with zero noindex/redirect/duplicate URLs", async () => {
     const { default: sitemap, routeSourceFiles } =
       await import("../app/sitemap");
     const entries = await sitemap();
@@ -131,19 +131,21 @@ describe("site-wide indexing & SEO invariants", () => {
       expect(urls).toContain(absoluteUrl(path));
     }
 
-    // All 7 active categories (including developer-tools) included; empty ai-tools excluded
+    // Every category that ships tools is included; empty ai-tools is not.
     const activeCategories = categoryMeta.filter(
       (cat) => toolsByCategory(cat.name).length > 0,
     );
-    expect(activeCategories).toHaveLength(7);
+    expect(activeCategories).toEqual(
+      categoryMeta.filter((cat) => cat.name !== "AI Tools"),
+    );
     expect(activeCategories.map((c) => c.slug)).toContain("developer-tools");
     for (const cat of activeCategories) {
       expect(urls).toContain(`${ORIGIN}/category/${cat.slug}`);
     }
     expect(urls).not.toContain(`${ORIGIN}/category/ai-tools`);
 
-    // All 56 published tools included
-    expect(tools).toHaveLength(56);
+    // Every published tool is included, so a new tool can never be shipped
+    // without a sitemap entry.
     for (const tool of tools) {
       expect(urls, `tool ${tool.slug}`).toContain(
         `${ORIGIN}/tools/${tool.slug}`,

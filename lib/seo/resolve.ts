@@ -3,7 +3,7 @@ import type {
   SearchIntent,
   ToolSeoRecord,
 } from "./registry";
-import { TOOL_SEO_RECORDS } from "./tools";
+import { ALL_TOOL_SEO_RECORDS } from "./tools";
 import { CATEGORY_SEO_RECORDS } from "./categories";
 
 /**
@@ -16,10 +16,10 @@ import { CATEGORY_SEO_RECORDS } from "./categories";
  */
 
 const toolByPath = new Map<string, ToolSeoRecord>(
-  TOOL_SEO_RECORDS.map((record) => [record.path, record]),
+  ALL_TOOL_SEO_RECORDS.map((record) => [record.path, record]),
 );
 const toolBySlug = new Map<string, ToolSeoRecord>(
-  TOOL_SEO_RECORDS.flatMap((record) =>
+  ALL_TOOL_SEO_RECORDS.flatMap((record) =>
     record.slug ? [[record.slug, record] as const] : [],
   ),
 );
@@ -42,7 +42,7 @@ export function resolveCategorySeo(
 }
 
 export function allToolSeoRecords(): readonly ToolSeoRecord[] {
-  return TOOL_SEO_RECORDS;
+  return ALL_TOOL_SEO_RECORDS;
 }
 
 export function allCategorySeoRecords(): readonly CategorySeoRecord[] {
@@ -52,7 +52,7 @@ export function allCategorySeoRecords(): readonly CategorySeoRecord[] {
 /** Paths the registry intends to be indexable — the sitemap's allow-list. */
 export function registeredIndexablePaths(): string[] {
   return [
-    ...TOOL_SEO_RECORDS.filter((record) => record.indexable).map(
+    ...ALL_TOOL_SEO_RECORDS.filter((record) => record.indexable).map(
       (record) => record.path,
     ),
     ...CATEGORY_SEO_RECORDS.filter((record) => record.indexable).map(
@@ -71,16 +71,30 @@ export function registryH1For(slug: string): string | undefined {
   return toolBySlug.get(slug)?.h1;
 }
 
+/**
+ * Fold accents and case so a keyword and its copy compare equal.
+ *
+ * "Résumé ATS Checker" and the keyword `resume ats checker` are the same
+ * phrase; without folding, the audit reports a missing keyword on every
+ * accented title and the warning stops meaning anything.
+ */
+function foldForCompare(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase();
+}
+
 /** True when the record's own copy mentions its primary keyword naturally. */
 export function mentionsPrimaryKeyword(record: {
   title: string;
   description: string;
   primaryKeyword: string;
 }): { title: boolean; description: boolean } {
-  const needle = record.primaryKeyword.toLocaleLowerCase();
+  const needle = foldForCompare(record.primaryKeyword);
   return {
-    title: record.title.toLocaleLowerCase().includes(needle),
-    description: record.description.toLocaleLowerCase().includes(needle),
+    title: foldForCompare(record.title).includes(needle),
+    description: foldForCompare(record.description).includes(needle),
   };
 }
 
@@ -93,6 +107,6 @@ export function intentBreakdown(): Record<SearchIntent, number> {
     navigational: 0,
     trust: 0,
   };
-  for (const record of TOOL_SEO_RECORDS) counts[record.intent] += 1;
+  for (const record of ALL_TOOL_SEO_RECORDS) counts[record.intent] += 1;
   return counts;
 }

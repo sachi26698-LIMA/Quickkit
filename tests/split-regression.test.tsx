@@ -172,10 +172,18 @@ describe("cross-tool regression: the four split tools", () => {
     const routes = (await approvedSitemap()).map((entry) => entry.url);
     // Count is derived, not hard-coded: every published tool plus the static
     // and legal pages, so adding a page cannot silently leave it unlisted.
-    // 4 static routes (/saved is personal and stays out), plus legal pages,
+    // 5 static routes (/saved is personal and stays out), plus legal pages,
     // non-empty categories and every published tool.
+    const { categoryMeta, toolsByCategory } = await import("../lib/catalog");
+    const publishedCategories = categoryMeta.filter(
+      (meta) => toolsByCategory(meta.name).length > 0,
+    ).length;
     expect(routes.length, "sitemap is actually populated").toBe(
-      5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
+      5 +
+        legalPages.length +
+        publishedCategories +
+        tools.length +
+        INDEXABLE_BRANDS.length,
     );
     expect(routes.some((url) => url.includes(RETIRED))).toBe(false);
     for (const slug of SPLIT_TOOLS) {

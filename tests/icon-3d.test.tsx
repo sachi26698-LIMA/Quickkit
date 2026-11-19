@@ -15,11 +15,37 @@ import { categoryMeta, tools, type ToolCategory } from "../lib/catalog";
 afterEach(cleanup);
 
 describe("3D icon system", () => {
-  it("gives every catalog tool its own bespoke glyph", () => {
+  it("gives every catalog tool its own drawn glyph", () => {
     const missing = tools.filter((t) => !toolArt[t.slug]).map((t) => t.slug);
     expect(missing).toEqual([]);
+    // The icon is a drawing plus a palette: `toolIconStyle` gives every tool its
+    // own accent (tests/tool-theme.test.tsx pins that), so two tools sharing a
+    // drawing still render as two different icons. The 56 shipped tools each own
+    // a bespoke drawing; the launched HR / SEO / Career tools draw from their
+    // category's three shapes — a people mark, a chart and a briefcase — which
+    // stay recognisable at 24px where a seventh bespoke curve would not.
+    const BESPOKE = 56;
+    const CATEGORY_SHAPES = 3;
     const glyphs = tools.map((t) => toolArt[t.slug]);
-    expect(new Set(glyphs).size).toBe(glyphs.length);
+    const distinct = new Set(glyphs);
+    expect(distinct.size).toBe(BESPOKE + CATEGORY_SHAPES);
+    const families = ["people", "chart", "briefcase"];
+    for (const tool of tools) {
+      if (
+        tool.category === "HR & Payroll" ||
+        tool.category === "SEO & Website Growth" ||
+        tool.category === "Career & Jobs"
+      ) {
+        expect(families, `${tool.slug} draws a family shape`).toContain(
+          toolArt[tool.slug],
+        );
+      } else {
+        // Nothing outside the launched categories may borrow a family shape.
+        expect(families, `${tool.slug} keeps its own drawing`).not.toContain(
+          toolArt[tool.slug],
+        );
+      }
+    }
   });
 
   it("gives every category a distinct glyph", () => {

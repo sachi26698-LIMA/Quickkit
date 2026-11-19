@@ -17,7 +17,7 @@ describe("catalog discovery", () => {
     expect(filterTools("  jSoN ", "All tools")[0].slug).toBe("json-formatter");
     expect(
       tools.filter((tool) => /json/iu.test(tool.name)).map((tool) => tool.slug),
-    ).toEqual(["json-formatter", "json-validator"]);
+    ).toEqual(["json-formatter", "json-validator", "json-ld-validator"]);
   });
   it("ranks the cryptography workbench by name while retaining password keyword discovery", () => {
     const results = filterTools("crypto", "All tools").map((tool) => tool.slug);
@@ -78,10 +78,12 @@ describe("catalog discovery", () => {
   });
   it("uses unique stable slugs", () =>
     expect(new Set(tools.map((t) => t.slug)).size).toBe(tools.length));
-  it("defines eight categories with unique slugs", () => {
-    expect(toolCategories).toHaveLength(8);
-    expect(categoryMeta).toHaveLength(8);
-    expect(new Set(categoryMeta.map((c) => c.slug)).size).toBe(8);
+  it("defines the shipped categories with unique slugs", () => {
+    // Eight original categories plus the three launched on the HR / SEO /
+    // career branch. AI Tools remains a labelled roadmap entry with no tools.
+    expect(toolCategories).toHaveLength(11);
+    expect(categoryMeta).toHaveLength(11);
+    expect(new Set(categoryMeta.map((c) => c.slug)).size).toBe(11);
     for (const name of toolCategories) {
       expect(categoryMeta.find((c) => c.name === name)).toBeDefined();
     }

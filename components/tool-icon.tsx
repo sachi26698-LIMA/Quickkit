@@ -20,6 +20,7 @@ import {
   ScanLine,
   ScanText,
   LockKeyhole,
+  Sparkles,
 } from "lucide-react";
 export type ToolIconName = keyof typeof icons;
 const icons = {
@@ -44,6 +45,7 @@ const icons = {
   ocr: ScanText,
   scan: ScanLine,
   pdfLock: LockKeyhole,
+  sparkles: Sparkles,
 };
 export default function ToolIcon({
   icon,

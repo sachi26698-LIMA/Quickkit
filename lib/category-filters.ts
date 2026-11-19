@@ -197,6 +197,180 @@ export const categoryFilters: Record<string, CategoryFilter> = {
       },
     ],
   },
+  "hr-payroll": {
+    noun: "HR tools",
+    typeLabel: "HR tool type",
+    groups: [
+      {
+        id: "salary",
+        label: "Salary & take-home",
+        slugs: [
+          "salary-calculator-india",
+          "in-hand-salary-calculator",
+          "income-tax-calculator",
+          "offer-letter-generator",
+          "increment-letter-generator",
+        ],
+      },
+      {
+        id: "statutory",
+        label: "PF, ESI & gratuity",
+        slugs: [
+          "pf-calculator",
+          "esi-calculator",
+          "gratuity-calculator",
+          "full-and-final-settlement",
+        ],
+      },
+      {
+        id: "attendance",
+        label: "Attendance & leave",
+        slugs: [
+          "attendance-calculator",
+          "overtime-calculator",
+          "shift-hours-calculator",
+          "leave-encashment-calculator",
+          "statutory-leave-calculator",
+          "working-days-calculator",
+        ],
+      },
+      {
+        id: "documents",
+        label: "Slips & letters",
+        slugs: [
+          "salary-slip-generator",
+          "experience-letter-generator",
+          "relieving-letter-generator",
+          "warning-letter-generator",
+          "appreciation-letter-generator",
+          "termination-letter-generator",
+          "internship-certificate-generator",
+        ],
+      },
+      {
+        id: "people",
+        label: "Hiring & people ops",
+        slugs: [
+          "job-description-generator",
+          "kpi-sheet-generator",
+          "interview-plan-generator",
+          "probation-period-calculator",
+        ],
+      },
+    ],
+  },
+  "seo-growth": {
+    noun: "SEO tools",
+    typeLabel: "SEO tool type",
+    groups: [
+      {
+        id: "onpage",
+        label: "On-page analysis",
+        slugs: [
+          "serp-preview",
+          "keyword-density-checker",
+          "readability-checker",
+          "on-page-audit",
+        ],
+      },
+      {
+        id: "schema",
+        label: "Structured data",
+        slugs: [
+          "organization-schema-generator",
+          "article-schema-generator",
+          "faq-schema-generator",
+          "product-schema-generator",
+          "local-business-schema-generator",
+          "job-posting-schema-generator",
+          "breadcrumb-schema-generator",
+          "json-ld-validator",
+        ],
+      },
+      {
+        id: "technical",
+        label: "robots, sitemaps & canonicals",
+        slugs: [
+          "robots-txt-generator",
+          "robots-txt-validator",
+          "sitemap-generator",
+          "sitemap-validator",
+          "canonical-checker",
+          "hreflang-checker",
+          "redirect-checker",
+        ],
+      },
+      {
+        id: "content",
+        label: "Content & copy",
+        slugs: [
+          "title-generator",
+          "meta-description-generator",
+          "content-brief-generator",
+          "headline-generator",
+          "alt-text-generator",
+          "internal-link-suggestions",
+          "topic-cluster-builder",
+        ],
+      },
+      {
+        id: "overlap",
+        label: "Duplication & overlap",
+        slugs: ["duplicate-content-checker", "keyword-cannibalisation-checker"],
+      },
+    ],
+  },
+  "career-jobs": {
+    noun: "career tools",
+    typeLabel: "Career tool type",
+    groups: [
+      {
+        id: "resume",
+        label: "Résumé & ATS",
+        slugs: [
+          "resume-ats-checker",
+          "resume-keyword-matcher",
+          "resume-bullet-improver",
+          "resume-summary-generator",
+          "resume-comparison",
+        ],
+      },
+      {
+        id: "offers",
+        label: "Offers & compensation",
+        slugs: [
+          "offer-comparison-calculator",
+          "total-compensation-calculator",
+          "equity-vesting-calculator",
+          "salary-converter",
+          "contractor-rate-calculator",
+          "relocation-calculator",
+          "marginal-tax-rate",
+        ],
+      },
+      {
+        id: "timeline",
+        label: "Notice & record",
+        slugs: [
+          "notice-period-calculator",
+          "notice-buyout-calculator",
+          "experience-calculator",
+        ],
+      },
+      {
+        id: "writing",
+        label: "Letters & interview prep",
+        slugs: [
+          "cover-letter-generator",
+          "follow-up-generator",
+          "star-answer-builder",
+          "linkedin-about-generator",
+          "interview-prep-plan",
+          "availability-statement",
+        ],
+      },
+    ],
+  },
 };
 
 /** Used for a category that has no entry above (for example a new one). */

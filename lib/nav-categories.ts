@@ -70,6 +70,27 @@ export const navCategories: NavCategory[] = [
     empty: false,
   },
   {
+    name: "HR & Payroll",
+    slug: "hr-payroll",
+    tint: "tint-hr",
+    icon: "people",
+    empty: false,
+  },
+  {
+    name: "SEO & Website Growth",
+    slug: "seo-growth",
+    tint: "tint-seo",
+    icon: "chart",
+    empty: false,
+  },
+  {
+    name: "Career & Jobs",
+    slug: "career-jobs",
+    tint: "tint-career",
+    icon: "briefcase",
+    empty: false,
+  },
+  {
     name: "AI Tools",
     slug: "ai-tools",
     tint: "tint-ai",

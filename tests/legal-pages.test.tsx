@@ -160,6 +160,9 @@ describe("footer navigation", () => {
       "/category/developer-tools",
       "/category/calculators",
       "/category/security-privacy",
+      "/category/hr-payroll",
+      "/category/seo-growth",
+      "/category/career-jobs",
       ...legalPages.map((page) => page.href),
     ]);
     const seen = new Set<string>();

@@ -141,8 +141,16 @@ it("emits genuine Git dates without a wall-clock or operator cutoff", async () =
   const { INDEXABLE_BRANDS } = await import("../lib/tools/batch-code/brands");
   const { tools } = await import("../lib/catalog");
   const { legalPages } = await import("../lib/legal");
+  const { categoryMeta, toolsByCategory } = await import("../lib/catalog");
+  const publishedCategories = categoryMeta.filter(
+    (meta) => toolsByCategory(meta.name).length > 0,
+  ).length;
   expect(routes).toHaveLength(
-    5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
+    5 +
+      legalPages.length +
+      publishedCategories +
+      tools.length +
+      INDEXABLE_BRANDS.length,
   );
   expect(
     routes.every((route) => {
@@ -191,13 +199,22 @@ it("emits all real sitemap routes only after explicit production approval", asyn
   expect(robots().sitemap).toBe("https://test.example/sitemap.xml");
 
   const routes = await sitemap();
-  // 4 static + the published legal/information pages + 7 non-empty categories
-  // + every published tool. Derived so a new page cannot skip the sitemap unnoticed.
+  // 5 static + the published legal/information pages + every non-empty
+  // category + every published tool. Derived so a new page cannot skip the
+  // sitemap unnoticed and a new category is counted rather than remembered.
   const { legalPages } = await import("../lib/legal");
-  const { tools } = await import("../lib/catalog");
+  const { categoryMeta, tools, toolsByCategory } =
+    await import("../lib/catalog");
   const { INDEXABLE_BRANDS } = await import("../lib/tools/batch-code/brands");
+  const publishedCategories = categoryMeta.filter(
+    (meta) => toolsByCategory(meta.name).length > 0,
+  ).length;
   expect(routes).toHaveLength(
-    5 + legalPages.length + 7 + tools.length + INDEXABLE_BRANDS.length,
+    5 +
+      legalPages.length +
+      publishedCategories +
+      tools.length +
+      INDEXABLE_BRANDS.length,
   );
   for (const entry of routes) {
     // The homepage is listed as the bare origin, so the stripped path is empty
