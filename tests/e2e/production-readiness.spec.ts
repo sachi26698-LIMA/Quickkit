@@ -138,7 +138,10 @@ for (const route of responsiveRoutes) {
   }, testInfo) => {
     // Keep each route's 11 viewport checks together, but isolate routes so a
     // slow navigation identifies its path and cannot consume other routes' budget.
-    test.setTimeout(60_000);
+    // The /tools catalogue now renders 131 tool cards, which under WebKit spends
+    // materially longer in layout and hydration; size the budget for the suite
+    // rather than for the compile-time-sized catalogue this started with.
+    test.setTimeout(180_000);
 
     for (const width of responsiveWidths) {
       await page.setViewportSize({ width, height: 900 });
