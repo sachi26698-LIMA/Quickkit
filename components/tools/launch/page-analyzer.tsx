@@ -606,6 +606,24 @@ function StructureTool() {
             ),
           ].join("\n")}
           filename="structure-audit"
+          csvRows={[
+            ["Type", "Detail", "Text"],
+            ...result.headings.map((heading) => [
+              `H${heading.level}`,
+              "heading",
+              heading.text,
+            ]),
+            ...result.links.map((link) => [
+              "link",
+              link.external ? "external" : "internal",
+              link.text || link.href,
+            ]),
+            ...result.images.map((image) => [
+              "image",
+              image.alt ? "has alt" : "missing alt",
+              image.src,
+            ]),
+          ]}
         >
           <StatRow>
             <Stat

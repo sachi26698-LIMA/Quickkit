@@ -13,6 +13,7 @@ import {
   type SchemaResult,
 } from "@/lib/tools/seo/schema";
 import {
+  CodePreview,
   Disclosure,
   EmptyState,
   Field,
@@ -79,6 +80,7 @@ function SchemaOutput({
       show
       text={result.json}
       filename={filename}
+      textExtension="json"
       onReset={onReset}
     >
       <StatRow>
@@ -121,9 +123,11 @@ function SchemaOutput({
 
       {children}
 
-      <div className="qw-mono" aria-label="Generated JSON-LD">
-        {result.json}
-      </div>
+      <CodePreview
+        value={result.json}
+        language="json"
+        label="Generated JSON-LD"
+      />
 
       <Disclosure summary="How to add this to your page">
         <p>

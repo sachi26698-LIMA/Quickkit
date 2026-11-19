@@ -14,6 +14,7 @@ import {
   Field,
   FieldGrid,
   Notice,
+  DocumentPreview,
   ResultPanel,
   Stat,
   StatRow,
@@ -262,6 +263,17 @@ function PayslipBuilder() {
           show
           text={result.text}
           filename={`payslip-${(employeeName || "employee").replace(/\s+/g, "-").toLowerCase()}`}
+          document={{
+            title: "Salary slip",
+            subtitle: [
+              companyName.trim(),
+              employeeName.trim(),
+              payPeriod.trim(),
+            ]
+              .filter(Boolean)
+              .join(" · "),
+            body: result.text,
+          }}
           onReset={() => {
             setPreview(false);
             setEarnings([{ label: "Basic salary", amount: "24000" }]);
@@ -568,6 +580,25 @@ function LetterBuilder({ kind }: { kind: LetterKind }) {
 
   const ready = companyName.trim() && employeeName.trim() && designation.trim();
 
+  const fileBase = `${kind}-letter-${(employeeName || "employee")
+    .replace(/\s+/g, "-")
+    .toLowerCase()}`;
+
+  // The same content is offered three ways: shown as a document, saved as a
+  // Word file, and saved as a PDF. The export carries exactly what is on
+  // screen, so a letter that is reviewed here is the letter that is issued.
+  const letterDocument = {
+    title: meta.name,
+    subtitle: [
+      referenceNumber.trim() ? `Ref: ${referenceNumber.trim()}` : "",
+      date.trim(),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    body: result.text,
+    footer: meta.caution,
+  };
+
   return (
     <>
       <div className="qw-workspace-panel">
@@ -653,7 +684,8 @@ function LetterBuilder({ kind }: { kind: LetterKind }) {
           title={meta.name}
           show
           text={result.text}
-          filename={`${kind}-letter-${(employeeName || "employee").replace(/\s+/g, "-").toLowerCase()}`}
+          filename={fileBase}
+          document={letterDocument}
           onReset={() => setValues({})}
         >
           <StatRow>
@@ -700,9 +732,14 @@ function LetterBuilder({ kind }: { kind: LetterKind }) {
             </Notice>
           ) : null}
 
-          <div className="qw-mono" aria-label="Letter draft">
-            {result.text}
-          </div>
+          <DocumentPreview {...letterDocument} />
+
+          <Disclosure summary="Letter as plain text">
+            <div className="qw-mono" aria-label="Letter draft">
+              {result.text}
+            </div>
+          </Disclosure>
+
           <span className="qw-action-status" role="status" aria-live="polite">
             {copied}
           </span>
@@ -732,7 +769,7 @@ function LetterBuilder({ kind }: { kind: LetterKind }) {
               onClick={() =>
                 downloadText(
                   result.html,
-                  `${kind}-letter-${(employeeName || "employee").replace(/\s+/g, "-").toLowerCase()}.html`,
+                  `${fileBase}.html`,
                   "text/html;charset=utf-8",
                 )
               }

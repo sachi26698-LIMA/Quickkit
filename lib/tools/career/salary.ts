@@ -302,6 +302,9 @@ export function noticeBuyout(input: {
   notes.push(
     "A buyout is recoverable only if your contract says so, and only for the shortfall. Neither condition is checked here.",
   );
+  notes.push(
+    "Whether your new employer reimburses the buyout is a separate, contractual matter. Nothing above assumes that it does.",
+  );
 
   return {
     noticeDays,

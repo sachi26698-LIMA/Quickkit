@@ -414,7 +414,24 @@ function findRepeatedWords(text: string): string[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const JD_STOP = new Set(
-  "a an the and or of to in for with on at by from as is are be been being will would should could can may might must have has had do does did not no your you we our their they this that these those it its who whom which what when where why how all any both each few more most other some such than too very just also into over under about after before between during through above below up down out off again further then once here there".split(
+  "a an the and or of to in for with on at by from as is are be been being will would should could can may might must have has had do does did not no your you we our their they this that these those it its who whom which what when where why how all any both each few more most other some such than too very just also into over under about after before between during through above below up down out off again further then once here there am he me my us".split(
+    " ",
+  ),
+);
+
+/**
+ * Technology and role terms that must survive the "named once in passing is not
+ * emphasised" rule.
+ *
+ * Without this list a posting that says "Go", "React" or "Docker" exactly once
+ * contributes nothing, because both signals the matcher uses fail on those
+ * words: they are too short to look deliberate, and their capitalisation is
+ * ordinary sentence capitalisation rather than the internal capitals that mark
+ * a name like "PostgreSQL". The list is explicit rather than heuristic so the
+ * tool's behaviour on any given term is knowable rather than surprising.
+ */
+const NAMED_TECH_TERMS = new Set(
+  "go golang react reactjs angular angularjs vue vuejs nextjs nuxt svelte redux node nodejs express nestjs django flask fastapi rails laravel spring springboot php python java javascript typescript ruby on rails phpunit jest vitest mocha cypress playwright selenium pytest junit webpack vite babel eslint prettier graphql grpc rest api apis html css sass tailwind bootstrap sass sql nosql mysql postgres postgresql mongodb redis elasticsearch kafka rabbitmq clickhouse snowflake bigquery dynamodb cassandra neo4j aws azure gcp heroku vercel netlify cloudflare docker kubernetes k8s terraform ansible chef puppet jenkins circleci github gitlab bitbucket linux unix ubuntu windows macos android ios swift objective-c kotlin scala elixir erlang haskell clojure perl rust dart flutter ionic react-native git jira confluence salesforce sap oracle workday bamboohr greenhouse lever jobvite indeed linkedin naukri upwork fiverr freelancer agile scrum kanban jira aws lambda s3 ec2 rds dynamodb lambda sns sqs ec2 iam vpc seo sem crm erp pmo qa qc hr hris api qa automation devops sre ml ai llm nlp ocr erp crm cms cms headless cms wordpress shopify magento bigcommerce woocommerce hubspot mailchimp sendgrid twilio stripe razorpay paypal square".split(
     " ",
   ),
 );
@@ -443,6 +460,23 @@ export function keywordCoverage(
   jobDescription: string,
 ): KeywordCoverage {
   const resumeLower = resume.toLowerCase();
+  // A two-letter word is either noise ("am", "us") or a real skill ("Go",
+  // "JS", "CI"). The explicit list decides which, and only when the posting
+  // capitalises it — "Go" the language is written with a capital, "go to
+  // market" is not.
+  const capitalisedShortTerms = new Set(
+    jobDescription
+      .split(/\s+/)
+      .map((word) => word.replace(/[^\p{L}\p{N}+#.]/gu, ""))
+      .filter(
+        (word) =>
+          word.length === 2 &&
+          /^[A-Z]/.test(word) &&
+          NAMED_TECH_TERMS.has(word.toLowerCase()),
+      )
+      .map((word) => word.toLowerCase()),
+  );
+
   const tokens = jobDescription
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s+#./-]/gu, " ")
@@ -450,7 +484,9 @@ export function keywordCoverage(
     .map((token) => token.replace(/^[./-]+|[./-]+$/g, ""))
     .filter(
       (token) =>
-        token.length > 2 && !JD_STOP.has(token) && !/^\d+$/.test(token),
+        !JD_STOP.has(token) &&
+        !/^\d+$/.test(token) &&
+        (token.length > 2 || capitalisedShortTerms.has(token)),
     );
 
   const counts = new Map<string, number>();
@@ -459,17 +495,27 @@ export function keywordCoverage(
   // Keep terms mentioned more than once, plus single-mention terms that look
   // like named skills (contain a digit, +, #, dot, or are capitalised in the
   // original description).
-  const originalWords = new Set(
-    jobDescription
-      .split(/\s+/)
-      .map((word) => word.replace(/[^\p{L}\p{N}+#.]/gu, ""))
-      .filter((word) => /[A-Z]/.test(word.slice(1)) || /[+#.]/.test(word)),
-  );
+  //
+  // The set holds lowercased forms: `tokens` is lowercased and the terms are
+  // compared against it, so keeping the original case here meant a skill like
+  // "PostgreSQL" — named once, capitalised, exactly the case this rule exists
+  // for — never matched its own lowercased token.
+  const namedSkills = new Set<string>();
+  for (const word of jobDescription.split(/\s+/)) {
+    const cleaned = word.replace(/[^\p{L}\p{N}+#.]/gu, "");
+    if (!cleaned) continue;
+    if (/[A-Z]/.test(cleaned.slice(1)) || /[+#.]/.test(cleaned)) {
+      namedSkills.add(cleaned.toLowerCase());
+    }
+  }
 
   const candidates = [...counts.entries()]
     .filter(
       ([term, count]) =>
-        count > 1 || originalWords.has(term) || /[+#.]/.test(term),
+        count > 1 ||
+        namedSkills.has(term) ||
+        NAMED_TECH_TERMS.has(term) ||
+        /[+#.]/.test(term),
     )
     .sort((a, b) => b[1] - a[1])
     .slice(0, 40);
@@ -674,6 +720,12 @@ export function generateSummary(input: SummaryInput): string[] {
 export type ResumeComparison = {
   a: ResumeAnalysis;
   b: ResumeAnalysis;
+  /**
+   * Signed difference in favour of version B — `b.score - a.score`. It is
+   * signed rather than absolute so the UI can say which version leads without
+   * a second comparison, and it is negative when version A is the stronger
+   * one.
+   */
   scoreDelta: number;
   onlyInA: string[];
   onlyInB: string[];

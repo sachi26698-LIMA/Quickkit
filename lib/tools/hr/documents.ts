@@ -115,6 +115,24 @@ export function buildPayslip(input: PayslipInput): PayslipResult {
       message: "Add at least one earnings row.",
     });
   }
+  // A deduction the employee cannot read is the defect most often raised in
+  // labour inspections, so an unlabelled line is an error rather than a
+  // formatting nicety. The amount is still deducted — the point is that the
+  // slip must explain it before it is issued.
+  const unlabelled = [
+    ...input.earnings
+      .filter((row) => !row.label.trim() && row.amount !== 0)
+      .map(() => "earning"),
+    ...input.deductions
+      .filter((row) => !row.label.trim() && row.amount !== 0)
+      .map(() => "deduction"),
+  ];
+  if (unlabelled.length > 0) {
+    issues.push({
+      severity: "error",
+      message: `Name every ${unlabelled.join(" and ")} line. A wage slip must state what each deduction is for.`,
+    });
+  }
   if (netPay < 0) {
     issues.push({
       severity: "error",

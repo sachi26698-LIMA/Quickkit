@@ -13,6 +13,7 @@ import {
 import {
   BreakdownTable,
   Disclosure,
+  DocumentPreview,
   EmptyState,
   Field,
   FieldGrid,
@@ -181,7 +182,27 @@ function JobDescriptionTool() {
           show
           text={result.text}
           filename={`jd-${(role || "role").replace(/\s+/g, "-").toLowerCase()}`}
+          document={{
+            title: role.trim() || "Job description",
+            subtitle:
+              [department.trim(), location.trim()]
+                .filter(Boolean)
+                .join(" · ") || undefined,
+            body: result.text,
+            footer:
+              "Draft for review. Confirm the company, role and location before publishing.",
+          }}
         >
+          <DocumentPreview
+            title={role.trim() || "Job description"}
+            subtitle={
+              [department.trim(), location.trim()]
+                .filter(Boolean)
+                .join(" · ") || undefined
+            }
+            body={result.text}
+          />
+
           <StatRow>
             <Stat
               label="Words"
@@ -397,7 +418,20 @@ function KpiTool() {
           ["Metric", "Target", "Weight %"],
           ...rows.map((row) => [row.name, row.target, row.weight]),
         ]}
+        document={{
+          title: `${role.trim() || "Role"} — KPI sheet`,
+          subtitle: [period, focus].filter(Boolean).join(" · ") || undefined,
+          body: result.text,
+          footer:
+            "Weights must total 100% before this sheet is used for review.",
+        }}
       >
+        <DocumentPreview
+          title={`${role.trim() || "Role"} — KPI sheet`}
+          subtitle={[period, focus].filter(Boolean).join(" · ") || undefined}
+          body={result.text}
+        />
+
         <StatRow>
           <Stat
             label="Total weight"
@@ -532,7 +566,26 @@ function InterviewTool() {
               item.lookingFor,
             ]),
           ]}
+          document={{
+            title: "Interview plan",
+            subtitle: role.trim() || undefined,
+            body: result.questions.map((item) => ({
+              heading: item.competency,
+              lines: [item.question, `Looking for: ${item.lookingFor}`],
+            })),
+            footer:
+              "Questions are drawn from a fixed bank and are not tailored to the candidate's CV.",
+          }}
         >
+          <DocumentPreview
+            title="Interview plan"
+            subtitle={role.trim() || undefined}
+            body={result.questions.map((item) => ({
+              heading: item.competency,
+              lines: [item.question, `Looking for: ${item.lookingFor}`],
+            }))}
+          />
+
           <StatRow>
             <Stat
               label="Questions"

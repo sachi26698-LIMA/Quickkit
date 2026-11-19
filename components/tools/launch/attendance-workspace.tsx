@@ -196,6 +196,10 @@ function AttendanceTool() {
           text={text}
           filename="attendance-summary"
           onReset={reset}
+          csvRows={[
+            ["Component", "Days"],
+            ...result.breakdown.map((row) => [row.label, row.days]),
+          ]}
         >
           <StatRow>
             <Stat

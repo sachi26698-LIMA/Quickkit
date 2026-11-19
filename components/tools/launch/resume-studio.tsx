@@ -21,6 +21,7 @@ import {
   StatRow,
   parseNumber,
 } from "@/components/tools/launch/ui";
+import DocumentInput from "@/components/tools/launch/document-input";
 
 type Mode =
   | "resume-ats-checker"
@@ -68,19 +69,18 @@ function AtsChecker() {
       <div className="qw-workspace-panel">
         <h2 className="qw-section-title">Your résumé</h2>
         <p className="qw-section-note">
-          Paste the plain text of your résumé. Adding the job description you
-          are targeting makes the check far more useful, because keyword
-          coverage is then measured against the actual posting rather than a
-          guess.
+          Drop in your PDF or Word résumé, or paste the text. Adding the job
+          description you are targeting makes the check far more useful, because
+          keyword coverage is then measured against the actual posting rather
+          than a guess.
         </p>
         <FieldGrid columns={1}>
-          <Field
+          <DocumentInput
             label="Résumé text"
             value={resume}
             onChange={setResume}
-            multiline
             rows={14}
-            placeholder="Paste your résumé as plain text. Copy from your document editor and use 'paste as plain text' if formatting comes across."
+            placeholder="Or paste your résumé as plain text. Use 'paste as plain text' in your editor so formatting does not come across."
           />
           <Field
             label="Job description (recommended)"
@@ -95,8 +95,9 @@ function AtsChecker() {
 
       {!result ? (
         <EmptyState>
-          Paste at least 40 words of résumé text. Nothing is uploaded — the
-          analysis runs entirely in this tab.
+          Add at least 40 words of résumé text — drop in a PDF or Word file, or
+          paste it. Nothing is uploaded: the file is read in this tab and the
+          analysis runs here too.
         </EmptyState>
       ) : (
         <ResultPanel
@@ -278,11 +279,10 @@ function KeywordMatcher() {
           your résumé. Matching is case-insensitive on word boundaries.
         </p>
         <FieldGrid columns={1}>
-          <Field
+          <DocumentInput
             label="Résumé text"
             value={resume}
             onChange={setResume}
-            multiline
             rows={12}
           />
           <Field
@@ -662,18 +662,16 @@ function ResumeComparison() {
           pretending either has an absolute grade.
         </p>
         <FieldGrid columns={1}>
-          <Field
+          <DocumentInput
             label="Version A (current)"
             value={a}
             onChange={setA}
-            multiline
             rows={10}
           />
-          <Field
+          <DocumentInput
             label="Version B (candidate)"
             value={b}
             onChange={setB}
-            multiline
             rows={10}
           />
           <Field
@@ -688,7 +686,10 @@ function ResumeComparison() {
       </div>
 
       {!result ? (
-        <EmptyState>Paste both versions, at least 30 words each.</EmptyState>
+        <EmptyState>
+          Add both versions, at least 30 words each — drop in the documents or
+          paste the text.
+        </EmptyState>
       ) : (
         <ResultPanel
           title="Comparison"

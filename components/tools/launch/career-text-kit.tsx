@@ -16,6 +16,7 @@ import { addBusinessDays } from "@/lib/tools/hr/documents";
 import {
   BreakdownTable,
   Disclosure,
+  DocumentPreview,
   EmptyState,
   Field,
   FieldGrid,
@@ -186,6 +187,13 @@ function CoverLetterTool() {
           show
           text={result.text}
           filename="cover-letter"
+          document={{
+            title: "Cover letter",
+            subtitle: [company, role].filter(Boolean).join(" — ") || undefined,
+            body: result.text,
+            footer:
+              "Replace every bracketed placeholder before sending; the tool cannot supply facts about you.",
+          }}
         >
           <StatRow>
             <Stat
@@ -207,9 +215,11 @@ function CoverLetterTool() {
               Still needed: {result.missing.join(", ")}.
             </Notice>
           ) : null}
-          <div className="qw-mono" aria-label="Cover letter draft">
-            {result.text}
-          </div>
+          <DocumentPreview
+            title="Cover letter"
+            subtitle={[company, role].filter(Boolean).join(" — ") || undefined}
+            body={result.text}
+          />
           <Notice tone="info">{result.notes[0]}</Notice>
         </ResultPanel>
       )}
@@ -294,12 +304,19 @@ function FollowUpTool() {
         show
         text={`Subject: ${result.subject}\n\n${result.body}`}
         filename="follow-up"
+        document={{
+          title: result.subject,
+          subtitle: company || undefined,
+          body: result.body,
+          footer:
+            "One follow-up is enough. A second unanswered message rarely helps.",
+        }}
       >
-        <div className="qw-mono">
-          <strong>Subject:</strong> {result.subject}
-          {"\n\n"}
-          {result.body}
-        </div>
+        <DocumentPreview
+          title={result.subject}
+          subtitle={company || undefined}
+          body={result.body}
+        />
         <Notice tone="info">
           Send one follow-up, then stop. A second unanswered message rarely
           helps and often costs you the role.
@@ -380,6 +397,13 @@ function StarTool() {
         show
         text={built.text}
         filename="star-answer"
+        document={{
+          title: "STAR answer",
+          subtitle: competency || undefined,
+          body: built.text,
+          footer:
+            "Your own outcome — a number, a scale, a time saved. The tool cannot supply it.",
+        }}
       >
         <StatRow>
           <Stat
@@ -403,7 +427,11 @@ function StarTool() {
             All four blocks are present and the result is quantified.
           </Notice>
         )}
-        <div className="qw-mono">{built.text}</div>
+        <DocumentPreview
+          title="STAR answer"
+          subtitle={competency || undefined}
+          body={built.text}
+        />
       </ResultPanel>
     </>
   );
@@ -489,13 +517,23 @@ function LinkedInTool() {
           show
           text={result.text}
           filename="linkedin-about"
+          document={{
+            title: "LinkedIn About",
+            subtitle: role.trim() || undefined,
+            body: result.text,
+            footer: "Replace every bracketed placeholder before publishing it.",
+          }}
         >
           {result.missing.length > 0 ? (
             <Notice tone="warning">
               Still needed: {result.missing.join(", ")}.
             </Notice>
           ) : null}
-          <div className="qw-mono">{result.text}</div>
+          <DocumentPreview
+            title="LinkedIn About"
+            subtitle={role.trim() || undefined}
+            body={result.text}
+          />
           <Disclosure summary="Strong action verbs for bullets">
             <div className="qw-chip-row">
               {verbs.map((verb) => (
@@ -575,6 +613,18 @@ function InterviewPrepTool() {
           )
           .join("\n\n")}
         filename="interview-prep"
+        document={{
+          title: "Interview preparation plan",
+          subtitle:
+            [role.trim(), company.trim()].filter(Boolean).join(" — ") ||
+            undefined,
+          body: result.plan.map((section) => ({
+            heading: section.heading,
+            lines: section.items,
+          })),
+          footer:
+            "A checklist, not a question bank. Bring your own examples; the plan cannot know them.",
+        }}
       >
         {result.plan.map((section) => (
           <div key={section.heading} style={{ marginTop: 14 }}>
@@ -686,7 +736,9 @@ function ExperienceTool() {
         <h2 className="qw-section-title">Employment periods</h2>
         <p className="qw-section-note">
           Overlapping roles are merged so concurrent consulting work is not
-          double counted. Gaps of two months or more are listed separately.
+          double counted. Gaps of two months or more are listed separately. The
+          end date is the last day you worked, so both the start month and the
+          end month count toward the total.
         </p>
         <div style={{ display: "grid", gap: 10 }}>
           {periods.map((period, index) => (

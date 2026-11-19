@@ -12,6 +12,7 @@ import {
 } from "@/lib/tools/seo/technical";
 import {
   BreakdownTable,
+  CodePreview,
   Disclosure,
   EmptyState,
   Field,
@@ -147,6 +148,8 @@ function RobotsTool() {
         show
         text={result.text}
         filename="robots"
+        textExtension="txt"
+        textType="text/plain;charset=utf-8"
         onReset={() => {
           setDisallow("/admin/");
           setAllow("");
@@ -201,6 +204,14 @@ function RobotsTool() {
         <div className="qw-mono" aria-label="Generated robots.txt">
           {result.text}
         </div>
+
+        <Disclosure summary="Copy this straight to your server">
+          <p>
+            The file must be served from <code>/robots.txt</code> at the root of
+            the domain, in plain text. A robots.txt under a subdirectory is
+            ignored.
+          </p>
+        </Disclosure>
 
         <Disclosure summary="The mistakes that cost the most traffic">
           <p>
@@ -390,6 +401,8 @@ function SitemapTool() {
           show
           text={result.xml}
           filename="sitemap"
+          textExtension="xml"
+          textType="application/xml;charset=utf-8"
           onReset={() => {
             setUrls("");
             setLastmod("");
@@ -429,9 +442,11 @@ function SitemapTool() {
             </Notice>
           ) : null}
 
-          <div className="qw-mono" aria-label="Generated sitemap">
-            {result.xml}
-          </div>
+          <CodePreview
+            value={result.xml}
+            language="xml"
+            label="Generated sitemap.xml"
+          />
 
           <Disclosure summary="What a sitemap does and does not do">
             <p>
@@ -840,6 +855,14 @@ function RedirectTool() {
             ),
           ].join("\n")}
           filename="redirect-analysis"
+          csvRows={[
+            ["Chain", "Hops", "Final status"],
+            ...result.chains.map((chain) => [
+              chain.path.join(" -> "),
+              chain.hops,
+              chain.finalStatus,
+            ]),
+          ]}
         >
           <StatRow>
             <Stat

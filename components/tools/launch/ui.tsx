@@ -13,16 +13,9 @@
  */
 
 import { useId, useMemo, useState, type ReactNode } from "react";
-import {
-  AlertTriangle,
-  Check,
-  Copy,
-  Download,
-  Info,
-  RotateCcw,
-} from "lucide-react";
-import { downloadText } from "@/lib/tools/download";
-import { csvDocument } from "@/lib/tools/csv";
+import { AlertTriangle, Check, Info } from "lucide-react";
+import { OutputActions } from "./output";
+import type { ExportDocument } from "@/lib/tools/launch/export-document";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fields
@@ -360,95 +353,21 @@ export function Disclosure({
 // Output actions
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function OutputActions({
-  text,
-  filename,
-  csvRows,
-  onReset,
-  resetLabel = "Reset",
-}: {
-  text: string;
-  filename: string;
-  /** When provided, adds a "Download CSV" action using these rows. */
-  csvRows?: (string | number | boolean)[][];
-  onReset?: () => void;
-  resetLabel?: string;
-}) {
-  const [copied, setCopied] = useState<"" | "ok" | "fail">("");
-  const [downloaded, setDownloaded] = useState(false);
-
-  const copy = async () => {
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
-      await navigator.clipboard.writeText(text);
-      setCopied("ok");
-    } catch {
-      setCopied("fail");
-    }
-  };
-
-  const download = (kind: "txt" | "csv") => {
-    if (kind === "csv" && csvRows) {
-      downloadText(
-        csvDocument(csvRows),
-        `${filename}.csv`,
-        "text/csv;charset=utf-8",
-      );
-    } else {
-      downloadText(text, `${filename}.txt`, "text/plain;charset=utf-8");
-    }
-    setDownloaded(true);
-  };
-
-  return (
-    <div className="qw-actions">
-      <button
-        type="button"
-        className="secondary"
-        onClick={copy}
-        disabled={!text}
-      >
-        {copied === "ok" ? (
-          <Check size={15} aria-hidden />
-        ) : (
-          <Copy size={15} aria-hidden />
-        )}{" "}
-        Copy
-      </button>
-      <button
-        type="button"
-        className="secondary"
-        onClick={() => download("txt")}
-        disabled={!text}
-      >
-        <Download size={15} aria-hidden /> Download
-      </button>
-      {csvRows ? (
-        <button
-          type="button"
-          className="secondary"
-          onClick={() => download("csv")}
-        >
-          <Download size={15} aria-hidden /> CSV
-        </button>
-      ) : null}
-      {onReset ? (
-        <button type="button" className="secondary" onClick={onReset}>
-          <RotateCcw size={15} aria-hidden /> {resetLabel}
-        </button>
-      ) : null}
-      <span className="qw-action-status" role="status" aria-live="polite">
-        {copied === "ok"
-          ? "Copied to clipboard."
-          : copied === "fail"
-            ? "Copy unavailable — select the text and copy manually."
-            : downloaded
-              ? "Downloaded."
-              : ""}
-      </span>
-    </div>
-  );
-}
+/**
+ * The result action bar.
+ *
+ * It now lives in `./output.tsx` beside the preview surfaces, because the bar
+ * and the previews are one decision: what the user can see is what the user
+ * can copy, download, export and print. Re-exported here so a workspace that
+ * already imports it from `./ui` keeps working.
+ */
+export {
+  OutputActions,
+  CodePreview,
+  TablePreview,
+  DocumentPreview,
+  type OutputActionProps,
+} from "./output";
 
 /**
  * Result panel with a heading, an optional summary and the output actions.
@@ -461,16 +380,25 @@ export function ResultPanel({
   children,
   text,
   filename,
+  textExtension,
+  textType,
   csvRows,
+  document,
   onReset,
+  onRegenerate,
 }: {
   title: string;
   show: boolean;
   children: ReactNode;
   text: string;
   filename: string;
+  textExtension?: "txt" | "json" | "xml" | "html" | "csv" | "md";
+  textType?: string;
   csvRows?: (string | number | boolean)[][];
+  /** A document form of the result, exported as DOCX and PDF. */
+  document?: ExportDocument;
   onReset?: () => void;
+  onRegenerate?: () => void;
 }) {
   if (!show) return null;
   return (
@@ -482,8 +410,12 @@ export function ResultPanel({
       <OutputActions
         text={text}
         filename={filename}
+        textExtension={textExtension}
+        textType={textType}
         csvRows={csvRows}
+        document={document}
         onReset={onReset}
+        onRegenerate={onRegenerate}
       />
     </section>
   );
