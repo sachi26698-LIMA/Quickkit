@@ -27,37 +27,58 @@ export type ToolMaintenanceNotice = {
  */
 export default function ToolMaintenanceGate({
   notices,
-  adminPreview = false,
 }: {
   notices: ToolMaintenanceNotice[];
-  adminPreview?: boolean;
 }) {
   const pathname = usePathname();
   const slug = pathname.startsWith("/tools/") ? pathname.slice(7) : "";
   const notice = notices.find((item) => item.slug === slug);
   return notice ? (
-    <MaintenanceNotice
-      key={notice.slug}
-      notice={notice}
-      adminPreview={adminPreview}
-    />
+    <MaintenanceNotice key={notice.slug} notice={notice} />
   ) : null;
 }
 
-function MaintenanceNotice({
-  notice,
-  adminPreview,
-}: {
-  notice: ToolMaintenanceNotice;
-  adminPreview: boolean;
-}) {
+function MaintenanceNotice({ notice }: { notice: ToolMaintenanceNotice }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [canPreview, setCanPreview] = useState(false);
   // Formatted after mount: the server's locale and time zone differ from the
   // visitor's, and the text must match what hydration expects.
   const [since, setSince] = useState("");
   const category = tools.find((tool) => tool.slug === notice.slug)?.category;
   const theme = category ? toolTheme(notice.slug, category) : null;
+
+  // Check administrator session only when a switched-off tool is opened,
+  // keeping every `/tools/*` page statically cacheable without SSR cookie reads.
+  // The browser sends same-origin cookies automatically; their values are never
+  // read or serialized by this component.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/session", { credentials: "same-origin" })
+      .then(async (response) => {
+        if (!response.ok) return;
+        try {
+          const payload: unknown = await response.json();
+          if (
+            !cancelled &&
+            typeof payload === "object" &&
+            payload !== null &&
+            "authorized" in payload &&
+            payload.authorized === true
+          ) {
+            setCanPreview(true);
+          }
+        } catch {
+          // Invalid JSON is not evidence of an authorized session.
+        }
+      })
+      .catch(() => {
+        // Network errors fail closed; the visitor notice stays active.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!notice.since) return;
@@ -152,7 +173,7 @@ function MaintenanceNotice({
             <Home size={15} aria-hidden="true" /> Back to home
           </Link>
         </div>
-        {adminPreview ? (
+        {canPreview ? (
           <button
             className={styles.preview}
             type="button"

@@ -168,6 +168,7 @@ describe("site-wide indexing & SEO invariants", () => {
       "/admin/login",
       "/auth/callback",
       "/tools/image-converter",
+      "/tools/words-to-pdf",
       "/tools/jwt-decoder",
       "/tools/dns-lookup",
     ]) {
@@ -390,6 +391,15 @@ describe("site-wide indexing & SEO invariants", () => {
         brand.slug,
       ).toBe("noindex, follow");
     }
+
+    const redirects = (await nextConfig.redirects?.()) ?? [];
+    expect(redirects).toContainEqual(
+      expect.objectContaining({
+        source: "/tools/words-to-pdf",
+        destination: "/tools/word-to-pdf",
+        permanent: true,
+      }),
+    );
   });
 
   it("aligns robots.txt Sitemap directive, canonicals, Open Graph URLs, JSON-LD, and internal defaults exclusively to https://quickkit-rosy.vercel.app", async () => {
