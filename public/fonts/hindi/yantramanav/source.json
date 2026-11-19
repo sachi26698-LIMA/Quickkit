@@ -1,0 +1,159 @@
+{
+  "id": "yantramanav",
+  "slug": "yantramanav",
+  "family": "Yantramanav",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:38.294Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/yantramanav",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v15",
+    "lastModified": "2025-09-16"
+  },
+  "category": "sans-serif",
+  "weights": [
+    100,
+    300,
+    400,
+    500,
+    700,
+    900
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Light.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Regular.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Medium.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Bold.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Black.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/yantramanav/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 100,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-100.woff2",
+      "path": "/fonts/hindi/yantramanav/devanagari-100.woff2",
+      "bytes": 33664,
+      "sha256": "4283e986b7cb3fe97ab35fe296a8ca97be73eaba97cd272149f1b32fca80287a"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/yantramanav/devanagari-300.woff2",
+      "bytes": 34488,
+      "sha256": "063b1370d8f59e1e57b119495ea1f93102cdbd3203c6204e19b1f32efd7da2e7"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/yantramanav/devanagari-400.woff2",
+      "bytes": 33220,
+      "sha256": "cb11b72ab674affff0d1a9d5d5fe532f3eb70e084990a75356c5105b77eb0b94"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/yantramanav/devanagari-500.woff2",
+      "bytes": 33804,
+      "sha256": "2c4a962e66973327a43d812ce0af043679358f77b2c299907b4973087082da2d"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/yantramanav/devanagari-700.woff2",
+      "bytes": 34360,
+      "sha256": "0cf7b525d83927b18ac799fcb8e81b3bc8f1235919bd1d0b8bb4f14d633c8ea4"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-900.woff2",
+      "path": "/fonts/hindi/yantramanav/devanagari-900.woff2",
+      "bytes": 34252,
+      "sha256": "d8dc85e4e61d0dce4316837f3c84a7caf901272de04f64a882913be1bda868f9"
+    },
+    {
+      "subset": "latin",
+      "weight": 100,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-100.woff2",
+      "path": "/fonts/hindi/yantramanav/latin-100.woff2",
+      "bytes": 16680,
+      "sha256": "ed1b7296dfb0f3db397e51fc2611218826e431c36d4200ed60139848dc0b16b1"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/yantramanav/latin-300.woff2",
+      "bytes": 16656,
+      "sha256": "83670a12f9b32e4278f9c0282e020c4061f76c439a2d62468b783adc5a3d8cd5"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/yantramanav/latin-400.woff2",
+      "bytes": 16688,
+      "sha256": "a6feaec1d2336b09ed856ca514fe88a68f59903a7d7fabdd137509fdb19848ea"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/yantramanav/latin-500.woff2",
+      "bytes": 16744,
+      "sha256": "ac18987cef2dfbd1ea55976ac083ef9337f34a08f63f7f41be13ce60b45ca9e6"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/yantramanav/latin-700.woff2",
+      "bytes": 16972,
+      "sha256": "569c2d7dac23c593b4abaa3bea4be7be22be6c44439684f73117d9209e52c296"
+    },
+    {
+      "subset": "latin",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-900.woff2",
+      "path": "/fonts/hindi/yantramanav/latin-900.woff2",
+      "bytes": 17132,
+      "sha256": "823c039b619f92e3cc513326063c3f9670ecb6f920178ce65de9b11ccd456d8a"
+    }
+  ]
+}

@@ -1,0 +1,180 @@
+{
+  "id": "mukta",
+  "slug": "mukta",
+  "family": "Mukta",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:31.964Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/mukta",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v17",
+    "lastModified": "2025-09-08"
+  },
+  "category": "sans-serif",
+  "weights": [
+    200,
+    300,
+    400,
+    500,
+    600,
+    700,
+    800
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Light.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Regular.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Medium.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-SemiBold.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Bold.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-ExtraBold.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/mukta/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-200.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-200.woff2",
+      "bytes": 93988,
+      "sha256": "3c88db630954ec471d4e4a3087afa3267056d51dfff43fd55f37bd8efa16c259"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-300.woff2",
+      "bytes": 98788,
+      "sha256": "396438d1ac926fd5100399b700ab79cd9629d1ffb60b11e18ddb5cbd104427e9"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-400.woff2",
+      "bytes": 99352,
+      "sha256": "afc56ae914fef150c28299cd40e295a61f41598615e8aa9a833cd7478167f5d5"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-500.woff2",
+      "bytes": 106128,
+      "sha256": "80e35c0c4c318eca4b5a54d933f5eb7aab8e41068e46bcfbf59ac35de49053f1"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-600.woff2",
+      "bytes": 102628,
+      "sha256": "872b98024fdb31249450d57cefeb65970602711c329f58afdc57e0a2f73cd320"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-700.woff2",
+      "bytes": 105040,
+      "sha256": "c043d23a6d8c45eff1b01268a60e3a130468fcfb7abcafcf4363d966c8a1f0b9"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-800.woff2",
+      "path": "/fonts/hindi/mukta/devanagari-800.woff2",
+      "bytes": 100640,
+      "sha256": "22fd4cac7c32135862aeea9e6c6a41dc0ec01bd2b1eba256fa4ff4371ac6c562"
+    },
+    {
+      "subset": "latin",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-200.woff2",
+      "path": "/fonts/hindi/mukta/latin-200.woff2",
+      "bytes": 21360,
+      "sha256": "4eee7169ce8d25aa4027197296713644c872dbb104e460db5cf15b0d0ccb9b34"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/mukta/latin-300.woff2",
+      "bytes": 21164,
+      "sha256": "e304e9c80a75b34cfe0180c83ce8f401cc61c570078c726af863f19bb1f2f4e3"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/mukta/latin-400.woff2",
+      "bytes": 20480,
+      "sha256": "510168c767781af2e91c8c62b29baef5673b3b00445e9ab97fc2d0cdc99fd8c3"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/mukta/latin-500.woff2",
+      "bytes": 21236,
+      "sha256": "42fe1664fe5ce5a1cec789deeadaa8ee034449959c96cbf05b691ddf26bb631d"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/mukta/latin-600.woff2",
+      "bytes": 21176,
+      "sha256": "1e86a6af02aed7cee7e326ba92128aa3f738f1e92f17cd3726757819a420b2fe"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/mukta/latin-700.woff2",
+      "bytes": 21604,
+      "sha256": "1907b5bc922c15f4eb0543ea00704cb366745b913656dd3264d5e6db03e1e276"
+    },
+    {
+      "subset": "latin",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-800.woff2",
+      "path": "/fonts/hindi/mukta/latin-800.woff2",
+      "bytes": 21024,
+      "sha256": "d315a9ca0f56131fd37488ed6b68f91f98248467fe3983811117310e0c855448"
+    }
+  ]
+}

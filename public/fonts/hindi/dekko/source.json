@@ -1,0 +1,54 @@
+{
+  "id": "dekko",
+  "slug": "dekko",
+  "family": "Dekko",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:25.525Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/dekko",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v23",
+    "lastModified": "2025-09-08"
+  },
+  "category": "handwriting",
+  "weights": [
+    400
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2000, Modular Infotech, Pune, INDIA. Copyright (c) 2014, Sorkin Type Co, Boston, MA, USA (www.sorkintype.com)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/dekko/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/dekko/devanagari-400.woff2",
+      "bytes": 67360,
+      "sha256": "a59e320c838a70f8e6ae44ffaab65cd83d1f1ed2deed465453dc0c8019d2c2e4"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/dekko/latin-400.woff2",
+      "bytes": 26736,
+      "sha256": "21c2a557820f851c6a59419fe5c98d626136c283f5892b28b9d555ff2f9f7b12"
+    }
+  ]
+}

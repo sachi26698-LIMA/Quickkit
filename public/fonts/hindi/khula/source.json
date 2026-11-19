@@ -1,0 +1,138 @@
+{
+  "id": "khula",
+  "slug": "khula",
+  "family": "Khula",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:30.012Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/khula",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v17",
+    "lastModified": "2025-09-08"
+  },
+  "category": "sans-serif",
+  "weights": [
+    300,
+    400,
+    600,
+    700,
+    800
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-Regular.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-SemiBold.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-Bold.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-ExtraBold.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/khula/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/khula/devanagari-300.woff2",
+      "bytes": 42744,
+      "sha256": "2831dc44e9d8aa07cbd0fd2ba4351ad324029177bb8145c3f629b3cf456ee5af"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/khula/devanagari-400.woff2",
+      "bytes": 40224,
+      "sha256": "6abd39e4a6ba7a9cafa9ea1a47ba20df5516cdf54d66f204b2a150ad63def4a5"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/khula/devanagari-600.woff2",
+      "bytes": 42752,
+      "sha256": "066dbe437593db83b7d872e68b7c2b5525c2c4fc960e7c4ddc422aabf0598119"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/khula/devanagari-700.woff2",
+      "bytes": 44188,
+      "sha256": "aaec0bde08ee860c5147d45c291f7eab13d5c6a01d41d249a63b772b9ae11416"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-800.woff2",
+      "path": "/fonts/hindi/khula/devanagari-800.woff2",
+      "bytes": 44260,
+      "sha256": "bdc68b4f5210c68c61ea139b12cf60bcd6ec89cddf58c9a978c6ae0d6bd4e53f"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/khula/latin-300.woff2",
+      "bytes": 10724,
+      "sha256": "1de954b88a50d0093c1b0de4760fc94590fd52ebe5f7abfb5f4f6c17813d6414"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/khula/latin-400.woff2",
+      "bytes": 10792,
+      "sha256": "b6fbcd060bcdfb2f4dc48f9af9d4ac6f06bed89e24651f1d3cd33a0fc6d4a5a3"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/khula/latin-600.woff2",
+      "bytes": 10732,
+      "sha256": "e8c59da4362bacc77f7f6f78eaabe705329598c1185b9898bfe89fd24bf73c56"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/khula/latin-700.woff2",
+      "bytes": 10576,
+      "sha256": "a94555e0e3d6452d3569dcc2429db72d5443f4293afa6045df3ec12b2ff20a41"
+    },
+    {
+      "subset": "latin",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-800.woff2",
+      "path": "/fonts/hindi/khula/latin-800.woff2",
+      "bytes": 10736,
+      "sha256": "6b71caaa0de2f5373b60c8499ff0c25ee09428edd0750db0939b4e934ce9b889"
+    }
+  ]
+}

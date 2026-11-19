@@ -1,0 +1,68 @@
+{
+  "id": "playpen-sans-deva",
+  "slug": "playpen-sans-deva",
+  "family": "Playpen Sans Deva",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:33.880Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource-variable/playpen-sans-deva",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v4",
+    "lastModified": "2025-09-10"
+  },
+  "category": "handwriting",
+  "weights": [
+    100,
+    200,
+    300,
+    400,
+    500,
+    600,
+    700,
+    800
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": {
+    "wght": {
+      "default": "400",
+      "min": "100",
+      "max": "800",
+      "step": "1"
+    }
+  },
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2023 The Playpen Sans Project Authors (https://github.com/TypeTogether/Playpen-Sans)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/playpen-sans-deva/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": null,
+      "style": "normal",
+      "variable": "wght",
+      "name": "devanagari.woff2",
+      "path": "/fonts/hindi/playpen-sans-deva/devanagari.woff2",
+      "bytes": 359448,
+      "sha256": "c0d33c5d130b272f6335d9902d61cce25518637d4d1310478d96d13068bd1ed6"
+    },
+    {
+      "subset": "latin",
+      "weight": null,
+      "style": "normal",
+      "variable": "wght",
+      "name": "latin.woff2",
+      "path": "/fonts/hindi/playpen-sans-deva/latin.woff2",
+      "bytes": 197552,
+      "sha256": "5f2b44fb24819047851232e4662c9f8b3cd557fd9d58f3b422c4af569239549b"
+    }
+  ]
+}

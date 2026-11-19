@@ -1,0 +1,138 @@
+{
+  "id": "khand",
+  "slug": "khand",
+  "family": "Khand",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:29.757Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/khand",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v22",
+    "lastModified": "2025-09-05"
+  },
+  "category": "sans-serif",
+  "weights": [
+    300,
+    400,
+    500,
+    600,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/khand/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/khand/devanagari-300.woff2",
+      "bytes": 77680,
+      "sha256": "0f256043c53257e87e1e999f33f6ef7a4950e7da9a02295d4ec07bcb1cbca280"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/khand/devanagari-400.woff2",
+      "bytes": 85148,
+      "sha256": "43962f280e4f8d57e489ac746e9c106a214ad7cc55c9435017900ba4fb7bc151"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/khand/devanagari-500.woff2",
+      "bytes": 87092,
+      "sha256": "c5a29e02a8780d44ac26f9179c0210c96db5d651ee2948b70c8df3a52b4ca1d9"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/khand/devanagari-600.woff2",
+      "bytes": 89772,
+      "sha256": "e0d58149ec490c591998d6641578689b947e11a98b4ec9d221d7b97160455459"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/khand/devanagari-700.woff2",
+      "bytes": 88752,
+      "sha256": "9f76f085f7e9fccf899ca89b544f3dc07fae26433bd203cd19587ab5bc8faf7d"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/khand/latin-300.woff2",
+      "bytes": 14124,
+      "sha256": "1e825956524efff15d833e7368e6ce25e4a2dad5a670e7186d2ff0c8b5a02e58"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/khand/latin-400.woff2",
+      "bytes": 14476,
+      "sha256": "39de0f4fa30c3f88aadb38b6555062f7722fd0ed435827f5e5104e1c21f7305e"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/khand/latin-500.woff2",
+      "bytes": 14492,
+      "sha256": "c85292c2966444d0aa601339a65254d915016b31403ce404a0440faa37b69380"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/khand/latin-600.woff2",
+      "bytes": 14900,
+      "sha256": "ed210f36e3dde3bc2e9bb4bf587f1c7ff2dd9179930161d82343c971ebc4ad30"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/khand/latin-700.woff2",
+      "bytes": 14952,
+      "sha256": "acfffb5e6398edc14e5f40cb7ba3e3d2dda250ec3c57ca6b373e44ac4a7c28ed"
+    }
+  ]
+}

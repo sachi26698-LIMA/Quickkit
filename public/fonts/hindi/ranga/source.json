@@ -1,0 +1,75 @@
+{
+  "id": "ranga",
+  "slug": "ranga",
+  "family": "Ranga",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:34.751Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/ranga",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v22",
+    "lastModified": "2025-04-23"
+  },
+  "category": "display",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014 by TipTopTyp. Ranga-Bold.ttf: Copyright (c) 2014 by TipTopTyp.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/ranga/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/ranga/devanagari-400.woff2",
+      "bytes": 27452,
+      "sha256": "9670546f8ae7ac529613a7e0f2eb2c96ce6be4142d02e29fd1afa79467dba6f4"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/ranga/devanagari-700.woff2",
+      "bytes": 29420,
+      "sha256": "1b275a1a1cbe3aa7fb0d959a70185f9b2b32fdb4d07dd1cfaafc6da92f11c86c"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/ranga/latin-400.woff2",
+      "bytes": 15580,
+      "sha256": "3558f1136b32892f0c0f88cd452596f127a1a56a7b83221f2c1f01cb863ebdad"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/ranga/latin-700.woff2",
+      "bytes": 16172,
+      "sha256": "ba9f868d1a1b75d7c4307125b44bd0a08dddff5c7e5065bcf8a325e5a18ad9bc"
+    }
+  ]
+}

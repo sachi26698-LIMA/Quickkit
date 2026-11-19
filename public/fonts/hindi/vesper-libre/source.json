@@ -1,0 +1,117 @@
+{
+  "id": "vesper-libre",
+  "slug": "vesper-libre",
+  "family": "Vesper Libre",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:38.038Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/vesper-libre",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v21",
+    "lastModified": "2025-09-05"
+  },
+  "category": "serif",
+  "weights": [
+    400,
+    500,
+    700,
+    900
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2007, Robert Keller (www.motaitalic.com) VesperLibre-Medium.ttf: Copyright (c) 2007, Robert Keller (www.motaitalic.com) VesperLibre-Bold.ttf: Copyright (c) 2007, Robert Keller (www.motaitalic.com) VesperLibre-Heavy.ttf: Copyright (c) 2007, Robert Keller (www.motaitalic.com)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/vesper-libre/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/vesper-libre/devanagari-400.woff2",
+      "bytes": 45540,
+      "sha256": "e9aa901f48bee9362078a571455fcc775b6591d8c25127c9791980cb00667033"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/vesper-libre/devanagari-500.woff2",
+      "bytes": 48552,
+      "sha256": "053dc62edf0ce197e7cdf80398e5a48a5f81c9ebd03e6d71482cd79925ab2f6d"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/vesper-libre/devanagari-700.woff2",
+      "bytes": 48588,
+      "sha256": "7781bbff8e3d5bc3fe8d60497c5e234b8d24065ff3ff93f61c910e479b874eab"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-900.woff2",
+      "path": "/fonts/hindi/vesper-libre/devanagari-900.woff2",
+      "bytes": 45864,
+      "sha256": "e9c804677c4425dba13e58526ea38a33e1684d2f64305064a290b3e48960a365"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/vesper-libre/latin-400.woff2",
+      "bytes": 13900,
+      "sha256": "878bb887950065efe9f0c5c085b728fa42b9a80b0b826f03dcaf6e634b242722"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/vesper-libre/latin-500.woff2",
+      "bytes": 14772,
+      "sha256": "6c05264cd65960ee0e93807bd654db23c07be94484d115260b5f413512fb502b"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/vesper-libre/latin-700.woff2",
+      "bytes": 14684,
+      "sha256": "1693e192d5bd930e3b1d576d56938d3994ca7fde8f953ced1b34bf53664a4cc5"
+    },
+    {
+      "subset": "latin",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-900.woff2",
+      "path": "/fonts/hindi/vesper-libre/latin-900.woff2",
+      "bytes": 13776,
+      "sha256": "2167d31b14593d02440748df62fd83aaac7af4c7c83f4fb4ef3cdfeb049a51d6"
+    }
+  ]
+}

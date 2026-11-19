@@ -1,0 +1,138 @@
+{
+  "id": "laila",
+  "slug": "laila",
+  "family": "Laila",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:30.934Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/laila",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v20",
+    "lastModified": "2025-06-25"
+  },
+  "category": "serif",
+  "weights": [
+    300,
+    400,
+    500,
+    600,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/laila/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/laila/devanagari-300.woff2",
+      "bytes": 82904,
+      "sha256": "104763ef6008ec6a809b7448c8092741341d4e2646126e5f8741842e176303cf"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/laila/devanagari-400.woff2",
+      "bytes": 93664,
+      "sha256": "267016002ff3b60976afe312f7ed8611792df3d4a3cc18bead8df5a5a897e317"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/laila/devanagari-500.woff2",
+      "bytes": 91224,
+      "sha256": "ddf6bfabdb1dce9122d1b5b8c68818695d31e46e5e3b0f9cc8fe3484b4e7ae4f"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/laila/devanagari-600.woff2",
+      "bytes": 93680,
+      "sha256": "82dd5009c211a127bc35d217c17e5b7f3e389e5bd264a44f96697e5f85b4123f"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/laila/devanagari-700.woff2",
+      "bytes": 92452,
+      "sha256": "06d0e04357f96a7e7647eed316ac752b8b1948a5fad93cbc89e4282b98ad37c9"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/laila/latin-300.woff2",
+      "bytes": 18416,
+      "sha256": "97e112b73d40206d723f7d752e974ff5ccbd0f89e354daa793fd4db0f6437507"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/laila/latin-400.woff2",
+      "bytes": 18684,
+      "sha256": "83dcda96283e01cab57ab7e295f09ee8c52baa150e1421313d4fdc9396719d0d"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/laila/latin-500.woff2",
+      "bytes": 18836,
+      "sha256": "db2c12a39ee66ff61252e06f895761c7c15aa39bf4e3c4998c1c7eb94ef815db"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/laila/latin-600.woff2",
+      "bytes": 18816,
+      "sha256": "47e2f950ca0f931557171f697f46184830512e12e6538516a372c3f8f903d111"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/laila/latin-700.woff2",
+      "bytes": 18892,
+      "sha256": "f88dcbe3da83d1aacd6aaacc1a2ae170633a38f384d1121997251ebf5db30c3a"
+    }
+  ]
+}

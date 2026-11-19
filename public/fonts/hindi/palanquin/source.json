@@ -1,0 +1,180 @@
+{
+  "id": "palanquin",
+  "slug": "palanquin",
+  "family": "Palanquin",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:32.893Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/palanquin",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v17",
+    "lastModified": "2025-09-11"
+  },
+  "category": "sans-serif",
+  "weights": [
+    100,
+    200,
+    300,
+    400,
+    500,
+    600,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-ExtraLight.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Light.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Regular.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Medium.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-SemiBold.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Bold.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/palanquin/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 100,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-100.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-100.woff2",
+      "bytes": 103268,
+      "sha256": "9f3232c7ee5ac9994bceac6fa27f26e4ae23d7bab5c8313c75c01b5831cd090a"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-200.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-200.woff2",
+      "bytes": 118888,
+      "sha256": "8cfec7e575caff831e7378f8b34b9ee367f9f64c8d6bb5662ec8f20343c79266"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-300.woff2",
+      "bytes": 116288,
+      "sha256": "9efcf8022c578212a7048b52a6374bdf446a45129e3fc9209e56a33ab08a5c91"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-400.woff2",
+      "bytes": 132968,
+      "sha256": "caad3c8dd348382767b3ac5a1d90df8849ee56f155a53b1be8165edb6923288b"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-500.woff2",
+      "bytes": 137692,
+      "sha256": "e41b01a556a9cb0e6badb00645ba046e0a307ae8ef76cbaf7e25bb63d8e01621"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-600.woff2",
+      "bytes": 138860,
+      "sha256": "6b5cdf308d07be2521cb1e16b382f697ff6431f615b084f48b63bdcff22c16af"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/palanquin/devanagari-700.woff2",
+      "bytes": 126676,
+      "sha256": "afe42c91cb6653988c078811a415289b08fff502bdcbf761b3de41d3e72df4c2"
+    },
+    {
+      "subset": "latin",
+      "weight": 100,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-100.woff2",
+      "path": "/fonts/hindi/palanquin/latin-100.woff2",
+      "bytes": 18472,
+      "sha256": "45cd73e59417555074b89290e112d81f1314d4b2c60c80b7a87bcb9e8828ece4"
+    },
+    {
+      "subset": "latin",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-200.woff2",
+      "path": "/fonts/hindi/palanquin/latin-200.woff2",
+      "bytes": 19468,
+      "sha256": "28109e67cabf95b38e756402a65f5c64934d507c3619ce83c783180d10ff41fa"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/palanquin/latin-300.woff2",
+      "bytes": 19444,
+      "sha256": "20eb05ac5b9a96f369d3299c49cac819530e63e7e50c8739f75c9b972aebeb04"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/palanquin/latin-400.woff2",
+      "bytes": 20420,
+      "sha256": "bd72903958737f42568bdaf5bf04117493718bf26018a138aeb9af1d7c7bda2a"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/palanquin/latin-500.woff2",
+      "bytes": 20152,
+      "sha256": "8cb55c7ff8f77f5aafdf3aa6695b11d13469c5e9e2cbc6f2f1e5858343cf8b84"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/palanquin/latin-600.woff2",
+      "bytes": 20520,
+      "sha256": "7b21ed541336c91871e7d21b0245c0c2292143dd979fae900025eda2d6044b1a"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/palanquin/latin-700.woff2",
+      "bytes": 20076,
+      "sha256": "712f6fdfbfc021883c2aefe33a8a41777342f9dc7b1dae916668a6ac1cbbb12d"
+    }
+  ]
+}

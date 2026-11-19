@@ -1,0 +1,75 @@
+{
+  "id": "annapurna-sil",
+  "slug": "annapurna-sil",
+  "family": "Annapurna SIL",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:23.701Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/annapurna-sil",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v2",
+    "lastModified": "2025-05-30"
+  },
+  "category": "serif",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2007-2023 by SIL International AnnapurnaSIL-Bold.ttf: Copyright (c) 2007-2023 by SIL International",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/annapurna-sil/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/annapurna-sil/devanagari-400.woff2",
+      "bytes": 58476,
+      "sha256": "04d71efc62dbecfda3ecce8e8582f56e5c5b089382f6ac4054d14685a115c19d"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/annapurna-sil/devanagari-700.woff2",
+      "bytes": 62776,
+      "sha256": "afc9c97067d6693346a61050e938a906fb62585031e862007cfa64860b9cf2c3"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/annapurna-sil/latin-400.woff2",
+      "bytes": 22900,
+      "sha256": "133f1feeb9b25a8d25ea0aebe7d7d2a0407e8f479ef4f292ff1442d11751ddfa"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/annapurna-sil/latin-700.woff2",
+      "bytes": 22924,
+      "sha256": "1ad2761fb69edfefb17ed4a6aee6202a96dedfadcc632770316cc1537f57df0b"
+    }
+  ]
+}

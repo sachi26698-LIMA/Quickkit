@@ -1,0 +1,54 @@
+{
+  "id": "jaini",
+  "slug": "jaini",
+  "family": "Jaini",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:28.225Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/jaini",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v1",
+    "lastModified": "2025-05-30"
+  },
+  "category": "display",
+  "weights": [
+    400
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2023 The Jaini Project Authors (https://github.com/EkType/Jaini)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/jaini/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/jaini/devanagari-400.woff2",
+      "bytes": 163172,
+      "sha256": "bdead982dabbd8fec390998cec88caae4fe48e1c5aec6ba6a9d981cb8adb787e"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/jaini/latin-400.woff2",
+      "bytes": 24016,
+      "sha256": "2d164a9ccb6ca0a1841799467dc3cc6f46814eb636a99494b0e24a07755bb17a"
+    }
+  ]
+}

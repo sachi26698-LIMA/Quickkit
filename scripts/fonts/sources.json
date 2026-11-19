@@ -1,0 +1,2149 @@
+{
+  "generatedFrom": "fontsource/font-files metadata/fontsource.json",
+  "generatedAt": "2026-11-19",
+  "families": [
+    {
+      "id": "akshar",
+      "family": "Akshar",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "300",
+          "max": "700",
+          "step": "1"
+        },
+        "CTRS": {
+          "default": "0",
+          "min": "0",
+          "max": "100",
+          "step": "1"
+        }
+      },
+      "version": "v20",
+      "lastModified": "2026-10-01",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2026 The Akshar Type Project Authors (https://github.com/tallchai/akshar-type)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.1",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF4,U+1CF7-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B0A"
+    },
+    {
+      "id": "alkatra",
+      "family": "Alkatra",
+      "category": "display",
+      "subsets": [
+        "bengali",
+        "devanagari",
+        "latin",
+        "latin-ext",
+        "oriya"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "400",
+          "max": "700",
+          "step": "1"
+        }
+      },
+      "version": "v5",
+      "lastModified": "2025-09-08",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2022 The Alkatra Project Authors (https://github.com/suman51284/Alkatra)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "amiko",
+      "family": "Amiko",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014, Impallari Type (www.impallari.com). Amiko-SemiBold.ttf: Copyright (c) 2014, Impallari Type (www.impallari.com). Amiko-Bold.ttf: Copyright (c) 2014, Impallari Type (www.impallari.com)."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "amita",
+      "family": "Amita",
+      "category": "handwriting",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v20",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved. Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com). All rights reserved. Amita-Bold.ttf: Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved. Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com). All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "anek-devanagari",
+      "family": "Anek Devanagari",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wdth": {
+          "default": "100",
+          "min": "75",
+          "max": "125",
+          "step": "0.1"
+        },
+        "wght": {
+          "default": "400",
+          "min": "100",
+          "max": "800",
+          "step": "1"
+        }
+      },
+      "version": "v17",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2021 The Anek Project Authors (https://github.com/EkType/Anek)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "annapurna-sil",
+      "family": "Annapurna SIL",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext",
+        "math",
+        "symbols"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v2",
+      "lastModified": "2025-05-30",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2007-2023 by SIL International AnnapurnaSIL-Bold.ttf: Copyright (c) 2007-2023 by SIL International"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "arya",
+      "family": "Arya",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v21",
+      "lastModified": "2025-09-02",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved. Arya-Bold.ttf: Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "asar",
+      "family": "Asar",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v24",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014-2015, Sorkin Type Co (sorkintype.com | sorkintype@gmail.com). Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "bakbak-one",
+      "family": "Bakbak One",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v11",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2021 The Bakbak One Project Authors (https://github.com/googlefonts/bakbak)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "baloo-2",
+      "family": "Baloo 2",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext",
+        "vietnamese"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "400",
+          "max": "800",
+          "step": "1"
+        }
+      },
+      "version": "v23",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2019 The Baloo 2 Project Authors (https://github.com/EkType/Baloo2)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "biryani",
+      "family": "Biryani",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        200,
+        300,
+        400,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Light.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Regular.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-SemiBold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Bold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-ExtraBold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Black.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "cambay",
+      "family": "Cambay",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": false,
+      "version": "v14",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Pooja Saxena (www.poojasaxena.in) Cambay-Italic.ttf: Copyright (c) 2014 Pooja Saxena (www.poojasaxena.in) Cambay-Bold.ttf: Copyright (c) 2014 Pooja Saxena (www.poojasaxena.in) Cambay-BoldItalic.ttf: Copyright (c) 2014 Pooja Saxena (www.poojasaxena.in)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "dekko",
+      "family": "Dekko",
+      "category": "handwriting",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v23",
+      "lastModified": "2025-09-08",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2000, Modular Infotech, Pune, INDIA. Copyright (c) 2014, Sorkin Type Co, Boston, MA, USA (www.sorkintype.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "eczar",
+      "family": "Eczar",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "greek",
+        "greek-ext",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "400",
+          "max": "800",
+          "step": "1"
+        }
+      },
+      "version": "v27",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2014 The Eczar Project Authors (https://github.com/rosettatype/eczar)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "gajraj-one",
+      "family": "Gajraj One",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v7",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2022 The GajrajOne Project Authors (https://github.com/xconsau/gajrajone)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "glegoo",
+      "family": "Glegoo",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-06-02",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2011, Eduardo Tunni (http://www.tipo.net.ar), Copyright 2011-13 Lohit Fonts Project contributors (http://fedorahosted.org/lohit) Glegoo-Bold.ttf: Copyright (c) 2011, Eduardo Tunni (http://www.tipo.net.ar), Copyright 2011-13 Lohit Fonts Project contributors (http://fedorahosted.org/lohit)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "google-sans",
+      "family": "Google Sans",
+      "category": "sans-serif",
+      "subsets": [
+        "armenian",
+        "bengali",
+        "canadian-aboriginal",
+        "cyrillic",
+        "cyrillic-ext",
+        "devanagari",
+        "ethiopic",
+        "georgian",
+        "greek",
+        "greek-ext",
+        "gujarati",
+        "gurmukhi",
+        "hebrew",
+        "khmer",
+        "lao",
+        "latin",
+        "latin-ext",
+        "malayalam",
+        "oriya",
+        "sinhala",
+        "symbols",
+        "tamil",
+        "telugu",
+        "thai",
+        "vietnamese"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": {
+        "ital": {
+          "default": "0",
+          "min": "0",
+          "max": "1",
+          "step": "1"
+        },
+        "opsz": {
+          "default": "18",
+          "min": "17",
+          "max": "18",
+          "step": "0.1"
+        },
+        "wght": {
+          "default": "400",
+          "min": "400",
+          "max": "700",
+          "step": "1"
+        },
+        "GRAD": {
+          "default": "0",
+          "min": "-50",
+          "max": "200",
+          "step": "1"
+        }
+      },
+      "version": "v71",
+      "lastModified": "2026-10-01",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2017 Google, Inc. All Rights Reserved. GoogleSans-Italic[GRAD,opsz,wght].ttf: Copyright 2017 Google, Inc. All Rights Reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.2",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF4,U+1CF7-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B0A"
+    },
+    {
+      "id": "gotu",
+      "family": "Gotu",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext",
+        "vietnamese"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v18",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2016, Ek Type. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "halant",
+      "family": "Halant",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-10",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Halant-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Halant-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Halant-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Halant-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "hind",
+      "family": "Hind",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v18",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Hind-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Hind-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Hind-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Hind-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "ibm-plex-sans-devanagari",
+      "family": "IBM Plex Sans Devanagari",
+      "category": "sans-serif",
+      "subsets": [
+        "cyrillic-ext",
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v12",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-ExtraLight.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Light.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Regular.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Medium.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-SemiBold.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Bold.ttf: Copyright 2019 IBM Corp. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "inknut-antiqua",
+      "family": "Inknut Antiqua",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v16",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Regular.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Medium.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-SemiBold.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Bold.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-ExtraBold.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Black.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net)."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "jaini",
+      "family": "Jaini",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v1",
+      "lastModified": "2025-05-30",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2023 The Jaini Project Authors (https://github.com/EkType/Jaini)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "jaini-purva",
+      "family": "Jaini Purva",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v1",
+      "lastModified": "2025-05-30",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2023 The Jaini Project Authors (https://github.com/EkType/Jaini)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "jaldi",
+      "family": "Jaldi",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v14",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2011-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com) with Reserved Font Name 'Jaldi' and 'Asap' Jaldi-Bold.ttf: Copyright (c) 2011-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com) with Reserved Font Name 'Jaldi' and 'Asap'"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "kadwa",
+      "family": "Kadwa",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2026-06-30",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014-2015, Sol Matas (sol@sonnenshine.com.ar) Kadwa-Bold.ttf: Copyright (c) 2014-2015, Sol Matas (sol@sonnenshine.com.ar)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "kalam",
+      "family": "Kalam",
+      "category": "handwriting",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v18",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Kalam-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Kalam-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "karma",
+      "family": "Karma",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v18",
+      "lastModified": "2025-09-08",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2014 Indian Type Foundry. All rights reserved. Karma-Regular.ttf: Copyright 2014 Indian Type Foundry. All rights reserved. Karma-Medium.ttf: Copyright 2014 Indian Type Foundry. All rights reserved. Karma-SemiBold.ttf: Copyright 2014 Indian Type Foundry. All rights reserved. Karma-Bold.ttf: Copyright 2014 Indian Type Foundry. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "khand",
+      "family": "Khand",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v22",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Khand-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "khula",
+      "family": "Khula",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-08",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-Regular.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-SemiBold.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-Bold.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation. Khula-ExtraBold.ttf: Copyright (c) 2014, Erin McLaughlin (hello@erinmclaughlin.com). Digitized data copyright 2010, Google Corporation."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "kripa",
+      "family": "Kripa",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext",
+        "vietnamese"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "100",
+          "max": "900",
+          "step": "1"
+        }
+      },
+      "version": "v3",
+      "lastModified": "2026-10-01",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2026 The Kripa Type Project Authors (https://github.com/kedar9/kripa)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.1",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF4,U+1CF7-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B0A"
+    },
+    {
+      "id": "kurale",
+      "family": "Kurale",
+      "category": "serif",
+      "subsets": [
+        "cyrillic",
+        "cyrillic-ext",
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v16",
+      "lastModified": "2026-03-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2013 The Kurale Project Authors (edu@tipo.net.ar)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "laila",
+      "family": "Laila",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v20",
+      "lastModified": "2025-06-25",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Laila-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "martel",
+      "family": "Martel",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        200,
+        300,
+        400,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v12",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather' Martel-Light.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather' Martel-Regular.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather' Martel-DemiBold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather' Martel-Bold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather' Martel-ExtraBold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather' Martel-Heavy.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2010-2015, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name 'Merriweather'"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "martel-sans",
+      "family": "Martel Sans",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        200,
+        300,
+        400,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v14",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer. MartelSans-Light.ttf: Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer. MartelSans-Regular.ttf: Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer. MartelSans-SemiBold.ttf: Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer. MartelSans-Bold.ttf: Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer. MartelSans-ExtraBold.ttf: Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer. MartelSans-Black.ttf: Copyright (c) 2014 Dan Reynolds. Copyright (c) 2014 Mathieu Rguer."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "matangi",
+      "family": "Matangi",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "300",
+          "max": "900",
+          "step": "1"
+        }
+      },
+      "version": "v5",
+      "lastModified": "2025-08-26",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2021 The Matangi Project Authors (https://github.com/thegraphicant/Matangi)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "modak",
+      "family": "Modak",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v21",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2015 Ek Type (www.ektype.in)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "mukta",
+      "family": "Mukta",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-08",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Light.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Regular.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Medium.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-SemiBold.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-Bold.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved. Mukta-ExtraBold.ttf: Copyright (c) 2014, Girish Dalvi, Ek Type. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "noto-sans",
+      "family": "Noto Sans",
+      "category": "sans-serif",
+      "subsets": [
+        "cyrillic",
+        "cyrillic-ext",
+        "devanagari",
+        "greek",
+        "greek-ext",
+        "latin",
+        "latin-ext",
+        "vietnamese"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": {
+        "ital": {
+          "default": "0",
+          "min": "0",
+          "max": "1",
+          "step": "1"
+        },
+        "wdth": {
+          "default": "100",
+          "min": "62.5",
+          "max": "100",
+          "step": "0.1"
+        },
+        "wght": {
+          "default": "400",
+          "min": "100",
+          "max": "900",
+          "step": "1"
+        }
+      },
+      "version": "v42",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic) NotoSans-Italic[wdth,wght].ttf: Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "noto-sans-devanagari",
+      "family": "Noto Sans Devanagari",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wdth": {
+          "default": "100",
+          "min": "62.5",
+          "max": "100",
+          "step": "0.1"
+        },
+        "wght": {
+          "default": "400",
+          "min": "100",
+          "max": "900",
+          "step": "1"
+        }
+      },
+      "version": "v30",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/devanagari)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "noto-serif-devanagari",
+      "family": "Noto Serif Devanagari",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wdth": {
+          "default": "100",
+          "min": "62.5",
+          "max": "100",
+          "step": "0.1"
+        },
+        "wght": {
+          "default": "400",
+          "min": "100",
+          "max": "900",
+          "step": "1"
+        }
+      },
+      "version": "v34",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/devanagari)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "palanquin",
+      "family": "Palanquin",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-ExtraLight.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Light.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Regular.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Medium.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-SemiBold.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) Palanquin-Bold.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "palanquin-dark",
+      "family": "Palanquin Dark",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-10",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) PalanquinDark-Medium.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) PalanquinDark-SemiBold.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com) PalanquinDark-Bold.ttf: Copyright 2014 Pria Ravichandran (pria.ravichandran@gmail.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "playpen-sans-deva",
+      "family": "Playpen Sans Deva",
+      "category": "handwriting",
+      "subsets": [
+        "devanagari",
+        "emoji",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "100",
+          "max": "800",
+          "step": "1"
+        }
+      },
+      "version": "v4",
+      "lastModified": "2025-09-10",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2023 The Playpen Sans Project Authors (https://github.com/TypeTogether/Playpen-Sans)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "poppins",
+      "family": "Poppins",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": false,
+      "version": "v24",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-ThinItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-ExtraLight.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-ExtraLightItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-Light.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-LightItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-Regular.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-Italic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-Medium.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-MediumItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-SemiBold.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-SemiBoldItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-Bold.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-BoldItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-ExtraBold.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-ExtraBoldItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-Black.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins) Poppins-BlackItalic.ttf: Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "pragati-narrow",
+      "family": "Pragati Narrow",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2012-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com) PragatiNarrow-Bold.ttf: Copyright (c) 2012-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "rajdhani",
+      "family": "Rajdhani",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Rajdhani-Regular.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Rajdhani-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Rajdhani-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Rajdhani-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "ranga",
+      "family": "Ranga",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v22",
+      "lastModified": "2025-04-23",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 by TipTopTyp. Ranga-Bold.ttf: Copyright (c) 2014 by TipTopTyp."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "rhodium-libre",
+      "family": "Rhodium Libre",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v21",
+      "lastModified": "2025-09-02",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014, Dunwich Type Founders (http://dunwichtype.com). Rhodium is a trademark of Dunwich Type Founders."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "rozha-one",
+      "family": "Rozha One",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v17",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "sahitya",
+      "family": "Sahitya",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v22",
+      "lastModified": "2026-06-30",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2015 by Juan Pablo del Peral (http://www.htfonts.com). All rights reserved. Sahitya-Bold.ttf: Copyright (c) 2015 by Juan Pablo del Peral (http://www.htfonts.com). All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "sarala",
+      "family": "Sarala",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v16",
+      "lastModified": "2026-06-30",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2015 by Andres Torresi. All rights reserved. Sarala-Bold.ttf: Copyright 2015 by Andres Torresi. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "sarpanch",
+      "family": "Sarpanch",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Sarpanch-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Sarpanch-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Sarpanch-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Sarpanch-ExtraBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Sarpanch-Black.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "sumana",
+      "family": "Sumana",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v12",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright © 2015 by Cyreal. All rights reserved. Sumana-Bold.ttf: Copyright © 2015 by Cyreal. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "sura",
+      "family": "Sura",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v21",
+      "lastModified": "2025-09-10",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2015 by Carolina Giovagnoli. All rights reserved. Sura-Bold.ttf: Copyright 2015 by Carolina Giovagnoli. All rights reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "teko",
+      "family": "Teko",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        300,
+        400,
+        500,
+        600,
+        700
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": {
+        "wght": {
+          "default": "400",
+          "min": "300",
+          "max": "700",
+          "step": "1"
+        }
+      },
+      "version": "v23",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2023 The Teko Project Authors (https://www.github.com/googlefonts/teko)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "tillana",
+      "family": "Tillana",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700,
+        800
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2025-09-11",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Tillana-Medium.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Tillana-SemiBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Tillana-Bold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com) Tillana-ExtraBold.ttf: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "tiro-devanagari-hindi",
+      "family": "Tiro Devanagari Hindi",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": false,
+      "version": "v7",
+      "lastModified": "2026-06-29",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo) TiroDevanagariHindi-Italic.ttf: Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "tiro-devanagari-marathi",
+      "family": "Tiro Devanagari Marathi",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": false,
+      "version": "v7",
+      "lastModified": "2026-06-29",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo) TiroDevanagariMarathi-Italic.ttf: Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "tiro-devanagari-sanskrit",
+      "family": "Tiro Devanagari Sanskrit",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ],
+      "variable": false,
+      "version": "v7",
+      "lastModified": "2026-06-29",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo) TiroDevanagariSanskrit-Italic.ttf: Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "vesper-libre",
+      "family": "Vesper Libre",
+      "category": "serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400,
+        500,
+        700,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v21",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright (c) 2007, Robert Keller (www.motaitalic.com) VesperLibre-Medium.ttf: Copyright (c) 2007, Robert Keller (www.motaitalic.com) VesperLibre-Bold.ttf: Copyright (c) 2007, Robert Keller (www.motaitalic.com) VesperLibre-Heavy.ttf: Copyright (c) 2007, Robert Keller (www.motaitalic.com)"
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "yantramanav",
+      "family": "Yantramanav",
+      "category": "sans-serif",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        100,
+        300,
+        400,
+        500,
+        700,
+        900
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v15",
+      "lastModified": "2025-09-16",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Light.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Regular.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Medium.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Bold.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved. Yantramanav-Black.ttf: Copyright 2014, Erin McLaughlin (hello@erinmclaughlin.com). Copyright 2010, Google Inc. All Rights Reserved."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    },
+    {
+      "id": "yatra-one",
+      "family": "Yatra One",
+      "category": "display",
+      "subsets": [
+        "devanagari",
+        "latin",
+        "latin-ext"
+      ],
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ],
+      "variable": false,
+      "version": "v16",
+      "lastModified": "2025-09-05",
+      "license": {
+        "type": "OFL-1.1",
+        "url": "https://openfontlicense.org",
+        "attribution": "Copyright 2014 The Yatra Project Authors."
+      },
+      "source": "https://github.com/google/fonts",
+      "type": "google",
+      "npmVersion": "5.3.0",
+      "devanagariUnicodeRange": "U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09"
+    }
+  ]
+}

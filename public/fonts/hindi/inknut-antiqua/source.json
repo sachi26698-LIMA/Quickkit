@@ -1,0 +1,180 @@
+{
+  "id": "inknut-antiqua",
+  "slug": "inknut-antiqua",
+  "family": "Inknut Antiqua",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:27.873Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/inknut-antiqua",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v16",
+    "lastModified": "2025-09-05"
+  },
+  "category": "serif",
+  "weights": [
+    300,
+    400,
+    500,
+    600,
+    700,
+    800,
+    900
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Regular.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Medium.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-SemiBold.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Bold.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-ExtraBold.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net). InknutAntiqua-Black.ttf: Copyright (c) 2014 by Claus Eggers Srensen (es@forthehearts.net).",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/inknut-antiqua/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-300.woff2",
+      "bytes": 79536,
+      "sha256": "f3889f0f3cb962e5b0e605fa8bc93fe470a0ce4e2d1fb180347e0442554cd701"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-400.woff2",
+      "bytes": 76080,
+      "sha256": "6533c2b8d8755b89cab2b404ffcbf0ee79ea83312c6da79c303da402aeaa259b"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-500.woff2",
+      "bytes": 79304,
+      "sha256": "c5dd87738cbf748c61948696164ce15e3b68fb2d215e757d85da940657493f5e"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-600.woff2",
+      "bytes": 79956,
+      "sha256": "84cc3a3a71d6d0c13eb2d0d7c67e71aee2dc94dd9ba30b901cd50e0531bd1844"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-700.woff2",
+      "bytes": 80192,
+      "sha256": "bbfde2e653ce1a670258ad754af61fffd7e6ec7e55551c787334f254b8230962"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-800.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-800.woff2",
+      "bytes": 80576,
+      "sha256": "214606a21e8b1b2625e3e5b1f11f549a2a01badeb38bfcc9432d9f026aa47241"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-900.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/devanagari-900.woff2",
+      "bytes": 78624,
+      "sha256": "1650c3e2c7d230f7002875f36a534609b6ebac122e86748ccedd934d20947904"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-300.woff2",
+      "bytes": 24536,
+      "sha256": "7f160d6c4a01fd714a04627f28b3f893e8cdfab8ec0203b6fb91c6e1d84482bf"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-400.woff2",
+      "bytes": 23580,
+      "sha256": "ae0b41b123e84fdfd58e054948d7dd6b5dd1eb79a90bc6a2a2bbee0b104e55db"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-500.woff2",
+      "bytes": 24244,
+      "sha256": "7a1cc506120ff35a6e5a399c16c560245c3d75e69a15343c589e1c56d3f8bb3a"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-600.woff2",
+      "bytes": 24116,
+      "sha256": "484ea8d12d13e3f4adc7c52ba834d5cfe47372218fe6b152ed9c8e1e6e54e55b"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-700.woff2",
+      "bytes": 24272,
+      "sha256": "fcf8caf2bba744498b79be539866dfd50ddc65821393deb511b11164b5fe5158"
+    },
+    {
+      "subset": "latin",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-800.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-800.woff2",
+      "bytes": 24628,
+      "sha256": "56b310d00a8941efcee9202c3e84e13190a120cef0d7777ac56316304b55db23"
+    },
+    {
+      "subset": "latin",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-900.woff2",
+      "path": "/fonts/hindi/inknut-antiqua/latin-900.woff2",
+      "bytes": 23256,
+      "sha256": "c469b8747bebca0253723d6a4e95bb4cefcce00eb9d989dad37b86062bf11739"
+    }
+  ]
+}

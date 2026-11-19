@@ -1,0 +1,71 @@
+{
+  "id": "akshar",
+  "slug": "akshar",
+  "family": "Akshar",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:22.442Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource-variable/akshar",
+    "npmVersion": "5.3.1",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v20",
+    "lastModified": "2026-10-01"
+  },
+  "category": "sans-serif",
+  "weights": [
+    300,
+    400,
+    500,
+    600,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": {
+    "wght": {
+      "default": "400",
+      "min": "300",
+      "max": "700",
+      "step": "1"
+    },
+    "CTRS": {
+      "default": "0",
+      "min": "0",
+      "max": "100",
+      "step": "1"
+    }
+  },
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2026 The Akshar Type Project Authors (https://github.com/tallchai/akshar-type)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/akshar/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": null,
+      "style": "normal",
+      "variable": "wght",
+      "name": "devanagari.woff2",
+      "path": "/fonts/hindi/akshar/devanagari.woff2",
+      "bytes": 45448,
+      "sha256": "5126fc690113b3afbe03bb0b41eb1e9b5f073c5ba8ed6db9bd01b05cc94f086a"
+    },
+    {
+      "subset": "latin",
+      "weight": null,
+      "style": "normal",
+      "variable": "wght",
+      "name": "latin.woff2",
+      "path": "/fonts/hindi/akshar/latin.woff2",
+      "bytes": 21512,
+      "sha256": "88c254b284f9217a7f7a49e369d824359966a72d02bc65549fd28808425798fd"
+    }
+  ]
+}

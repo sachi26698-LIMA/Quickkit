@@ -1,0 +1,4 @@
+# Devanagari verification pipeline (scripts/fonts/verify_fonts.py)
+fonttools>=4.50
+brotli>=1.1
+uharfbuzz>=0.40

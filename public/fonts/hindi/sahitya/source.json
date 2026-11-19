@@ -1,0 +1,75 @@
+{
+  "id": "sahitya",
+  "slug": "sahitya",
+  "family": "Sahitya",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:35.480Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/sahitya",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v22",
+    "lastModified": "2026-06-30"
+  },
+  "category": "serif",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2015 by Juan Pablo del Peral (http://www.htfonts.com). All rights reserved. Sahitya-Bold.ttf: Copyright (c) 2015 by Juan Pablo del Peral (http://www.htfonts.com). All rights reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/sahitya/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/sahitya/devanagari-400.woff2",
+      "bytes": 51872,
+      "sha256": "a8a2a867f5d250fcd8e108f0e1846f81cbc732c4720fe1435ef21396ba1f109c"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/sahitya/devanagari-700.woff2",
+      "bytes": 54176,
+      "sha256": "6b59ca1541c3d498e7a96a3813d68fd35ad37199afa80d561ab71f09d81fce02"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/sahitya/latin-400.woff2",
+      "bytes": 23560,
+      "sha256": "b210f4cd05f1adf9b808a2346ba9a223d16219be19d41a01a504393a2c886a8f"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/sahitya/latin-700.woff2",
+      "bytes": 24924,
+      "sha256": "da4d1b04a92c06a4c2b446799213f42cf209b7cbc349d170943a0032e4f9cd5a"
+    }
+  ]
+}
