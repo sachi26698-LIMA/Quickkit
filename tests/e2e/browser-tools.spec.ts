@@ -24,6 +24,8 @@ async function pngFixture(page: Page) {
 test("QR generator verifies its own export and names the downloaded file", async ({
   page,
 }) => {
+  // Independent QR rendering/decoding is CPU-heavy on mobile WebKit emulation.
+  test.setTimeout(90_000);
   await page.goto("/tools/qr-generator");
   const text =
     "https://example.com/hello?text=\u0928\u092e\u0938\u094d\u0924\u0947";
