@@ -177,6 +177,14 @@ const config: NextConfig = {
         permanent: true,
       },
       {
+        // Search Console reported external/user discovery of the pluralized
+        // /tools/words-to-pdf path. Redirect it permanently to the canonical
+        // singular Word to PDF route instead of returning 404.
+        source: "/tools/words-to-pdf",
+        destination: "/tools/word-to-pdf",
+        permanent: true,
+      },
+      {
         // The stand-alone Copyright & DMCA policy was merged into the
         // Intellectual Property policy so a reader has one document to consult
         // instead of two that repeated each other. The fragment is carried over
