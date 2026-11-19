@@ -1,0 +1,96 @@
+{
+  "id": "amiko",
+  "slug": "amiko",
+  "family": "Amiko",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:22.978Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/amiko",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v15",
+    "lastModified": "2025-09-16"
+  },
+  "category": "sans-serif",
+  "weights": [
+    400,
+    600,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014, Impallari Type (www.impallari.com). Amiko-SemiBold.ttf: Copyright (c) 2014, Impallari Type (www.impallari.com). Amiko-Bold.ttf: Copyright (c) 2014, Impallari Type (www.impallari.com).",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/amiko/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/amiko/devanagari-400.woff2",
+      "bytes": 40320,
+      "sha256": "5e21c1d3788083e6504e1b70c19a1c0dc3fe22f62d28e6782cef1f5007e3a7ae"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/amiko/devanagari-600.woff2",
+      "bytes": 41828,
+      "sha256": "e88c5921bb132afb30e7d56e0160d6ded1b5fd48b417c07c82e89992bd86a70b"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/amiko/devanagari-700.woff2",
+      "bytes": 41576,
+      "sha256": "9af450fdb7aeb714856903beafd163a623bf0a8607a0ee3f1ea91d9c9483dd0f"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/amiko/latin-400.woff2",
+      "bytes": 15876,
+      "sha256": "c6ba551f72546d7ea343beb52397b2755043ac3754bc1661dca6ad761f9a85e8"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/amiko/latin-600.woff2",
+      "bytes": 15960,
+      "sha256": "0c2e176554d148da0141af3bcc7b2368fc11bad41ec984507c62e6759b331112"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/amiko/latin-700.woff2",
+      "bytes": 15872,
+      "sha256": "671079e1e0b85404e384098b158cb520b2789b20640a1d633bfe6fdabd7e2f94"
+    }
+  ]
+}

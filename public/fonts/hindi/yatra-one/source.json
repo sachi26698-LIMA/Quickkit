@@ -1,0 +1,54 @@
+{
+  "id": "yatra-one",
+  "slug": "yatra-one",
+  "family": "Yatra One",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:38.458Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/yatra-one",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v16",
+    "lastModified": "2025-09-05"
+  },
+  "category": "display",
+  "weights": [
+    400
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2014 The Yatra Project Authors.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/yatra-one/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/yatra-one/devanagari-400.woff2",
+      "bytes": 72032,
+      "sha256": "cb28c77b0f4ae362a453c3031302e2264fb31e4f3f67d538fff7af8f9a61b336"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/yatra-one/latin-400.woff2",
+      "bytes": 15656,
+      "sha256": "86e1ebd67675aec3c0420d8367a36221e97180dc5c359f7a9b2fa1512237f711"
+    }
+  ]
+}

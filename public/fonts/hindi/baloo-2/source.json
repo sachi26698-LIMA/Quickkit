@@ -1,0 +1,65 @@
+{
+  "id": "baloo-2",
+  "slug": "baloo-2",
+  "family": "Baloo 2",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:24.548Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource-variable/baloo-2",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v23",
+    "lastModified": "2025-09-16"
+  },
+  "category": "display",
+  "weights": [
+    400,
+    500,
+    600,
+    700,
+    800
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": {
+    "wght": {
+      "default": "400",
+      "min": "400",
+      "max": "800",
+      "step": "1"
+    }
+  },
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2019 The Baloo 2 Project Authors (https://github.com/EkType/Baloo2)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/baloo-2/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": null,
+      "style": "normal",
+      "variable": "wght",
+      "name": "devanagari.woff2",
+      "path": "/fonts/hindi/baloo-2/devanagari.woff2",
+      "bytes": 115148,
+      "sha256": "5fb797102a3b9462d5ad4b9e937660a8c6a888fa25556045806ff8f97bb9d9be"
+    },
+    {
+      "subset": "latin",
+      "weight": null,
+      "style": "normal",
+      "variable": "wght",
+      "name": "latin.woff2",
+      "path": "/fonts/hindi/baloo-2/latin.woff2",
+      "bytes": 33188,
+      "sha256": "26fb4610d4bc976d2584ca15e66c11465dbc1f267a10dca668fcb3080dfe59c1"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": "glegoo",
+  "slug": "glegoo",
+  "family": "Glegoo",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:26.345Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/glegoo",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v17",
+    "lastModified": "2025-06-02"
+  },
+  "category": "serif",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2011, Eduardo Tunni (http://www.tipo.net.ar), Copyright 2011-13 Lohit Fonts Project contributors (http://fedorahosted.org/lohit) Glegoo-Bold.ttf: Copyright (c) 2011, Eduardo Tunni (http://www.tipo.net.ar), Copyright 2011-13 Lohit Fonts Project contributors (http://fedorahosted.org/lohit)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/glegoo/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/glegoo/devanagari-400.woff2",
+      "bytes": 23824,
+      "sha256": "6647a13d876e62298860905dd103f74ffc31b4142d86bc383e2520e2dfd21d55"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/glegoo/devanagari-700.woff2",
+      "bytes": 24120,
+      "sha256": "dd01fa3ced9c717c3c82c4def3c58c4d990d69a35757eb788d7e3ce52e9ef1ae"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/glegoo/latin-400.woff2",
+      "bytes": 17504,
+      "sha256": "967a8f329c9053b9be23abad09da331330b74abf5cd1ac7e39cb9b6a17b424b6"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/glegoo/latin-700.woff2",
+      "bytes": 17884,
+      "sha256": "67b5f8c784c6901492dd6462787776d1a2f5afb4a06cb358d10d979eaefd183b"
+    }
+  ]
+}

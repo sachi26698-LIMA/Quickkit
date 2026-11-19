@@ -1,0 +1,75 @@
+{
+  "id": "arya",
+  "slug": "arya",
+  "family": "Arya",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:23.987Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/arya",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v21",
+    "lastModified": "2025-09-02"
+  },
+  "category": "sans-serif",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved. Arya-Bold.ttf: Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/arya/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/arya/devanagari-400.woff2",
+      "bytes": 41792,
+      "sha256": "a84b83c94c303a4baff9b6365b2e2a2a0a7e08d81ae4f0453dbe94e8961aa8ed"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/arya/devanagari-700.woff2",
+      "bytes": 42056,
+      "sha256": "51b3ae64d8bbdbb93890152cf9e8ddfc8ad12176ee4f294258c6257a6f805392"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/arya/latin-400.woff2",
+      "bytes": 15252,
+      "sha256": "89ac97e8c92e1059b12913da9a0c133c295b11cb40b3344d6bf68f3b166822b6"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/arya/latin-700.woff2",
+      "bytes": 15232,
+      "sha256": "6cc86c44ce1c8292e0d0c2375d12e9bf67205511a687cdc9e3e02d737b8dd03f"
+    }
+  ]
+}

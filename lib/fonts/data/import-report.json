@@ -1,0 +1,526 @@
+{
+  "generatedAt": "2026-11-19T14:59:09.544Z",
+  "summary": {
+    "discovered": 63,
+    "verified": 62,
+    "rejected": 1,
+    "families": 62,
+    "files": 354,
+    "woff2Bytes": 16456296,
+    "variableFamilies": 13,
+    "licenses": [
+      "OFL-1.1"
+    ]
+  },
+  "sources": 63,
+  "imported": [
+    {
+      "family": "Akshar",
+      "slug": "akshar",
+      "files": 2,
+      "bytes": 66960,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Alkatra",
+      "slug": "alkatra",
+      "files": 2,
+      "bytes": 119968,
+      "verified": true,
+      "score": 98.4
+    },
+    {
+      "family": "Amiko",
+      "slug": "amiko",
+      "files": 6,
+      "bytes": 171432,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Amita",
+      "slug": "amita",
+      "files": 4,
+      "bytes": 142500,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Anek Devanagari",
+      "slug": "anek-devanagari",
+      "files": 2,
+      "bytes": 303160,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Annapurna SIL",
+      "slug": "annapurna-sil",
+      "files": 4,
+      "bytes": 167076,
+      "verified": true,
+      "score": 99.2
+    },
+    {
+      "family": "Arya",
+      "slug": "arya",
+      "files": 4,
+      "bytes": 114332,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Asar",
+      "slug": "asar",
+      "files": 2,
+      "bytes": 183388,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Baloo 2",
+      "slug": "baloo-2",
+      "files": 2,
+      "bytes": 148336,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Biryani",
+      "slug": "biryani",
+      "files": 14,
+      "bytes": 362932,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Cambay",
+      "slug": "cambay",
+      "files": 4,
+      "bytes": 107048,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Dekko",
+      "slug": "dekko",
+      "files": 2,
+      "bytes": 94096,
+      "verified": true,
+      "score": 93.2
+    },
+    {
+      "family": "Eczar",
+      "slug": "eczar",
+      "files": 2,
+      "bytes": 114360,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Gajraj One",
+      "slug": "gajraj-one",
+      "files": 2,
+      "bytes": 37208,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Glegoo",
+      "slug": "glegoo",
+      "files": 4,
+      "bytes": 83332,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Google Sans",
+      "slug": "google-sans",
+      "files": 2,
+      "bytes": 86068,
+      "verified": true,
+      "score": 97.6
+    },
+    {
+      "family": "Gotu",
+      "slug": "gotu",
+      "files": 2,
+      "bytes": 145376,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Halant",
+      "slug": "halant",
+      "files": 10,
+      "bytes": 487868,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Hind",
+      "slug": "hind",
+      "files": 10,
+      "bytes": 440020,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "IBM Plex Sans Devanagari",
+      "slug": "ibm-plex-sans-devanagari",
+      "files": 14,
+      "bytes": 688788,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Inknut Antiqua",
+      "slug": "inknut-antiqua",
+      "files": 14,
+      "bytes": 722900,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Jaini",
+      "slug": "jaini",
+      "files": 2,
+      "bytes": 187188,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Jaini Purva",
+      "slug": "jaini-purva",
+      "files": 2,
+      "bytes": 190788,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Jaldi",
+      "slug": "jaldi",
+      "files": 4,
+      "bytes": 216304,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Kadwa",
+      "slug": "kadwa",
+      "files": 4,
+      "bytes": 116000,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Kalam",
+      "slug": "kalam",
+      "files": 6,
+      "bytes": 389692,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Karma",
+      "slug": "karma",
+      "files": 10,
+      "bytes": 497252,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Khand",
+      "slug": "khand",
+      "files": 10,
+      "bytes": 501388,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Khula",
+      "slug": "khula",
+      "files": 10,
+      "bytes": 267728,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Kripa",
+      "slug": "kripa",
+      "files": 2,
+      "bytes": 91640,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Kurale",
+      "slug": "kurale",
+      "files": 2,
+      "bytes": 56840,
+      "verified": true,
+      "score": 97.6
+    },
+    {
+      "family": "Laila",
+      "slug": "laila",
+      "files": 10,
+      "bytes": 547568,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Martel",
+      "slug": "martel",
+      "files": 14,
+      "bytes": 443776,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Martel Sans",
+      "slug": "martel-sans",
+      "files": 14,
+      "bytes": 374952,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Matangi",
+      "slug": "matangi",
+      "files": 2,
+      "bytes": 198832,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Modak",
+      "slug": "modak",
+      "files": 2,
+      "bytes": 174444,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Mukta",
+      "slug": "mukta",
+      "files": 14,
+      "bytes": 854608,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Noto Sans",
+      "slug": "noto-sans",
+      "files": 2,
+      "bytes": 135056,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Noto Sans Devanagari",
+      "slug": "noto-sans-devanagari",
+      "files": 2,
+      "bytes": 146576,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Noto Serif Devanagari",
+      "slug": "noto-serif-devanagari",
+      "files": 2,
+      "bytes": 156336,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Palanquin",
+      "slug": "palanquin",
+      "files": 14,
+      "bytes": 1013192,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Palanquin Dark",
+      "slug": "palanquin-dark",
+      "files": 8,
+      "bytes": 596420,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Playpen Sans Deva",
+      "slug": "playpen-sans-deva",
+      "files": 2,
+      "bytes": 557000,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Poppins",
+      "slug": "poppins",
+      "files": 18,
+      "bytes": 419320,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Pragati Narrow",
+      "slug": "pragati-narrow",
+      "files": 4,
+      "bytes": 194764,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Rajdhani",
+      "slug": "rajdhani",
+      "files": 10,
+      "bytes": 459724,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Ranga",
+      "slug": "ranga",
+      "files": 4,
+      "bytes": 88624,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Rhodium Libre",
+      "slug": "rhodium-libre",
+      "files": 2,
+      "bytes": 73024,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Rozha One",
+      "slug": "rozha-one",
+      "files": 2,
+      "bytes": 90868,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Sahitya",
+      "slug": "sahitya",
+      "files": 4,
+      "bytes": 154532,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Sarala",
+      "slug": "sarala",
+      "files": 4,
+      "bytes": 112680,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Sarpanch",
+      "slug": "sarpanch",
+      "files": 12,
+      "bytes": 472460,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Sumana",
+      "slug": "sumana",
+      "files": 4,
+      "bytes": 126276,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Sura",
+      "slug": "sura",
+      "files": 4,
+      "bytes": 100984,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Teko",
+      "slug": "teko",
+      "files": 2,
+      "bytes": 79124,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Tillana",
+      "slug": "tillana",
+      "files": 10,
+      "bytes": 483628,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Tiro Devanagari Hindi",
+      "slug": "tiro-devanagari-hindi",
+      "files": 2,
+      "bytes": 125776,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Tiro Devanagari Marathi",
+      "slug": "tiro-devanagari-marathi",
+      "files": 2,
+      "bytes": 124968,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Tiro Devanagari Sanskrit",
+      "slug": "tiro-devanagari-sanskrit",
+      "files": 2,
+      "bytes": 210792,
+      "verified": true,
+      "score": 100
+    },
+    {
+      "family": "Vesper Libre",
+      "slug": "vesper-libre",
+      "files": 8,
+      "bytes": 245676,
+      "verified": true,
+      "score": 99.6
+    },
+    {
+      "family": "Yantramanav",
+      "slug": "yantramanav",
+      "files": 12,
+      "bytes": 304660,
+      "verified": true,
+      "score": 98.8
+    },
+    {
+      "family": "Yatra One",
+      "slug": "yatra-one",
+      "files": 2,
+      "bytes": 87688,
+      "verified": true,
+      "score": 100
+    }
+  ],
+  "rejected": [
+    {
+      "family": "Bakbak One",
+      "slug": "bakbak-one",
+      "reason": "numerals: missing 10 of 10 (U+0966, U+0967, U+0968, U+0969, U+096A, U+096B)",
+      "errors": [
+        "numerals: missing 10 of 10 (U+0966, U+0967, U+0968, U+0969, U+096A, U+096B)",
+        "shaping produced .notdef for “०१२३४५६७८९ ०९”"
+      ],
+      "warnings": []
+    }
+  ]
+}

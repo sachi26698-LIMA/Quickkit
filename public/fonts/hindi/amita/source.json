@@ -1,0 +1,75 @@
+{
+  "id": "amita",
+  "slug": "amita",
+  "family": "Amita",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:23.164Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/amita",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v20",
+    "lastModified": "2025-09-11"
+  },
+  "category": "handwriting",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved. Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com). All rights reserved. Amita-Bold.ttf: Copyright (c) 2014, Eduardo Rodriguez Tunni. Copyright (c) 2000, Modular Infotech, Pune, INDIA. All rights reserved. Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com). All rights reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/amita/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/amita/devanagari-400.woff2",
+      "bytes": 49780,
+      "sha256": "e701f6b28382413fda041f547152e0fc407aae4c411d88d5e1beb60ed4d043b4"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/amita/devanagari-700.woff2",
+      "bytes": 51060,
+      "sha256": "a272c1c8ec721b5a7a1ac5ab42ebe0bbbd0289712a0d1be55093baee22827cb6"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/amita/latin-400.woff2",
+      "bytes": 20860,
+      "sha256": "e97029d74c2e5e9e0e141e79ba5183b2c17bb247ff894d2441e277e1d408ad73"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/amita/latin-700.woff2",
+      "bytes": 20800,
+      "sha256": "609169c50035903e4bac8ca0f87abae15f9b62d36c976824178cd07e0fa044da"
+    }
+  ]
+}

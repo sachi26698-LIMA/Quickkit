@@ -1,0 +1,54 @@
+{
+  "id": "jaini-purva",
+  "slug": "jaini-purva",
+  "family": "Jaini Purva",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:28.561Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/jaini-purva",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v1",
+    "lastModified": "2025-05-30"
+  },
+  "category": "display",
+  "weights": [
+    400
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2023 The Jaini Project Authors (https://github.com/EkType/Jaini)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/jaini-purva/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/jaini-purva/devanagari-400.woff2",
+      "bytes": 166812,
+      "sha256": "8a1a201baa485d0346f0f99b7ed3b2907fbacaaf94ef16391e6d6a3fe0dc3162"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/jaini-purva/latin-400.woff2",
+      "bytes": 23976,
+      "sha256": "7b94004f739a39b3ae2a268766484c68de80c7074507b5571671d08410c0aaf7"
+    }
+  ]
+}

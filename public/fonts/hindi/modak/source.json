@@ -1,0 +1,54 @@
+{
+  "id": "modak",
+  "slug": "modak",
+  "family": "Modak",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:31.796Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/modak",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v21",
+    "lastModified": "2025-09-11"
+  },
+  "category": "display",
+  "weights": [
+    400
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2015 Ek Type (www.ektype.in)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/modak/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/modak/devanagari-400.woff2",
+      "bytes": 140884,
+      "sha256": "50a147ae62e1ab9b3daa4c455e05d00edac563c4a474a967e55e3404c5a15f6c"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/modak/latin-400.woff2",
+      "bytes": 33560,
+      "sha256": "044310f45a5f75b5c510d535acdb78b42734c88cf31696b05c58be67e7c2219d"
+    }
+  ]
+}

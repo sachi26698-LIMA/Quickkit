@@ -1,0 +1,180 @@
+{
+  "id": "ibm-plex-sans-devanagari",
+  "slug": "ibm-plex-sans-devanagari",
+  "family": "IBM Plex Sans Devanagari",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:27.541Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/ibm-plex-sans-devanagari",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v12",
+    "lastModified": "2025-09-11"
+  },
+  "category": "sans-serif",
+  "weights": [
+    100,
+    200,
+    300,
+    400,
+    500,
+    600,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-ExtraLight.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Light.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Regular.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Medium.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-SemiBold.ttf: Copyright 2019 IBM Corp. All rights reserved. IBMPlexSansDevanagari-Bold.ttf: Copyright 2019 IBM Corp. All rights reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/ibm-plex-sans-devanagari/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 100,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-100.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-100.woff2",
+      "bytes": 77880,
+      "sha256": "6383b25648b3076f10578f8bf7550e8ca889c4007e540521a57fe0e5248ad19f"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-200.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-200.woff2",
+      "bytes": 83812,
+      "sha256": "59979e18e7e8073b68d6c09c7ccd50ab8fbe59e120ac6853060ae8c75ec72cf8"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-300.woff2",
+      "bytes": 83792,
+      "sha256": "30f18a82770249b9c95022c9a116ef75a97277b3f8a0659bfb9b9913cf1ab696"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-400.woff2",
+      "bytes": 77448,
+      "sha256": "4062d005210a056e8a7c05b01ee53f9be4275b21bc6243a6d2893e43d650873f"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-500.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-500.woff2",
+      "bytes": 79208,
+      "sha256": "8e73cda109fcb6705dde63017dcafe459d3641d2d7e7f1e559e9e2bde792bc67"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-600.woff2",
+      "bytes": 79176,
+      "sha256": "4768073bdffc5797c25d9be49a654b846b51ee986d692f89163c10d72c363cca"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/devanagari-700.woff2",
+      "bytes": 74132,
+      "sha256": "cd94d4c7c18ef6d4710c2f907ecd54a97b4d97be596e48c4470d188534080fc0"
+    },
+    {
+      "subset": "latin",
+      "weight": 100,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-100.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-100.woff2",
+      "bytes": 18568,
+      "sha256": "3cfacc238c444818088000f6708a22bb8d6cd125f2c087fa18b6c5c6c1ec3931"
+    },
+    {
+      "subset": "latin",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-200.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-200.woff2",
+      "bytes": 19576,
+      "sha256": "101da533a3c09cf3a556764f2ded4e36cf96d351b61077ea474a51a5d85b257f"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-300.woff2",
+      "bytes": 19512,
+      "sha256": "e1bd06dacf5451a9e2a22c4dceab280052644463c8191fc8d00ca75bbce7e69c"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-400.woff2",
+      "bytes": 18308,
+      "sha256": "7c002507b71aedfd052022371440c7793b0c0d01b3095fba3ee006e3a8ce1e55"
+    },
+    {
+      "subset": "latin",
+      "weight": 500,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-500.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-500.woff2",
+      "bytes": 19244,
+      "sha256": "7aa97c227b9f90cb8d06866fbc66ef37ee62e43a12c0dd999b0b02c610c57c10"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-600.woff2",
+      "bytes": 19564,
+      "sha256": "89c689234c6fd7b1f4c83f6b331cad2f2ba9f61a71dc6563f99dc56b8135b1c1"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/ibm-plex-sans-devanagari/latin-700.woff2",
+      "bytes": 18568,
+      "sha256": "04a2f4443cb7ca07de020b4b5ee20151f6ca6a16a7c5fd14a7f6e09488a68898"
+    }
+  ]
+}

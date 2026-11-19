@@ -1,0 +1,75 @@
+{
+  "id": "pragati-narrow",
+  "slug": "pragati-narrow",
+  "family": "Pragati Narrow",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:34.296Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/pragati-narrow",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v15",
+    "lastModified": "2025-09-11"
+  },
+  "category": "sans-serif",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2012-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com) PragatiNarrow-Bold.ttf: Copyright (c) 2012-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com)",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/pragati-narrow/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/pragati-narrow/devanagari-400.woff2",
+      "bytes": 75612,
+      "sha256": "d75645de0ae45239205e93ba72a9dd3f1a6f7bcc2431d151fb7644055de723bb"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/pragati-narrow/devanagari-700.woff2",
+      "bytes": 80756,
+      "sha256": "ebf5d45b5e2e6911799866a12cf1ebdfc04cf139bf4d717bebbf3221b396304b"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/pragati-narrow/latin-400.woff2",
+      "bytes": 19100,
+      "sha256": "8b5e2d84767df5f2a6bc3e2d8e63b6a2ca3a5fcb89eddecf4b0b0ea0656f4499"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/pragati-narrow/latin-700.woff2",
+      "bytes": 19296,
+      "sha256": "a5a2a6d78eb66f41101d6a69968c978a34dc1487b24e0bb66f418668959ce2d1"
+    }
+  ]
+}

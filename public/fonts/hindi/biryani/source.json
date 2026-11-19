@@ -1,0 +1,180 @@
+{
+  "id": "biryani",
+  "slug": "biryani",
+  "family": "Biryani",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:24.913Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/biryani",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v15",
+    "lastModified": "2025-09-05"
+  },
+  "category": "sans-serif",
+  "weights": [
+    200,
+    300,
+    400,
+    600,
+    700,
+    800,
+    900
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Light.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Regular.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-SemiBold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Bold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-ExtraBold.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer. Biryani-Black.ttf: Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Réguer.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/biryani/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-200.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-200.woff2",
+      "bytes": 35952,
+      "sha256": "b68dc1071be5694ea5184878aae2caed890536ccdd33b630466f19065491696c"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-300.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-300.woff2",
+      "bytes": 38348,
+      "sha256": "b1393947d4b8067f78ecd4fb49ee4ba30da6aa27fac5ed09e38af2b9056250a9"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-400.woff2",
+      "bytes": 38344,
+      "sha256": "3495d36dc68b730d38ba28f71be5b323f55ad168726b9cdd7455562b2a9b7b32"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-600.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-600.woff2",
+      "bytes": 37800,
+      "sha256": "f473a8360f77855f925c65d2c1456582766fdada1faa0a12044e4e3d86391038"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-700.woff2",
+      "bytes": 38780,
+      "sha256": "c4946307bb4fbf754dd6f05e88df440ce0156ea353a830dbd9d970afaebf267a"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-800.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-800.woff2",
+      "bytes": 38628,
+      "sha256": "eb67b436780fd127b8a2121e22dd85b7d1b36f7924adfa94876ba39c9e37aaab"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-900.woff2",
+      "path": "/fonts/hindi/biryani/devanagari-900.woff2",
+      "bytes": 37128,
+      "sha256": "39ce8f83735de557e9e4e513e4dd0c984c3cab1df38e792b2d4c405187e70431"
+    },
+    {
+      "subset": "latin",
+      "weight": 200,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-200.woff2",
+      "path": "/fonts/hindi/biryani/latin-200.woff2",
+      "bytes": 13940,
+      "sha256": "ccbaea7deaaad3c575df88fa67d83dd567e8a862d6dfe1bc9434ef6de2cc8438"
+    },
+    {
+      "subset": "latin",
+      "weight": 300,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-300.woff2",
+      "path": "/fonts/hindi/biryani/latin-300.woff2",
+      "bytes": 14176,
+      "sha256": "32b5762f193fdb013ea3c0aa2ff6e34ae1bb1b2facbe9c6c98b6e79a11ac0eee"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/biryani/latin-400.woff2",
+      "bytes": 14100,
+      "sha256": "e8a3408ff569d96ac3050903b7c31d3f7be82c30c89faa951f14d82606e02f66"
+    },
+    {
+      "subset": "latin",
+      "weight": 600,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-600.woff2",
+      "path": "/fonts/hindi/biryani/latin-600.woff2",
+      "bytes": 14032,
+      "sha256": "9d4fdc17854de5d93541b106254c1dd5026a934bc904363551c15112fef9717b"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/biryani/latin-700.woff2",
+      "bytes": 13948,
+      "sha256": "2fb91be28384ba3acc4794e4187260aa9b6d00778c443c512f9c89308cbf58a9"
+    },
+    {
+      "subset": "latin",
+      "weight": 800,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-800.woff2",
+      "path": "/fonts/hindi/biryani/latin-800.woff2",
+      "bytes": 13988,
+      "sha256": "67c64df5a2c4bc4f27168bae7fc0a2f0c1976542638ae7f9da9992db02c9cceb"
+    },
+    {
+      "subset": "latin",
+      "weight": 900,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-900.woff2",
+      "path": "/fonts/hindi/biryani/latin-900.woff2",
+      "bytes": 13768,
+      "sha256": "61c0224cfb71f1df9a9e135a340cf41e4e8db619cfcbabd15d46ee4febc8aeda"
+    }
+  ]
+}

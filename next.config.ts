@@ -207,6 +207,19 @@ const config: NextConfig = {
       "/:path((?!tools/(?:qr-code-scanner|barcode-generator|barcode-scanner)(?:/)?$).*)";
 
     return [
+      // The Hindi font files are content-addressed by family + version and are
+      // never rewritten in place. Immutable caching keeps repeat previews free
+      // while the importer's manifest keeps their SHA-256 hashes verified.
+      {
+        source: "/fonts/hindi/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
+      },
       {
         source: "/:path*",
         headers: [

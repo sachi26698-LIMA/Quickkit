@@ -1,0 +1,75 @@
+{
+  "id": "sumana",
+  "slug": "sumana",
+  "family": "Sumana",
+  "status": "imported",
+  "importedAt": "2026-11-19T14:56:36.259Z",
+  "upstream": {
+    "provider": "Google Fonts",
+    "distributor": "Fontsource",
+    "npmPackage": "@fontsource/sumana",
+    "npmVersion": "5.3.0",
+    "source": "https://github.com/google/fonts",
+    "repository": "https://github.com/google/fonts",
+    "version": "v12",
+    "lastModified": "2025-09-11"
+  },
+  "category": "serif",
+  "weights": [
+    400,
+    700
+  ],
+  "styles": [
+    "normal"
+  ],
+  "variable": null,
+  "license": {
+    "type": "OFL-1.1",
+    "url": "https://openfontlicense.org",
+    "attribution": "Copyright © 2015 by Cyreal. All rights reserved. Sumana-Bold.ttf: Copyright © 2015 by Cyreal. All rights reserved.",
+    "redistribution": true,
+    "licenseFile": "/fonts/hindi/sumana/LICENSE.txt"
+  },
+  "files": [
+    {
+      "subset": "devanagari",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-400.woff2",
+      "path": "/fonts/hindi/sumana/devanagari-400.woff2",
+      "bytes": 38220,
+      "sha256": "66df24d735f6b4f05e719732ac9565487c37c2a5497814e71b97ff1fadf539b8"
+    },
+    {
+      "subset": "devanagari",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "devanagari-700.woff2",
+      "path": "/fonts/hindi/sumana/devanagari-700.woff2",
+      "bytes": 38748,
+      "sha256": "03c9eb5355c5e6975cfe3984d8013e81c2028030d4910c33690df180ec57dce5"
+    },
+    {
+      "subset": "latin",
+      "weight": 400,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-400.woff2",
+      "path": "/fonts/hindi/sumana/latin-400.woff2",
+      "bytes": 23976,
+      "sha256": "afa74ead98a39eb8dd902f03b6823a6ce68836c55daef17cb172313d6a204512"
+    },
+    {
+      "subset": "latin",
+      "weight": 700,
+      "style": "normal",
+      "variable": null,
+      "name": "latin-700.woff2",
+      "path": "/fonts/hindi/sumana/latin-700.woff2",
+      "bytes": 25332,
+      "sha256": "90227da1da6bf7116a9c505bde27a1103dd3aac072a65aadd2bbddfe074b6c99"
+    }
+  ]
+}
