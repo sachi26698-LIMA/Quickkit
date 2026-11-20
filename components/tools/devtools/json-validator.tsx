@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { MAX_DEVELOPER_TEXT_LENGTH } from "@/lib/tools/developer-code";
+// The constant only. Importing `developer-code` here would pull terser, csso
+// and xmldom — 805 kB of minifier this validator never calls — into the route.
+import { MAX_DEVELOPER_TEXT_LENGTH } from "@/lib/tools/developer-code-shared";
 import { inspectJson, locateJsonError, processJson } from "@/lib/tools/json";
 import {
   DevCodeInput,

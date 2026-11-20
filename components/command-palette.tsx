@@ -14,12 +14,17 @@ import {
   X,
 } from "lucide-react";
 import type { CategoryMeta } from "@/lib/catalog";
-import type { ClientTool } from "@/lib/client-tool";
-import { EXAMPLE_SEARCHES, rankTools } from "@/lib/tool-search";
+import type { PaletteTool } from "@/lib/palette-index";
+import { EXAMPLE_SEARCHES, rankByHaystack } from "@/lib/tool-search";
+import { usePaletteIndex } from "@/lib/use-palette-index";
 import { useRecentSearches, rememberSearch } from "@/lib/use-recent-searches";
 import { useRecentTools } from "@/lib/use-recent-tools";
 import { useHydrated } from "@/lib/use-hydrated";
 import ToolIcon from "@/components/tool-icon";
+
+/** Stable identities, so the memos below do not re-run on every render. */
+const EMPTY_TOOLS: PaletteTool[] = [];
+const EMPTY_CATEGORIES: CategoryMeta[] = [];
 
 type Entry = {
   id: string;
@@ -43,20 +48,22 @@ type Entry = {
  * Accessibility: labelled dialog, combobox semantics on the input, option
  * list with `aria-activedescendant`, Escape closes, focus is restored to
  * whatever opened it, and focus is trapped inside the dialog while open.
+ *
+ * The tool index is fetched when the palette first opens rather than passed in
+ * as a prop. This component is mounted by the public layout, so a catalogue
+ * prop was serialised into every page — including the many pages that never
+ * open the palette. See `lib/use-palette-index.ts`.
  */
-export default function CommandPalette({
-  tools,
-  categories,
-}: {
-  tools: ClientTool[];
-  categories: CategoryMeta[];
-}) {
+export default function CommandPalette() {
   const ready = useHydrated();
   const router = useRouter();
   const pathname = usePathname();
   const recentSearches = useRecentSearches();
   const recentSlugs = useRecentTools();
   const [open, setOpen] = useState(false);
+  const { data: index, failed, loading } = usePaletteIndex(open);
+  const tools = index?.tools ?? EMPTY_TOOLS;
+  const categories = index?.categories ?? EMPTY_CATEGORIES;
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -116,14 +123,14 @@ export default function CommandPalette({
     () =>
       recentSlugs
         .map((slug) => tools.find((tool) => tool.slug === slug))
-        .filter((tool): tool is ClientTool => Boolean(tool)),
+        .filter((tool): tool is PaletteTool => Boolean(tool)),
     [recentSlugs, tools],
   );
 
   const entries = useMemo<Entry[]>(() => {
     const q = query.trim();
     if (q) {
-      const matches: Entry[] = rankTools(tools, q)
+      const matches: Entry[] = rankByHaystack(tools, q)
         .slice(0, 8)
         .map((tool) => ({
           id: `tool:${tool.slug}`,
@@ -386,7 +393,11 @@ export default function CommandPalette({
           ))}
           {!entries.length ? (
             <li className="command-empty" role="presentation">
-              No match for “{query.trim()}”. Try “PDF”, “QR” or “JSON”.
+              {failed
+                ? "The tool index could not load. Check your connection and reopen search."
+                : loading && query.trim()
+                  ? "Searching…"
+                  : `No match for “${query.trim()}”. Try “PDF”, “QR” or “JSON”.`}
             </li>
           ) : null}
         </ul>
