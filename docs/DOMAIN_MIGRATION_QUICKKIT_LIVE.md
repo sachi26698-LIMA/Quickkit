@@ -53,6 +53,21 @@ LAUNCH_APPROVED=true
 **Note the distinction:** a configured `SITE_URL` is not domain approval.
 `LAUNCH_APPROVED` is the separate indexing switch. Do not set it in Preview.
 
+### Verified live dashboard state (read-only, 2026-11-15)
+
+| Where | Setting | Observed | Verdict |
+| --- | --- | --- | --- |
+| Vercel env | `SITE_URL` (Production only) | `https://quickkit-rosy.vercel.app` | ❌ **the defect** |
+| Vercel env | `LAUNCH_APPROVED` (Production only) | `true` | ✅ correct, correctly scoped |
+| Vercel domain | `quickkit.live` | verified, primary | ✅ |
+| Vercel domain | `www.quickkit.live` | verified, `redirect: quickkit.live`, `301` | ✅ |
+| Vercel domain | `quickkit-rosy.vercel.app` | verified, still serving | ✅ keep for now |
+| Supabase Auth | `site_url` | `https://quickkit-rosy.vercel.app` | ❌ must change |
+| Supabase Auth | `uri_allow_list` | `https://quickkit-rosy.vercel.app/admin` | ⚠️ no `/auth/callback` |
+
+The `www` 301 and the domain assignments are already correct — no DNS or domain
+work is needed. The only two wrong values are the two above.
+
 ---
 
 ## 2. Why this migration was not just a find-and-replace
@@ -97,19 +112,41 @@ Do these **in order**. Steps 1–2 are the fix for the live SEO defect described
    latest production deployment, unchecking "use existing build cache" if offered.
 4. Verify (see §5) before touching the domain.
 
-### 3.2 Supabase — auth email links
+### 3.2 Supabase — auth email links (verified live 2026-11-15)
+
+Read-only inspection of project `oevjmxcoyibkonousdoh` returned:
+
+| Setting | Current value |
+| --- | --- |
+| `site_url` | `https://quickkit-rosy.vercel.app` |
+| `uri_allow_list` | `https://quickkit-rosy.vercel.app/admin` |
+
+Two things follow, and both matter:
+
+1. **`site_url` is still the old alias.** The app never passes `emailRedirectTo`
+   or `redirectTo` (there is no such call anywhere in `app/`, `lib/` or
+   `components/` — admin login is password-based via
+   `app/api/admin/auth/login/route.ts`), so Supabase falls back to `site_url` for
+   `{{ .ConfirmationURL }}`. Every confirmation and recovery email therefore
+   links to the old domain today.
+2. **The allowlist has no `/auth/callback` entry** — only `…/admin`. Do not assume
+   a previous draft's allowlist is in place.
 
 5. Supabase → project `oevjmxcoyibkonousdoh` → Authentication → URL Configuration.
    - **Site URL:** `https://quickkit.live`
-   - **Redirect URLs** (keep all, add nothing wildcard):
+   - **Redirect URLs** — replace the single `/admin` entry with these three:
      ```
      https://quickkit.live/auth/callback
      https://quickkit-rosy.vercel.app/auth/callback
      http://localhost:3000/auth/callback
      ```
-     Keep the old-alias callback while it still serves, then remove it once the
-     alias is retired. **Never** use a wildcard (`https://*.vercel.app/**`) — that
-     turns the auth server into an open redirector.
+     Keep the old-alias callback while that alias still serves, then remove it.
+     Keep the localhost one for local development. **Never** use a wildcard
+     (`https://*.vercel.app/**`) — that turns the auth server into an open
+     redirector.
+
+     Add `https://quickkit.live/admin` only if you rely on `/admin` as a redirect
+     target; the app itself never requests it.
 6. The six templates in `supabase/email-templates/templates/` use only
    `{{ .ConfirmationURL }}`. They contain no hardcoded origin, so they pick up the
    new Site URL automatically — **no template edit needed**. Verify by triggering a
@@ -144,6 +181,27 @@ part of this migration.** Do not change nameservers or A/CNAME records.
 - Cookies are host-only and set without a `Domain` attribute, so they work on any
   hostname without change. **Do not add a `Domain` attribute** — that would widen
   cookie scope for no benefit.
+
+---
+
+## 3.6 Separate security finding — not part of this migration, but found by it
+
+While reading the Auth config for the migration I saw the SMTP credential fields.
+**`supabase/email-templates/README.md` already records that this credential is
+compromised and must not be reused** — the value was not copied into the repo and
+is not reproduced here. This domain migration does not change it and must not be
+used as an occasion to "tidy" SMTP settings.
+
+Action (owner, separately, when convenient — not required to complete the domain
+migration): rotate the Gmail app password for the sender account, then update
+`Project Settings → Authentication → SMTP` in Supabase and Vercel's
+`AUTH_SMTP_VERIFIED_ON` date. Until then treat mail delivery as unverified.
+
+Also note `smtp_admin_email` and `smtp_user` are both `quickkit96@gmail.com`, a
+**gmail.com** address, while the site now publishes `quickkit.live`. Sending
+transactional mail as a free-mail domain weakens SPF/DKIM/DMARC alignment and
+hurts deliverability. Consider a sender on a domain you own once SPF/DKIM are
+configured. Do not change this during the domain cutover.
 
 ---
 
