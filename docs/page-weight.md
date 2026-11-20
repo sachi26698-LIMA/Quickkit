@@ -5,19 +5,19 @@ with gzip, which is what the CDN serves. Nothing is extrapolated.
 
 ## Before and after
 
-| Page | HTML before | HTML after | Change |
-| --- | --- | --- | --- |
-| `/privacy` | 164 KB (42 KB gzip) | 109 KB (29 KB gzip) | **−55 KB** |
-| `/about` | — | 93 KB (20 KB gzip) | — |
-| `/tools/word-counter` | 158 KB | 103 KB (19 KB gzip) | **−55 KB** |
-| `/` | 289 KB (47 KB gzip) | 289 KB (47 KB gzip) | unchanged (needs the catalogue) |
+| Page                  | HTML before         | HTML after          | Change                          |
+| --------------------- | ------------------- | ------------------- | ------------------------------- |
+| `/privacy`            | 164 KB (42 KB gzip) | 109 KB (29 KB gzip) | **−55 KB**                      |
+| `/about`              | —                   | 93 KB (20 KB gzip)  | —                               |
+| `/tools/word-counter` | 158 KB              | 103 KB (19 KB gzip) | **−55 KB**                      |
+| `/`                   | 289 KB (47 KB gzip) | 289 KB (47 KB gzip) | unchanged (needs the catalogue) |
 
-| Route | JS before | JS after | Change |
-| --- | --- | --- | --- |
-| `/tools/json-validator` | 1222 KB (335 KB gzip) | 226 KB (73 KB gzip) | **−997 KB (−262 KB gzip)** |
-| `/tools/css-minifier` | 1135 KB | 1135 KB | unchanged (it minifies) |
-| `/tools/resume-ats-checker` | 215 KB | 215 KB | unchanged |
-| `/tools/word-counter` | 219 KB | 219 KB | unchanged |
+| Route                       | JS before             | JS after            | Change                     |
+| --------------------------- | --------------------- | ------------------- | -------------------------- |
+| `/tools/json-validator`     | 1222 KB (335 KB gzip) | 226 KB (73 KB gzip) | **−997 KB (−262 KB gzip)** |
+| `/tools/css-minifier`       | 1135 KB               | 1135 KB             | unchanged (it minifies)    |
+| `/tools/resume-ats-checker` | 215 KB                | 215 KB              | unchanged                  |
+| `/tools/word-counter`       | 219 KB                | 219 KB              | unchanged                  |
 
 Totals for `/tools/json-validator`, as served: **257 KB gzipped** including HTML.
 
@@ -62,7 +62,7 @@ not change.
 - **Middleware.** `proxy.ts` is matched only on `/admin/:path*` and
   `/auth/callback`; public pages do not run it.
 - **Caching.** HTML is prerendered and served with `s-maxage=300,
-  stale-while-revalidate`; `/_next/static` is `immutable` for a year.
+stale-while-revalidate`; `/_next/static` is `immutable` for a year.
 - **AdSense.** One async script is loaded site-wide. It is a real cost and it is
   revenue, so it is not something to remove silently.
 - **`/tools` inline icons.** 368 KB of inline SVG, but gzip reduces the repeated
