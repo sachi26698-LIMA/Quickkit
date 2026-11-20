@@ -293,3 +293,53 @@ npx tsc --noEmit
 `next build` in this sandbox cannot reach the live domain, so the checks above in
 §5 must be executed by the owner (or from a network that can reach it). Do not
 report them as verified until they have actually been run.
+
+---
+
+## 7. Cross-browser `browser` job — what actually happened
+
+Verified from the check-run annotations, not from guesswork:
+
+| Evidence                     | Value                                              |
+| ---------------------------- | -------------------------------------------------- |
+| Annotation level/message     | `"The operation was canceled."`                    |
+| Targeted cross-browser gates | `3 passed (24.1s)`, `8 passed (1.2m)` — both green |
+| Job elapsed                  | 51.2 min                                           |
+| Step conclusion              | `failure` on the full `npm run test:e2e` step      |
+| Failure-artifact upload      | **skipped** — nothing to upload                    |
+| Recent `browser` history     | 3 success / 1 failure / 2 failure (see below)      |
+
+The two explicit cross-browser gates in that job — the PDF-compressor cancellation
+regression (webkit + firefox, `--repeat-each=2`) and the PDF-to-Word preview
+dialog (chromium + firefox + webkit) — **both passed**. The job then died partway
+through the full suite with a runner cancellation and produced no traces.
+
+### Why this is not attributable to the domain change
+
+1. The job's own first step is `npm run build` with **no `SITE_URL`**, so every
+   run builds with the site-wide-noindex configuration. My branch's build has been
+   run in that exact shape here: exit 0.
+2. No e2e spec references `quickkit-rosy` or `quickkit.live` (grep: zero hits), so
+   no assertion can turn on the origin.
+3. The only app code this branch changes is 7 strings in QR/barcode sample data.
+   Those four routes were served from a local CI-style build and returned 200 with
+   zero old-alias occurrences.
+4. The same job also failed on PR #70 **after** that PR merged, on unchanged code,
+   with exit 143 (SIGTERM) after 53 min.
+
+### Scale of the suite
+
+513 `test()` blocks across 73 spec files, with `retries: 1` in CI and five
+projects (chromium = all; firefox and webkit = the 8 matched specs; Pixel 7 and
+iPhone 13 = 4 matched specs). Chromium alone runs every spec. A two-core runner
+doing that inside a 90-minute cap is the likely constraint — the observed
+cancellation lands just past the 50-minute mark, and the successful runs on the
+same code took 39–50 min. This is **not verified** as the root cause; it is the
+most consistent explanation and it is a capacity problem, not a product one.
+
+### Honest status
+
+The full cross-browser suite has **not** been observed green on this branch, and
+it cannot be run from the agent sandbox (the Playwright CDN is not reachable
+there). The `verify` job — format, lint, 235 unit-test files / 3,495 tests,
+build, typecheck, `npm audit` — **is** green on this branch.
