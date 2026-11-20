@@ -283,12 +283,12 @@ describe("Digital Link builder", () => {
   it("honours a custom origin without doubling slashes", () => {
     const built = buildDigitalLink(
       { gtin: "09506000134352" },
-      { origin: "https://quickkit-rosy.vercel.app/" },
+      { origin: "https://quickkit.live/" },
     );
     expect(built.ok).toBe(true);
     if (!built.ok) return;
     expect(built.url).toBe(
-      "https://quickkit-rosy.vercel.app/01/09506000134352",
+      "https://quickkit.live/01/09506000134352",
     );
   });
 });

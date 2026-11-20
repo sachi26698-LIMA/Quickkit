@@ -61,7 +61,7 @@ const ROUTES = {
   "image-to-text": () => import("../app/(public)/tools/image-to-text/page"),
 } as const;
 
-const ORIGIN = "https://quickkit-rosy.vercel.app";
+const ORIGIN = "https://quickkit.live";
 
 afterEach(() => {
   cleanup();

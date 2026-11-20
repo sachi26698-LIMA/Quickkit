@@ -27,7 +27,7 @@ const MIXED = [
   "5901234123457,Yogurt 400 g,ean13",
   "09506000134352,Case label,itf14",
   "QUICKKIT-2026,Order card,code128",
-  "https://quickkit-rosy.vercel.app,Product page,qrcode",
+  "https://quickkit.live,Product page,qrcode",
   "LOT-42-QC,QC tag,datamatrix",
 ].join("\n");
 
@@ -134,8 +134,8 @@ describe("per-row validation", () => {
     "5901234123459,bad check digit,ean13",
     "QUICKKIT-2026,unknown symbology,aztec",
     "QUICKKIT-2027,blank format uses fallback,",
-    "https://quickkit-rosy.vercel.app,duplicate qr,qrcode",
-    "https://quickkit-rosy.vercel.app,second qr,qrcode",
+    "https://quickkit.live,duplicate qr,qrcode",
+    "https://quickkit.live,second qr,qrcode",
     " ,empty data,code128",
   ].join("\n");
 
@@ -192,7 +192,7 @@ describe("large and malformed input", () => {
       lines.push(`ROW-${String(index).padStart(5, "0")},code128`);
     }
     for (let index = 0; index < 10; index += 1) {
-      lines.push(`https://quickkit-rosy.vercel.app/item/${index},qrcode`);
+      lines.push(`https://quickkit.live/item/${index},qrcode`);
     }
     const started = Date.now();
     const rows = buildMixedRows(table(lines.join("\n")), {
@@ -277,7 +277,7 @@ describe("mixed report", () => {
           "data,format",
           "5901234123457,ean13",
           "nope,ean13",
-          "https://quickkit-rosy.vercel.app,qrcode",
+          "https://quickkit.live,qrcode",
         ].join("\n"),
       ),
       { data: 0, title: -1, formatColumn: 1, fallback: "ean13" },

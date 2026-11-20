@@ -64,7 +64,7 @@ describe("format detection", () => {
 
   it("separates a URL from a linear barcode", () => {
     const detected = detectBarcodeFormat(
-      "https://quickkit-rosy.vercel.app/tools",
+      "https://quickkit.live/tools",
     );
     expect(detected.best?.reason).toContain("Digital Link");
     expect(detected.note).toContain("QR");

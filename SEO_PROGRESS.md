@@ -1,5 +1,12 @@
 # QUICKKIT — SEO Progress Tracker (`SEO_PROGRESS.md`)
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 - **Active Branch:** `arena/ce249373-quickkit`
 - **Base Commit (`main`):** `16863986657f42583acfda216e228e8c2f5f8aa6`
 - **Phase 4 Pre-Implementation Checkpoint:** `639a2e2e03858b651a068826afa02f20782b52c5` (`docs(seo): record final Phase 3 verification`)

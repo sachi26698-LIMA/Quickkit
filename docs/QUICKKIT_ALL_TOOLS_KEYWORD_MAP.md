@@ -1,5 +1,12 @@
 # QUICKKIT — All Tools Keyword Map
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Site:** https://quickkit-rosy.vercel.app/  
 **Generated:** from `lib/seo/tools.ts` and `lib/seo/keywords/*.ts` — every keyword below is read out of the repository, not transcribed by hand.  
 **Companion:** [`QUICKKIT_KEYWORD_EXPANSION_REPORT.md`](./QUICKKIT_KEYWORD_EXPANSION_REPORT.md)

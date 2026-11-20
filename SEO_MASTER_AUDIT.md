@@ -1,5 +1,12 @@
 # QUICKKIT — Phase 1 Complete Advanced SEO Audit (`SEO_MASTER_AUDIT.md`)
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 - **Audit Date:** 2026-11-10 (UTC)
 - **Repository & Branch:** `sachi26698-LIMA/Quickkit` (`arena/6d2c5a1f-quickkit` @ commit `e06be8a2c02a5dd37ea98a8487a78fb92d6d96ff`)
 - **Framework & Runtime:** Next.js `16.4.3` (App Router, Turbopack), React `19.3.1`, TypeScript `6.0.3`

@@ -1,5 +1,12 @@
 # QUICKKIT — Search Console data request (owner action required)
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Why this document exists:** Phase 3 needs Search Console performance data. It is not
 reachable from the environment this work runs in, and no export exists anywhere I can
 see. Rather than estimate or infer the numbers — which the project rules forbid — this
@@ -40,7 +47,7 @@ So that when the data arrives the analysis is not blocked by an SEO problem:
 | `robots.txt` served                          | **200**, allow-all except `/api/`, `Sitemap:` declared         | live fetch             |
 | Googlebot rules                              | explicit `Allow: /`, `Disallow: /api/`                         | live fetch             |
 | `sitemap.xml`                                | 80 URLs, exact match to 80 indexable built pages               | local production build |
-| Canonical origin                             | `https://quickkit-rosy.vercel.app` everywhere                  | built HTML             |
+| Canonical origin                             | `https://quickkit-rosy.vercel.app` everywhere *(at time of writing; now `https://quickkit.live`)* | built HTML |
 | Duplicate titles / descriptions / canonicals | 0 / 0 / 0 across 149 pages                                     | built HTML             |
 | Indexable crawl depth                        | max 2                                                          | link-graph BFS         |
 | `noindex` pages                              | 68, all intentional (auth stubs, brand directory, AI category) | built HTML             |
@@ -60,10 +67,11 @@ Pick **one** of the three routes below. Route A is the fastest and needs no code
 ### Route A — export CSV from the Search Console UI (recommended, ~10 minutes)
 
 1. Open <https://search.google.com/search-console>.
-2. Select the property. Confirm it is the **URL-prefix** property whose exact string is
-   `https://quickkit-rosy.vercel.app/` (with the trailing slash). If the only property is
-   a **domain** property (`quickkit-rosy.vercel.app`, no scheme), that is also usable —
-   just say which one it is.
+2. Select the property. The canonical public origin is now `https://quickkit.live`, so
+   prefer the **URL-prefix** property whose exact string is `https://quickkit.live/`
+   (with the trailing slash), or a **domain** property for `quickkit.live` (no scheme).
+   The older `quickkit-rosy.vercel.app` property still holds the pre-migration history —
+   keep it for comparison, and say which property you exported.
 3. **Performance → Search results.** Set **Date → Last 28 days**. Click **Export** (top
    right) → **Download CSV**. Name it `gsc-current-queries.csv`.
 4. Change the date range to **the previous 28 days** (use "Compare" → "Previous period",

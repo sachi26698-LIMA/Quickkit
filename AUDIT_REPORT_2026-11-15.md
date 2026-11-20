@@ -1,5 +1,12 @@
 # QUICKKIT — COMPLETE PLATFORM AUDIT & PRODUCTION READINESS
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Audit date:** 15 November 2026
 **Branch audited:** `arena/b9cb8e62-quickkit`
 **Base commit:** `c647347ae82c194bdf40437000c1fc992606f330` (production `main`, also the deployed Vercel commit)

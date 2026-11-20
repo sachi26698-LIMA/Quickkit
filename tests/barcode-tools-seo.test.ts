@@ -14,7 +14,7 @@ import {
   isBrandRecordIndexable,
 } from "@/lib/tools/batch-code/brands";
 
-const ORIGIN = "https://quickkit-rosy.vercel.app";
+const ORIGIN = "https://quickkit.live";
 
 const TOOL_ROUTES = [
   [

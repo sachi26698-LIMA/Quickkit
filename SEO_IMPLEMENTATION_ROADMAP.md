@@ -1,5 +1,12 @@
 # QUICKKIT — SEO Implementation Roadmap (`SEO_IMPLEMENTATION_ROADMAP.md`)
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 - **Prepared From:** `SEO_MASTER_AUDIT.md` (Phase 1 Read-Only Audit, 2026-11-10)
 - **Current Status:** **Awaiting User Approval to Begin Phase 2** (Zero source code modified in Phase 1)
 - **Guiding Engineering Guardrails for All Future Phases:**

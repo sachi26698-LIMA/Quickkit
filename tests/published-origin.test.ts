@@ -4,17 +4,21 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_PUBLIC_ORIGIN } from "../lib/tools/qr/data-template";
 
 /**
- * The project publishes under exactly one origin. `quickkit.tools` and
- * `quickkit.online` are not owned or served by this codebase, so a URL that
- * sends a reader there is a dead link wearing our name. These tests keep the
- * generated links and the advertised identity on the real origin.
+ * The project publishes under exactly one origin: `https://quickkit.live`, the
+ * apex domain. `www.quickkit.live` 301-redirects to it, and the old
+ * `quickkit-rosy.vercel.app` deployment alias must not appear in anything the
+ * site publishes — it is now a migration artefact, not the public identity.
+ * `quickkit.tools` and `quickkit.online` are not owned or served by this
+ * codebase, so a URL that sends a reader there is a dead link wearing our name.
+ * These tests keep generated links and the advertised identity on the one
+ * origin the site actually serves.
  */
 
 const ROOT = join(__dirname, "..");
 
 describe("published origin", () => {
   it("falls back to an origin this project actually serves", () => {
-    expect(DEFAULT_PUBLIC_ORIGIN).toBe("https://quickkit-rosy.vercel.app");
+    expect(DEFAULT_PUBLIC_ORIGIN).toBe("https://quickkit.live");
     expect(() => new URL(DEFAULT_PUBLIC_ORIGIN)).not.toThrow();
     expect(new URL(DEFAULT_PUBLIC_ORIGIN).protocol).toBe("https:");
   });
@@ -31,6 +35,7 @@ describe("published origin", () => {
     expect(link.startsWith(DEFAULT_PUBLIC_ORIGIN)).toBe(true);
     expect(link).not.toContain("quickkit.tools");
     expect(link).not.toContain("quickkit.online");
+    expect(link).not.toContain("quickkit-rosy.vercel.app");
   });
 
   it("follows the live origin in the browser, not the build-time fallback", async () => {
@@ -83,6 +88,8 @@ describe("published origin", () => {
         .replace(/(^|[^:])\/\/.*$/gm, "$1");
       expect(code, file).not.toContain("quickkit.tools");
       expect(code, file).not.toContain("quickkit.online");
+      // The retired Vercel alias is no longer the public identity.
+      expect(code, file).not.toContain("quickkit-rosy.vercel.app");
     }
   });
 });
