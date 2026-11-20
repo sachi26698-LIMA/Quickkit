@@ -341,9 +341,9 @@ describe("Search Console analysis — window comparison", () => {
 
 describe("Search Console analysis — mapping", () => {
   it("maps absolute URLs to the tool slug", () => {
-    expect(
-      slugFromUrl("https://quickkit.live/tools/merge-pdf"),
-    ).toBe("merge-pdf");
+    expect(slugFromUrl("https://quickkit.live/tools/merge-pdf")).toBe(
+      "merge-pdf",
+    );
     expect(slugFromUrl("/tools/qr-generator")).toBe("qr-generator");
   });
 
