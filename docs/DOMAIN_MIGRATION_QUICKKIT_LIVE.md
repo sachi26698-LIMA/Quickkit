@@ -24,14 +24,14 @@ path can never leak into a canonical.
 
 Everything derives from it:
 
-| Output | Derivation |
-| --- | --- |
-| `<link rel="canonical">` | `absoluteUrl(path)` |
-| `og:url`, `og:image`, `twitter:image` | `${siteOrigin}/opengraph-image` |
-| JSON-LD `@id` / `url` | `${siteOrigin}/#website`, `#organization`, `#webpage` |
-| `sitemap.xml` `<loc>` | `absoluteUrl(path)` per route |
-| `robots.txt` `Sitemap:` | `siteOrigin + "/sitemap.xml"` |
-| `metadataBase` | `new URL(siteOrigin)` |
+| Output                                | Derivation                                            |
+| ------------------------------------- | ----------------------------------------------------- |
+| `<link rel="canonical">`              | `absoluteUrl(path)`                                   |
+| `og:url`, `og:image`, `twitter:image` | `${siteOrigin}/opengraph-image`                       |
+| JSON-LD `@id` / `url`                 | `${siteOrigin}/#website`, `#organization`, `#webpage` |
+| `sitemap.xml` `<loc>`                 | `absoluteUrl(path)` per route                         |
+| `robots.txt` `Sitemap:`               | `siteOrigin + "/sitemap.xml"`                         |
+| `metadataBase`                        | `new URL(siteOrigin)`                                 |
 
 No other module may hardcode an origin. `tests/published-origin.test.ts` enforces
 that: it asserts the three publisher modules (`lib/tools/qr/data-template.ts`,
@@ -55,18 +55,24 @@ LAUNCH_APPROVED=true
 
 ### Verified live dashboard state (read-only, 2026-11-15)
 
-| Where | Setting | Observed | Verdict |
-| --- | --- | --- | --- |
-| Vercel env | `SITE_URL` (Production only) | `https://quickkit-rosy.vercel.app` | ❌ **the defect** |
-| Vercel env | `LAUNCH_APPROVED` (Production only) | `true` | ✅ correct, correctly scoped |
-| Vercel domain | `quickkit.live` | verified, primary | ✅ |
-| Vercel domain | `www.quickkit.live` | verified, `redirect: quickkit.live`, `301` | ✅ |
-| Vercel domain | `quickkit-rosy.vercel.app` | verified, still serving | ✅ keep for now |
-| Supabase Auth | `site_url` | `https://quickkit-rosy.vercel.app` | ❌ must change |
-| Supabase Auth | `uri_allow_list` | `https://quickkit-rosy.vercel.app/admin` | ⚠️ no `/auth/callback` |
+| Where         | Setting                             | Was                      | Now                                           | Verdict                        |
+| ------------- | ----------------------------------- | ------------------------ | --------------------------------------------- | ------------------------------ |
+| Vercel env    | `SITE_URL` (Production only)        | `…rosy.vercel.app`       | `https://quickkit.live`                       | ✅ **fixed**                   |
+| Vercel env    | `LAUNCH_APPROVED` (Production only) | `true`                   | `true`                                        | ✅ unchanged, correctly scoped |
+| Vercel domain | `quickkit.live`                     | verified, primary        | same                                          | ✅                             |
+| Vercel domain | `www.quickkit.live`                 | `301` → apex             | same                                          | ✅                             |
+| Vercel domain | `quickkit-rosy.vercel.app`          | still serving            | same                                          | ⏳ keep until verified         |
+| Supabase Auth | `site_url`                          | `…rosy.vercel.app`       | `https://quickkit.live`                       | ✅ **fixed**                   |
+| Supabase Auth | `uri_allow_list`                    | `…rosy.vercel.app/admin` | apex + old-alias + localhost `/auth/callback` | ✅ **fixed**                   |
 
-The `www` 301 and the domain assignments are already correct — no DNS or domain
-work is needed. The only two wrong values are the two above.
+No DNS or domain work was needed — the `www` 301 and the domain assignments were
+already correct. Only the two origin values were wrong.
+
+**One field note:** `update_auth_config` echoes your requested values, but the
+stored config lags. A read immediately after the write still showed the old
+`site_url`; it only showed the new one after a later read. So **verify with a
+re-read after a pause** rather than trusting the write response — otherwise you
+will "confirm" a change that has not landed, or re-send a write that already did.
 
 ---
 
@@ -74,16 +80,16 @@ work is needed. The only two wrong values are the two above.
 
 The audit found the old alias in 44 files. Only some were defects.
 
-| Category | Action | Reason |
-| --- | --- | --- |
-| Origin publishers / samples (7 files) | **Repointed** to `https://quickkit.live` | These generate user-visible URLs and public sample content |
-| `.env.example` | **Repointed** + documented as the single lever | It is the template owners copy |
-| Test fixtures that stub `SITE_URL` | **Repointed** | They stand in for the production origin; pointing them at the retired alias would have let a regression pass |
-| Live runbooks (`docs/RELEASE_READINESS_OPERATIONS.md`, `supabase/email-templates/README.md`) | **Corrected** | They instruct the owner; wrong values there re-introduce the bug |
-| Dated audit reports (`AUDIT_REPORT_2026-11-15.md`, `docs/technical-seo-indexing-audit-2026-11-19.md`, …) | **Annotated, not rewritten** | They record measurements taken on the old domain. Rewriting them would falsify history |
-| `https://quickkit.invalid` sentinels | **Untouched** | Security boundary in `app/auth/callback/route.ts` — a deliberately non-resolvable origin used to reject unsafe `next=` redirects |
-| `http://localhost:3000/3001` callbacks | **Untouched** | Legitimate local development |
-| `quickkit-git-arena-….vercel.app` in docs | **Untouched** | A real preview deployment URL being cited as evidence |
+| Category                                                                                                 | Action                                         | Reason                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Origin publishers / samples (7 files)                                                                    | **Repointed** to `https://quickkit.live`       | These generate user-visible URLs and public sample content                                                                       |
+| `.env.example`                                                                                           | **Repointed** + documented as the single lever | It is the template owners copy                                                                                                   |
+| Test fixtures that stub `SITE_URL`                                                                       | **Repointed**                                  | They stand in for the production origin; pointing them at the retired alias would have let a regression pass                     |
+| Live runbooks (`docs/RELEASE_READINESS_OPERATIONS.md`, `supabase/email-templates/README.md`)             | **Corrected**                                  | They instruct the owner; wrong values there re-introduce the bug                                                                 |
+| Dated audit reports (`AUDIT_REPORT_2026-11-15.md`, `docs/technical-seo-indexing-audit-2026-11-19.md`, …) | **Annotated, not rewritten**                   | They record measurements taken on the old domain. Rewriting them would falsify history                                           |
+| `https://quickkit.invalid` sentinels                                                                     | **Untouched**                                  | Security boundary in `app/auth/callback/route.ts` — a deliberately non-resolvable origin used to reject unsafe `next=` redirects |
+| `http://localhost:3000/3001` callbacks                                                                   | **Untouched**                                  | Legitimate local development                                                                                                     |
+| `quickkit-git-arena-….vercel.app` in docs                                                                | **Untouched**                                  | A real preview deployment URL being cited as evidence                                                                            |
 
 Dated reports carry a banner pointing here rather than altered numbers.
 
@@ -94,7 +100,7 @@ Dated reports carry a banner pointing here rather than altered numbers.
 Do these **in order**. Steps 1–2 are the fix for the live SEO defect described in
 §4; the rest complete the migration.
 
-### 3.1 Vercel — the critical one
+### 3.1 Vercel — the critical one ✅ DONE
 
 1. Vercel → project **`quickkit`** → Settings → Environment Variables.
    Set for the **Production** environment:
@@ -106,19 +112,22 @@ Do these **in order**. Steps 1–2 are the fix for the live SEO defect described
    If a `SITE_URL` variable already exists for Production, **edit it** — do not add
    a second one (duplicate keys resolve unpredictably). Leave Preview/Development
    untouched or unset; unset means those deployments stay `noindex`.
+
 2. Confirm `LAUNCH_APPROVED=true` exists for **Production only**.
 3. **Redeploy production.** Env changes do not apply to already-built deployments —
-   the origin is baked into the build output at build time. Use *Redeploy* on the
+   the origin is baked into the build output at build time. Use _Redeploy_ on the
    latest production deployment, unchecking "use existing build cache" if offered.
+   **Still outstanding** — the env value is correct, but no production build has
+   been compiled since it changed.
 4. Verify (see §5) before touching the domain.
 
-### 3.2 Supabase — auth email links (verified live 2026-11-15)
+### 3.2 Supabase — auth email links ✅ DONE (verified live 2026-11-15)
 
 Read-only inspection of project `oevjmxcoyibkonousdoh` returned:
 
-| Setting | Current value |
-| --- | --- |
-| `site_url` | `https://quickkit-rosy.vercel.app` |
+| Setting          | Current value                            |
+| ---------------- | ---------------------------------------- |
+| `site_url`       | `https://quickkit-rosy.vercel.app`       |
 | `uri_allow_list` | `https://quickkit-rosy.vercel.app/admin` |
 
 Two things follow, and both matter:
@@ -132,14 +141,16 @@ Two things follow, and both matter:
 2. **The allowlist has no `/auth/callback` entry** — only `…/admin`. Do not assume
    a previous draft's allowlist is in place.
 
-5. Supabase → project `oevjmxcoyibkonousdoh` → Authentication → URL Configuration.
+3. Supabase → project `oevjmxcoyibkonousdoh` → Authentication → URL Configuration.
    - **Site URL:** `https://quickkit.live`
    - **Redirect URLs** — replace the single `/admin` entry with these three:
+
      ```
      https://quickkit.live/auth/callback
      https://quickkit-rosy.vercel.app/auth/callback
      http://localhost:3000/auth/callback
      ```
+
      Keep the old-alias callback while that alias still serves, then remove it.
      Keep the localhost one for local development. **Never** use a wildcard
      (`https://*.vercel.app/**`) — that turns the auth server into an open
@@ -147,7 +158,7 @@ Two things follow, and both matter:
 
      Add `https://quickkit.live/admin` only if you rely on `/admin` as a redirect
      target; the app itself never requests it.
-6. The six templates in `supabase/email-templates/templates/` use only
+4. The six templates in `supabase/email-templates/templates/` use only
    `{{ .ConfirmationURL }}`. They contain no hardcoded origin, so they pick up the
    new Site URL automatically — **no template edit needed**. Verify by triggering a
    password reset and confirming the link host is `quickkit.live`.
@@ -226,7 +237,7 @@ alone could fix it. Step 3.1 is the fix.
 
 ## 5. Verification after redeploy
 
-Run against `https://quickkit.live` (production). `X` is *any* tool slug.
+Run against `https://quickkit.live` (production). `X` is _any_ tool slug.
 
 ```bash
 # 1. Canonical origin — must be the apex everywhere
