@@ -264,4 +264,94 @@ export const CATEGORY_SEO_RECORDS: CategorySeoRecord[] = [
     internalLinks: ["/tools", "/category/pdf-tools", "/category/text-writing"],
     indexable: false,
   },
+  {
+    path: "/category/hr-payroll",
+    slug: "hr-payroll",
+    title: "HR & Payroll Tools — Salary, PF & Letters",
+    description:
+      "Salary-to-take-home in India with PF, ESI, professional tax and income tax shown line by line, plus gratuity, attendance, leave and HR letters — all local.",
+    h1: "HR & Payroll Tools",
+    primaryKeyword: "hr and payroll tools",
+    secondaryKeywords: [
+      "indian salary calculator tools",
+      "pf esi professional tax calculator",
+      "hr letters and formats",
+      "attendance and leave calculator",
+      "gratuity and full and final settlement",
+    ],
+    intent: "transactional",
+    researchId: "hr-payroll-hub",
+    alternativeTitles: [
+      "Payroll Calculators & HR Documents for India",
+      "Salary, PF, Gratuity and HR Letter Tools",
+    ],
+    alternativeDescription:
+      "Work out take-home pay, PF, ESI, professional tax and gratuity with every rate disclosed, then generate the letters and registers that support them.",
+    internalLinks: [
+      "/category/career-jobs",
+      "/tools/salary-calculator-india",
+      "/tools/gratuity-calculator",
+    ],
+    indexable: true,
+  },
+  {
+    path: "/category/seo-growth",
+    slug: "seo-growth",
+    title: "SEO Tools — SERP Preview, Schema & Page Audit",
+    description:
+      "Check title pixel width and SERP truncation, audit on-page keywords and readability, build valid JSON-LD, robots.txt and sitemaps — computed honestly, locally.",
+    h1: "SEO & Website Growth Tools",
+    primaryKeyword: "seo tools",
+    secondaryKeywords: [
+      "serp preview and title length checker",
+      "meta description generator",
+      "json-ld structured data generator",
+      "robots txt and sitemap generator",
+      "on-page seo audit tool",
+    ],
+    intent: "transactional",
+    researchId: "seo-growth-hub",
+    alternativeTitles: [
+      "Free SEO Analysis & Schema Tools",
+      "On-Page SEO, Schema and Robots Tools",
+    ],
+    alternativeDescription:
+      "Measure what a browser can actually measure: title pixels, keyword use, readability, duplicate copy, structured data validity and crawl directives.",
+    internalLinks: [
+      "/category/developer-tools",
+      "/category/text-writing",
+      "/tools/serp-preview",
+    ],
+    indexable: true,
+  },
+  {
+    path: "/category/career-jobs",
+    slug: "career-jobs",
+    title: "Career Tools — Resume Check, Salary & Letters",
+    description:
+      "Check resume readiness against a real job description, compare offers after Indian tax, plan notice periods and write the follow-ups — all processed locally.",
+    h1: "Career & Jobs Tools",
+    primaryKeyword: "career tools",
+    secondaryKeywords: [
+      "resume ats check against job description",
+      "salary comparison after tax india",
+      "cover letter and follow up generator",
+      "notice period and buyout calculator",
+      "interview preparation checklist",
+    ],
+    intent: "transactional",
+    researchId: "career-jobs-hub",
+    alternativeTitles: [
+      "Job Search Tools — Resume, Salary, Letters",
+      "Resume Analysis and Salary Calculators",
+    ],
+    alternativeDescription:
+      "Measure your resume against the job you want, work out what an offer is worth after tax, and generate the letters you need next.",
+    internalLinks: [
+      "/category/hr-payroll",
+      "/category/text-writing",
+      "/tools/resume-ats-checker",
+    ],
+    indexable: true,
+  },
 ];

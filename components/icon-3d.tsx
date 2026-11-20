@@ -100,7 +100,10 @@ export type GlyphName =
   | "wave"
   | "ruler"
   | "thermo"
-  | "clock";
+  | "clock"
+  | "people"
+  | "chart"
+  | "briefcase";
 
 type Paint = {
   /** white → pale-tone gradient for the raised object */
@@ -1533,6 +1536,65 @@ const glyphs: Record<
       <circle cx={32} cy={31} r={2.4} fill={p.a} />
     </>
   ),
+  people: (p) => (
+    <>
+      <circle cx={25} cy={21} r={7.4} fill={p.w} />
+      <path
+        d="M24 32.5c6-3 18-3 24 0 3.4 1.7 5 5.4 4.1 9.1l-1.5 5.6a3 3 0 0 1-3 2.2H24.4a3 3 0 0 1-3-2.2L20 41.6c-.9-3.7.7-7.4 4-9.1Z"
+        fill="var(--i-light)"
+        stroke={p.w}
+        strokeWidth={2.4}
+        {...round}
+      />
+      <circle cx={42.5} cy={24} r={5.6} fill={p.a} opacity={0.55} />
+      <circle cx={25} cy={21} r={3.1} fill="var(--i-mid)" opacity={0.85} />
+    </>
+  ),
+  chart: (p) => (
+    <>
+      <path
+        d="M18 12.5 H46 a4.5 4.5 0 0 1 4.5 4.5 V47 a4.5 4.5 0 0 1-4.5 4.5 H18a4.5 4.5 0 0 1-4.5-4.5V17a4.5 4.5 0 0 1 4.5-4.5Z"
+        fill={p.w}
+      />
+      {[
+        [24.5, 34.5, 17],
+        [32, 27, 10],
+        [39.5, 21.5, 5],
+      ].map(([x, y, len]) => (
+        <rect
+          key={`${x}`}
+          x={x - 2.6}
+          y={y}
+          width={5.2}
+          height={len}
+          rx={2.4}
+          fill={x === 39.5 ? p.a : "var(--i-mid)"}
+        />
+      ))}
+    </>
+  ),
+  briefcase: (p) => (
+    <>
+      <path
+        d="M18 24.5 H46 a5 5 0 0 1 5 5 V45 a5 5 0 0 1-5 5 H18a5 5 0 0 1-5-5V29.5a5 5 0 0 1 5-5Z"
+        fill={p.w}
+      />
+      <path
+        d="M26.5 24.5 V19.5a3.5 3.5 0 0 1 3.5-3.5h4a3.5 3.5 0 0 1 3.5 3.5v5"
+        fill="none"
+        stroke={p.w}
+        strokeWidth={3.2}
+        {...round}
+      />
+      <path
+        d="M13 33.5 H51"
+        stroke={D}
+        strokeOpacity={0.22}
+        strokeWidth={2.6}
+      />
+      <rect x={28.5} y={31} width={7} height={6} rx={1.8} fill={p.a} />
+    </>
+  ),
 };
 
 /** Deterministic 0..1 value derived from the icon name (no Math.random). */
@@ -1685,6 +1747,9 @@ export const categoryTones: Record<ToolCategory, Tone> = {
   "Developer Tools": "indigo",
   Calculators: "azure",
   "Security & Privacy": "emerald",
+  "HR & Payroll": "teal",
+  "SEO & Website Growth": "amber",
+  "Career & Jobs": "rose",
   "AI Tools": "magenta",
 };
 
@@ -1696,11 +1761,89 @@ export const categoryArt: Record<CategoryMeta["icon"], GlyphName> = {
   code: "code",
   calc: "calc",
   shield: "shield",
+  people: "people",
+  chart: "chart",
+  briefcase: "briefcase",
   sparkles: "sparkles",
 };
 
 /** One unique glyph per tool, keyed by route slug (the catalog's `icon` key is shared by e.g. every calculator). */
 export const toolArt: Record<string, GlyphName> = {
+  "salary-calculator-india": "people",
+  "in-hand-salary-calculator": "people",
+  "income-tax-calculator": "people",
+  "pf-calculator": "people",
+  "esi-calculator": "people",
+  "gratuity-calculator": "people",
+  "full-and-final-settlement": "people",
+  "leave-encashment-calculator": "people",
+  "attendance-calculator": "people",
+  "overtime-calculator": "people",
+  "shift-hours-calculator": "people",
+  "salary-slip-generator": "people",
+  "offer-letter-generator": "people",
+  "experience-letter-generator": "people",
+  "relieving-letter-generator": "people",
+  "warning-letter-generator": "people",
+  "appreciation-letter-generator": "people",
+  "increment-letter-generator": "people",
+  "termination-letter-generator": "people",
+  "internship-certificate-generator": "people",
+  "job-description-generator": "people",
+  "kpi-sheet-generator": "people",
+  "interview-plan-generator": "people",
+  "probation-period-calculator": "people",
+  "statutory-leave-calculator": "people",
+  "working-days-calculator": "people",
+  "serp-preview": "chart",
+  "keyword-density-checker": "chart",
+  "readability-checker": "chart",
+  "on-page-audit": "chart",
+  "duplicate-content-checker": "chart",
+  "keyword-cannibalisation-checker": "chart",
+  "organization-schema-generator": "chart",
+  "article-schema-generator": "chart",
+  "faq-schema-generator": "chart",
+  "product-schema-generator": "chart",
+  "local-business-schema-generator": "chart",
+  "job-posting-schema-generator": "chart",
+  "breadcrumb-schema-generator": "chart",
+  "json-ld-validator": "chart",
+  "robots-txt-generator": "chart",
+  "robots-txt-validator": "chart",
+  "sitemap-generator": "chart",
+  "sitemap-validator": "chart",
+  "canonical-checker": "chart",
+  "hreflang-checker": "chart",
+  "redirect-checker": "chart",
+  "title-generator": "chart",
+  "meta-description-generator": "chart",
+  "content-brief-generator": "chart",
+  "headline-generator": "chart",
+  "alt-text-generator": "chart",
+  "internal-link-suggestions": "chart",
+  "topic-cluster-builder": "chart",
+  "resume-ats-checker": "briefcase",
+  "resume-keyword-matcher": "briefcase",
+  "resume-bullet-improver": "briefcase",
+  "resume-summary-generator": "briefcase",
+  "resume-comparison": "briefcase",
+  "salary-converter": "briefcase",
+  "contractor-rate-calculator": "briefcase",
+  "offer-comparison-calculator": "briefcase",
+  "total-compensation-calculator": "briefcase",
+  "equity-vesting-calculator": "briefcase",
+  "relocation-calculator": "briefcase",
+  "marginal-tax-rate": "briefcase",
+  "notice-buyout-calculator": "briefcase",
+  "notice-period-calculator": "briefcase",
+  "experience-calculator": "briefcase",
+  "cover-letter-generator": "briefcase",
+  "follow-up-generator": "briefcase",
+  "star-answer-builder": "briefcase",
+  "linkedin-about-generator": "briefcase",
+  "interview-prep-plan": "briefcase",
+  "availability-statement": "briefcase",
   ...Object.fromEntries(
     securityToolDefinitions.map((item) => [
       item.slug,

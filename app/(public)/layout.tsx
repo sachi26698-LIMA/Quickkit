@@ -8,7 +8,6 @@ import JsonLd from "@/components/json-ld";
 import OfflineIndicator from "@/components/offline-indicator";
 import SmoothAnchor from "@/components/smooth-anchor";
 import { isAdsEnabled } from "@/lib/ads";
-import { getClientCatalog } from "@/lib/client-catalog";
 import { siteStructuredData } from "@/lib/seo";
 import { contactEmail as defaultContactEmail } from "@/lib/site";
 import {
@@ -38,11 +37,12 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [{ categories, tools }, settings, clientTools] = await Promise.all([
+  // The palette used to need a projected catalogue here. It now fetches its own
+  // index on first open (`app/api/palette-index/route.ts`), so this layout reads
+  // only what the header and footer actually render.
+  const [{ categories, tools }, settings] = await Promise.all([
     getPublicCatalog(),
     getPublicSiteSettings(),
-    // Same projected array the homepage consumes — one flight encoding.
-    getClientCatalog(),
   ]);
   const siteName = settings.website_name ?? "QUICKKIT";
   const maintenance = settings.maintenance;
@@ -107,7 +107,9 @@ export default async function PublicLayout({
       />
       {/* Global Ctrl/⌘ K search for every public page except the two that
           already mount an inline search box (/, /tools). */}
-      <CommandPalette tools={clientTools} categories={categories} />
+      {/* No catalogue prop: the palette fetches its index on first open, so
+          every page no longer carries 54.6 kB of tool records. */}
+      <CommandPalette />
       <IconMotionGate />
       <SmoothAnchor />
       <OfflineIndicator />

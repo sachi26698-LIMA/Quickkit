@@ -183,9 +183,42 @@ describe("hero search seed panel", () => {
 });
 
 describe("command palette", () => {
-  it("opens with Ctrl+K on a page that has no inline search", () => {
+  /**
+   * The palette requests its search index on first open instead of receiving the
+   * catalogue as a prop — that prop was serialised into every page of the site.
+   * `fetch` is stubbed here so the intent-on-open behaviour is what is tested.
+   */
+  const paletteIndex = () => {
+    const spy = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            tools: catalogTools.map((tool) => ({
+              slug: tool.slug,
+              name: tool.name,
+              category: tool.category,
+              icon: tool.icon,
+              color: tool.color,
+              haystack:
+                `${tool.name} ${tool.description} ${tool.keywords} ${tool.category}`.toLowerCase(),
+            })),
+            categories: categoryMeta,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+    );
+    vi.stubGlobal("fetch", spy);
+    return spy;
+  };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("opens with Ctrl+K on a page that has no inline search", async () => {
     nav.pathname = "/tools/merge-pdf";
-    render(<CommandPalette tools={tools} categories={categoryMeta} />);
+    paletteIndex();
+    render(<CommandPalette />);
     fireEvent.keyDown(window, { key: "k", ctrlKey: true });
     const dialog = screen.getByRole("dialog", { name: "Search QUICKKIT" });
     expect(dialog).toBeInTheDocument();
@@ -193,15 +226,34 @@ describe("command palette", () => {
       target: { value: "json" },
     });
     expect(
-      screen.getByRole("option", { name: /JSON Formatter/ }),
+      await screen.findByRole("option", { name: /JSON Formatter/ }),
     ).toBeInTheDocument();
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("does not fetch the index until the palette is opened", async () => {
+    // The loader keeps one promise per tab, so a fresh module registry is needed
+    // to observe the first request rather than another test's cached one.
+    vi.resetModules();
+    const { default: FreshPalette } =
+      await import("@/components/command-palette");
+    nav.pathname = "/tools/merge-pdf";
+    const fetchSpy = paletteIndex();
+    render(<FreshPalette />);
+    // Mounted on the page, closed: no request for the catalogue.
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/palette-index",
+      expect.anything(),
+    );
+  });
+
   it("stays out of the way on the pages that own Ctrl+K inline", () => {
     nav.pathname = "/";
-    render(<CommandPalette tools={tools} categories={categoryMeta} />);
+    paletteIndex();
+    render(<CommandPalette />);
     fireEvent.keyDown(window, { key: "k", ctrlKey: true });
     expect(screen.queryByRole("dialog")).toBeNull();
   });

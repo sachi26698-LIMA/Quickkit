@@ -7,6 +7,9 @@ import {
   ShieldCheck,
   Sparkles,
   Type,
+  Users,
+  ChartNoAxesColumn,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react";
 import type { CategoryMeta } from "@/lib/catalog";
@@ -19,6 +22,9 @@ export const categoryIcons: Record<CategoryMeta["icon"], LucideIcon> = {
   code: Code,
   calc: Calculator,
   shield: ShieldCheck,
+  people: Users,
+  chart: ChartNoAxesColumn,
+  briefcase: Briefcase,
   sparkles: Sparkles,
 };
 

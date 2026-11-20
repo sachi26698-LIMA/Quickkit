@@ -1,4 +1,5 @@
 import type { ToolSeoRecord } from "./registry";
+import { launchCategories, launchTools } from "@/lib/tools/launch/registry";
 
 /**
  * Per-tool search records — one per published tool route.
@@ -761,7 +762,7 @@ export const TOOL_SEO_RECORDS: ToolSeoRecord[] = [
       "count words in essay",
       "reading time calculator",
       "word count for twitter bio",
-      "keyword density checker",
+      "words per page count",
     ],
     intent: "transactional",
     researchId: "word-counter",
@@ -1849,4 +1850,44 @@ export const TOOL_SEO_RECORDS: ToolSeoRecord[] = [
     ],
     indexable: true,
   },
+];
+
+/**
+ * The launched HR / SEO / Career tools declare their own search metadata in
+ * `lib/tools/launch/registry.ts`, next to the H1, the FAQs and the reference
+ * section they ship with. Keeping a second hand-copied record here would give
+ * the title and the H1 two places to drift apart, which is the exact failure
+ * `audit.ts` exists to catch — so those records are derived instead.
+ *
+ * Everything checked by the audit still applies to them: unique title inside the
+ * SERP budget, description inside the snippet budget, one record per route, a
+ * researchId, two alternative titles, an alternative description and at least
+ * three internal-link targets.
+ */
+const LAUNCHED_TOOL_RECORDS: ToolSeoRecord[] = launchTools.map((tool) => ({
+  path: `/tools/${tool.slug}`,
+  slug: tool.slug,
+  title: tool.seoTitle,
+  description: tool.seoDescription,
+  h1: tool.h1,
+  primaryKeyword: tool.primaryKeyword,
+  secondaryKeywords: tool.secondaryKeywords,
+  intent: "transactional",
+  researchId: tool.researchId,
+  alternativeTitles: tool.alternativeTitles,
+  alternativeDescription: tool.alternativeDescription,
+  internalLinks: [
+    ...new Set([
+      ...tool.internalLinks,
+      ...launchCategories
+        .filter((category) => category.name === tool.categoryName)
+        .map((category) => `/category/${category.slug}`),
+    ]),
+  ],
+  indexable: tool.status === "live",
+}));
+
+export const ALL_TOOL_SEO_RECORDS: ToolSeoRecord[] = [
+  ...TOOL_SEO_RECORDS,
+  ...LAUNCHED_TOOL_RECORDS,
 ];

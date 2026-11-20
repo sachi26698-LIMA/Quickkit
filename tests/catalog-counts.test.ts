@@ -38,7 +38,11 @@ describe("single authoritative catalogue counts", () => {
 
   it("matches the categories the public site actually ships", () => {
     // AI Tools is a roadmap entry with no routes; it must never inflate a count.
-    expect(publishedCategoryCount).toBe(7);
+    // Derived, not pinned: a category counts as published exactly when a tool
+    // ships in it, so adding one never needs a test edit.
+    expect(publishedCategoryCount).toBe(
+      categoryMeta.filter((meta) => meta.name !== "AI Tools").length,
+    );
     expect(toolCountByCategory["AI Tools"]).toBe(0);
     for (const meta of categoryMeta) {
       if (meta.name === "AI Tools") continue;

@@ -11,49 +11,31 @@ import initHtmlMinifier, {
   minify as minifyHtmlWithWasm,
 } from "minify-html-wasm";
 
-export const MAX_DEVELOPER_TEXT_LENGTH = 1_000_000;
-export const MAX_MARKUP_FILE_BYTES = 1_000_000;
+import {
+  MAX_DEVELOPER_TEXT_LENGTH,
+  MAX_MARKUP_FILE_BYTES,
+  assertDeveloperInput,
+  utf8Size,
+  compareSizes,
+  type SizeStats,
+} from "./developer-code-shared";
+
+// Re-exported so the minifier components can keep importing from one module.
+// Anything that needs only these must import from `developer-code-shared`
+// directly, or it inherits terser, csso and xmldom with them.
+export {
+  MAX_DEVELOPER_TEXT_LENGTH,
+  MAX_MARKUP_FILE_BYTES,
+  assertDeveloperInput,
+  utf8Size,
+  compareSizes,
+  type SizeStats,
+};
 
 export const SAMPLE_HTML = `<!doctype html>\n<html>\n<head><title>QUICKKIT</title></head>\n<body><main><h1>Hello, world!</h1><p>Local tools, <strong>no uploads</strong>.</p></main></body>\n</html>`;
 export const SAMPLE_CSS = `/* Card styles */\n.card {\n  color: #ffffff;\n  background-color: rgb(67, 56, 202);\n  margin: 0px 0px 16px 0px;\n}`;
 export const SAMPLE_JAVASCRIPT = `function greet(name) {\n  const message = \`Hello, \${name}!\`;\n  return message;\n}\nconsole.log(greet("QUICKKIT"));`;
 export const SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>\n<catalog><tool id="json"><name>JSON Formatter</name><local>true</local></tool><tool id="hash"><name>Hash Generator</name><local>true</local></tool></catalog>`;
-
-export function assertDeveloperInput(
-  input: string,
-  label = "Input",
-  maxLength = MAX_DEVELOPER_TEXT_LENGTH,
-): void {
-  if (!input.trim()) throw new Error(`Enter ${label.toLowerCase()} first.`);
-  if (input.length > maxLength) {
-    throw new Error(
-      `${label} is too large. Keep it below ${maxLength.toLocaleString()} characters.`,
-    );
-  }
-}
-
-export function utf8Size(value: string): number {
-  return new TextEncoder().encode(value).byteLength;
-}
-
-export type SizeStats = {
-  beforeBytes: number;
-  afterBytes: number;
-  savedBytes: number;
-  savedPercent: number;
-};
-
-export function compareSizes(before: string, after: string): SizeStats {
-  const beforeBytes = utf8Size(before);
-  const afterBytes = utf8Size(after);
-  const savedBytes = beforeBytes - afterBytes;
-  return {
-    beforeBytes,
-    afterBytes,
-    savedBytes,
-    savedPercent: beforeBytes ? (savedBytes / beforeBytes) * 100 : 0,
-  };
-}
 
 function assertBalancedCss(source: string): void {
   const stack: { character: string; position: number }[] = [];

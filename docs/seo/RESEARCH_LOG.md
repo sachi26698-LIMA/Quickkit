@@ -8,8 +8,8 @@ they say.**
 
 ## Method
 
-1. **Repository first.** The 56 published tools, 8 categories and their
-   real behaviour (hard limits, supported formats, processing location) were read
+1. **Repository first.** The published tools, categories and their real
+   behaviour (hard limits, supported formats, processing location) were read
    from the implementation before any copy was written. A description that the
    engine cannot keep was rejected at that step.
 2. **SERP inspection.** For each cluster, Google results were inspected for the
@@ -272,6 +272,178 @@ Research IDs: `password`, `crypto-suite`, `dns-email`, `web-security-review`,
 
 ---
 
+## HR & Payroll cluster (`/category/hr-payroll`)
+
+Queries examined: `salary calculator india`, `ctc to take home`, `in hand
+salary calculator`, `reverse salary calculator`, `income tax calculator new
+regime`, `pf calculator 12%`, `epf calculator 15000`, `esi calculator 21000`,
+`gratuity calculator 15/26`, `full and final settlement calculator`, `leave
+encashment calculator`, `attendance percentage calculator`, `loss of pay
+calculation`, `overtime calculator double rate`, `shift hours calculator
+overnight`, `salary slip generator format india`, `offer letter generator`,
+`experience letter format`, `relieving letter format`, `warning letter to
+employee`, `appreciation letter sample`, `increment letter format`, `termination
+letter sample`, `internship certificate format`, `job description generator`,
+`kpi sheet template`, `interview plan template`, `probation period calculator`,
+`statutory leave factories act`, `working days calculator 2025`, `salary
+calculator kaise nikale`.
+
+**What the results look like.** This is a two-population SERP. The arithmetic
+side (salary, PF, ESI, gratuity, income tax) is held by a handful of very large
+advisors and payroll vendors whose pages are heavily templated and whose
+calculators frequently disagree with one another on the FY-appropriate numbers —
+usually because a page has not been updated for a rule change and gives no date.
+The document side (letters) is dominated by template farms whose pages are a
+screenshot of a Word document, an unclear effective date, and a keyword-stuffed
+opening paragraph. Two gaps recur across both halves:
+
+- **Nobody shows the arithmetic.** Competitors present a monthly take-home figure
+  as a finished answer; almost none show the CTC → gross → statutory-deduction →
+  net ladder that produced it, so a user who has to explain the number to an HR
+  desk cannot.
+- **The 12%/₹15,000 PF ceiling and the ₹21,000 ESI wage ceiling** are the two
+  facts where competitors drift. ESI in particular has a coverage cut-off many
+  pages get wrong. A page that states both ceilings explicitly, and says what
+  happens when someone crosses them mid-year, answers a question the user
+  already has.
+
+**Intent.** Transactional for every calculator (people arrive with a number to
+get), informational for the letters (they arrive with a wording problem) and for
+the statutory-leave and working-days queries (a rule to check).
+
+**Decision.** Every HR title carries the number that proves the page is current
+— `EPF Calculator — 12% of Basic and ₹15,000 Ceiling`, `ESI Calculator — 0.75%
+and 3.25% up to ₹21,000`, `Gratuity Calculator — 15/26 of Basic + DA` — because
+the differentiator against a stale competitor is the formula in the title.
+Descriptions lead with the ladder, not the answer: they promise that the gross,
+each deduction and the net are shown on separate lines with the rate stated.
+The letter generators promise something narrower than their competitors: a
+template into which the user's facts are placed, with every unfilled field
+visible as a placeholder, and an explicit statement that no language model
+writes the letter. That is the honest claim, and it is also the one a reader
+who has received a nonsense AI-generated warning letter is looking for.
+
+Regional phrasing lives inside these pages, not on separate URLs: the
+`salary calculator kaise nikale` and `in hand kitna` phrasings are recorded in
+`localPhrasing` and used in body copy, because the tool genuinely answers the
+question in that wording.
+
+Research IDs: `hr-payroll-hub`, `hr-salary-ctc`, `hr-salary-net-to-gross`,
+`hr-income-tax`, `hr-pf`, `hr-esi`, `hr-gratuity`, `hr-full-and-final`,
+`hr-leave`, `hr-attendance`, `hr-overtime`, `hr-shift`, `hr-payslip`,
+`hr-offer-letter`, `hr-experience-letter`, `hr-relieving-letter`,
+`hr-warning-letter`, `hr-appreciation-letter`, `hr-increment-letter`,
+`hr-termination-letter`, `hr-internship-certificate`, `hr-job-description`,
+`hr-kpi-sheet`, `hr-interview-plan`, `hr-probation`, `hr-statutory-leave`,
+`hr-working-days`.
+
+---
+
+## SEO & Website Growth cluster (`/category/seo-growth`)
+
+Queries examined: `serp preview tool`, `title tag length checker`, `pixel
+width title`, `keyword density checker`, `readability checker flesch`, `on page
+audit`, `duplicate content checker`, `keyword cannibalisation`, `organization
+schema generator`, `article schema json-ld`, `faq schema generator`, `product
+schema generator`, `local business schema generator`, `job posting schema
+generator`, `breadcrumb schema generator`, `json-ld validator`, `robots.txt
+generator`, `robots.txt tester`, `sitemap generator`, `sitemap validator`,
+`canonical tag checker`, `hreflang checker`, `redirect checker 301 chain`,
+`title generator`, `meta description generator`, `content brief generator`,
+`headline generator`, `alt text generator`, `internal link suggestions`,
+`topic cluster builder`, `keyword cannibalisation kaise check kare`.
+
+**What the results look like.** Two kinds of competitor: established SEO suites
+(Ahrefs, Screaming Frog, Merkle and similar) that gate everything behind a
+trial, and a long tail of free single-purpose pages that do one thing. The free
+tail has a specific credibility problem — many of its pages **claim to check
+something they cannot**. A browser-only page cannot crawl a live site, cannot
+see what Google indexed, and cannot measure search volume; yet "free SEO audit"
+pages routinely claim all three. That is the gap this cluster competes on:
+every tool states what it inspects (the text you paste, the markup you paste,
+the URL you paste) and never implies a crawl, an index check or a ranking
+measurement.
+
+**Intent.** Transactional for most (paste something, get a verdict),
+informational for cannibalisation, duplicate content and topic clusters, where
+the user is diagnosing a problem rather than running a check.
+
+**Decision.** Every title names the artefact inspected, not the outcome
+promised — `Keyword Density Checker — Count, Ratio, Placement`, `JSON-LD
+Validator — Check Structured Data`, `Sitemap Validator — Check sitemap.xml`.
+Descriptions avoid the words "audit", "rank" and "traffic" except on the two
+pages whose copy explains precisely why they cannot promise those things. The
+schema generators say the output is JSON-LD you can paste and that Google's Rich
+Results Test is the authority on eligibility; none of them claims to make a
+result appear. The `seo-growth` location words appear in `localPhrasing` only as
+the Hindi/English diagnostic phrasing (`kaise check kare`), because a
+cannibalisation question is asked in that mix even by people who work in
+English.
+
+Research IDs: `seo-growth-hub`, `seo-serp-preview`, `seo-keyword-density`,
+`seo-readability`, `seo-on-page-audit`, `seo-duplicate-content`,
+`seo-cannibalisation`, `seo-organization-schema`, `seo-article-schema`,
+`seo-faq-schema`, `seo-product-schema`, `seo-local-business-schema`,
+`seo-job-posting-schema`, `seo-breadcrumb-schema`, `seo-json-ld-validator`,
+`seo-robots-txt`, `seo-robots-validator`, `seo-sitemap`,
+`seo-sitemap-validator`, `seo-canonical`, `seo-hreflang`, `seo-redirects`,
+`seo-title-generator`, `seo-meta-description`, `seo-content-brief`,
+`seo-headline`, `seo-alt-text`, `seo-internal-links`, `seo-topic-clusters`.
+
+---
+
+## Career & Jobs cluster (`/category/career-jobs`)
+
+Queries examined: `resume ats checker`, `ats resume score india`, `cv checker
+free`, `resume keyword matcher`, `tailor resume to job description`, `action
+verbs for resume`, `responsible for resume`, `resume summary generator`,
+`professional summary examples`, `compare two resumes`, `salary converter`,
+`annual to hourly calculator`, `contractor rate calculator`, `day rate to
+salary india`, `offer comparison calculator`, `salary hike after tax`, `total
+compensation calculator`, `esop calculator india`, `rsu vesting schedule`,
+`relocation calculator cost of living`, `marginal tax rate calculator`, `notice
+buyout calculator`, `notice period calculator`, `last working day calculator`,
+`experience calculator`, `years of experience from dates`, `cover letter
+generator`, `follow up email after interview`, `star method interview answers`,
+`linkedin about generator`, `interview preparation plan`, `availability
+statement notice period`, `resume ats check kaise kare`.
+
+**What the results look like.** The ATS side is the most commercially aggressive
+SERP in this product: job boards (Naukri, LinkedIn) own the head terms, and a
+dense layer of paid resume-score products competes on a single promise — a
+number out of 100 — without ever saying which scoring system produced it. The
+tell is that the same résumé scores 62 on one site and 91 on another. On the
+offer side, calculators assume the US or UK tax model, or give an India option
+that predates the new regime. Notice-period and last-working-day queries are
+strongly Indian and answered poorly: most results are an HR blog paragraph, not
+a date.
+
+**Intent.** Transactional for every calculator and the ATS check;
+informational for the notice-period rule, marginal versus average tax, and the
+notice-buyout question; some navigational spill (people search the tool name of
+a paid service and land here).
+
+**Decision.** The résumé checker is the page that sets the tone for the
+category, and it does so by refusing the market's favourite claim. Its title says
+what it does — `Résumé ATS Checker — Readiness Score, Itemised` — not what it
+guarantees, and the description states that no website can know a specific
+system's score, then says what is measurable: parseable headings, contact
+details, quantified bullets, action-verb openers and coverage of a pasted job
+description. The keyword matcher explicitly will not insert a keyword the user
+cannot defend in an interview. Offer maths reuses the same Indian payroll engine
+as the HR category so the two categories cannot disagree, and every offer page
+says that the comparison is after tax rather than before it.
+
+Research IDs: `career-jobs-hub`, `career-ats-check`, `career-keyword-match`,
+`career-bullet-improver`, `career-summary`, `career-resume-comparison`,
+`career-salary-converter`, `career-contractor-rate`, `career-offer-comparison`,
+`career-total-compensation`, `career-equity`, `career-relocation`,
+`career-marginal-rate`, `career-notice-buyout`, `career-notice-period`,
+`career-experience`, `career-cover-letter`, `career-follow-up`, `career-star`,
+`career-linkedin`, `career-interview-prep`, `career-availability`.
+
+---
+
 ## Page-level routes (homepage, hubs, guide and policies)
 
 Seventeen non-tool routes were researched separately, because the job they do is
@@ -307,9 +479,10 @@ need an account`) are answered on competitor pages by FAQ blocks that are
 - The homepage title names the four formats QUICKKIT leads with rather than
   claiming "300+ tools" it does not have. The count in the description is
   substituted from the live catalogue, so it can never be stale or inflated.
-- `/tools` puts the real published count in the title (`All 56 Free Online Tools
-— PDF, Image & Code`) because an honest count is the only differentiator a
-  56-tool index has against an aggregator's 300.
+- `/tools` puts the real published count in the title (`All {count} Free Online
+Tools — PDF, Image & Code`, substituted from the live catalogue) because an
+  honest count is the only differentiator a small index has against an
+  aggregator's 300.
 - `/help` and the policy pages are written to be _found during a trust check_
   and then send the reader on to the document that answers the next question —
   `/file-handling` for "does it upload", `/security` for headers and disclosure,

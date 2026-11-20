@@ -14,6 +14,10 @@ test-results/
 *.pem
 *.key
 /public/ocr/
+# Only the generated export copy is ignored. The BioCraft font library keeps
+# committed faces at public/fonts/<language>/<family>/, so a blanket rule would
+# hide those files from git and a merge would silently drop them.
+/public/fonts/export/
 # Runtime visitor analytics databases belong on an external persistent volume.
 *.db
 *.db-shm

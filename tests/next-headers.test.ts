@@ -242,12 +242,25 @@ describe("next.config header policy", () => {
     }
 
     // The preview sandbox names the preview origin — not `*`, not a scheme.
+    //
+    // Both the sandbox host that serves the document and the agent UI that
+    // embeds it have to be named: `frame-ancestors` checks every ancestor, so
+    // allowing only `https://*.e2b.app` left the real embedding page refused
+    // and the preview rendered as an empty frame.
     const preview = await cspFor({ ALLOW_SANDBOX_PREVIEW: "1" });
-    expect(preview).toContain("frame-ancestors 'self' https://*.e2b.app");
+    expect(preview).toContain(
+      "frame-ancestors 'self' https://*.e2b.app https://arena.ai https://*.arena.ai",
+    );
     expect(preview).not.toMatch(
       /frame-ancestors[^;]*https:\/\/[^;\s]*\*\.[^;\s]*\.e2b\.app/,
     );
     expect(preview).not.toMatch(/frame-ancestors[^;]*(^|\s)\*(\s|;)/);
+    // The opt-in must not leak the embedding host into a deployed build.
+    for (const env of [null, { ALLOW_SANDBOX_PREVIEW: "0" }]) {
+      const value = await cspFor(env);
+      expect(value).toContain("frame-ancestors 'none'");
+      expect(value).not.toContain("arena.ai");
+    }
   });
 
   it("only widens the dev-origin guard while developing", async () => {

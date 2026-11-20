@@ -67,9 +67,17 @@ const ADSENSE_CONNECTIONS = [
 // `ALLOW_SANDBOX_PREVIEW=1` (never set in production, and never implied by the
 // E2B_SANDBOX environment alone, so a test run cannot inherit it), and it names
 // the preview origin rather than a bare wildcard.
+//
+// Two origins have to be named, not one. The preview document is served from
+// the sandbox host, but it is framed by the agent UI that embeds it — and
+// `frame-ancestors` checks the *whole* ancestor chain, not just the immediate
+// parent. Allowing only `https://*.e2b.app` therefore left the real embedding
+// page (`https://arena.ai`) refused, and the browser rendered an empty frame
+// instead of the app: a blank preview with no console-visible error in the
+// sandbox, because the block happens on the far side of the proxy.
 const previewFraming = process.env.ALLOW_SANDBOX_PREVIEW === "1";
 const FRAME_ANCESTORS = previewFraming
-  ? "frame-ancestors 'self' https://*.e2b.app"
+  ? "frame-ancestors 'self' https://*.e2b.app https://arena.ai https://*.arena.ai"
   : "frame-ancestors 'none'";
 
 // Supabase is contacted only from the server: `lib/supabase/*` is `server-only`,

@@ -16,7 +16,7 @@ export const textKeywordClusters: ToolKeywordCluster[] = [
       "count words in essay",
       "reading time calculator",
       "word count for twitter bio",
-      "keyword density checker",
+      "words per page count",
     ],
     groups: {
       alternativeName: [

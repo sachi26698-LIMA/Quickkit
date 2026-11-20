@@ -11,6 +11,7 @@ import { TOOL_SEO_CONTENT } from "@/lib/tool-seo-content";
 import { SECURITY_SUITE_SEO_CONTENT } from "@/lib/tools/security/seo-content";
 import { BARCODE_SUITE_SEO_CONTENT } from "./barcode-suite-content";
 import { allPageSeoRecords, fillToolCount } from "./pages";
+import { launchToolBySlug } from "@/lib/tools/launch/registry";
 
 /**
  * Metadata quality audit.
@@ -84,6 +85,10 @@ function hasReferenceContent(slug: string): boolean {
     // The twelve calculators render a formulas + worked-examples section from
     // `lib/calculator-info.ts` instead of the shared reference registry.
     Object.prototype.hasOwnProperty.call(calculatorInfo, slug) ||
+    // Launched HR / SEO / Career tools carry their reference material in their
+    // own declaration (`reference` + optional `caveat` / `jurisdiction`), which
+    // `launch-tool-page.tsx` renders as the page's specifications section.
+    (launchToolBySlug(slug)?.reference.length ?? 0) > 0 ||
     // These routes carry their own hand-written reference sections inside the
     // page component rather than the shared registry.
     [

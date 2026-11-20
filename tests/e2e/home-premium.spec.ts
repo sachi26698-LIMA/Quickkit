@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { toolCategories } from "../../lib/catalog";
 
 for (const viewport of [
   { name: "mobile", width: 390, height: 844 },
@@ -20,7 +21,9 @@ for (const viewport of [
         .getByRole("region", { name: "QUICKKIT tools" })
         .getByText("Small tasks. Quick solutions.", { exact: true }),
     ).toBeVisible();
-    await expect(page.locator(".category-card")).toHaveCount(8);
+    await expect(page.locator(".category-card")).toHaveCount(
+      toolCategories.length,
+    );
     await expect(page.locator(".why-card")).toHaveCount(4);
 
     const chips = page.locator(".popular-chip");
