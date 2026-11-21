@@ -5,6 +5,7 @@ node_modules/
 /public/html-minifier/
 coverage/
 playwright-report/
+playwright-results/
 test-results/
 .env*
 !.env.example

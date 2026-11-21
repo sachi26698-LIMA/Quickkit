@@ -46,22 +46,14 @@ export async function POST(request: NextRequest) {
     if (!allowlist.has(email)) return noStoreJson({ ok: true });
     try {
       const client = await createRecoveryClient();
-      if (!client) return apiError(503, "Recovery is temporarily unavailable.");
-      const { error } = await client.auth.resetPasswordForEmail(email, {
+      if (!client) return noStoreJson({ ok: true });
+      await client.auth.resetPasswordForEmail(email, {
         redirectTo: RECOVERY_CALLBACK,
       });
-      if (error)
-        return apiError(
-          503,
-          "Recovery is temporarily unavailable. Try again later.",
-        );
-      return noStoreJson({ ok: true });
     } catch {
-      return apiError(
-        503,
-        "Recovery is temporarily unavailable. Try again later.",
-      );
+      // Do not reveal allowlist membership through provider failures.
     }
+    return noStoreJson({ ok: true });
   }
   if (body.action === "update") {
     if (

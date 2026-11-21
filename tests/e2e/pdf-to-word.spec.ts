@@ -205,6 +205,23 @@ test("keeps original page size with a section per page in layout mode", async ({
   expect(text).toContain("Quarterly Report");
 });
 
+test("reports scanned pages when OCR is disabled", async ({ page }) => {
+  await page.goto("/tools/pdf-to-word");
+  await page.getByLabel("Browse PDFs").setInputFiles([scannedPdf]);
+  await expect(row(page, "Scanned.pdf")).toContainText(
+    "Scanned (image-only PDF)",
+    { timeout: 30000 },
+  );
+  await page
+    .getByRole("button", { name: /Convert/ })
+    .first()
+    .click();
+  await expect(row(page, "Scanned.pdf")).toContainText("Done", {
+    timeout: 60000,
+  });
+  await expect(row(page, "Scanned.pdf")).toContainText("enable OCR");
+});
+
 test("reads a scanned PDF with on-device OCR", async ({
   page,
   browserName,

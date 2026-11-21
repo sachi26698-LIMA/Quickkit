@@ -89,6 +89,30 @@ describe("server-side recovery", () => {
       ).status,
     ).toBe(403);
   });
+  it("does not disclose allowlist membership through provider errors", async () => {
+    vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
+    vi.stubEnv("QUICKKIT_ADMIN_EMAILS", "owner@example.test");
+    mocks.create.mockResolvedValue(client());
+    mocks.reset.mockResolvedValueOnce({ error: new Error("unavailable") });
+    const allowed = await POST(
+      post({ action: "request", email: "owner@example.test" }),
+    );
+    const other = await POST(
+      post({ action: "request", email: "other@example.test" }),
+    );
+    expect(allowed.status).toBe(other.status);
+    expect(await allowed.json()).toEqual(await other.json());
+    mocks.reset.mockRejectedValueOnce(new Error("network"));
+    expect(
+      (await POST(post({ action: "request", email: "owner@example.test" })))
+        .status,
+    ).toBe(200);
+    mocks.create.mockResolvedValueOnce(null);
+    expect(
+      (await POST(post({ action: "request", email: "owner@example.test" })))
+        .status,
+    ).toBe(200);
+  });
   it("exchanges a recovery code and sets an HttpOnly proof", async () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
     vi.stubEnv("QUICKKIT_ADMIN_EMAILS", "owner@example.test");

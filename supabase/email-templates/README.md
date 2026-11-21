@@ -58,6 +58,14 @@ These observations are a point-in-time snapshot from the read-only Auth config o
 10. Keep TOTP MFA available and low-AAL access disabled. Owner should confirm their enrolled factor and recovery codes before any factor changes. WebAuthn/passkeys can be separately evaluated, not enabled as part of this template task.
 11. Recheck redirect allowlist and application callback: code exchange must succeed, identity must pass the server-side allowlist, unauthorized identities must be signed out locally, and only constrained local `/admin` destinations may be followed.
 
+## Recovery security and operational limits
+
+The server-side recovery flow uses a separate HttpOnly PKCE session and a ten-minute HMAC proof tied to the verified allowlisted user and access token. Successful updates clear the browser proof and sign out the local recovery session. This is not a durable, server-side single-use ledger: a copied proof and session may be replayable until expiry or provider invalidation, and concurrent updates are not serialized. Supabase must enforce its own token and password-change controls; verify those controls with an approved isolated account before rollout.
+
+Recovery request responses intentionally do not expose provider errors for eligible addresses. This prevents direct status-code enumeration but does not eliminate timing side channels, and a generic success does not prove delivery. The application has no distributed recovery rate limiter; Supabase and any edge protection must be assessed by the owner for email abuse and availability. Do not rely on a per-process memory limiter in a serverless deployment. If stronger replay prevention or shared rate limiting is required, design and authorize a durable server-side store and its retention/operational controls before enabling the feature.
+
+Current-password and reauthentication requirements may affect the recovery password update. Verify compatibility without disabling either control. Never log or share reset URLs, passwords, session cookies, proofs, or provider secrets.
+
 ## SMTP rotation and verification checklist
 
 - [ ] Record provider/account owner and current sending domain without exposing the old secret in notes.

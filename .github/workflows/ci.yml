@@ -83,6 +83,15 @@ jobs:
         env:
           # Exercise the real visitor API without production credentials or data.
           ANALYTICS_DATABASE_URL: file:${{ runner.temp }}/quickkit-visitor-stats.db
+      # Keep the per-test result/skip reasons separate from the large screenshot
+      # bundle so operators can retrieve a small report even on a green run.
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: browser-results-json
+          path: playwright-results/results.json
+          if-no-files-found: warn
+          retention-days: 7
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
