@@ -80,7 +80,7 @@ redesigning the card visuals, which is a design decision, not a bug fix.
 ## How to re-measure
 
 ```bash
-SITE_URL=https://quickkit.live LAUNCH_APPROVED=true npx next build
+SITE_URL=https://www.quickkit.live LAUNCH_APPROVED=true npx next build
 npx next start --hostname 0.0.0.0 --port 3200
 
 # HTML, as a browser receives it

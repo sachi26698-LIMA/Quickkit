@@ -3,7 +3,7 @@
 
 > **Historical report.** Measurements below were taken while the production
 > origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
-> **`https://quickkit.live`** — see
+> **`https://www.quickkit.live`** (the apex `quickkit.live` 301-redirects there) — see
 > [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
 > Numbers are left as recorded rather than rewritten.
 
@@ -67,9 +67,13 @@ Pick **one** of the three routes below. Route A is the fastest and needs no code
 ### Route A — export CSV from the Search Console UI (recommended, ~10 minutes)
 
 1. Open <https://search.google.com/search-console>.
-2. Select the property. The canonical public origin is now `https://quickkit.live`, so
-   prefer the **URL-prefix** property whose exact string is `https://quickkit.live/`
-   (with the trailing slash), or a **domain** property for `quickkit.live` (no scheme).
+2. Select the property. The canonical public origin is now `https://www.quickkit.live`, so
+   prefer the **URL-prefix** property whose exact string is `https://www.quickkit.live/`
+   (with the trailing slash), or a **domain** property for `quickkit.live` (no scheme) —
+   a domain property covers both the www host and the apex. If a `https://quickkit.live/`
+   URL-prefix property already exists, keep it (it holds the post-apex-migration history)
+   and add the www URL-prefix property; host preference changes on the same registered
+   domain do not need a Change of Address request.
    The older `quickkit-rosy.vercel.app` property still holds the pre-migration history —
    keep it for comparison, and say which property you exported.
 3. **Performance → Search results.** Set **Date → Last 28 days**. Click **Export** (top

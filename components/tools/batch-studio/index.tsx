@@ -49,7 +49,7 @@ const SAMPLE = [
   "5901234123457,Yogurt 400 g,ean13",
   "09506000134352,Case label,itf14",
   "QUICKKIT-2026,Order card,code128",
-  "https://quickkit.live,Product page,qrcode",
+  "https://www.quickkit.live,Product page,qrcode",
   "LOT-42-QC,QC tag,datamatrix",
 ].join("\n");
 

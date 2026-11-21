@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_PUBLIC_ORIGIN } from "../lib/tools/qr/data-template";
 
 /**
- * The project publishes under exactly one origin: `https://quickkit.live`, the
- * apex domain. `www.quickkit.live` 301-redirects to it, and the old
+ * The project publishes under exactly one origin: `https://www.quickkit.live`,
+ * the www hostname. The apex `quickkit.live` 301-redirects to it, and the old
  * `quickkit-rosy.vercel.app` deployment alias must not appear in anything the
  * site publishes — it is now a migration artefact, not the public identity.
  * `quickkit.tools` and `quickkit.online` are not owned or served by this
@@ -15,10 +15,11 @@ import { DEFAULT_PUBLIC_ORIGIN } from "../lib/tools/qr/data-template";
  */
 
 const ROOT = join(__dirname, "..");
+const CANONICAL_ORIGIN = "https://www.quickkit.live";
 
 describe("published origin", () => {
   it("falls back to an origin this project actually serves", () => {
-    expect(DEFAULT_PUBLIC_ORIGIN).toBe("https://quickkit.live");
+    expect(DEFAULT_PUBLIC_ORIGIN).toBe(CANONICAL_ORIGIN);
     expect(() => new URL(DEFAULT_PUBLIC_ORIGIN)).not.toThrow();
     expect(new URL(DEFAULT_PUBLIC_ORIGIN).protocol).toBe("https:");
   });
@@ -66,6 +67,22 @@ describe("published origin", () => {
     expect(agent).toMatch(/^QUICKKIT-BarcodeScanner\/[\d.]+ \(.+\)$/);
     expect(agent).not.toContain("quickkit.online");
     expect(agent).not.toContain("quickkit.tools");
+  });
+
+  it("pins the server recovery origin to the canonical origin", () => {
+    // `lib/supabase/recovery.ts` states the production origin explicitly (it
+    // is a security boundary: the verifier cookie must land on the exact
+    // callback host). It must be the same origin the rest of the site
+    // publishes, or recovery emails would link to a host the cookie cannot
+    // follow. This test keeps the two from drifting apart.
+    const source = readFileSync(
+      join(ROOT, "lib", "supabase", "recovery.ts"),
+      "utf8",
+    );
+    const match = source.match(
+      /if \(environment === "production"\) return "(https:\/\/[^"]+)";/,
+    );
+    expect(match?.[1]).toBe(CANONICAL_ORIGIN);
   });
 
   it("has no production-facing source left pointing at an unowned domain", () => {

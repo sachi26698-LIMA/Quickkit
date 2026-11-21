@@ -44,7 +44,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-const ORIGIN = "https://quickkit.live";
+const ORIGIN = "https://www.quickkit.live";
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -404,7 +404,7 @@ describe("site-wide indexing & SEO invariants", () => {
     );
   });
 
-  it("aligns robots.txt Sitemap directive, canonicals, Open Graph URLs, JSON-LD, and internal defaults exclusively to https://quickkit.live", async () => {
+  it("aligns robots.txt Sitemap directive, canonicals, Open Graph URLs, JSON-LD, and internal defaults exclusively to https://www.quickkit.live", async () => {
     const { default: robots } = await import("../app/robots");
     const {
       pageMetadata,

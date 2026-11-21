@@ -283,10 +283,10 @@ describe("Digital Link builder", () => {
   it("honours a custom origin without doubling slashes", () => {
     const built = buildDigitalLink(
       { gtin: "09506000134352" },
-      { origin: "https://quickkit.live/" },
+      { origin: "https://www.quickkit.live/" },
     );
     expect(built.ok).toBe(true);
     if (!built.ok) return;
-    expect(built.url).toBe("https://quickkit.live/01/09506000134352");
+    expect(built.url).toBe("https://www.quickkit.live/01/09506000134352");
   });
 });

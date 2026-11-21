@@ -14,7 +14,7 @@ const subjects = JSON.parse(
 ) as Record<string, string>;
 const sample = (key: string) => {
   if (key === ".ConfirmationURL")
-    return "https://oevjmxcoyibkonousdoh.supabase.co/auth/v1/verify?token=isolated-fixture&type=magiclink&redirect_to=https%3A%2F%2Fquickkit.live%2Fauth%2Fcallback";
+    return "https://oevjmxcoyibkonousdoh.supabase.co/auth/v1/verify?token=isolated-fixture&type=magiclink&redirect_to=https%3A%2F%2Fwww.quickkit.live%2Fauth%2Fcallback";
   if (key === ".Token") return "12345678";
   if (key === ".NewEmail") return "new-address@example.test";
   throw new Error(`Unexpected template variable ${key}`);

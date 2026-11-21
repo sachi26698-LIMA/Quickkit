@@ -16,7 +16,12 @@ import type { Database } from "./database.types";
  */
 export function recoveryOrigin(): string | null {
   const environment = process.env.VERCEL_ENV;
-  if (environment === "production") return "https://quickkit.live";
+  // The one production origin, spelled explicitly. This is a security boundary
+  // (the verifier cookie must land on the exact callback host), so it is pinned
+  // here rather than read from a request or a redirect parameter, and
+  // `tests/published-origin.test.ts` pins it to the same canonical origin the
+  // rest of the site publishes (`https://www.quickkit.live`).
+  if (environment === "production") return "https://www.quickkit.live";
   if (environment && environment !== "preview" && environment !== "development")
     return null;
   if (!environment && process.env.NODE_ENV === "production") return null;
@@ -43,6 +48,10 @@ export function recoveryOrigin(): string | null {
         url.hostname === "localhost" ||
         url.hostname === "127.0.0.1" ||
         url.hostname === "[::1]" ||
+        // Neither production spelling may be borrowed as a preview origin: the
+        // www host is the canonical one, and the apex still answers (it
+        // 301-redirects to www), so both are production identities.
+        url.origin === "https://www.quickkit.live" ||
         url.origin === "https://quickkit.live" ||
         url.hostname.includes("*")
       )

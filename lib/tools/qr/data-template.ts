@@ -73,7 +73,7 @@ export const DATA_TEMPLATE_SECRET_PARAM = "s";
  * It previously named `quickkit.tools`, a domain this project does not own and
  * does not serve from, so every link generated in the browser advertised it.
  */
-export const DEFAULT_PUBLIC_ORIGIN = "https://quickkit.live";
+export const DEFAULT_PUBLIC_ORIGIN = "https://www.quickkit.live";
 
 /** The origin a reader should land on: the live page origin when there is one. */
 function publishedOrigin(): string {

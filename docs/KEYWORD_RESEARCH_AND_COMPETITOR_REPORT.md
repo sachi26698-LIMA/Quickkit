@@ -3,7 +3,7 @@
 
 > **Historical report.** Measurements below were taken while the production
 > origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
-> **`https://quickkit.live`** — see
+> **`https://www.quickkit.live`** (the apex `quickkit.live` 301-redirects there) — see
 > [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
 > Numbers are left as recorded rather than rewritten.
 

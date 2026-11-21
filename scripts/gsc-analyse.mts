@@ -8,7 +8,7 @@
  * Accepted shape (see docs/QUICKKIT_SEARCH_CONSOLE_DATA_REQUEST.md):
  *
  * {
- *   "siteUrl": "https://quickkit.live/",
+ *   "siteUrl": "https://www.quickkit.live/",
  *   "current":  { "startDate": "...", "endDate": "...", "rows": [ ... ] },
  *   "previous": { ... },                 // optional
  *   "currentPages": { ... },             // optional

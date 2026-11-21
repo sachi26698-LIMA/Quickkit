@@ -63,7 +63,7 @@ describe("format detection", () => {
   });
 
   it("separates a URL from a linear barcode", () => {
-    const detected = detectBarcodeFormat("https://quickkit.live/tools");
+    const detected = detectBarcodeFormat("https://www.quickkit.live/tools");
     expect(detected.best?.reason).toContain("Digital Link");
     expect(detected.note).toContain("QR");
   });

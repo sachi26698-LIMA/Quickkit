@@ -93,9 +93,9 @@ describe("2D validation", () => {
 
 describe("2D decoding by an independent reader", () => {
   it("reads back a QR Code", async () => {
-    const svg = svgFor("qrcode", "https://quickkit.live/tools").svg;
+    const svg = svgFor("qrcode", "https://www.quickkit.live/tools").svg;
     expect(await decodeSvg(svg, ["QRCode"])).toContain(
-      "https://quickkit.live/tools",
+      "https://www.quickkit.live/tools",
     );
   });
 

@@ -1,0 +1,35 @@
+# Live production smoke test for the www canonical migration.
+#
+# The agent sandbox cannot reach the live domain (egress allowlist), so real
+# public HTTP verification runs here instead: GitHub-hosted runners fetch
+# https://www.quickkit.live and assert the redirect matrix, canonical tags,
+# robots.txt, sitemap.xml, indexing headers and legacy redirects.
+#
+# Trigger manually after a production deployment is READY:
+#   gh workflow run live-smoke.yml
+#   gh run watch && gh run view --log
+name: live-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: "Canonical origin to test"
+        required: false
+        default: "https://www.quickkit.live"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Live production HTTP smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run live smoke tests
+        run: node scripts/live-smoke.mjs "${{ inputs.origin }}"

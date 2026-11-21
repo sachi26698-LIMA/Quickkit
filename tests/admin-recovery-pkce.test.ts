@@ -57,7 +57,7 @@ describe("real Supabase SSR PKCE adapter", () => {
     expect(requestClient).not.toBeNull();
     const sent = await requestClient!.auth.resetPasswordForEmail(
       "owner@example.test",
-      { redirectTo: "https://quickkit.live/auth/recovery" },
+      { redirectTo: "https://www.quickkit.live/auth/recovery" },
     );
     expect(sent.error).toBeNull();
     expect(

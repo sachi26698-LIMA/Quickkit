@@ -45,8 +45,8 @@ const client = () => ({
     },
   },
 });
-const post = (body: object, origin = "https://quickkit.live") =>
-  new NextRequest("https://quickkit.live/api/admin/auth/recovery", {
+const post = (body: object, origin = "https://www.quickkit.live") =>
+  new NextRequest("https://www.quickkit.live/api/admin/auth/recovery", {
     method: "POST",
     headers: { origin, "content-type": "application/json" },
     body: JSON.stringify(body),
@@ -66,11 +66,12 @@ describe("server-side recovery", () => {
       "QUICKKIT_RECOVERY_PREVIEW_ORIGIN",
       "https://preview.example.test",
     );
-    expect(recoveryOrigin()).toBe("https://quickkit.live");
+    expect(recoveryOrigin()).toBe("https://www.quickkit.live");
     vi.stubEnv("VERCEL_ENV", "preview");
     expect(recoveryOrigin()).toBe("https://preview.example.test");
     for (const value of [
       "http://preview.example.test",
+      "https://www.quickkit.live",
       "https://quickkit.live",
       "https://*.example.test",
       "https://preview.example.test/path",
@@ -153,7 +154,7 @@ describe("server-side recovery", () => {
         .status,
     ).toBe(200);
     expect(mocks.reset).toHaveBeenCalledWith("owner@example.test", {
-      redirectTo: "https://quickkit.live/auth/recovery",
+      redirectTo: "https://www.quickkit.live/auth/recovery",
     });
     expect(
       (await POST(post({ action: "request", email: "other@example.test" })))
@@ -242,10 +243,10 @@ describe("server-side recovery", () => {
       error: null,
     });
     const response = await callback(
-      new NextRequest("https://quickkit.live/auth/recovery?code=fixture"),
+      new NextRequest("https://www.quickkit.live/auth/recovery?code=fixture"),
     );
     expect(response.headers.get("location")).toBe(
-      "https://quickkit.live/reset-password",
+      "https://www.quickkit.live/reset-password",
     );
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(response.headers.get("set-cookie")).not.toContain("token");
@@ -260,11 +261,11 @@ describe("server-side recovery", () => {
       });
       const response = await callback(
         new NextRequest(
-          `https://quickkit.live/auth/recovery${kind === "missing" ? "" : "?code=fixture"}`,
+          `https://www.quickkit.live/auth/recovery${kind === "missing" ? "" : "?code=fixture"}`,
         ),
       );
       expect(response.headers.get("location")).toBe(
-        "https://quickkit.live/reset-password?error=invalid",
+        "https://www.quickkit.live/reset-password?error=invalid",
       );
       expect(response.headers.get("set-cookie")).toContain(
         "quickkit-recovery-proof=",
@@ -284,7 +285,9 @@ describe("server-side recovery", () => {
     expect(
       (
         await callback(
-          new NextRequest("https://quickkit.live/auth/recovery?code=fixture"),
+          new NextRequest(
+            "https://www.quickkit.live/auth/recovery?code=fixture",
+          ),
         )
       ).headers.get("location"),
     ).toContain("error=invalid");

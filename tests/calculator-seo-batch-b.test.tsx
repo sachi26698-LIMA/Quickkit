@@ -52,7 +52,7 @@ afterEach(() => {
 
 describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification", () => {
   it("defines unique, intent-focused metadata and 4 specific FAQs for all 12 calculators", async () => {
-    vi.stubEnv("SITE_URL", "https://quickkit.live");
+    vi.stubEnv("SITE_URL", "https://www.quickkit.live");
     vi.resetModules();
     const { generateMetadata } =
       await import("../app/(public)/tools/[calculator]/page");
@@ -83,7 +83,7 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
       expect(meta.openGraph?.title).toBe(renderedTitle);
       expect(meta.twitter?.title).toBe(renderedTitle);
       expect(meta.alternates?.canonical).toBe(
-        `https://quickkit.live/tools/${slug}`,
+        `https://www.quickkit.live/tools/${slug}`,
       );
 
       expect(
@@ -116,7 +116,7 @@ describe("Phase 3 Batch B — 12 Calculator SEO, Math & Functional Verification"
   });
 
   it("renders valid H1/H2/H3 hierarchy, formulas, worked examples, disclaimers, related calculators, and matching JSON-LD on all 12 pages", async () => {
-    vi.stubEnv("SITE_URL", "https://quickkit.live");
+    vi.stubEnv("SITE_URL", "https://www.quickkit.live");
     vi.resetModules();
     const CalculatorPage = (
       await import("../app/(public)/tools/[calculator]/page")

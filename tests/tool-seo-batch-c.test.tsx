@@ -61,7 +61,7 @@ const ROUTES = {
   "image-to-text": () => import("../app/(public)/tools/image-to-text/page"),
 } as const;
 
-const ORIGIN = "https://quickkit.live";
+const ORIGIN = "https://www.quickkit.live";
 
 afterEach(() => {
   cleanup();

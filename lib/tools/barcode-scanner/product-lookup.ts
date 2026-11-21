@@ -377,7 +377,7 @@ const FIELDS = [
 
 /** `AppName/Version (contact)` — the shape Open Food Facts asks for. */
 export function userAgent(): string {
-  const origin = siteOrigin ?? "https://quickkit.live";
+  const origin = siteOrigin ?? "https://www.quickkit.live";
   const contact = contactEmail ? `; ${contactEmail}` : "";
   return `QUICKKIT-BarcodeScanner/1.2 (${origin}${contact})`;
 }

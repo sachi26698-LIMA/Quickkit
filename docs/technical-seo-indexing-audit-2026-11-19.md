@@ -3,7 +3,7 @@
 
 > **Historical report.** Measurements below were taken while the production
 > origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
-> **`https://quickkit.live`** — see
+> **`https://www.quickkit.live`** (the apex `quickkit.live` 301-redirects there) — see
 > [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
 > Numbers are left as recorded rather than rewritten.
 
@@ -116,10 +116,10 @@ The rest of the GSC outcomes are principally indexing-selection / content-qualit
 
 ## GSC validation checklist
 
-1. Deploy the current branch to the approved production origin; confirm production environment variables set `SITE_URL=https://quickkit.live` and `LAUNCH_APPROVED=true`. *(Corrected during the domain migration — this step originally named the retired alias. See [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).)*
+1. Deploy the current branch to the approved production origin; confirm production environment variables set `SITE_URL=https://www.quickkit.live` and `LAUNCH_APPROVED=true`. *(Corrected twice during domain migrations — this step originally named the retired alias, then the apex. The canonical origin is now the www host. See [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).)*
 2. In URL Inspection, first check representative static outputs: `/tools`, `/tools/word-counter` (even while the maintenance row remains enabled), `/tools/bmi-calculator`, `/tools/regex-tester`, `/category/image-tools`, and `/category/developer-tools`. Confirm HTTP 200, rendered HTML with title/description/robots/canonical/content, `index, follow` on indexable pages, and no private/no-store response on public tool routes. Confirm the maintenance dialog can still show to visitors and admin preview still works.
 3. Verify redirects: `/tools/words-to-pdf` → 308 → `/tools/word-to-pdf`; `/copyright` → 308 → `/intellectual-property`. Inspect/request the canonical destinations only. Confirm neither redirect source is in `sitemap.xml`.
-4. Resubmit `https://quickkit-rosy.vercel.app/sitemap.xml` in Search Console. Inspect XML validity, origin consistency, only canonical 200 eligible URLs, and optional real `<lastmod>` values. Absence of `<lastmod>` on a shallow-history build is acceptable; do not add fake dates.
+4. Resubmit `https://www.quickkit.live/sitemap.xml` in Search Console. Inspect XML validity, origin consistency, only canonical 200 eligible URLs, and optional real `<lastmod>` values. Absence of `<lastmod>` on a shallow-history build is acceptable; do not add fake dates. *(Corrected during the www canonical migration — this step originally named the retired alias. Do not submit the apex or alias sitemap; only canonical www URLs are eligible.)*
 5. After the deploy and sitemap recrawl, request indexing for these 30 indexable targets from the GSC list (respecting request quotas):
    - Categories: `/category/image-tools`, `/category/pdf-tools`, `/category/qr-barcode`, `/category/security-privacy`, `/category/text-writing`, `/category/developer-tools`.
    - Informational: `/help`, `/sitemap`, `/cookies`, `/file-handling`.

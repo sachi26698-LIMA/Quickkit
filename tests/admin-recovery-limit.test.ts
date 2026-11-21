@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 import { consumeRecoveryLimit } from "@/lib/supabase/recovery-limit";
 
 const request = (ip?: string) =>
-  new NextRequest("https://quickkit.live/api/admin/auth/recovery", {
+  new NextRequest("https://www.quickkit.live/api/admin/auth/recovery", {
     headers: ip ? { "x-vercel-forwarded-for": ip } : {},
   });
 beforeEach(() => {
@@ -79,7 +79,7 @@ describe("recovery abuse controls", () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "x".repeat(40));
     mocks.rpc.mockResolvedValue({ data: true, error: null });
     const spoofed = new NextRequest(
-      "https://quickkit.live/api/admin/auth/recovery",
+      "https://www.quickkit.live/api/admin/auth/recovery",
       {
         headers: {
           "x-vercel-forwarded-for": "192.0.2.1",
@@ -93,7 +93,7 @@ describe("recovery abuse controls", () => {
     await consumeRecoveryLimit(request("192.0.2.1"), "x@example.test");
     expect(mocks.rpc.mock.calls[2][1].p_bucket_hash).toBe(first);
     const missing = new NextRequest(
-      "https://quickkit.live/api/admin/auth/recovery",
+      "https://www.quickkit.live/api/admin/auth/recovery",
       {
         headers: {
           "x-real-ip": "203.0.113.13",

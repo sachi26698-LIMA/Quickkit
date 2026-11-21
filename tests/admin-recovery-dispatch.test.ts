@@ -36,7 +36,7 @@ describe("deferred recovery dispatch", () => {
     const eligible = await createRecoveryClient(true);
     const first = await eligible!.auth.resetPasswordForEmail(
       "owner@example.test",
-      { redirectTo: "https://quickkit.live/auth/recovery" },
+      { redirectTo: "https://www.quickkit.live/auth/recovery" },
     );
     expect(first.error).toBeNull();
     expect(
@@ -46,7 +46,7 @@ describe("deferred recovery dispatch", () => {
     const ineligible = await createRecoveryClient(false);
     const second = await ineligible!.auth.resetPasswordForEmail(
       "other@example.test",
-      { redirectTo: "https://quickkit.live/auth/recovery" },
+      { redirectTo: "https://www.quickkit.live/auth/recovery" },
     );
     expect(second.error).toBeNull();
     expect(

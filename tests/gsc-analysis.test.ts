@@ -24,7 +24,7 @@ const window = (rows: GscInput["current"]["rows"]) => ({
 });
 
 const base: GscInput = {
-  siteUrl: "https://quickkit.live/",
+  siteUrl: "https://www.quickkit.live/",
   current: window([
     {
       key: "merge pdf",
@@ -150,14 +150,14 @@ describe("Search Console analysis — cannibalisation", () => {
       queryPagePairs: [
         {
           query: "merge pdf",
-          page: "https://quickkit.live/tools/merge-pdf",
+          page: "https://www.quickkit.live/tools/merge-pdf",
           impressions: 300,
           clicks: 5,
           position: 11,
         },
         {
           query: "merge pdf",
-          page: "https://quickkit.live/tools/pdf-studio",
+          page: "https://www.quickkit.live/tools/pdf-studio",
           impressions: 100,
           clicks: 0,
           position: 19,
@@ -179,14 +179,14 @@ describe("Search Console analysis — cannibalisation", () => {
       queryPagePairs: [
         {
           query: "rare",
-          page: "https://quickkit.live/tools/merge-pdf",
+          page: "https://www.quickkit.live/tools/merge-pdf",
           impressions: 3,
           clicks: 0,
           position: 30,
         },
         {
           query: "rare",
-          page: "https://quickkit.live/tools/split-pdf",
+          page: "https://www.quickkit.live/tools/split-pdf",
           impressions: 2,
           clicks: 0,
           position: 32,
@@ -213,7 +213,7 @@ describe("Search Console analysis — intent mismatch", () => {
       queryPagePairs: [
         {
           query: "compress pdf",
-          page: "https://quickkit.live/tools/merge-pdf",
+          page: "https://www.quickkit.live/tools/merge-pdf",
           impressions: 200,
           clicks: 4,
           position: 12,
@@ -240,7 +240,7 @@ describe("Search Console analysis — intent mismatch", () => {
       queryPagePairs: [
         {
           query: "merge pdf",
-          page: "https://quickkit.live/tools/merge-pdf",
+          page: "https://www.quickkit.live/tools/merge-pdf",
           impressions: 300,
           clicks: 9,
           position: 6,
@@ -265,7 +265,7 @@ describe("Search Console analysis — coverage gaps", () => {
       ...base,
       currentPages: window([
         {
-          key: "https://quickkit.live/tools/merge-pdf",
+          key: "https://www.quickkit.live/tools/merge-pdf",
           clicks: 5,
           impressions: 500,
           ctr: 0.01,
@@ -341,7 +341,7 @@ describe("Search Console analysis — window comparison", () => {
 
 describe("Search Console analysis — mapping", () => {
   it("maps absolute URLs to the tool slug", () => {
-    expect(slugFromUrl("https://quickkit.live/tools/merge-pdf")).toBe(
+    expect(slugFromUrl("https://www.quickkit.live/tools/merge-pdf")).toBe(
       "merge-pdf",
     );
     expect(slugFromUrl("/tools/qr-generator")).toBe("qr-generator");
@@ -349,7 +349,7 @@ describe("Search Console analysis — mapping", () => {
 
   it("does not invent a tool for a non-tool URL", () => {
     expect(
-      slugFromUrl("https://quickkit.live/category/pdf-tools"),
+      slugFromUrl("https://www.quickkit.live/category/pdf-tools"),
     ).toBeUndefined();
     expect(slugFromUrl("/tools/not-a-real-tool")).toBeUndefined();
     expect(slugFromUrl("merge pdf")).toBeUndefined();
@@ -368,7 +368,7 @@ describe("Search Console analysis — mapping", () => {
   it("buckets rows by tool and keeps unmatched rows visible", () => {
     const { byTool, unmapped } = bucketByTool([
       {
-        key: "https://quickkit.live/tools/merge-pdf",
+        key: "https://www.quickkit.live/tools/merge-pdf",
         clicks: 1,
         impressions: 10,
         ctr: 0.1,
@@ -390,7 +390,7 @@ describe("Search Console analysis — mapping", () => {
 describe("Search Console analysis — no data is ever invented", () => {
   it("returns nothing when every window is empty", () => {
     const findings = analyse({
-      siteUrl: "https://quickkit.live/",
+      siteUrl: "https://www.quickkit.live/",
       current: window([]),
     });
     // Only the coverage report survives; no metric-bearing finding appears.

@@ -41,7 +41,7 @@ import {
   TITLE_MAX_RAW,
 } from "../lib/seo/audit";
 
-const ORIGIN = "https://quickkit.live";
+const ORIGIN = "https://www.quickkit.live";
 
 beforeEach(() => {
   vi.stubEnv("SITE_URL", ORIGIN);
