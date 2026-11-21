@@ -45,12 +45,12 @@ describe("QUICKKIT Supabase Auth email templates", () => {
       .map((entry) => readFileSync(resolve(root, entry.file), "utf8"))
       .join("\\n");
     for (const color of [
-      "#3b1b4f",
-      "#2a1239",
-      "#d6598f",
-      "#b93a73",
-      "#ff6b6b",
-      "#c93a3a",
+      "#30105F",
+      "#17132F",
+      "#F018A8",
+      "#B31277",
+      "#6420C8",
+      "#FAF8FF",
     ])
       expect(combined).toContain(color);
     for (const [type, entry] of Object.entries(manifest)) {
@@ -58,7 +58,7 @@ describe("QUICKKIT Supabase Auth email templates", () => {
       expect(subjects[entry.subjectKey]).toBeTruthy();
       for (const variable of entry.supabaseRequiredVariables)
         expect(html).toContain(`{{ ${variable} }}`);
-      expect(html).toContain("Handy tools. Zero hassle.");
+      expect(html).toContain("Small tasks. Quick solutions.");
       expect(html).toContain("QUICKKIT");
       expect(html).toMatch(/name="viewport"/);
       expect(html).toMatch(/max-width:\s*600px/);

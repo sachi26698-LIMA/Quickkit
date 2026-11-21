@@ -15,7 +15,7 @@ Paste the HTML body from each file into **Supabase Dashboard → Authentication 
 | Reset password | `templates/password-reset.html` | `recovery` | `{{ .ConfirmationURL }}` |
 | Reauthentication | `templates/reauthentication.html` | `reauthentication` | `{{ .Token }}` |
 
-`template-map.json` is the machine-readable mapping. The six bodies keep Supabase-issued confirmation URLs intact as CTA and visible fallback (never replace them with a hand-built URL), and use Supabase's one-time `.Token` in OTP-only contexts. No external assets, social URLs, or speculative contact details are embedded. The brand palette is QUICKKIT plum/rose/coral with the verified repo tagline “Handy tools. Zero hassle.” All CSS is inline with a narrow-screen responsive table layout and semantic headings/links.
+`template-map.json` is the machine-readable mapping. The six bodies keep Supabase-issued confirmation URLs intact as CTA and visible fallback (never replace them with a hand-built URL), and use Supabase's one-time `.Token` in OTP-only contexts. No external assets, social URLs, or speculative contact details are embedded. The brand palette is the official QUICKKIT palette (Deep Purple #30105F, Royal Violet #6420C8, Hot Pink #F018A8 — see docs/BRAND_GUIDELINES.md) with the official tagline “Small tasks. Quick solutions.” and a branded signature block. All CSS is inline with a narrow-screen responsive table layout and semantic headings/links.
 
 The copy deliberately says “expires soon” without asserting a TTL. Live Auth reports an email OTP lifetime of 120 seconds and 8-digit length today; Supabase generates/enforces expiry and one-time use. Keep those product rules in control of Supabase, and adjust wording if the owner changes the live TTL.
 

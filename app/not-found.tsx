@@ -1,7 +1,12 @@
 import Link from "next/link";
+import { BrandSymbol } from "@/components/brand-logo";
+
 export default function NotFound() {
   return (
     <section className="container empty">
+      <span className="brand-mark empty-brand-mark" aria-hidden="true">
+        <BrandSymbol width={72} height={72} />
+      </span>
       <span className="eyebrow">404 · Not found</span>
       <h1>This one isn’t in the kit.</h1>
       <p>Head back to explore the tool catalog.</p>

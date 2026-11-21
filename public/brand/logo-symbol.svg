@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="QUICKKIT symbol">
+  <defs>
+    <linearGradient id="qk-ring" x1="0.12" y1="0" x2="0.88" y2="1">
+      <stop offset="0" stop-color="#F018A8"/>
+      <stop offset="0.24" stop-color="#D600E8"/>
+      <stop offset="0.54" stop-color="#8B20F5"/>
+      <stop offset="0.8" stop-color="#165BFF"/>
+      <stop offset="1" stop-color="#08C9F2"/>
+    </linearGradient>
+    <linearGradient id="qk-orbit" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#D600E8"/>
+      <stop offset="0.42" stop-color="#8B20F5"/>
+      <stop offset="0.75" stop-color="#165BFF"/>
+      <stop offset="1" stop-color="#08C9F2"/>
+    </linearGradient>
+    <linearGradient id="qk-bolt" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#8B20F5"/>
+      <stop offset="0.55" stop-color="#165BFF"/>
+      <stop offset="1" stop-color="#08C9F2"/>
+    </linearGradient>
+    <linearGradient id="qk-spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B20F5"/>
+      <stop offset="1" stop-color="#6420C8"/>
+    </linearGradient>
+    <radialGradient id="qk-planet" cx="0.36" cy="0.3" r="0.95">
+      <stop offset="0" stop-color="#2B1752"/>
+      <stop offset="0.55" stop-color="#1A0F38"/>
+      <stop offset="1" stop-color="#0E0822"/>
+    </radialGradient>
+    <linearGradient id="qk-tail" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B20F5"/>
+      <stop offset="1" stop-color="#165BFF"/>
+    </linearGradient></defs>
+  
+    <!-- Q tail -->
+    <path d="M 341 345 L 415 419" fill="none" stroke="url(#qk-tail)" stroke-width="44" stroke-linecap="round"/>
+    <!-- orbit: back half (behind planet) -->
+    <g transform="rotate(-22 256 288)">
+      <path d="M 68 288 A 188 62 0 0 1 444 288" fill="none" stroke="url(#qk-orbit)" stroke-width="24" stroke-linecap="round"/>
+    </g>
+    <!-- main orbital ring -->
+    <circle cx="252" cy="248" r="154" fill="none" stroke="url(#qk-ring)" stroke-width="42"/>
+    <!-- planet disc -->
+    <circle cx="252" cy="248" r="114" fill="url(#qk-planet)"/>
+    <circle cx="206" cy="196" r="3.4" fill="#FFFFFF" opacity="0.16"/><circle cx="290" cy="182" r="2.6" fill="#FFFFFF" opacity="0.16"/><circle cx="232" cy="160" r="2.2" fill="#FFFFFF" opacity="0.16"/><circle cx="318" cy="226" r="3" fill="#FFFFFF" opacity="0.16"/><circle cx="188" cy="252" r="2.4" fill="#FFFFFF" opacity="0.16"/><circle cx="272" cy="300" r="3.2" fill="#FFFFFF" opacity="0.16"/><circle cx="222" cy="316" r="2.4" fill="#FFFFFF" opacity="0.16"/><circle cx="306" cy="282" r="2.2" fill="#FFFFFF" opacity="0.16"/><circle cx="172" cy="214" r="2" fill="#FFFFFF" opacity="0.16"/><circle cx="252" cy="176" r="1.8" fill="#FFFFFF" opacity="0.16"/><circle cx="330" cy="258" r="2" fill="#FFFFFF" opacity="0.16"/><circle cx="196" cy="292" r="2.6" fill="#FFFFFF" opacity="0.16"/><path d="M 180 170 Q 181.76 176.24 188 178 Q 181.76 179.76 180 186 Q 178.24 179.76 172 178 Q 178.24 176.24 180 170 Z" fill="#FFFFFF" opacity="0.14"/><path d="M 316 189.5 Q 317.43 194.57 322.5 196 Q 317.43 197.43 316 202.5 Q 314.57 197.43 309.5 196 Q 314.57 194.57 316 189.5 Z" fill="#FFFFFF" opacity="0.14"/><path d="M 244 325 Q 245.54 330.46 251 332 Q 245.54 333.54 244 339 Q 242.46 333.54 237 332 Q 242.46 330.46 244 325 Z" fill="#FFFFFF" opacity="0.14"/><path d="M 326 300.5 Q 327.21 304.79 331.5 306 Q 327.21 307.21 326 311.5 Q 324.79 307.21 320.5 306 Q 324.79 304.79 326 300.5 Z" fill="#FFFFFF" opacity="0.14"/>
+    <path d="M 288 152 L 206 264 L 247 264 L 231 344 L 310 228 L 268 228 Z" transform="translate(2 7)" fill="#0B0620" opacity="0.4"/>
+    <!-- lightning bolt (colour variants; one-colour variants use the knockout) -->
+    <path d="M 288 152 L 206 264 L 247 264 L 231 344 L 310 228 L 268 228 Z" fill="url(#qk-bolt)"/>
+    <!-- orbit: front half (over planet) -->
+    <g transform="rotate(-22 256 288)">
+      <path d="M 68 288 A 188 62 0 0 0 444 288" fill="none" stroke="url(#qk-orbit)" stroke-width="24" stroke-linecap="round"/>
+    </g>
+    <!-- sparkles -->
+    <path d="M 426 42 Q 437 81 476 92 Q 437 103 426 142 Q 415 103 376 92 Q 415 81 426 42 Z" fill="url(#qk-spark)"/>
+    <path d="M 372 107 Q 377.5 126.5 397 132 Q 377.5 137.5 372 157 Q 366.5 137.5 347 132 Q 366.5 126.5 372 107 Z" fill="url(#qk-spark)"/>
+    <path d="M 438 153 Q 442.18 167.82 457 172 Q 442.18 176.18 438 191 Q 433.82 176.18 419 172 Q 433.82 167.82 438 153 Z" fill="url(#qk-spark)"/>
+    <path d="M 112 183 A 154 154 0 0 1 292 99" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" opacity="0.16"/>
+</svg>

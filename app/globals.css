@@ -1,27 +1,42 @@
 :root {
   color-scheme: light;
-  /* QUICKKIT brand palette — Deep Plum / Primary Violet / Rose Pink / Cyan
-     on a cool light background (Background #F7F5FC, Surface #FFFFFF,
-     Text #241638). Text-bearing derivatives (--rose-deep, --coral-deep,
-     --secondary, --ink-soft) are deepened from the brand hues only as far as
-     WCAG AA requires (>= 4.5:1 on --background); the pure brand colours are
-     used for fills, gradients and graphic accents. */
-  --plum: #54205f;
-  --plum-deep: #27103f;
-  --violet: #7828d8;
-  --violet-deep: #681fc4;
-  --rose: #f04f9b;
-  --rose-deep: #c4185f;
+  /* QUICKKIT official brand palette — docs/BRAND_GUIDELINES.md is the single
+     source of truth for every colour below. Pure brand hues are used for
+     fills, gradients and graphic accents; text-bearing derivatives
+     (--brand-hot-pink-text, --coral-deep, --secondary, --ink-soft) are
+     deepened only as far as WCAG AA requires (>= 4.5:1 on --background). */
+  --brand-deep-purple: #30105f;
+  --brand-royal-violet: #6420c8;
+  --brand-electric-purple: #8b20f5;
+  --brand-hot-pink: #f018a8;
+  --brand-magenta: #d600e8;
+  --brand-electric-blue: #165bff;
+  --brand-cyan: #08c9f2;
+  --brand-dark-navy: #17132f;
+  --brand-white: #ffffff;
+  --brand-light-bg: #faf8ff;
+  --brand-soft-lavender: #f0e8ff;
+  /* Text-safe brand derivative: Hot Pink darkened to AA on --background. */
+  --brand-hot-pink-text: #b31277;
+  --plum: var(--brand-deep-purple);
+  /* Deep Purple shade for hover/deepest states (UI derivative). */
+  --plum-deep: #241148;
+  --violet: var(--brand-electric-purple);
+  --violet-deep: var(--brand-royal-violet);
+  --rose: var(--brand-hot-pink);
+  --rose-deep: var(--brand-hot-pink-text);
+  /* Semantic alert colours (error/warning states) — not part of the brand
+     palette; deliberately distinct so warnings never read as decoration. */
   --coral: #ff6b6b;
   --coral-deep: #c93a3a;
-  --cyan: #35c6d0;
+  --cyan: var(--brand-cyan);
   --cyan-deep: #0e7490;
   --teal: #159d9a;
   --teal-deep: #0e7c79;
-  --midnight: #241638;
-  --blush: #ede6fb;
-  --blush-soft: #f6f2fd;
-  --background: #f7f5fc;
+  --midnight: var(--brand-dark-navy);
+  --blush: var(--brand-soft-lavender);
+  --blush-soft: #f7f2ff;
+  --background: var(--brand-light-bg);
   --surface: #fff;
   --ink: var(--midnight);
   --ink-soft: #554866;
@@ -40,7 +55,22 @@
   --shadow: 0 10px 30px rgb(39 16 63 / 0.07), 0 2px 8px rgb(39 16 63 / 0.05);
   --shadow-lifted:
     0 22px 46px rgb(39 16 63 / 0.14), 0 4px 14px rgb(39 16 63 / 0.08);
-  --gradient-primary: linear-gradient(120deg, #27103f, #54205f 55%, #7828d8);
+  --gradient-primary: linear-gradient(120deg, #241148, #30105f 55%, #6420c8);
+  /* Official brand gradients (logo art, brand accents). */
+  --brand-gradient-wordmark: linear-gradient(115deg, #30105f, #6420c8);
+  --brand-gradient-kit: linear-gradient(90deg, #f018a8, #d600e8);
+  --brand-gradient-symbol: linear-gradient(
+    150deg,
+    #f018a8,
+    #8b20f5 55%,
+    #08c9f2
+  );
+  /* Typography (docs/BRAND_GUIDELINES.md): wordmark is vector Montserrat
+     Black Italic; headings and body are Geist with system fallbacks;
+     buttons are semibold; the tagline is elegant italic. */
+  --font-display: var(--font-geist), "Segoe UI", Arial, sans-serif;
+  --font-body: var(--font-geist), "Segoe UI", Arial, sans-serif;
+  --font-wordmark: "Montserrat", "Arial Black", "Segoe UI", sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -186,43 +216,35 @@ button:disabled {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 23px;
-  font-weight: 800;
-  letter-spacing: -1px;
+  gap: 9px;
+  font-family: var(--font-wordmark);
+  font-size: 21px;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.5px;
 }
 .brand-purple {
-  color: var(--purple);
+  color: var(--brand-deep-purple);
 }
+/* Official orbital symbol (components/brand-logo.tsx). The gradient and depth
+   live in the SVG artwork itself. */
 .brand-mark {
-  height: 38px;
-  width: 38px;
+  height: 40px;
+  width: 40px;
   display: grid;
   place-items: center;
-  background: linear-gradient(150deg, #f04f9b, #6a2fa0 55%, #54205f);
-  border-radius: 12px;
-  color: white;
-  box-shadow:
-    inset 0 1px 3px #ffffff77,
-    0 6px 14px rgb(39 16 63 / 0.28);
-  animation: brand-glow 3.6s ease-in-out infinite;
 }
 .brand-mark svg {
   display: block;
-  filter: drop-shadow(0 1px 2px rgb(23 21 43 / 0.25));
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgb(23 21 43 / 0.18));
 }
-@keyframes brand-glow {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 1px 3px #ffffff77,
-      0 6px 14px rgb(39 16 63 / 0.28);
-  }
-  50% {
-    box-shadow:
-      inset 0 1px 3px #ffffff77,
-      0 6px 24px rgb(39 16 63 / 0.5);
-  }
+/* Official QUICKKIT wordmark, vector paths (no font dependency). */
+.brand-wordmark {
+  display: block;
+  height: 21px;
+  width: auto;
 }
 .navigation {
   display: flex;
@@ -1309,6 +1331,12 @@ h2 {
 .empty svg {
   margin: auto;
 }
+/* Official symbol on the 404 empty state (app/not-found.tsx). */
+.empty-brand-mark {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+}
 
 /* ---------- Why QUICKKIT ---------- */
 .why-grid {
@@ -1590,7 +1618,8 @@ h2 {
 .footer-tagline {
   font-size: 13.5px !important;
   font-weight: 650;
-  color: var(--ink) !important;
+  font-style: italic;
+  color: var(--brand-deep-purple) !important;
   margin-top: 14px !important;
 }
 .footer-socials {
@@ -2312,13 +2341,14 @@ a.contact-card:hover {
     gap: 10px;
   }
   .brand {
-    font-size: 21px;
+    font-size: 19px;
+  }
+  .brand-wordmark {
+    height: 18px;
   }
   .brand-mark {
     width: 34px;
     height: 34px;
-    font-size: 26px;
-    border-radius: 10px;
   }
   .home-section {
     margin-top: 56px;

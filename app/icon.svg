@@ -1,1 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D6598F"/><stop offset="0.55" stop-color="#7C2D5E"/><stop offset="1" stop-color="#3B1B4F"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#g)"/><polygon points="34.4,8 10.4,36.8 32,36.8 29.6,56 53.6,27.2 32,27.2" fill="#FFFFFF"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="QUICKKIT app icon">
+  <defs>
+    <linearGradient id="qk-badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#30105F"/>
+      <stop offset="0.52" stop-color="#6420C8"/>
+      <stop offset="1" stop-color="#8B20F5"/>
+    </linearGradient>
+    
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#qk-badge)"/>
+  <g transform="translate(256 256) scale(0.82) translate(-256 -256)">
+    
+    <!-- Q tail -->
+    <path d="M 341 345 L 415 419" fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round"/>
+    <!-- orbit: back half (behind planet) -->
+    <g transform="rotate(-22 256 288)">
+      <path d="M 68 288 A 188 62 0 0 1 444 288" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+    </g>
+    <!-- main orbital ring -->
+    <circle cx="252" cy="248" r="154" fill="none" stroke="#FFFFFF" stroke-width="42"/>
+    <!-- planet disc -->
+    <path fill-rule="evenodd" d="M 252 134 A 114 114 0 1 0 252 362 A 114 114 0 1 0 252 134 Z M 288 152 L 206 264 L 247 264 L 231 344 L 310 228 L 268 228 Z" fill="#FFFFFF"/>
+    
+    
+    <!-- lightning bolt (colour variants; one-colour variants use the knockout) -->
+    
+    <!-- orbit: front half (over planet) -->
+    <g transform="rotate(-22 256 288)">
+      <path d="M 68 288 A 188 62 0 0 0 444 288" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+    </g>
+    <!-- sparkles -->
+    <path d="M 426 42 Q 437 81 476 92 Q 437 103 426 142 Q 415 103 376 92 Q 415 81 426 42 Z" fill="#FFFFFF"/>
+    <path d="M 372 107 Q 377.5 126.5 397 132 Q 377.5 137.5 372 157 Q 366.5 137.5 347 132 Q 366.5 126.5 372 107 Z" fill="#FFFFFF"/>
+    <path d="M 438 153 Q 442.18 167.82 457 172 Q 442.18 176.18 438 191 Q 433.82 176.18 419 172 Q 433.82 167.82 438 153 Z" fill="#FFFFFF"/>
+    
+  </g>
+</svg>

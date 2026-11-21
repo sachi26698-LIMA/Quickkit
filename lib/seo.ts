@@ -144,11 +144,14 @@ export function siteStructuredData(
         // there is no legal entity, trading name or acronym to declare.
         alternateName: "QuickKit",
         url: origin,
+        // Official brand symbol (docs/BRAND_ASSET_INVENTORY.md). Square PNG,
+        // generated from public/brand/logo-symbol.svg so the schema logo always
+        // matches the shipped identity.
         logo: {
           "@type": "ImageObject",
-          url: `${origin}/apple-icon.png`,
-          width: 180,
-          height: 180,
+          url: `${origin}/brand/icon-512.png`,
+          width: 512,
+          height: 512,
         },
         ...(publicContactEmail ? { email: publicContactEmail } : {}),
       },

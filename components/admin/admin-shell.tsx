@@ -30,8 +30,8 @@ import {
   UserRound,
   Wrench,
   X,
-  Zap,
 } from "lucide-react";
+import { BrandSymbol } from "@/components/brand-logo";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -382,7 +382,7 @@ function AdminShellFrame({
           aria-label="QUICKKIT Admin overview"
         >
           <span className={styles["admin-brand-mark"]} aria-hidden="true">
-            <Zap size={19} strokeWidth={2.3} />
+            <BrandSymbol width={38} height={38} />
           </span>
           {!collapsed || mobileOpen ? (
             <span className={styles["admin-brand-copy"]}>

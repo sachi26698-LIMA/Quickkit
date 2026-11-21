@@ -1,13 +1,13 @@
 /* Homepage-only colour layer: shared headers, categories and tools retain
    their own palettes. No extra images, animation or client-side code. */
 .premiumHome {
-  --home-violet: #7828d8;
-  --home-ink: #241638;
+  --home-violet: #8b20f5;
+  --home-ink: #17132f;
   --home-muted: #5f5172;
   --home-line: #ddd3f3;
-  --home-gradient: linear-gradient(120deg, #54205f, #7828d8 55%, #c4185f);
+  --home-gradient: linear-gradient(120deg, #30105f, #8b20f5 55%, #b31277);
   --purple: var(--home-violet);
-  --purple-deep: #681fc4;
+  --purple-deep: #6420c8;
   --secondary: var(--home-muted);
   --ink: var(--home-ink);
   --border: var(--home-line);
@@ -44,8 +44,8 @@
   background: linear-gradient(110deg, #fffffff2, #f1eafd);
   box-shadow:
     inset 0 1px 0 #fff,
-    0 4px 14px #681fc40a;
-  color: #681fc4;
+    0 4px 14px #6420c80a;
+  color: #6420c8;
   font-size: 11px;
   font-weight: 700;
   line-height: 1.5;
@@ -63,12 +63,12 @@
 
 .headlineAccent {
   /* The solid colour is also a fallback if text clipping is unavailable. */
-  color: #7828d8;
+  color: #8b20f5;
 }
 
 @supports (background-clip: text) {
   .headlineAccent {
-    background: linear-gradient(105deg, #5b1fa8, #7828d8 50%, #c4185f);
+    background: linear-gradient(105deg, #5b1fa8, #8b20f5 50%, #b31277);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -90,8 +90,8 @@
   border-color: #d0c2f0;
   box-shadow:
     0 0 0 5px #ffffffa6,
-    0 8px 18px -10px #7828d833,
-    0 20px 46px -24px #54205f4d;
+    0 8px 18px -10px #8b20f533,
+    0 20px 46px -24px #30105f4d;
 }
 
 .premiumHome :global(.search-wrap:focus-within) {
@@ -132,7 +132,7 @@
   border: 1px solid #ffffff42;
   box-shadow:
     inset 0 1px 0 #ffffff38,
-    0 8px 24px -8px #7828d870;
+    0 8px 24px -8px #8b20f570;
 }
 
 .premiumHome :global(.hero-benefits) {
@@ -145,7 +145,7 @@
 }
 
 .premiumHome :global(.eyebrow) {
-  color: #681fc4;
+  color: #6420c8;
   letter-spacing: 0.09em;
 }
 
@@ -154,7 +154,7 @@
   background: linear-gradient(120deg, #fff, #f6f2fe);
   box-shadow:
     inset 0 1px 0 #fff,
-    0 4px 12px #7828d80a;
+    0 4px 12px #8b20f50a;
 }
 
 .premiumHome :global(.category-card) {
@@ -183,7 +183,7 @@
 
 .premiumHome :global(.why-card:nth-child(2)) {
   --feature-rgb: 139 92 246;
-  --feature-deep: #681fc4;
+  --feature-deep: #6420c8;
 }
 
 .premiumHome :global(.why-card:nth-child(3)) {
@@ -220,32 +220,32 @@
   background: linear-gradient(135deg, #ffffffed, #f8f5fce6);
   box-shadow:
     inset 0 1px 0 #fff,
-    0 12px 36px -28px #7828d84d;
+    0 12px 36px -28px #8b20f54d;
 }
 
 .premiumHome :global(.home-copy strong) {
-  color: #54205f;
+  color: #30105f;
 }
 
 .premiumHome :global(.cta-banner) {
   border: 1px solid #ffffff4d;
   border-radius: 30px;
   background:
-    radial-gradient(ellipse at 5% 0%, #7828d859, transparent 58%),
-    radial-gradient(ellipse at 100% 100%, #f04f9b52, transparent 60%),
-    linear-gradient(120deg, #27103f, #54205f 48%, #6a2fa0);
+    radial-gradient(ellipse at 5% 0%, #8b20f559, transparent 58%),
+    radial-gradient(ellipse at 100% 100%, #f018a852, transparent 60%),
+    linear-gradient(120deg, #241148, #30105f 48%, #6a2fa0);
   box-shadow:
     inset 0 1px 0 #ffffff26,
-    0 24px 50px -20px #27103f66;
+    0 24px 50px -20px #24114866;
 }
 
 .premiumHome :global(.cta-zap) {
   color: #f5d0fe;
-  filter: drop-shadow(0 0 18px #f04f9b59);
+  filter: drop-shadow(0 0 18px #f018a859);
 }
 
 .premiumHome :global(.cta-button) {
-  color: #54205f;
+  color: #30105f;
   border: 1px solid #fff;
   background: linear-gradient(120deg, #fff, #f4edfd);
   box-shadow:

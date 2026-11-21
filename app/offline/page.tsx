@@ -26,8 +26,8 @@ export default function OfflinePage() {
         padding: "2rem",
         textAlign: "center",
         fontFamily: "var(--font-geist), Arial, sans-serif",
-        color: "var(--ink, #1a0f2e)",
-        background: "var(--background, #fdf7f5)",
+        color: "var(--ink, #17132F)",
+        background: "var(--background, #FAF8FF)",
       }}
     >
       <div style={{ maxWidth: "34rem" }}>
@@ -36,7 +36,7 @@ export default function OfflinePage() {
             fontSize: "0.8rem",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: "var(--rose-deep, #b93a73)",
+            color: "var(--rose-deep, #B31277)",
             margin: 0,
           }}
         >
@@ -45,7 +45,7 @@ export default function OfflinePage() {
         <h1 style={{ fontSize: "1.9rem", margin: "0.6rem 0 0.8rem" }}>
           You are offline
         </h1>
-        <p style={{ lineHeight: 1.6, color: "var(--ink-soft, #54455e)" }}>
+        <p style={{ lineHeight: 1.6, color: "var(--ink-soft, #554866)" }}>
           This page was not saved for offline use. Pages you have already
           visited — the homepage, All Tools, About and the legal pages — still
           open, and every tool that has already loaded keeps working because
@@ -58,7 +58,7 @@ export default function OfflinePage() {
               display: "inline-block",
               padding: "0.7rem 1.2rem",
               borderRadius: "12px",
-              background: "var(--plum, #3b1b4f)",
+              background: "var(--plum, #30105F)",
               color: "#fff",
               textDecoration: "none",
               fontWeight: 600,
@@ -71,7 +71,7 @@ export default function OfflinePage() {
           style={{
             marginTop: "1.4rem",
             fontSize: "0.85rem",
-            color: "var(--secondary, #6a5570)",
+            color: "var(--secondary, #5F5172)",
           }}
         >
           <Link href="/tools" style={{ color: "inherit" }}>
