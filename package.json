@@ -21,11 +21,7 @@
     "fixture:word-to-pdf": "node scripts/word-to-pdf-v5-fixture.mjs",
     "audit:tools": "tsx scripts/audit-tools.ts",
     "seo:report": "tsx scripts/seo-report.mts",
-    "gsc:analyse": "tsx scripts/gsc-analyse.mts",
-    "fonts:import": "node scripts/fonts/import-devanagari.mjs",
-    "fonts:verify": "python3 scripts/fonts/verify_fonts.py",
-    "fonts:build": "node scripts/fonts/build-catalogue.mjs",
-    "fonts:all": "npm run fonts:import && npm run fonts:verify && npm run fonts:build"
+    "gsc:analyse": "tsx scripts/gsc-analyse.mts"
   },
   "keywords": [],
   "author": "",

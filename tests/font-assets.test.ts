@@ -11,18 +11,19 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
 /**
- * `public/fonts/` is shared between the browser PDF exporter and the BioCraft
- * font library. The exporter's copy step owns one subdirectory; if it ever
- * cleans the whole tree again it deletes the committed WOFF2 faces and every
- * BioCraft specimen page fails to load its font. This suite pins that boundary.
+ * The browser PDF exporter embeds two Noto faces that
+ * `scripts/copy-font-assets.mjs` copies into `public/fonts/export/` at build
+ * time. The copy step owns exactly that one subdirectory; if it ever cleaned
+ * the whole tree it would delete any other font asset living under
+ * `public/fonts/`. This suite pins that boundary.
  */
 const ROOT = path.resolve(__dirname, "..");
 const SCRIPT = path.join(ROOT, "scripts", "copy-font-assets.mjs");
 const PUBLIC_FONTS = path.join(ROOT, "public", "fonts");
 const EXPORT_DIR = path.join(PUBLIC_FONTS, "export");
 
-/** The sentinel stands in for the committed BioCraft font library. */
-const SENTINEL_DIR = path.join(PUBLIC_FONTS, "hindi", "__font-assets-test__");
+/** The sentinel stands in for any other font asset under public/fonts. */
+const SENTINEL_DIR = path.join(PUBLIC_FONTS, "__font-assets-test__", "family");
 const SENTINEL_FILE = path.join(SENTINEL_DIR, "devanagari.woff2");
 
 const createdSentinelDirs: string[] = [];
@@ -38,9 +39,8 @@ afterAll(() => {
   for (const directory of createdSentinelDirs) {
     rmSync(directory, { force: true, recursive: true });
   }
-  const hindi = path.join(PUBLIC_FONTS, "hindi");
-  if (existsSync(hindi) && readdirSync(hindi).length === 0)
-    rmSync(hindi, { recursive: true });
+  const sentinelRoot = path.join(PUBLIC_FONTS, "__font-assets-test__");
+  if (existsSync(sentinelRoot)) rmSync(sentinelRoot, { recursive: true });
 });
 
 describe("the font asset copy step", () => {
@@ -68,7 +68,7 @@ describe("the font asset copy step", () => {
     execFileSync(process.execPath, [SCRIPT], { cwd: ROOT, stdio: "pipe" });
     const entries = readdirSync(PUBLIC_FONTS).sort();
     for (const entry of entries) {
-      expect(["export", "hindi"]).toContain(entry);
+      expect(["export", "__font-assets-test__"]).toContain(entry);
     }
   });
 

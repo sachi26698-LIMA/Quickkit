@@ -15,17 +15,10 @@ test-results/
 *.pem
 *.key
 /public/ocr/
-# Only the generated export copy is ignored. The BioCraft font library keeps
-# committed faces at public/fonts/<language>/<family>/, so a blanket rule would
-# hide those files from git and a merge would silently drop them.
+# Only the generated export copy is ignored; it is produced by
+# scripts/copy-font-assets.mjs at build time and must never be committed.
 /public/fonts/export/
 # Runtime visitor analytics databases belong on an external persistent volume.
 *.db
 *.db-shm
 *.db-wal
-
-# BioCraft font admin runtime overlays and staged imports (local-first, not build output)
-/data/fonts/
-
-# Fontsource download cache from scripts/fonts/import-devanagari.mjs
-.cache/

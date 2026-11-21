@@ -95,7 +95,7 @@ function makeStubApi(results: ScanItem[], openPopup = vi.fn()): ScannerApi {
 
 describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
   it("opens a modal popup showing all QR data plus a clickable redirect link to the source", () => {
-    const url = "https://biocraft-bice.vercel.app/";
+    const url = "https://quickkit-rosy.vercel.app/";
     const item = makeItem([url]);
     const onClose = vi.fn();
 
@@ -109,7 +109,7 @@ describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
       0,
     );
     expect(
-      within(dialog).getAllByText("biocraft-bice.vercel.app").length,
+      within(dialog).getAllByText("quickkit-rosy.vercel.app").length,
     ).toBeGreaterThan(0);
 
     const redirectLine = dialog.querySelector("a.scanner-redirect-line");
@@ -132,7 +132,7 @@ describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
 
   it("supports switching between multiple decoded QR codes inside the popup", () => {
     const item = makeItem([
-      "https://biocraft-bice.vercel.app/",
+      "https://quickkit-rosy.vercel.app/",
       "mailto:contact@example.org?subject=Support",
     ]);
     render(<ScanRedirectModal item={item} onClose={vi.fn()} flash={vi.fn()} />);
@@ -140,7 +140,7 @@ describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
     const dialog = screen.getByRole("dialog");
     expect(dialog.querySelector("a.scanner-redirect-line")).toHaveAttribute(
       "href",
-      "https://biocraft-bice.vercel.app/",
+      "https://quickkit-rosy.vercel.app/",
     );
 
     fireEvent.click(
@@ -167,7 +167,7 @@ describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
   });
 
   it("renders a clickable redirect line inside ResultsPanel and blocks high-risk lookalikes", () => {
-    const safeUrl = "https://biocraft-bice.vercel.app/";
+    const safeUrl = "https://quickkit-rosy.vercel.app/";
     const phishUrl = "https://paypa1.com/verify";
     const openPopup = vi.fn();
     const safeItem = makeItem([safeUrl], "safe.png");
@@ -202,7 +202,7 @@ describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
   });
 
   it("useScanner opens popupItem automatically on upload & camera decode when popupOnScan is enabled", async () => {
-    const qr = QRCode.create("https://biocraft-bice.vercel.app/", {
+    const qr = QRCode.create("https://quickkit-rosy.vercel.app/", {
       errorCorrectionLevel: "M",
     });
     const modules = qr.modules.size;
@@ -240,7 +240,7 @@ describe("ScanRedirectModal & ResultsPanel redirect upgrade", () => {
     expect(result.current.popupItem).not.toBeNull();
     expect(result.current.popupItem?.sourceName).toBe("1000204501.png");
     expect(result.current.popupItem?.symbols[0].data).toBe(
-      "https://biocraft-bice.vercel.app/",
+      "https://quickkit-rosy.vercel.app/",
     );
 
     act(() => {
