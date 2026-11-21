@@ -1,15 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAllowedAdminEmail } from "@/lib/supabase/admin-auth";
+import { getRequestOrigin } from "@/lib/supabase/request-origin";
 import {
   createRecoveryClient,
   makeRecoveryProof,
+  recoveryOrigin,
   RECOVERY_PROOF_COOKIE,
   RECOVERY_COOKIE_OPTIONS,
 } from "@/lib/supabase/recovery";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
-  const destination = new URL("/reset-password", "https://quickkit.live");
+  const origin = recoveryOrigin();
+  if (!origin || getRequestOrigin(request) !== origin) {
+    return new NextResponse("Recovery is temporarily unavailable.", {
+      status: 403,
+      headers: {
+        "Cache-Control": "no-store",
+        "Referrer-Policy": "no-referrer",
+      },
+    });
+  }
+  const destination = new URL("/reset-password", origin);
   const fail = () => {
     destination.searchParams.set("error", "invalid");
     const response = NextResponse.redirect(destination, {

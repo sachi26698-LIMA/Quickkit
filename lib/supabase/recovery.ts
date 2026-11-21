@@ -7,7 +7,56 @@ import { getSupabasePublicConfig } from "./config";
 import { isAllowedAdminEmail } from "./admin-auth";
 import type { Database } from "./database.types";
 
-export const RECOVERY_CALLBACK = "https://quickkit.live/auth/recovery";
+/**
+ * One server-configured origin per non-production environment is an explicit
+ * allowlist, not a value taken from request headers or a redirect parameter.
+ * Preview must be separately approved and allowlisted by the auth provider.
+ */
+export function recoveryOrigin(): string | null {
+  const environment = process.env.VERCEL_ENV;
+  if (environment === "production") return "https://quickkit.live";
+  if (environment && environment !== "preview" && environment !== "development")
+    return null;
+  if (!environment && process.env.NODE_ENV === "production") return null;
+
+  const isPreview = environment === "preview";
+  const configured = isPreview
+    ? process.env.QUICKKIT_RECOVERY_PREVIEW_ORIGIN
+    : process.env.QUICKKIT_RECOVERY_LOCAL_ORIGIN;
+  if (!configured) return null;
+  try {
+    const url = new URL(configured);
+    if (
+      configured !== url.origin ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    )
+      return null;
+    if (isPreview) {
+      if (
+        url.protocol !== "https:" ||
+        url.hostname === "localhost" ||
+        url.hostname === "127.0.0.1" ||
+        url.hostname === "[::1]" ||
+        url.origin === "https://quickkit.live" ||
+        url.hostname.includes("*")
+      )
+        return null;
+    } else if (
+      !["http:", "https:"].includes(url.protocol) ||
+      !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+    ) {
+      return null;
+    }
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 export const RECOVERY_PROOF_COOKIE = "quickkit-recovery-proof";
 export const RECOVERY_COOKIE_OPTIONS = {
   name: "quickkit-recovery-session",

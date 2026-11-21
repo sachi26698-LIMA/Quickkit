@@ -7,10 +7,15 @@ import {
   parseJsonObject,
 } from "@/lib/supabase/admin-api";
 import { getAdminEmailAllowlist } from "@/lib/supabase/admin-auth";
+import { getRequestOrigin } from "@/lib/supabase/request-origin";
+import {
+  consumeRecoveryLimit,
+  padRecoveryResponse,
+} from "@/lib/supabase/recovery-limit";
 import {
   createRecoveryClient,
-  RECOVERY_CALLBACK,
   RECOVERY_PROOF_COOKIE,
+  recoveryOrigin,
   recoveryProofConfigured,
   validRecoverySession,
 } from "@/lib/supabase/recovery";
@@ -40,19 +45,34 @@ export async function POST(request: NextRequest) {
     )
       return apiError(400, "Enter a valid email address.");
     const allowlist = getAdminEmailAllowlist();
-    if (!allowlist.size || !recoveryProofConfigured())
+    const origin = recoveryOrigin();
+    if (!allowlist.size || !recoveryProofConfigured() || !origin)
       return apiError(503, "Recovery is temporarily unavailable.");
+    // The verifier cookie must be stored on the exact callback host.
+    if (getRequestOrigin(request) !== origin)
+      return apiError(403, "Request not accepted.");
     const email = body.email.trim().toLowerCase();
-    if (!allowlist.has(email)) return noStoreJson({ ok: true });
+    const start = performance.now();
+    const limit = await consumeRecoveryLimit(request, email);
+    if (limit !== "allowed") {
+      await padRecoveryResponse(start);
+      return limit === "limited"
+        ? apiError(429, "Too many recovery requests. Try again later.")
+        : apiError(503, "Recovery is temporarily unavailable.");
+    }
     try {
-      const client = await createRecoveryClient();
-      if (!client) return noStoreJson({ ok: true });
-      await client.auth.resetPasswordForEmail(email, {
-        redirectTo: RECOVERY_CALLBACK,
-      });
+      if (allowlist.has(email)) {
+        const client = await createRecoveryClient();
+        if (client) {
+          await client.auth.resetPasswordForEmail(email, {
+            redirectTo: `${origin}/auth/recovery`,
+          });
+        }
+      }
     } catch {
       // Do not reveal allowlist membership through provider failures.
     }
+    await padRecoveryResponse(start);
     return noStoreJson({ ok: true });
   }
   if (body.action === "update") {

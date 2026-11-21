@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 const mocks = vi.hoisted(() => ({
   create: vi.fn(),
@@ -8,10 +8,16 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   signOut: vi.fn(),
   valid: vi.fn(),
+  limit: vi.fn(),
+  pad: vi.fn(),
   listener: null as null | ((event: string) => void),
   store: { delete: vi.fn() },
 }));
 vi.mock("next/headers", () => ({ cookies: async () => mocks.store }));
+vi.mock("@/lib/supabase/recovery-limit", () => ({
+  consumeRecoveryLimit: mocks.limit,
+  padRecoveryResponse: mocks.pad,
+}));
 vi.mock("@/lib/supabase/recovery", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/supabase/recovery")>()),
   createRecoveryClient: mocks.create,
@@ -22,7 +28,7 @@ import { GET, POST } from "@/app/api/admin/auth/recovery/route";
 import {
   makeRecoveryProof,
   validRecoveryProof,
-  RECOVERY_CALLBACK,
+  recoveryOrigin,
 } from "@/lib/supabase/recovery";
 import { GET as adminCallback } from "@/app/auth/callback/route";
 
@@ -45,12 +51,89 @@ const post = (body: object, origin = "https://quickkit.live") =>
     headers: { origin, "content-type": "application/json" },
     body: JSON.stringify(body),
   });
+beforeEach(() => {
+  vi.stubEnv("VERCEL_ENV", "production");
+  mocks.limit.mockResolvedValue("allowed");
+  mocks.pad.mockResolvedValue(undefined);
+});
 afterEach(() => {
   vi.resetAllMocks();
   vi.unstubAllEnvs();
   mocks.listener = null;
 });
 describe("server-side recovery", () => {
+  it("uses only explicit environment origins and fails closed for unsafe configuration", () => {
+    vi.stubEnv(
+      "QUICKKIT_RECOVERY_PREVIEW_ORIGIN",
+      "https://preview.example.test",
+    );
+    expect(recoveryOrigin()).toBe("https://quickkit.live");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    expect(recoveryOrigin()).toBe("https://preview.example.test");
+    for (const value of [
+      "http://preview.example.test",
+      "https://quickkit.live",
+      "https://*.example.test",
+      "https://preview.example.test/path",
+      "https://user:pass@preview.example.test",
+      "https://localhost:3001",
+      "",
+    ]) {
+      vi.stubEnv("QUICKKIT_RECOVERY_PREVIEW_ORIGIN", value);
+      expect(recoveryOrigin(), value).toBeNull();
+    }
+    vi.stubEnv("VERCEL_ENV", "development");
+    vi.stubEnv("QUICKKIT_RECOVERY_LOCAL_ORIGIN", "http://localhost:3001");
+    expect(recoveryOrigin()).toBe("http://localhost:3001");
+    vi.stubEnv("QUICKKIT_RECOVERY_LOCAL_ORIGIN", "https://evil.example.test");
+    expect(recoveryOrigin()).toBeNull();
+  });
+  it("rejects mismatched request hosts without exchanging a recovery code", async () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv(
+      "QUICKKIT_RECOVERY_PREVIEW_ORIGIN",
+      "https://preview.example.test",
+    );
+    const response = await callback(
+      new NextRequest("https://evil.example.test/auth/recovery?code=fixture"),
+    );
+    expect(response.status).toBe(403);
+    expect(mocks.exchange).not.toHaveBeenCalled();
+  });
+  it("uses the configured preview callback and returns to its own origin", async () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv(
+      "QUICKKIT_RECOVERY_PREVIEW_ORIGIN",
+      "https://preview.example.test",
+    );
+    vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
+    vi.stubEnv("QUICKKIT_ADMIN_EMAILS", "owner@example.test");
+    mocks.create.mockResolvedValue(client());
+    mocks.reset.mockResolvedValue({ error: null });
+    const response = await POST(
+      new NextRequest("https://preview.example.test/api/admin/auth/recovery", {
+        method: "POST",
+        headers: {
+          origin: "https://preview.example.test",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "request",
+          email: "owner@example.test",
+        }),
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.reset).toHaveBeenCalledWith("owner@example.test", {
+      redirectTo: "https://preview.example.test/auth/recovery",
+    });
+    const failure = await callback(
+      new NextRequest("https://preview.example.test/auth/recovery"),
+    );
+    expect(failure.headers.get("location")).toBe(
+      "https://preview.example.test/reset-password?error=invalid",
+    );
+  });
   it("binds short-lived proof to user and session with server-only key", () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
     const now = 1800000000000;
@@ -71,7 +154,7 @@ describe("server-side recovery", () => {
         .status,
     ).toBe(200);
     expect(mocks.reset).toHaveBeenCalledWith("owner@example.test", {
-      redirectTo: RECOVERY_CALLBACK,
+      redirectTo: "https://quickkit.live/auth/recovery",
     });
     expect(
       (await POST(post({ action: "request", email: "other@example.test" })))
@@ -88,6 +171,34 @@ describe("server-side recovery", () => {
         )
       ).status,
     ).toBe(403);
+  });
+  it("applies the same limiter and padding to allowed and other addresses", async () => {
+    vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
+    vi.stubEnv("QUICKKIT_ADMIN_EMAILS", "owner@example.test");
+    mocks.create.mockResolvedValue(client());
+    mocks.reset.mockResolvedValue({ error: null });
+    const allowed = await POST(
+      post({ action: "request", email: "owner@example.test" }),
+    );
+    const other = await POST(
+      post({ action: "request", email: "other@example.test" }),
+    );
+    expect(allowed.status).toBe(other.status);
+    expect(await allowed.json()).toEqual(await other.json());
+    expect(mocks.limit).toHaveBeenCalledTimes(2);
+    expect(mocks.pad).toHaveBeenCalledTimes(2);
+    mocks.limit
+      .mockResolvedValueOnce("limited")
+      .mockResolvedValueOnce("unavailable");
+    expect(
+      (await POST(post({ action: "request", email: "other@example.test" })))
+        .status,
+    ).toBe(429);
+    expect(
+      (await POST(post({ action: "request", email: "owner@example.test" })))
+        .status,
+    ).toBe(503);
+    expect(mocks.reset).toHaveBeenCalledTimes(1);
   });
   it("does not disclose allowlist membership through provider errors", async () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
