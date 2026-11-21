@@ -6,6 +6,10 @@ test("recovery request and password update forms work with isolated API response
   let valid = false;
   const actions: string[] = [];
   const failures: string[] = [];
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
   page.on("requestfailed", (request) => {
     if (request.url().includes("/api/admin/auth/recovery"))
       failures.push(request.failure()?.errorText ?? "request failed");
@@ -32,9 +36,10 @@ test("recovery request and password update forms work with isolated API response
   expect(failures, `Recovery request failures: ${failures.join(", ")}`).toEqual(
     [],
   );
-  expect(actions, "Recovery API POST must reach the isolated route").toEqual([
-    "request",
-  ]);
+  expect(
+    actions,
+    `Recovery API POST must reach the isolated route; browser errors: ${consoleErrors.join("; ")}`,
+  ).toEqual(["request"]);
   await expect(page.getByRole("status")).toContainText(
     "If this address is eligible",
   );
