@@ -246,6 +246,14 @@ const config: NextConfig = {
         ],
       },
       {
+        source: "/reset-password",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+      {
         source: defaultPermissionsSource,
         headers: [
           {

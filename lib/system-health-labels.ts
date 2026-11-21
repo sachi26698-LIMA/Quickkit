@@ -23,8 +23,8 @@ const listed = (names: string[]) =>
 /**
  * Turns the server's probe results into the wording shown in the Admin panels.
  *
- * Green is used only for something a probe confirmed (or, for SMTP, a dated
- * owner confirmation, which the wording says). When the report is missing, for
+ * Green is used only for something a probe confirmed. An SMTP confirmation
+ * date is historical and does not establish current delivery. When missing, for
  * example from a server that has not been updated yet, every row says the
  * check did not run rather than implying a pass.
  */
@@ -133,9 +133,9 @@ export function describeSystemHealth(
         }
       : smtp.verified_on
         ? {
-            value: `Confirmed · ${smtp.verified_on}`,
-            tone: "good",
-            detail: `Custom SMTP confirmed in Supabase on ${smtp.verified_on}; ${signIn}${signup}.`,
+            value: `Previously confirmed · ${smtp.verified_on}`,
+            tone: "warn",
+            detail: `Owner-recorded SMTP configuration confirmation on ${smtp.verified_on}; current authentication and delivery are not tested. Auth check: ${signIn}${signup}.`,
           }
         : {
             value: "External · unverified",

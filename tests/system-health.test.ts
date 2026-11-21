@@ -155,8 +155,11 @@ describe("system health probes", () => {
       tone: "good",
     });
     expect(labels.smtp).toMatchObject({
-      value: "Confirmed · 2026-11-16",
-      tone: "good",
+      value: "Previously confirmed · 2026-11-16",
+      tone: "warn",
+      detail: expect.stringContaining(
+        "current authentication and delivery are not tested",
+      ),
     });
     expect(labels.sitemap).toMatchObject({
       value: "Reachable · 120 URLs",

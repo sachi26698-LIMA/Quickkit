@@ -1,30 +1,32 @@
 # QUICKKIT Supabase Auth email pack
 
-Prepared locally only. These files have **not** been pasted into Supabase and no live project setting has been changed. The project remains configured with public signup disabled. No test email was sent.
+Prepared locally only. These files were not pasted into Supabase during the original audit. The historical observations below are not current configuration checks. No test email was sent in that audit.
+
+**Recovery work in progress:** the owner reports delivery now reaches the inbox, but the previous link landed on the homepage. The new server-side recovery flow is not deployed or live-verified. The existing `/auth/callback` remains dedicated to administrator sign-in. For the new flow, the owner must add exactly `https://quickkit.live/auth/recovery` under Supabase Authentication → URL Configuration → Redirect URLs, retain the required existing URLs during migration, and verify `SUPABASE_SUBMISSION_HMAC_SECRET` is configured server-side with at least 32 bytes without revealing its value. Request a fresh email from the new recovery page and open it in the same browser; existing emails and dashboard-triggered links are not proof that the new flow works. Preserve the `{{ .ConfirmationURL }}` variable in the recovery template. Do not retrieve Auth configuration using a connector that exposes SMTP secrets.
 
 ## Install map (manual owner action after approval)
 
 Paste the HTML body from each file into **Supabase Dashboard → Authentication → Email Templates** and set the matching subject from `subjects.json`:
 
-| Supabase email type | HTML file | Subject key | Required template variables |
-| --- | --- | --- | --- |
-| Confirm signup | `templates/confirmation.html` | `confirmation` | `{{ .ConfirmationURL }}` |
-| Invite user | `templates/invitation.html` | `invite` | `{{ .ConfirmationURL }}` |
-| Magic link | `templates/magic-link.html` | `magic_link` | `{{ .ConfirmationURL }}`, `{{ .Token }}` |
-| Change email address | `templates/email-change.html` | `email_change` | `{{ .ConfirmationURL }}`, `{{ .NewEmail }}` |
-| Reset password | `templates/password-reset.html` | `recovery` | `{{ .ConfirmationURL }}` |
-| Reauthentication | `templates/reauthentication.html` | `reauthentication` | `{{ .Token }}` |
+| Supabase email type  | HTML file                         | Subject key        | Required template variables                 |
+| -------------------- | --------------------------------- | ------------------ | ------------------------------------------- |
+| Confirm signup       | `templates/confirmation.html`     | `confirmation`     | `{{ .ConfirmationURL }}`                    |
+| Invite user          | `templates/invitation.html`       | `invite`           | `{{ .ConfirmationURL }}`                    |
+| Magic link           | `templates/magic-link.html`       | `magic_link`       | `{{ .ConfirmationURL }}`, `{{ .Token }}`    |
+| Change email address | `templates/email-change.html`     | `email_change`     | `{{ .ConfirmationURL }}`, `{{ .NewEmail }}` |
+| Reset password       | `templates/password-reset.html`   | `recovery`         | `{{ .ConfirmationURL }}`                    |
+| Reauthentication     | `templates/reauthentication.html` | `reauthentication` | `{{ .Token }}`                              |
 
 `template-map.json` is the machine-readable mapping. The six bodies keep Supabase-issued confirmation URLs intact as CTA and visible fallback (never replace them with a hand-built URL), and use Supabase's one-time `.Token` in OTP-only contexts. No external assets, social URLs, or speculative contact details are embedded. The brand palette is QUICKKIT plum/rose/coral with the verified repo tagline “Handy tools. Zero hassle.” All CSS is inline with a narrow-screen responsive table layout and semantic headings/links.
 
-The copy deliberately says “expires soon” without asserting a TTL. Live Auth reports an email OTP lifetime of 120 seconds and 8-digit length today; Supabase generates/enforces expiry and one-time use. Keep those product rules in control of Supabase, and adjust wording if the owner changes the live TTL.
+The copy deliberately says “expires soon” without asserting a TTL. A historical Auth snapshot reported an email OTP lifetime of 120 seconds and 8-digit length; current values require owner verification. Supabase generates/enforces expiry and one-time use.
 
 ## Read-only live inspection (2026-11-10)
 
 Project `Quick_kit` (`oevjmxcoyibkonousdoh`, `eu-west-1`) and Auth/DB/REST health were reported healthy. The Auth config read returned:
 
 - `disable_signup=true`; email auth on; phone auth off; email auto-confirm off; anonymous accounts off. Do not enable public signup.
-- **Verified live 2026-11-15 (read-only):** `site_url` = `https://quickkit-rosy.vercel.app` and `uri_allow_list` = `https://quickkit-rosy.vercel.app/admin` (a single entry — it does **not** contain `/auth/callback` or a localhost callback, contrary to an earlier draft of this note). Because the app never supplies `emailRedirectTo`/`redirectTo`, Supabase falls back to `site_url`, so **every confirmation and recovery link lands on the old alias**. **Supabase Auth is dashboard-only** — the repo cannot change it. Set `site_url` to `https://quickkit.live` and use a callback allowlist as described in `docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md`. Never allow broad wildcard/external redirects.
+- **Historical snapshot, 2026-11-15:** `site_url` and the allowlist pointed to the old alias. A subsequent read-back confirmed the site URL as `https://quickkit.live`, with the apex, old-alias and localhost `/auth/callback` entries allowed. The old alias is intentionally retained pending verified migration. See `docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md`; never allow broad wildcard/external redirects. Configuration alone does not prove a working recovery flow.
 - Access-token/JWT expiry is 3,600 seconds. The app's Supabase cookie `maxAge` is 30 days; that cookie setting is not the JWT/session lifetime. Refresh-token rotation reports enabled at the Auth level; the legacy `security_refresh_token_rotation_enabled` field was null, so do not interpret null as disabled. Reuse interval is 10 seconds.
 - Password minimum is 12 characters with lowercase, uppercase, and numeric character-class requirements. HIBP/breached-password check is off. Keep strong minimums; owner may consider enabling breached-password checks if available on the current plan. Current-password and reauthentication requirements for password updates are enabled. CAPTCHA is off; with public signup disabled this is not currently an open enrollment path, but evaluate abuse protection before any separately approved public-auth launch.
 - TOTP MFA enrollment and verification are enabled; phone MFA and WebAuthn/passkeys are off. `mfa_allow_low_aal=false`. Maintain MFA for the owner and verify a recovery path before changing factors. Single-session and inactivity limits are not configured (reported zero); this is a policy decision, not a reason to force a change that could sign out/lock out the owner.
