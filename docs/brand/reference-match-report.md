@@ -12,13 +12,18 @@ themselves were never modified.
 ## What changed
 
 1. **Symbol geometry rebuilt from reference measurements** (512 grid):
-   - Main ring: centre (222, 248), outer Ø 332 (band 38), horizontal gradient
-     sweep magenta-pink → violet → electric blue → cyan, top-left highlight arc.
-   - Planet: dark navy disc **filling the ring opening edge to edge** (r 128 —
-     the earlier version had a visible gap), speckle field preserved.
-   - Lightning bolt: chunky 6-point zigzag at 85% of the planet Ø
-     (`M 244 149 L 183 251 L 220 257 L 207 331 L 305 233 L 266 240 Z`), violet→
-     electric-blue gradient with a soft depth shadow.
+   - Main ring: centre (222, 248), outer Ø 332 with the reference's chunky
+     band (50), horizontal gradient sweep magenta → violet → electric blue →
+     cyan.
+   - **Open centre — no dark/black disc.** The reference artwork keeps the
+     ring's core transparent: the lightning bolt and violet star-speckles
+     float inside the ring against whatever background the logo sits on. The
+     earlier builds' dark planet disc was removed per the corrected reference
+     reading (“bichh me black nhi hona chahiye”). A soft inner-edge shading
+     and a subtle bolt drop-shadow provide the reference's depth cues.
+   - Lightning bolt: chunky 6-point zigzag ≈ 77% of the opening Ø
+     (`M 244 152 L 185 251 L 223 257 L 208 330 L 303 233 L 265 241 Z`),
+     violet → electric-blue → cyan-tip gradient exactly as the reference.
    - Orbit: thin band (26), rx 237 / ry 97 rotated −20.6°, back half behind the
      planet, front half crossing the lower/planet portion **with the dark navy
      dash-tick texture** where it overlaps the ring/planet footprint.
@@ -55,34 +60,33 @@ below), built after inspecting rendered PNGs at multiple zoom levels.
 
 Matched against the references:
 
-| Check | Result |
-| --- | --- |
-| Symbol-to-wordmark ratio & lockup balance | matched (symbol 300u vs wordmark block in lockups) |
-| Icon geometry (ring/planet/bolt/orbit/tail) | matched proportions, angles, spacing |
-| Bolt position & size | matched (~85% of planet Ø, centred) |
-| Orbit curve/overlap + dash ticks on the front arc | matched |
-| Sparkle position (symbol upper-right ×3, wordmark above KIT ×2) | matched |
-| Wordmark weight/italic angle | matched (Black Italic, tight) |
-| Purple/pink split (QUICK deep purple → KIT hot pink) | matched |
-| Tagline wording/punctuation/typography | matched exactly |
-| Swoosh: purple→pink, convex-up crescent below tagline | matched |
+| Check                                                             | Result                                             |
+| ----------------------------------------------------------------- | -------------------------------------------------- |
+| Symbol-to-wordmark ratio & lockup balance                         | matched (symbol 300u vs wordmark block in lockups) |
+| Icon geometry (ring/bolt/orbit/tail)                              | matched proportions, angles, spacing               |
+| **Open ring centre (no black/dark middle)**                       | matched — bolt + speckles float in the open core   |
+| Ring band weight (chunky, band/outer ≈ 0.30)                      | matched                                            |
+| Bolt position, size (≈77% of opening) & violet→blue→cyan gradient | matched                                            |
+| Orbit curve/overlap + dash ticks on the front arc                 | matched                                            |
+| Sparkle position (symbol upper-right ×3, wordmark above KIT ×2)   | matched                                            |
+| Wordmark weight/italic angle/tracking (width/cap ≈ 5.7)           | matched (Black Italic, natural tracking)           |
+| Purple/pink split (QUICK deep purple → KIT hot pink)              | matched                                            |
+| Tagline wording/punctuation/typography                            | matched exactly                                    |
+| Swoosh: purple→pink, convex-up crescent below tagline             | matched                                            |
 
 ### Honest residual differences (cannot be fully corrected)
 
-1. **Letter width**: the reference letterforms are ≈ 12–17% wider per glyph than
-   Montserrat Black Italic at the same cap height (their font renders
-   width/cap ≈ 6.1 vs Montserrat ≈ 5.2). The brief specifies “Montserrat Black
-   Italic character” and “no unnecessary letter spacing”, so Montserrat is kept
-   at natural tight tracking; reproducing the exact glyph widths would need the
-   original font file, which was not provided.
-2. **Star silhouettes**: the reference sparkles are a touch more slender with
-   slightly sharper concave sides; the vector stars (c = 0.38 bow) are very
-   close but marginally fatter at small sizes.
+1. **Letterforms**: at natural tracking the wordmark width/cap is ≈ 5.70 vs the
+   reference’s ≈ 5.73 — visually equivalent. Individual glyph shapes are
+   Montserrat Black Italic; the reference’s original font file was not
+   provided, so exact glyph outlines may differ in detail.
+2. **Star silhouettes**: the sparkle stars (slender 4-point, inward bow 0.30)
+   are very close to the reference but marginally fatter at small sizes.
 3. **Swoosh tail**: the reference right tip curls up marginally more; the
    generated crescent is within a few units but is a smoother arc.
-4. **Speckle field**: the planet texture is procedurally placed to match the
-   reference’s density/tone; individual speckle positions are equivalent, not
-   pixel-identical.
+4. **Speckle field**: the speckles floating in the open ring centre are
+   procedurally placed to match the reference’s density/tone; individual
+   speckle positions are equivalent, not pixel-identical.
 
 No other visual difference was found that could be corrected.
 

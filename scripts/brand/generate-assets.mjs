@@ -122,10 +122,12 @@ export const PALETTE = {
 
 const RC = { x: 222, y: 248 }; // ring centre
 const RING_OUTER = 166;
-const RING_BAND = 38;
-const RING_R = RING_OUTER - RING_BAND / 2; // 147 stroke centre
-const PLANET_R = RING_OUTER - RING_BAND; // 128 — fills the opening
-const BOLT_D = "M 244 149 L 183 251 L 220 257 L 207 331 L 305 233 L 266 240 Z";
+const RING_BAND = 50; // chunky band as in the reference (band/outer ≈ 0.30)
+const RING_R = RING_OUTER - RING_BAND / 2; // 141 stroke centre
+const OPEN_R = RING_OUTER - RING_BAND; // 116 — the centre is OPEN (no planet
+// disc): the reference artwork has a transparent core with the bolt and
+// speckles floating inside the ring. Never fill the middle with dark.
+const BOLT_D = "M 244 152 L 185 251 L 223 257 L 208 330 L 303 233 L 265 241 Z";
 const TAIL = { x1: 340, y1: 330, x2: 437, y2: 439, w: 70 };
 const ORBIT = { cx: 238, cy: 278, rx: 237, ry: 97, rot: -20.6, band: 26 };
 const SPARKS = [
@@ -136,11 +138,11 @@ const SPARKS = [
 
 const RING_GRADIENT = `
     <linearGradient id="qk-ring" x1="0" y1="0.32" x2="1" y2="0.18">
-      <stop offset="0" stop-color="#F230B0"/>
-      <stop offset="0.16" stop-color="#C418C8"/>
-      <stop offset="0.4" stop-color="#8B20F5"/>
-      <stop offset="0.62" stop-color="#4A48F0"/>
-      <stop offset="0.82" stop-color="#1E7BFF"/>
+      <stop offset="0" stop-color="#F004FA"/>
+      <stop offset="0.16" stop-color="#B007F2"/>
+      <stop offset="0.4" stop-color="#6420DC"/>
+      <stop offset="0.62" stop-color="#2E3AF0"/>
+      <stop offset="0.82" stop-color="#0B7BFF"/>
       <stop offset="1" stop-color="#08C9F2"/>
     </linearGradient>`;
 
@@ -153,10 +155,12 @@ const ORBIT_GRADIENT = `
     </linearGradient>`;
 
 const BOLT_GRADIENT = `
-    <linearGradient id="qk-bolt" x1="0.15" y1="0" x2="0.75" y2="1">
-      <stop offset="0" stop-color="#8B3BD8"/>
-      <stop offset="0.55" stop-color="#3E6BEE"/>
-      <stop offset="1" stop-color="#2E8FF0"/>
+    <linearGradient id="qk-bolt" x1="0.25" y1="0" x2="0.72" y2="1">
+      <stop offset="0" stop-color="#7A13EF"/>
+      <stop offset="0.3" stop-color="#4526F5"/>
+      <stop offset="0.55" stop-color="#0055FF"/>
+      <stop offset="0.8" stop-color="#00B8F8"/>
+      <stop offset="1" stop-color="#10E4F4"/>
     </linearGradient>`;
 
 const SPARK_GRADIENT = `
@@ -167,11 +171,11 @@ const SPARK_GRADIENT = `
     </linearGradient>`;
 
 const PLANET_GRADIENT = `
-    <radialGradient id="qk-planet" cx="0.42" cy="0.32" r="1">
-      <stop offset="0" stop-color="#171238"/>
-      <stop offset="0.6" stop-color="#100C2C"/>
-      <stop offset="1" stop-color="#0B0820"/>
-    </radialGradient>`;
+    <linearGradient id="qk-inner-shade" x1="0.12" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#17132F" stop-opacity="0.5"/>
+      <stop offset="0.45" stop-color="#17132F" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#17132F" stop-opacity="0.38"/>
+    </linearGradient>`;
 
 const TAIL_GRADIENT = `
     <linearGradient id="qk-tail" x1="0" y1="0" x2="0.85" y2="1">
@@ -188,7 +192,7 @@ const TAIL_GRADIENT = `
  * reference artwork — not a thin concave sparkle and not a diamond.
  */
 function star(cx, cy, r) {
-  const c = 0.38 * r; // inward bow (0.5 = straight chord, > 0.5 = diamond)
+  const c = 0.3 * r; // inward bow (0.5 = straight chord, > 0.5 = diamond)
   return (
     `M ${cx} ${cy - r} ` +
     `Q ${cx + c} ${cy - c} ${cx + r} ${cy} ` +
@@ -215,6 +219,17 @@ function speckles() {
     [164, 288, 2.4],
     [268, 320, 2.0],
     [128, 262, 1.6],
+    [148, 320, 1.8],
+    [300, 180, 1.6],
+    [178, 168, 1.4],
+    [236, 210, 1.5],
+    [206, 262, 1.4],
+    [262, 240, 1.7],
+    [140, 296, 1.3],
+    [292, 312, 1.5],
+    [120, 224, 1.2],
+    [312, 214, 1.3],
+    [248, 338, 1.4],
   ];
   const stars = [
     [146, 168, 7],
@@ -225,10 +240,10 @@ function speckles() {
   ];
   let out = "";
   for (const [x, y, r] of dots) {
-    out += `<circle cx="${x}" cy="${y}" r="${r}" fill="#8A7BD8" opacity="0.32"/>`;
+    out += `<circle cx="${x}" cy="${y}" r="${r}" fill="#4003B1" opacity="0.55"/>`;
   }
   for (const [x, y, r] of stars) {
-    out += `<path d="${star(x, y, r)}" fill="#7E6BD0" opacity="0.3"/>`;
+    out += `<path d="${star(x, y, r)}" fill="#4003B1" opacity="0.5"/>`;
   }
   return out;
 }
@@ -309,21 +324,13 @@ function symbolBody({ simplified = false, mono = null, white = false } = {}) {
     ? `stroke="${ink}"`
     : 'stroke="url(#qk-ring)" stroke-linecap="round"';
   const orbitStroke = ink ? `stroke="${ink}"` : 'stroke="url(#qk-orbit)"';
-  const planetFill = ink ? `fill="${ink}"` : 'fill="url(#qk-planet)"';
   const tailStroke = ink ? `stroke="${ink}"` : 'stroke="url(#qk-tail)"';
-
-  // One-colour variants knock the bolt out of the planet disc (evenodd), so a
-  // white/mono logo stays readable as a single ink.
-  const discAndBolt =
-    white || mono
-      ? `<path fill-rule="evenodd" d="M ${RC.x} ${RC.y - PLANET_R} A ${PLANET_R} ${PLANET_R} 0 1 0 ${RC.x} ${RC.y + PLANET_R} A ${PLANET_R} ${PLANET_R} 0 1 0 ${RC.x} ${RC.y - PLANET_R} Z ${BOLT_D}" ${planetFill}/>`
-      : `<circle cx="${RC.x}" cy="${RC.y}" r="${PLANET_R}" ${planetFill}/>`;
 
   const backArc = `M ${ORBIT.cx - ORBIT.rx} ${ORBIT.cy} A ${ORBIT.rx} ${ORBIT.ry} 0 0 1 ${ORBIT.cx + ORBIT.rx} ${ORBIT.cy}`;
   const frontArc = `M ${ORBIT.cx - ORBIT.rx} ${ORBIT.cy} A ${ORBIT.rx} ${ORBIT.ry} 0 0 0 ${ORBIT.cx + ORBIT.rx} ${ORBIT.cy}`;
 
   return `
-    <!-- orbit: back half (behind planet) -->
+    <!-- orbit: back half (behind ring) -->
     <g transform="rotate(${ORBIT.rot} ${ORBIT.cx} ${ORBIT.cy})">
       <path d="${backArc}" fill="none" ${orbitStroke} stroke-width="${ORBIT.band}" stroke-linecap="round"/>
     </g>
@@ -331,20 +338,20 @@ function symbolBody({ simplified = false, mono = null, white = false } = {}) {
     <path d="${tailPath()}" ${tailStroke.includes("url") ? 'fill="url(#qk-tail)"' : tailStroke.replace("stroke=", "fill=")}/>
     <!-- main orbital ring -->
     <circle cx="${RC.x}" cy="${RC.y}" r="${RING_R}" fill="none" ${ringStroke} stroke-width="${RING_BAND}"/>
-    <!-- planet disc (fills the ring opening edge to edge) -->
-    ${discAndBolt}
+    <!-- open centre: soft shading where the ring shades the core (never a
+         dark disc — the reference keeps the middle open) -->
+    ${white || mono ? "" : `<circle cx="${RC.x}" cy="${RC.y}" r="${OPEN_R}" fill="none" stroke="url(#qk-inner-shade)" stroke-width="34"/>`}
     ${simplified || white || mono ? "" : speckles()}
-    ${white || mono ? "" : `<path d="${BOLT_D}" transform="translate(2 6)" fill="#0B0820" opacity="0.4"/>`}
-    <!-- lightning bolt (colour variants; one-colour variants use the knockout) -->
-    ${white || mono ? "" : `<path d="${BOLT_D}" ${ink ? `fill="${ink}"` : 'fill="url(#qk-bolt)"'}/>`}
-    <!-- orbit: front half (over planet) -->
+    ${white || mono ? "" : `<path d="${BOLT_D}" transform="translate(3 8)" fill="#17132F" opacity="0.28"/>`}
+    <!-- lightning bolt -->
+    <path d="${BOLT_D}" ${ink ? `fill="${ink}"` : 'fill="url(#qk-bolt)"'}/>
+    <!-- orbit: front half (over the core) -->
     <g transform="rotate(${ORBIT.rot} ${ORBIT.cx} ${ORBIT.cy})">
       <path d="${frontArc}" fill="none" ${orbitStroke} stroke-width="${ORBIT.band}" stroke-linecap="round"/>
       ${simplified ? "" : orbitDashes(ink)}
     </g>
     <!-- sparkles -->
-    ${simplified ? "" : SPARKS.map(([x, y, r]) => `<path d="${star(x, y, r)}" ${ink ? `fill="${ink}"` : 'fill="url(#qk-spark)"'}/>`).join("\n    ")}
-    ${white || mono || simplified ? "" : `<path d="M ${RC.x - RING_R * 0.92} ${RC.y - RING_R * 0.55} A ${RING_R} ${RING_R} 0 0 1 ${RC.x + RING_R * 0.05} ${RC.y - RING_R * 0.995}" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" opacity="0.15"/>`}`;
+    ${simplified ? "" : SPARKS.map(([x, y, r]) => `<path d="${star(x, y, r)}" ${ink ? `fill="${ink}"` : 'fill="url(#qk-spark)"'}/>`).join("\n    ")}`;
 }
 
 /** Extra gradient defs needed by the colour symbol. */
@@ -407,7 +414,7 @@ function wordmarkBlock({ withTagline = true, colors = "brand", scale = 1 }) {
   const heavy = loadFont("900Black_Italic");
   const tagFont = loadFont("600SemiBold_Italic");
   const size = 128 * scale;
-  const tracking = -2 * scale;
+  const tracking = 0; // natural width/cap ≈ 5.70 — matches the reference (5.73)
 
   const quickText = "QUICK";
   const kitText = "KIT";
