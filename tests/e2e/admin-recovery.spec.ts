@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("recovery request and password update forms work with isolated API responses", async ({
   page,
+  context,
 }) => {
   let valid = false;
   const actions: string[] = [];
@@ -14,7 +15,7 @@ test("recovery request and password update forms work with isolated API response
     if (request.url().includes("/api/admin/auth/recovery"))
       failures.push(request.failure()?.errorText ?? "request failed");
   });
-  await page.route("**/api/admin/auth/recovery", async (route) => {
+  await context.route("**/api/admin/auth/recovery", async (route) => {
     try {
       const request = route.request();
       if (request.method() === "GET") {
