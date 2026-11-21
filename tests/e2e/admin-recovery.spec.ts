@@ -5,19 +5,33 @@ test("recovery request and password update forms work with isolated API response
 }) => {
   let valid = false;
   const actions: string[] = [];
+  const failures: string[] = [];
+  page.on("requestfailed", (request) => {
+    if (request.url().includes("/api/admin/auth/recovery"))
+      failures.push(request.failure()?.errorText ?? "request failed");
+  });
   await page.route("**/api/admin/auth/recovery", async (route) => {
-    const request = route.request();
-    if (request.method() === "GET") {
-      await route.fulfill({ json: { valid } });
-      return;
+    try {
+      const request = route.request();
+      if (request.method() === "GET") {
+        await route.fulfill({ json: { valid } });
+        return;
+      }
+      const body = request.postDataJSON();
+      actions.push(body.action);
+      await route.fulfill({ json: { ok: true } });
+    } catch (error) {
+      failures.push(`route handler: ${String(error)}`);
+      await route.abort();
     }
-    const body = request.postDataJSON();
-    actions.push(body.action);
-    await route.fulfill({ json: { ok: true } });
   });
   await page.goto("/reset-password");
   await page.getByLabel("Administrator email").fill("owner@example.test");
   await page.getByRole("button", { name: "Send recovery email" }).click();
+  await expect(page.getByRole("status")).toBeVisible();
+  expect(failures, `Recovery request failures: ${failures.join(", ")}`).toEqual(
+    [],
+  );
   await expect(page.getByRole("status")).toContainText(
     "If this address is eligible",
   );
