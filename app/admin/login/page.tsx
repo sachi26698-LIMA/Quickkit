@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { BrandSymbol } from "@/components/brand-logo";
 import AdminLoginForm from "@/components/admin/admin-login-form";
 import styles from "@/components/admin/admin.module.css";
 import {
@@ -67,16 +68,18 @@ export default async function AdminLoginPage({
     <div className={styles["admin-login-wrap"]}>
       <div className={styles["admin-login-glow"]} aria-hidden="true" />
       <section className={styles["admin-login"]}>
-        <Link href="/" className={styles["admin-login-brand"]}>
-          <span className={styles["admin-brand-mark"]} aria-hidden="true">
-            <Zap size={18} strokeWidth={2.3} />
-          </span>
-          <span>
-            <strong>QUICKKIT</strong>
-            <small>CONTROL CENTER</small>
-          </span>
-        </Link>
-        <span className={styles["admin-kicker"]}>OWNER-ONLY ACCESS</span>
+        <div className={styles["admin-login-topline"]}>
+          <Link href="/" className={styles["admin-login-brand"]}>
+            <span className={styles["admin-brand-mark"]} aria-hidden="true">
+              <BrandSymbol width={38} height={38} />
+            </span>
+            <span>
+              <strong>QUICKKIT</strong>
+              <small>CONTROL CENTER</small>
+            </span>
+          </Link>
+          <span className={styles["admin-kicker"]}>OWNER-ONLY ACCESS</span>
+        </div>
         <h1>Administrator sign in</h1>
         <p>
           This workspace is restricted to allowlisted owners. Public

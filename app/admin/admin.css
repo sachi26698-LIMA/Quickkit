@@ -31,7 +31,7 @@
 .admin-root select:focus-visible,
 .admin-root textarea:focus-visible,
 .admin-root [tabindex]:focus-visible {
-  outline: 3px solid #7828d8;
+  outline: 3px solid #8b20f5;
   outline-offset: 2px;
 }
 

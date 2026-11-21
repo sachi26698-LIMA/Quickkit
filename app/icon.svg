@@ -1,1 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D6598F"/><stop offset="0.55" stop-color="#7C2D5E"/><stop offset="1" stop-color="#3B1B4F"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#g)"/><polygon points="34.4,8 10.4,36.8 32,36.8 29.6,56 53.6,27.2 32,27.2" fill="#FFFFFF"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="QUICKKIT app icon">
+  <defs>
+    <linearGradient id="qk-badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#30105F"/>
+      <stop offset="0.52" stop-color="#6420C8"/>
+      <stop offset="1" stop-color="#8B20F5"/>
+    </linearGradient>
+    
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#qk-badge)"/>
+  <g transform="translate(256 256) scale(0.82) translate(-222 -248)">
+    
+    <!-- orbit: back half (behind ring) -->
+    <g transform="rotate(-20.6 238 278)">
+      <path d="M 1 278 A 237 97 0 0 1 475 278" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+    </g>
+    <!-- Q tail (wide flat wedge, rounded far end; near end tucks under the ring) -->
+    <path d="M 313.9 353.3 L 393.6 442.8 Q 410.9 462.3 430.3 445.0 L 443.7 433.0 Q 463.1 415.7 445.9 396.3 L 366.1 306.7 Z" fill="#FFFFFF"/>
+    <!-- main orbital ring -->
+    <circle cx="222" cy="248" r="141" fill="none" stroke="#FFFFFF" stroke-width="50"/>
+    <!-- open centre: soft shading where the ring shades the core (never a
+         dark disc — the reference keeps the middle open) -->
+    
+    
+    
+    <!-- lightning bolt -->
+    <path d="M 244 152 L 185 251 L 223 257 L 208 330 L 303 233 L 265 241 Z" fill="#FFFFFF"/>
+    <!-- orbit: front half (over the core) -->
+    <g transform="rotate(-20.6 238 278)">
+      <path d="M 1 278 A 237 97 0 0 0 475 278" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+      
+    </g>
+    <!-- sparkles -->
+    
+  </g>
+</svg>
