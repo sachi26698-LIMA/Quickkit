@@ -39,25 +39,25 @@ export default defineConfig({
       name: "firefox",
       use: { browserName: "firefox" },
       testMatch:
-        /core.spec.ts|admin-recovery.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
     },
     {
       name: "webkit",
       use: { browserName: "webkit" },
       testMatch:
-        /core.spec.ts|admin-recovery.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
     },
     {
       name: "android-chromium",
       use: { ...devices["Pixel 7"] },
       testMatch:
-        /core.spec.ts|admin-recovery.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
     },
     {
       name: "mobile-webkit",
       use: { ...devices["iPhone 13"] },
       testMatch:
-        /core.spec.ts|admin-recovery.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
     },
   ],
 });

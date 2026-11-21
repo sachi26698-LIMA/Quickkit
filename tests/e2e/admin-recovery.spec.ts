@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+// Service workers can intercept network requests before Playwright routing.
+// Keep this mock-based UI test isolated; the real-worker test below is separate.
+test.use({ serviceWorkers: "block" });
+
 test("recovery request and password update forms work with isolated API responses", async ({
   page,
   context,
