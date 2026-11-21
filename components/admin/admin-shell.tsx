@@ -26,7 +26,6 @@ import {
   Shield,
   ShieldCheck,
   Sun,
-  Type,
   UserRound,
   Wrench,
   X,
@@ -78,12 +77,6 @@ const items = [
     group: "Manage",
   },
   { href: "/admin/seo", label: "SEO center", icon: Search, group: "Manage" },
-  {
-    href: "/admin/fonts",
-    label: "Font library",
-    icon: Type,
-    group: "Manage",
-  },
   {
     href: "/admin/site-settings",
     label: "Site settings",

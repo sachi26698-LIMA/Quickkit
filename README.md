@@ -2,23 +2,6 @@
 
 **Handy tools. Zero hassle.** A premium light-theme collection of ten genuinely functional, local-first browser utilities.
 
-## BioCraft — Hindi / Devanagari font ecosystem
-
-- **63** Devanagari families imported from Fontsource/Google Fonts; **62** pass the
-  HarfBuzz shaping gate for conjuncts, matras, nukta, numerals and the Hindi
-  sample paragraph. Bakbak One is rejected and its binaries are not published.
-- Public studio: `/biocraft/fonts` (search, categories, A–Z/recent/popular sort,
-  favourites, compare, editable preview, weight/size), family specimens with
-  licence and file downloads, `/biocraft/studio` (bios, shayari, quotes,
-  captions, usernames, stylish text) and `/biocraft/poster` (real 1080 × 1350
-  PNG rendered with the selected WOFF2).
-- Admin: `/admin/fonts` (import/verify/stage, approve or reject, metadata,
-  validation reports, usage, licences, export).
-- Every preview registers the actual WOFF2 at runtime; no font is claimed from
-  its name and no restricted file is redistributed.
-- Reproduction commands, counts, test evidence and open items:
-  **`docs/BIOCRAFT_FONT_ECOSYSTEM.md`**.
-
 ## Product and architecture
 
 - Next.js 16 App Router, React 19, strict TypeScript, npm (`package-lock.json` only).

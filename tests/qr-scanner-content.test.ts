@@ -394,11 +394,11 @@ describe("security inspection", () => {
 
 describe("redirect destination resolution", () => {
   it("resolves a website URL to a direct clickable redirect target and parses query/fragment fields", () => {
-    const payload = "https://biocraft-bice.vercel.app/products?id=42#top";
+    const payload = "https://quickkit-rosy.vercel.app/products?id=42#top";
     const recognition = recognize(payload);
     expect(
       recognition.fields.find((field) => field.label === "Host")?.value,
-    ).toBe("biocraft-bice.vercel.app");
+    ).toBe("quickkit-rosy.vercel.app");
     expect(
       recognition.fields.find((field) => field.label === "Path")?.value,
     ).toBe("/products");

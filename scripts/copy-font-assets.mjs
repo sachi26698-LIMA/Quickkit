@@ -15,10 +15,9 @@ import { fileURLToPath } from "node:url";
 // nothing is fetched from a third-party CDN, and no font file is committed to
 // public/ — the copy is generated at build time and ignored by git.
 //
-// `public/fonts/` is shared. The BioCraft font library keeps committed
-// WOFF2 faces under `public/fonts/<language>/<family>/`, so this script owns
-// exactly one subdirectory and must never clean the parent: deleting the whole
-// tree removed the font library and broke every BioCraft specimen page.
+// The copy owns exactly one subdirectory of `public/fonts/` and never cleans
+// its parent, so that adding another generated font set later cannot silently
+// delete an unrelated one.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const destinationRoot = path.join(root, "public", "fonts", "export");
 const sourceRoot = path.join(root, "assets", "noto");
