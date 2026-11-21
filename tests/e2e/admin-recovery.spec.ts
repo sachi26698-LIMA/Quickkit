@@ -32,10 +32,12 @@ test("recovery request and password update forms work with isolated API response
   expect(failures, `Recovery request failures: ${failures.join(", ")}`).toEqual(
     [],
   );
+  expect(actions, "Recovery API POST must reach the isolated route").toEqual([
+    "request",
+  ]);
   await expect(page.getByRole("status")).toContainText(
     "If this address is eligible",
   );
-  expect(actions).toEqual(["request"]);
 
   valid = true;
   await page.reload();
