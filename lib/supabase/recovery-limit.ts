@@ -9,7 +9,8 @@ import { getSupabaseAdminClient } from "./admin";
  * Use the existing atomic, shared four-per-15-minute submission limiter with
  * domain-separated buckets. Both IP and email are checked for every address,
  * whether or not it is an administrator. Never store raw addresses.
- * The x-real-ip trust boundary must be verified on the deployed Vercel ingress.
+ * Only Vercel's platform header is accepted in deployed environments. Local
+ * development shares one bucket rather than trusting client-supplied headers.
  */
 export async function consumeRecoveryLimit(
   request: NextRequest,
@@ -17,8 +18,25 @@ export async function consumeRecoveryLimit(
 ): Promise<"allowed" | "limited" | "unavailable"> {
   const secret = process.env.SUPABASE_SUBMISSION_HMAC_SECRET;
   const client = getSupabaseAdminClient();
-  const ip = request.headers.get("x-real-ip")?.trim();
-  if (!secret || Buffer.byteLength(secret) < 32 || !client || !ip || !isIP(ip))
+  const local =
+    process.env.NODE_ENV === "development" &&
+    (!process.env.VERCEL_ENV || process.env.VERCEL_ENV === "development");
+  const platform =
+    !local &&
+    process.env.VERCEL === "1" &&
+    ["production", "preview"].includes(process.env.VERCEL_ENV ?? "");
+  const ip = platform
+    ? request.headers.get("x-vercel-forwarded-for")?.trim()
+    : local
+      ? "local-development"
+      : null;
+  if (
+    !secret ||
+    Buffer.byteLength(secret) < 32 ||
+    !client ||
+    !ip ||
+    (platform && !isIP(ip))
+  )
     return "unavailable";
   const bucket = (type: string, value: string) =>
     createHmac("sha256", secret)
@@ -40,11 +58,4 @@ export async function consumeRecoveryLimit(
   } catch {
     return "unavailable";
   }
-}
-
-/** Baseline padding reduces, but cannot eliminate, provider-latency leakage. */
-export async function padRecoveryResponse(start: number): Promise<void> {
-  const remaining = 2000 - (performance.now() - start);
-  if (remaining > 0)
-    await new Promise((resolve) => setTimeout(resolve, remaining));
 }

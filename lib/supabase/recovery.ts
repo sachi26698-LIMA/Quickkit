@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabasePublicConfig } from "./config";
+import { getSupabaseAdminClient } from "./admin";
+import { recoveryDispatchFetch } from "./recovery-dispatch";
 import { isAllowedAdminEmail } from "./admin-auth";
 import type { Database } from "./database.types";
 
@@ -68,11 +70,16 @@ export const RECOVERY_COOKIE_OPTIONS = {
 };
 
 /** Separate HttpOnly recovery storage: never shares the administrator session. */
-export async function createRecoveryClient(): Promise<SupabaseClient<Database> | null> {
+export async function createRecoveryClient(
+  dispatchEligible?: boolean,
+): Promise<SupabaseClient<Database> | null> {
   const config = getSupabasePublicConfig();
   if (!config) return null;
   const store = await cookies();
   return createServerClient<Database>(config.url, config.publishableKey, {
+    ...(dispatchEligible === undefined
+      ? {}
+      : { global: { fetch: recoveryDispatchFetch(dispatchEligible) } }),
     cookieOptions: RECOVERY_COOKIE_OPTIONS,
     cookies: {
       getAll: () => store.getAll(),
@@ -131,23 +138,52 @@ export function validRecoveryProof(
   );
 }
 
-export async function validRecoverySession(
+async function verifiedRecoveryProof(
   client: SupabaseClient<Database>,
-): Promise<boolean> {
+): Promise<string | null> {
   const { data: userData, error: userError } = await client.auth.getUser();
   if (userError || !userData.user || !isAllowedAdminEmail(userData.user.email))
-    return false;
+    return null;
   const { data, error } = await client.auth.getSession();
   if (
     error ||
     !data.session?.access_token ||
     data.session.user.id !== userData.user.id
   )
-    return false;
+    return null;
   const store = await cookies();
-  return validRecoveryProof(
-    store.get(RECOVERY_PROOF_COOKIE)?.value,
-    data.session.access_token,
-    userData.user.id,
-  );
+  const proof = store.get(RECOVERY_PROOF_COOKIE)?.value;
+  return validRecoveryProof(proof, data.session.access_token, userData.user.id)
+    ? proof!
+    : null;
+}
+
+export async function validRecoverySession(
+  client: SupabaseClient<Database>,
+): Promise<boolean> {
+  return Boolean(await verifiedRecoveryProof(client));
+}
+
+/** Consume before updating the password. Failed updates require a fresh link. */
+export async function consumeRecoverySession(
+  client: SupabaseClient<Database>,
+): Promise<"consumed" | "invalid" | "unavailable"> {
+  const proof = await verifiedRecoveryProof(client);
+  if (!proof) return "invalid";
+  const secret = process.env.SUPABASE_SUBMISSION_HMAC_SECRET;
+  const admin = getSupabaseAdminClient();
+  if (!secret || Buffer.byteLength(secret) < 32 || !admin) return "unavailable";
+  const hash = createHmac("sha256", secret)
+    .update(`quickkit-recovery-consume-v1:${proof}`)
+    .digest("hex");
+  try {
+    const { data, error } = await admin.rpc("quickkit_consume_recovery_proof", {
+      p_proof_hash: hash,
+      p_expires_at: new Date(Number(proof.split(".")[0])).toISOString(),
+    });
+    if (error || typeof data !== "boolean") return "unavailable";
+    return data ? "consumed" : "invalid";
+  } catch {
+    return "unavailable";
+  }
 }

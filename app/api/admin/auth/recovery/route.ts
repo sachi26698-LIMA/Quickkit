@@ -8,12 +8,10 @@ import {
 } from "@/lib/supabase/admin-api";
 import { getAdminEmailAllowlist } from "@/lib/supabase/admin-auth";
 import { getRequestOrigin } from "@/lib/supabase/request-origin";
-import {
-  consumeRecoveryLimit,
-  padRecoveryResponse,
-} from "@/lib/supabase/recovery-limit";
+import { consumeRecoveryLimit } from "@/lib/supabase/recovery-limit";
 import {
   createRecoveryClient,
+  consumeRecoverySession,
   RECOVERY_PROOF_COOKIE,
   recoveryOrigin,
   recoveryProofConfigured,
@@ -52,27 +50,23 @@ export async function POST(request: NextRequest) {
     if (getRequestOrigin(request) !== origin)
       return apiError(403, "Request not accepted.");
     const email = body.email.trim().toLowerCase();
-    const start = performance.now();
     const limit = await consumeRecoveryLimit(request, email);
     if (limit !== "allowed") {
-      await padRecoveryResponse(start);
       return limit === "limited"
         ? apiError(429, "Too many recovery requests. Try again later.")
         : apiError(503, "Recovery is temporarily unavailable.");
     }
     try {
-      if (allowlist.has(email)) {
-        const client = await createRecoveryClient();
-        if (client) {
-          await client.auth.resetPasswordForEmail(email, {
-            redirectTo: `${origin}/auth/recovery`,
-          });
-        }
-      }
+      // Both eligible and ineligible addresses generate a PKCE verifier and
+      // schedule the same post-response task. Only eligible tasks send mail.
+      const client = await createRecoveryClient(allowlist.has(email));
+      if (!client) return apiError(503, "Recovery is temporarily unavailable.");
+      await client.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/recovery`,
+      });
     } catch {
-      // Do not reveal allowlist membership through provider failures.
+      // Never reveal provider or account details.
     }
-    await padRecoveryResponse(start);
     return noStoreJson({ ok: true });
   }
   if (body.action === "update") {
@@ -99,7 +93,15 @@ export async function POST(request: NextRequest) {
       );
     try {
       const client = await createRecoveryClient();
-      if (!client || !(await validRecoverySession(client)))
+      const consumed = client
+        ? await consumeRecoverySession(client)
+        : "invalid";
+      if (consumed === "unavailable")
+        return apiError(
+          503,
+          "Recovery is temporarily unavailable. Request a new link.",
+        );
+      if (!client || consumed !== "consumed")
         return apiError(
           401,
           "Recovery session is invalid or expired. Request a new link.",
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
       if (error)
         return apiError(
           400,
-          "Password update failed. Check the password policy or request a new link.",
+          "Password update failed. Request a new link and try again.",
         );
       try {
         (await cookies()).delete(RECOVERY_PROOF_COOKIE);

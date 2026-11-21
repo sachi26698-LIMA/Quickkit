@@ -1,19 +1,19 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({ rpc: vi.fn(), enabled: true }));
 vi.mock("@/lib/supabase/admin", () => ({
   getSupabaseAdminClient: () => (mocks.enabled ? { rpc: mocks.rpc } : null),
 }));
-import {
-  consumeRecoveryLimit,
-  padRecoveryResponse,
-} from "@/lib/supabase/recovery-limit";
+import { consumeRecoveryLimit } from "@/lib/supabase/recovery-limit";
 
 const request = (ip?: string) =>
   new NextRequest("https://quickkit.live/api/admin/auth/recovery", {
-    headers: ip ? { "x-real-ip": ip } : {},
+    headers: ip ? { "x-vercel-forwarded-for": ip } : {},
   });
+beforeEach(() => {
+  vi.stubEnv("VERCEL_ENV", "production");
+});
 afterEach(() => {
   vi.resetAllMocks();
   vi.unstubAllEnvs();
@@ -22,6 +22,7 @@ afterEach(() => {
 });
 describe("recovery abuse controls", () => {
   it("uses two deterministic, domain-separated hashed buckets and no raw identities", async () => {
+    vi.stubEnv("VERCEL", "1");
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "x".repeat(40));
     mocks.rpc.mockResolvedValue({ data: true, error: null });
     expect(
@@ -41,6 +42,7 @@ describe("recovery abuse controls", () => {
     ).toEqual(first);
   });
   it("fails closed for unavailable storage, missing IP and an exhausted bucket", async () => {
+    vi.stubEnv("VERCEL", "1");
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "x".repeat(40));
     expect(await consumeRecoveryLimit(request(), "x@example.test")).toBe(
       "unavailable",
@@ -60,17 +62,52 @@ describe("recovery abuse controls", () => {
       await consumeRecoveryLimit(request("192.0.2.1"), "x@example.test"),
     ).toBe("unavailable");
   });
-  it("pads fast responses to a minimum baseline", async () => {
-    vi.useFakeTimers();
-    const start = performance.now();
-    let done = false;
-    const pending = padRecoveryResponse(start).then(() => {
-      done = true;
-    });
-    await vi.advanceTimersByTimeAsync(1999);
-    expect(done).toBe(false);
-    await vi.advanceTimersByTimeAsync(1);
-    await pending;
-    expect(done).toBe(true);
+  it("uses a shared development bucket rather than client-supplied headers", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VERCEL_ENV", "development");
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "x".repeat(40));
+    mocks.rpc.mockResolvedValue({ data: true, error: null });
+    await consumeRecoveryLimit(request("192.0.2.1"), "x@example.test");
+    await consumeRecoveryLimit(request("192.0.2.2"), "x@example.test");
+    expect(mocks.rpc.mock.calls[0][1].p_bucket_hash).toBe(
+      mocks.rpc.mock.calls[2][1].p_bucket_hash,
+    );
+  });
+  it("ignores spoofed forwarding headers and fails closed without Vercel ingress", async () => {
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "x".repeat(40));
+    mocks.rpc.mockResolvedValue({ data: true, error: null });
+    const spoofed = new NextRequest(
+      "https://quickkit.live/api/admin/auth/recovery",
+      {
+        headers: {
+          "x-vercel-forwarded-for": "192.0.2.1",
+          "x-forwarded-for": "203.0.113.12",
+          "x-real-ip": "203.0.113.13",
+        },
+      },
+    );
+    await consumeRecoveryLimit(spoofed, "x@example.test");
+    const first = mocks.rpc.mock.calls[0][1].p_bucket_hash;
+    await consumeRecoveryLimit(request("192.0.2.1"), "x@example.test");
+    expect(mocks.rpc.mock.calls[2][1].p_bucket_hash).toBe(first);
+    const missing = new NextRequest(
+      "https://quickkit.live/api/admin/auth/recovery",
+      {
+        headers: {
+          "x-real-ip": "203.0.113.13",
+          "x-forwarded-for": "203.0.113.12",
+        },
+      },
+    );
+    expect(await consumeRecoveryLimit(missing, "x@example.test")).toBe(
+      "unavailable",
+    );
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("NODE_ENV", "production");
+    expect(await consumeRecoveryLimit(spoofed, "x@example.test")).toBe(
+      "unavailable",
+    );
   });
 });

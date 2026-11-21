@@ -8,20 +8,20 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   signOut: vi.fn(),
   valid: vi.fn(),
+  consume: vi.fn(),
   limit: vi.fn(),
-  pad: vi.fn(),
   listener: null as null | ((event: string) => void),
   store: { delete: vi.fn() },
 }));
 vi.mock("next/headers", () => ({ cookies: async () => mocks.store }));
 vi.mock("@/lib/supabase/recovery-limit", () => ({
   consumeRecoveryLimit: mocks.limit,
-  padRecoveryResponse: mocks.pad,
 }));
 vi.mock("@/lib/supabase/recovery", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/supabase/recovery")>()),
   createRecoveryClient: mocks.create,
   validRecoverySession: mocks.valid,
+  consumeRecoverySession: mocks.consume,
 }));
 import { GET as callback } from "@/app/auth/recovery/route";
 import { GET, POST } from "@/app/api/admin/auth/recovery/route";
@@ -54,7 +54,6 @@ const post = (body: object, origin = "https://quickkit.live") =>
 beforeEach(() => {
   vi.stubEnv("VERCEL_ENV", "production");
   mocks.limit.mockResolvedValue("allowed");
-  mocks.pad.mockResolvedValue(undefined);
 });
 afterEach(() => {
   vi.resetAllMocks();
@@ -160,7 +159,9 @@ describe("server-side recovery", () => {
       (await POST(post({ action: "request", email: "other@example.test" })))
         .status,
     ).toBe(200);
-    expect(mocks.reset).toHaveBeenCalledTimes(1);
+    expect(mocks.reset).toHaveBeenCalledTimes(2);
+    expect(mocks.create).toHaveBeenNthCalledWith(1, true);
+    expect(mocks.create).toHaveBeenNthCalledWith(2, false);
     expect(
       (
         await POST(
@@ -172,7 +173,7 @@ describe("server-side recovery", () => {
       ).status,
     ).toBe(403);
   });
-  it("applies the same limiter and padding to allowed and other addresses", async () => {
+  it("applies the same limiter and returns the same response for eligible and other addresses", async () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
     vi.stubEnv("QUICKKIT_ADMIN_EMAILS", "owner@example.test");
     mocks.create.mockResolvedValue(client());
@@ -186,7 +187,8 @@ describe("server-side recovery", () => {
     expect(allowed.status).toBe(other.status);
     expect(await allowed.json()).toEqual(await other.json());
     expect(mocks.limit).toHaveBeenCalledTimes(2);
-    expect(mocks.pad).toHaveBeenCalledTimes(2);
+    expect(mocks.create).toHaveBeenNthCalledWith(1, true);
+    expect(mocks.create).toHaveBeenNthCalledWith(2, false);
     mocks.limit
       .mockResolvedValueOnce("limited")
       .mockResolvedValueOnce("unavailable");
@@ -198,7 +200,7 @@ describe("server-side recovery", () => {
       (await POST(post({ action: "request", email: "owner@example.test" })))
         .status,
     ).toBe(503);
-    expect(mocks.reset).toHaveBeenCalledTimes(1);
+    expect(mocks.reset).toHaveBeenCalledTimes(2);
   });
   it("does not disclose allowlist membership through provider errors", async () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
@@ -222,7 +224,7 @@ describe("server-side recovery", () => {
     expect(
       (await POST(post({ action: "request", email: "owner@example.test" })))
         .status,
-    ).toBe(200);
+    ).toBe(503);
   });
   it("exchanges a recovery code and sets an HttpOnly proof", async () => {
     vi.stubEnv("SUPABASE_SUBMISSION_HMAC_SECRET", "a".repeat(40));
@@ -289,7 +291,9 @@ describe("server-side recovery", () => {
   });
   it("rejects invalid sessions and updates only with valid proof", async () => {
     mocks.create.mockResolvedValue(client());
-    mocks.valid.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    mocks.consume
+      .mockResolvedValueOnce("invalid")
+      .mockResolvedValueOnce("consumed");
     mocks.update.mockResolvedValue({ error: null });
     mocks.signOut.mockResolvedValue({ error: null });
     expect(
