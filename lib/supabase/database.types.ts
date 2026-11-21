@@ -201,6 +201,10 @@ export interface Database {
         Args: { p_scope: string; p_bucket_hash: string };
         Returns: boolean;
       };
+      quickkit_consume_recovery_proof: {
+        Args: { p_proof_hash: string; p_expires_at: string };
+        Returns: boolean;
+      };
       quickkit_consume_tool_feedback_limit: {
         Args: { p_bucket_hash: string };
         Returns: boolean;

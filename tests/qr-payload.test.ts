@@ -615,7 +615,7 @@ describe("the sample payload has a single source of truth", () => {
       "utf8",
     );
     expect(spec).toContain("sampleValuesFor(");
-    expect(spec).not.toContain("quickkit-rosy.vercel.app");
+    expect(spec).not.toContain("quickkit.live");
     expect(spec).not.toContain("quickkit.tools/?src=qr-example");
   });
 

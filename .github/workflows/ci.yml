@@ -75,6 +75,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium firefox webkit
+      # Exercise recovery UI across all configured browser/device projects first.
+      - run: npx playwright test tests/e2e/admin-recovery.spec.ts tests/e2e/admin-recovery-real.spec.ts
       # Catch cancellation regressions early while retaining the complete suite below.
       - run: npx playwright test tests/e2e/pdf-compressor.spec.ts --project=webkit --project=firefox --grep 'cancels a large batch' --repeat-each=2
       # Verify fixed preview dialogs stay interactive above the site header.
@@ -83,6 +85,15 @@ jobs:
         env:
           # Exercise the real visitor API without production credentials or data.
           ANALYTICS_DATABASE_URL: file:${{ runner.temp }}/quickkit-visitor-stats.db
+      # Keep the per-test result/skip reasons separate from the large screenshot
+      # bundle so operators can retrieve a small report even on a green run.
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: browser-results-json
+          path: playwright-results/results.json
+          if-no-files-found: warn
+          retention-days: 7
       - uses: actions/upload-artifact@v6
         if: failure()
         with:

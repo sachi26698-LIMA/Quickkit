@@ -1,5 +1,12 @@
 # QUICKKIT — Google Search Result & Sitelinks Optimization
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Branch:** `arena/c4ef22c7-quickkit`
 **Base:** `7e743359b3b3405ff35667f869d208f64d61aeea` (`main`)
 **Site:** https://quickkit-rosy.vercel.app/

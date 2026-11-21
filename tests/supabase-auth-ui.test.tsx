@@ -6,16 +6,13 @@ const source = (path: string) =>
 
 describe("public authentication removal", () => {
   it("redirects legacy visitor account routes and retains only the admin login", () => {
-    for (const route of [
-      "signup",
-      "login",
-      "account",
-      "forgot-password",
-      "reset-password",
-    ]) {
+    for (const route of ["signup", "login", "account", "forgot-password"]) {
       expect(source(`../app/(public)/${route}/page.tsx`)).toMatch(/redirect\(/);
     }
     expect(source("../app/admin/login/page.tsx")).toMatch(/AdminLoginForm/);
+    expect(source("../app/(public)/reset-password/page.tsx")).toMatch(
+      /RecoveryForm/,
+    );
   });
 
   it("keeps favorites in browser storage without visitor-auth or cloud sync coupling", () => {

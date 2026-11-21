@@ -12,7 +12,7 @@ import {
 import { tools } from "../lib/catalog";
 
 beforeEach(() => {
-  vi.stubEnv("SITE_URL", "https://quickkit-rosy.vercel.app");
+  vi.stubEnv("SITE_URL", "https://quickkit.live");
   vi.stubEnv("LAUNCH_APPROVED", "true");
   vi.stubEnv("VERCEL_ENV", "production");
   vi.resetModules();

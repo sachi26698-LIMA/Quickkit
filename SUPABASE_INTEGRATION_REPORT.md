@@ -1,5 +1,12 @@
 # QUICKKIT Supabase integration — execution report
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Date:** 10 November 2026 UTC
 **Branch:** `arena/73c3e289-quickkit`
 **Target:** existing Supabase project `Quick_kit` (`oevjmxcoyibkonousdoh`, `eu-west-1`) and existing Vercel project `quickkit` (`prj_CIR5iP3vxbNRLcP9EApup7b7iHq1`)

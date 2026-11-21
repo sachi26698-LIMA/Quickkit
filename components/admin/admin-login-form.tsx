@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Lock, Mail, ShieldCheck } from "lucide-react";
 import styles from "./admin.module.css";
 
@@ -148,6 +149,11 @@ export default function AdminLoginForm({
               : "Sign in to Control Center"}
         </button>
       </form>
+      <p>
+        <Link href="/reset-password" className={styles["admin-link"]}>
+          Forgot your password?
+        </Link>
+      </p>
       <p className={styles["admin-login-footnote"]}>
         Access is limited to explicitly allowlisted administrators. Public
         registration is disabled.

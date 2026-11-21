@@ -125,7 +125,7 @@ describe("System health panel", () => {
     renderOverview(systemReport());
     const expected: [string, string][] = [
       ["RLS verification", "Verified · 15 tables"],
-      ["SMTP configuration", "Confirmed · 2026-11-16"],
+      ["SMTP configuration", "Previously confirmed · 2026-11-16"],
       ["Sitemap verification", "Reachable · 142 URLs"],
       ["Analytics integration", "Connected · 7 visitors"],
       ["Error monitoring", "Connected · no errors in 24h"],
@@ -133,8 +133,9 @@ describe("System health panel", () => {
     for (const [label, value] of expected) {
       const row = healthRow(label);
       expect(row.value.textContent).toBe(value);
-      expect(row.value.className).toContain("good");
-      expect(row.dot.className).toContain("good");
+      const tone = label === "SMTP configuration" ? "warn" : "good";
+      expect(row.value.className).toContain(tone);
+      expect(row.dot.className).toContain(tone);
     }
   });
 
@@ -286,7 +287,7 @@ describe("Security page service checks", () => {
       </AdminLiveProvider>,
     );
     expect(await screen.findByText("Verified · 15 tables")).toBeTruthy();
-    expect(screen.getByText("Confirmed · 2026-11-16")).toBeTruthy();
+    expect(screen.getByText("Previously confirmed · 2026-11-16")).toBeTruthy();
     expect(screen.getByText("Reachable · 142 URLs")).toBeTruthy();
     expect(screen.getByText("Connected · 7 visitors")).toBeTruthy();
     expect(screen.getByText("1 error in 24h")).toBeTruthy();

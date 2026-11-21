@@ -1,13 +1,9 @@
-import { redirect } from "next/navigation";
-// A page title of its own. Without one, this route inherits the layout
-// `title.default` ("… | QUICKKIT") and the template appends the brand
-// again, producing "… | QUICKKIT | QUICKKIT".
+import RecoveryForm from "@/components/admin/recovery-form";
 export const metadata = {
-  title: "Choose a new password",
-  description:
-    "Password reset is not part of QUICKKIT because tools need no account. You are being taken back to the tool catalogue.",
+  title: "Reset administrator password",
+  description: "Recover access to the QUICKKIT administrator account.",
   robots: { index: false, follow: false },
 };
-export default function PublicPasswordResetRemoved() {
-  redirect("/tools");
+export default function ResetPasswordPage() {
+  return <RecoveryForm />;
 }

@@ -56,7 +56,8 @@ The following settings are intentionally managed in the Supabase Dashboard and a
 or mutated by this application:
 
 1. **Public Signup Disabled**: `Authentication → Sign In / Providers → Allow new users to sign up` must remain **OFF**.
-2. **Auth Site URL & Redirect URLs**: `Authentication → URL Configuration` must match the owner-verified production origin (`https://quickkit-rosy.vercel.app`) with no wildcard open redirects.
+2. **Auth Site URL & Redirect URLs**: `Authentication → URL Configuration` must match the owner-verified production origin (`https://quickkit.live`, the apex domain; `www` 301-redirects to it) with no
+   wildcard open redirects.
 3. **Custom SMTP Configuration**: `Project Settings → Authentication → SMTP Settings` — verify host, port, TLS, SPF/DKIM/DMARC records, and sender domain directly in the Dashboard. Never commit or log SMTP credentials.
 4. **Password Policy & MFA**: Verify strong password policy and enable MFA on the owner administrator account.
 5. **Backups & PITR**: Verify automated database backup schedule and retention policy in `Database → Backups`.

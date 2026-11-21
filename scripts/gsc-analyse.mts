@@ -8,7 +8,7 @@
  * Accepted shape (see docs/QUICKKIT_SEARCH_CONSOLE_DATA_REQUEST.md):
  *
  * {
- *   "siteUrl": "https://quickkit-rosy.vercel.app/",
+ *   "siteUrl": "https://quickkit.live/",
  *   "current":  { "startDate": "...", "endDate": "...", "rows": [ ... ] },
  *   "previous": { ... },                 // optional
  *   "currentPages": { ... },             // optional

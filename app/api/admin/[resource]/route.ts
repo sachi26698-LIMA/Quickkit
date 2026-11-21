@@ -339,7 +339,7 @@ export async function GET(
           sitemap_origin_configured: Boolean(siteOrigin),
           indexing_enabled: indexingEnabled,
           smtp_status: system.smtp.verified_on
-            ? `Custom SMTP confirmed in Supabase on ${system.smtp.verified_on}`
+            ? `SMTP configuration previously confirmed on ${system.smtp.verified_on}; current delivery not tested`
             : "Managed externally in Supabase Auth · not verified by app",
           error_monitoring_status: system.error_monitoring.configured
             ? "Enabled · first-party store"

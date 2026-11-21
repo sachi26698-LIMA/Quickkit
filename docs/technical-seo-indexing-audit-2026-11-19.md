@@ -1,5 +1,12 @@
 # QUICKKIT technical SEO & App Router indexing audit
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Property:** `https://quickkit-rosy.vercel.app`
 **Audit date:** 2026-11-19
 **Scope:** the 34 URLs confirmed by the owner from Google Search Console: 2 excluded by `noindex`, 22 discovered—not indexed, and 10 crawled—not indexed (classification corrected per the owner’s latest GSC clarification).
@@ -109,7 +116,7 @@ The rest of the GSC outcomes are principally indexing-selection / content-qualit
 
 ## GSC validation checklist
 
-1. Deploy the current branch to the approved production origin; confirm production environment variables still set `SITE_URL=https://quickkit-rosy.vercel.app` and `LAUNCH_APPROVED=true`.
+1. Deploy the current branch to the approved production origin; confirm production environment variables set `SITE_URL=https://quickkit.live` and `LAUNCH_APPROVED=true`. *(Corrected during the domain migration — this step originally named the retired alias. See [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).)*
 2. In URL Inspection, first check representative static outputs: `/tools`, `/tools/word-counter` (even while the maintenance row remains enabled), `/tools/bmi-calculator`, `/tools/regex-tester`, `/category/image-tools`, and `/category/developer-tools`. Confirm HTTP 200, rendered HTML with title/description/robots/canonical/content, `index, follow` on indexable pages, and no private/no-store response on public tool routes. Confirm the maintenance dialog can still show to visitors and admin preview still works.
 3. Verify redirects: `/tools/words-to-pdf` → 308 → `/tools/word-to-pdf`; `/copyright` → 308 → `/intellectual-property`. Inspect/request the canonical destinations only. Confirm neither redirect source is in `sitemap.xml`.
 4. Resubmit `https://quickkit-rosy.vercel.app/sitemap.xml` in Search Console. Inspect XML validity, origin consistency, only canonical 200 eligible URLs, and optional real `<lastmod>` values. Absence of `<lastmod>` on a shallow-history build is acceptable; do not add fake dates.

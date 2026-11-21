@@ -1885,7 +1885,7 @@ export function isKnownContentType(id: string): id is QrContentTypeId {
  * test red while the app itself is fine. The feature and the check both read
  * this one constant.
  */
-export const QR_SAMPLE_URL = "https://quickkit-rosy.vercel.app/?src=qr-example";
+export const QR_SAMPLE_URL = "https://quickkit.live/?src=qr-example";
 
 /**
  * A working sample per content type, used by the "Try sample" affordance so a

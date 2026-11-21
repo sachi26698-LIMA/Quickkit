@@ -1,5 +1,12 @@
 # QUICKKIT Phase 3 — Final Targeted Independent Signoff
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Original verification date:** 2026-11-10 per the session date. **Latest closure verification:** 2026-11-11 UTC.
 **Repository / active branch:** `sachi26698-LIMA/Quickkit` / `arena/ce249373-quickkit`, based at `16863986657f42583acfda216e228e8c2f5f8aa6`.
 **Prior Phase 3 PR:** #45 was merged into `main`; this re-verification did not push, open a PR, merge, or deploy.

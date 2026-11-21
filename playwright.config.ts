@@ -18,7 +18,13 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   // In CI, also emit GitHub annotations so failed tests are identifiable
   // from the Checks UI/API without downloading log bundles.
-  reporter: process.env.CI ? [["github"], ["list"]] : "list",
+  reporter: process.env.CI
+    ? [
+        ["github"],
+        ["list"],
+        ["json", { outputFile: "playwright-results/results.json" }],
+      ]
+    : "list",
   webServer: process.env.TEST_BASE_URL
     ? undefined
     : {
@@ -33,25 +39,25 @@ export default defineConfig({
       name: "firefox",
       use: { browserName: "firefox" },
       testMatch:
-        /core.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
     },
     {
       name: "webkit",
       use: { browserName: "webkit" },
       testMatch:
-        /core.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|biocraft.spec.ts|pdf-merger.spec.ts|pdf-splitter.spec.ts|pdf-compressor.spec.ts|pdf-to-word.spec.ts|production-readiness.spec.ts/,
     },
     {
       name: "android-chromium",
       use: { ...devices["Pixel 7"] },
       testMatch:
-        /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
     },
     {
       name: "mobile-webkit",
       use: { ...devices["iPhone 13"] },
       testMatch:
-        /core.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
+        /core.spec.ts|admin-recovery(?:-real)?.spec.ts|browser-tools.spec.ts|pdf-merger.spec.ts|production-readiness.spec.ts/,
     },
   ],
 });

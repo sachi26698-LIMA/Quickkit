@@ -1,5 +1,12 @@
 # QUICKKIT — Phase 2 On-Page SEO Verification Report
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Site:** `https://quickkit-rosy.vercel.app/`
 **Branch:** `arena/c4ef22c7-quickkit`
 **Date:** 2026-11-16

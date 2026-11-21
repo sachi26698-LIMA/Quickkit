@@ -1,5 +1,12 @@
 # QUICKKIT — Google Search Console & Technical SEO Final Audit
 
+
+> **Historical report.** Measurements below were taken while the production
+> origin was `quickkit-rosy.vercel.app`. The canonical public origin is now
+> **`https://quickkit.live`** — see
+> [`DOMAIN_MIGRATION_QUICKKIT_LIVE.md`](docs/DOMAIN_MIGRATION_QUICKKIT_LIVE.md).
+> Numbers are left as recorded rather than rewritten.
+
 **Audit date:** 10 November 2026 UTC · **Branch:** `arena/73c3e289-quickkit` · **Base commit:** `2ea18259b1cccffb0f881b3a7be0c5d68826db14`
 **Verdict: NEEDS ATTENTION — local technical checks pass; Search Console and live-production clearance are unverified**
 
