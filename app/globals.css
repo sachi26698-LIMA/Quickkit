@@ -240,10 +240,13 @@ button:disabled {
   height: 100%;
   filter: drop-shadow(0 2px 4px rgb(23 21 43 / 0.18));
 }
-/* Official QUICKKIT wordmark, vector paths (no font dependency). */
+/* Official QUICKKIT wordmark, vector paths (no font dependency). The viewBox
+   includes the two reference sparkle stars above KIT, so the box is taller
+   than the letter block (255 vs 150 units) — sized so the letters render at
+   the same 21px height as before. */
 .brand-wordmark {
   display: block;
-  height: 21px;
+  height: 36px;
   width: auto;
 }
 .navigation {
@@ -2344,7 +2347,7 @@ a.contact-card:hover {
     font-size: 19px;
   }
   .brand-wordmark {
-    height: 18px;
+    height: 31px;
   }
   .brand-mark {
     width: 34px;

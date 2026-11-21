@@ -51,7 +51,7 @@ export default function Image() {
         }}
       >
         <BrandSymbol width={218} height={218} />
-        <BrandWordmarkFull width={556} height={216} />
+        <BrandWordmarkFull width={556} height={274} />
       </div>
       <div
         style={{
