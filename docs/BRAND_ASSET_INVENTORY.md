@@ -20,6 +20,7 @@ and update this manifest if the set changes.
 | --- | --- |
 | `docs/brand/reference/IMG_20261121_101415.png` | Original uploaded wordmark reference |
 | `docs/brand/reference/file_000000009c3c821182ad9800cf209d6a.png` | Original uploaded symbol reference |
+| `docs/brand/preview-sheet.png` | One-page visual index of every logo variant, favicon sizes and palette |
 
 ## 2. Vector logos — `public/brand/`
 
